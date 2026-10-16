@@ -20,6 +20,8 @@ import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPorta
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Queryable;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectRole;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.User;
+import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserExportProjection;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
@@ -43,6 +45,16 @@ public interface UserRepositoryCustom extends FilterableRepository<User> {
    * @return Found Paged objects
    */
   Page<User> findByFilterExcluding(Queryable filter, Pageable pageable, String... exclude);
+
+  /**
+   * Finds flat user rows for the users export report: one row per user with the organizations count,
+   * without loading project and organization memberships.
+   *
+   * @param filter   Filter - Query representation
+   * @param pageable Page Representation, may be {@code null} to export all matching users
+   * @return Export rows in the filter/page order
+   */
+  List<UserExportProjection> findForExportByFilter(Queryable filter, Pageable pageable);
 
   Page<User> findProjectUsersByFilterExcluding(String projectKey, Queryable filter,
       Pageable pageable, String... exclude);

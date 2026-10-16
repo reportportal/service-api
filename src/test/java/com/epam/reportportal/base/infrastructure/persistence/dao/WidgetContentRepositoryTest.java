@@ -1322,6 +1322,28 @@ class WidgetContentRepositoryTest extends BaseMvcTest {
   }
 
   @Test
+  @Sql("/db/widget/component-health-check.sql")
+  void componentHealthCheckIncludesLaunchAttributes() {
+    List<ComponentHealthCheckContent> contents = widgetContentRepository.componentHealthCheck(
+        buildDefaultFilter(1L),
+        Sort.unsorted(),
+        false,
+        600,
+        new Filter(1L, TestItem.class, Lists.newArrayList()),
+        "build",
+        false
+    );
+
+    ComponentHealthCheckContent content = contents.stream()
+        .filter(it -> "3.29.11.0".equals(it.getAttributeValue()))
+        .findFirst()
+        .orElseThrow();
+    assertEquals("3.29.11.0", content.getAttributeValue());
+    assertEquals(18, content.getTotal());
+    assertEquals(38.89, content.getPassingRate(), 0.01);
+  }
+
+  @Test
   void componentHealthCheckTable() {
 
     String sortingColumn = "statistics$defects$no_defect$nd001";

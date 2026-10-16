@@ -33,7 +33,7 @@ import com.epam.reportportal.base.core.jasper.ReportType;
 import com.epam.reportportal.base.core.jasper.constants.LaunchReportConstants;
 import com.epam.reportportal.base.core.jasper.util.ExportUtils;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
-import com.epam.reportportal.base.infrastructure.persistence.entity.statistics.Statistics;
+import com.epam.reportportal.base.infrastructure.persistence.entity.launch.LaunchStatistics;
 import com.google.common.collect.Sets;
 import java.time.Duration;
 import java.util.HashMap;
@@ -93,7 +93,7 @@ public class LaunchJasperReportHandler extends AbstractJasperReportHandler<Launc
             Duration.between(launch.getStartTime(), endTime))).orElse(StringUtils.EMPTY);
     params.put(LaunchReportConstants.DURATION, duration);
 
-    Set<Statistics> statistics = launch.getStatistics();
+    Set<LaunchStatistics> statistics = launch.getStatistics();
     params.put(LaunchReportConstants.TOTAL,
         ExportUtils.getStatisticsCounter(statistics, EXECUTIONS_TOTAL));
     params.put(LaunchReportConstants.PASSED,

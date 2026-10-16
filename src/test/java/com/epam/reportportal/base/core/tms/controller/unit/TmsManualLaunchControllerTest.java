@@ -11,7 +11,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.springframework.test.web.servlet.setup.MockMvcBuilders.standaloneSetup;
+import static com.epam.reportportal.base.util.StandaloneMockMvcSupport.standaloneJsonSetup;
 
 import com.epam.reportportal.base.core.tms.controller.TmsManualLaunchController;
 import com.epam.reportportal.base.core.tms.dto.AddTestCaseToLaunchRQ;
@@ -78,7 +78,7 @@ public class TmsManualLaunchControllerTest {
         .withAuthorities(Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER")))
         .build();
 
-    mockMvc = standaloneSetup(controller)
+    mockMvc = standaloneJsonSetup(controller)
         .setCustomArgumentResolvers(new HandlerMethodArgumentResolver() {
           @Override
           public boolean supportsParameter(MethodParameter parameter) {

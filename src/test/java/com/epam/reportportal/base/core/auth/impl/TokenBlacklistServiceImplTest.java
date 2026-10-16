@@ -26,6 +26,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.epam.reportportal.base.core.integration.grafana.GrafanaSessionService;
 import com.epam.reportportal.base.infrastructure.persistence.dao.RevokedTokenRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.RevokedToken;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.User;
@@ -43,6 +44,9 @@ class TokenBlacklistServiceImplTest {
 
   @Mock
   private RevokedTokenRepository revokedTokenRepository;
+
+  @Mock
+  private GrafanaSessionService grafanaSessionService;
 
   @InjectMocks
   private TokenBlacklistServiceImpl service;
@@ -109,6 +113,7 @@ class TokenBlacklistServiceImplTest {
     assertEquals("user@example.com", captor.getValue().getSubject());
     assertNull(captor.getValue().getJti());
     assertNotNull(captor.getValue().getRevokedAt());
+    verify(grafanaSessionService).revokeForSubject("user@example.com");
   }
 
   @Test
@@ -127,6 +132,7 @@ class TokenBlacklistServiceImplTest {
     verify(revokedTokenRepository, times(2)).save(captor.capture());
     assertEquals("user@example.com", captor.getAllValues().get(0).getSubject());
     assertEquals("ext-123", captor.getAllValues().get(1).getSubject());
+    verify(grafanaSessionService).revokeForSubject("user@example.com");
   }
 
   @Test

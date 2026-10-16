@@ -22,6 +22,7 @@ import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JGroups
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JGroupsProjects;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JGroupsUsers;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JIntegration;
+import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JIntegrationBackup;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JIntegrationType;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JIssue;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JIssueGroup;
@@ -30,9 +31,12 @@ import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JIssueT
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JIssueTypeProject;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JItemAttribute;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JLaunch;
+import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JLaunchAttribute;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JLaunchAttributeRules;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JLaunchNames;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JLaunchNumber;
+import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JLaunchStatistics;
+import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JLaunchesModified;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JLog;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JLogType;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JOrganization;
@@ -48,6 +52,7 @@ import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JProjec
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JProjectUser;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JRecipients;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JRestorePasswordBid;
+import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JRevokedToken;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JSenderCase;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JServerSettings;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JShedlock;
@@ -95,10 +100,8 @@ import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JUsers;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JWidget;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JWidgetFilter;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.records.JPgpArmorHeadersRecord;
-
 import java.util.Arrays;
 import java.util.List;
-
 import org.jooq.Catalog;
 import org.jooq.Configuration;
 import org.jooq.Field;
@@ -212,6 +215,11 @@ public class JPublic extends SchemaImpl {
     public final JIntegration INTEGRATION = JIntegration.INTEGRATION;
 
   /**
+   * The table <code>public.integration_backup</code>.
+   */
+  public final JIntegrationBackup INTEGRATION_BACKUP = JIntegrationBackup.INTEGRATION_BACKUP;
+
+  /**
    * The table <code>public.integration_type</code>.
    */
   public final JIntegrationType INTEGRATION_TYPE = JIntegrationType.INTEGRATION_TYPE;
@@ -252,6 +260,11 @@ public class JPublic extends SchemaImpl {
     public final JLaunch LAUNCH = JLaunch.LAUNCH;
 
     /**
+     * The table <code>public.launch_attribute</code>.
+     */
+    public final JLaunchAttribute LAUNCH_ATTRIBUTE = JLaunchAttribute.LAUNCH_ATTRIBUTE;
+
+  /**
      * The table <code>public.launch_attribute_rules</code>.
      */
     public final JLaunchAttributeRules LAUNCH_ATTRIBUTE_RULES = JLaunchAttributeRules.LAUNCH_ATTRIBUTE_RULES;
@@ -267,6 +280,16 @@ public class JPublic extends SchemaImpl {
     public final JLaunchNumber LAUNCH_NUMBER = JLaunchNumber.LAUNCH_NUMBER;
 
     /**
+     * The table <code>public.launch_statistics</code>.
+     */
+    public final JLaunchStatistics LAUNCH_STATISTICS = JLaunchStatistics.LAUNCH_STATISTICS;
+
+  /**
+   * The table <code>public.launches_modified</code>.
+   */
+  public final JLaunchesModified LAUNCHES_MODIFIED = JLaunchesModified.LAUNCHES_MODIFIED;
+
+  /**
      * The table <code>public.log</code>.
      */
     public final JLog LOG = JLog.LOG;
@@ -323,8 +346,9 @@ public class JPublic extends SchemaImpl {
           Configuration configuration
         , String __1
     ) {
-        return configuration.dsl().selectFrom(JPgpArmorHeaders.PGP_ARMOR_HEADERS.call(
-              __1
+        return configuration.dsl().selectFrom(
+            com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JPgpArmorHeaders.PGP_ARMOR_HEADERS.call(
+                __1
         )).fetch();
     }
 
@@ -334,7 +358,7 @@ public class JPublic extends SchemaImpl {
     public static JPgpArmorHeaders PGP_ARMOR_HEADERS(
           String __1
     ) {
-        return JPgpArmorHeaders.PGP_ARMOR_HEADERS.call(
+        return com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JPgpArmorHeaders.PGP_ARMOR_HEADERS.call(
             __1
         );
     }
@@ -345,7 +369,7 @@ public class JPublic extends SchemaImpl {
     public static JPgpArmorHeaders PGP_ARMOR_HEADERS(
           Field<String> __1
     ) {
-        return JPgpArmorHeaders.PGP_ARMOR_HEADERS.call(
+        return com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JPgpArmorHeaders.PGP_ARMOR_HEADERS.call(
             __1
         );
     }
@@ -376,7 +400,12 @@ public class JPublic extends SchemaImpl {
     public final JRestorePasswordBid RESTORE_PASSWORD_BID = JRestorePasswordBid.RESTORE_PASSWORD_BID;
 
     /**
-     * The table <code>public.sender_case</code>.
+     * The table <code>public.revoked_token</code>.
+     */
+    public final JRevokedToken REVOKED_TOKEN = JRevokedToken.REVOKED_TOKEN;
+
+  /**
+   * The table <code>public.sender_case</code>.
      */
     public final JSenderCase SENDER_CASE = JSenderCase.SENDER_CASE;
 
@@ -542,10 +571,6 @@ public class JPublic extends SchemaImpl {
     public final JTmsTestCaseExecutionCommentAttachment TMS_TEST_CASE_EXECUTION_COMMENT_ATTACHMENT = JTmsTestCaseExecutionCommentAttachment.TMS_TEST_CASE_EXECUTION_COMMENT_ATTACHMENT;
 
     /**
-     * The table <code>public.tms_test_case_execution_comment_bts_ticket</code>.
-     */
-
-    /**
      * The table <code>public.tms_test_case_version</code>.
      */
     public final JTmsTestCaseVersion TMS_TEST_CASE_VERSION = JTmsTestCaseVersion.TMS_TEST_CASE_VERSION;
@@ -651,6 +676,7 @@ public class JPublic extends SchemaImpl {
             JGroupsProjects.GROUPS_PROJECTS,
             JGroupsUsers.GROUPS_USERS,
             JIntegration.INTEGRATION,
+            JIntegrationBackup.INTEGRATION_BACKUP,
             JIntegrationType.INTEGRATION_TYPE,
             JIssue.ISSUE,
             JIssueGroup.ISSUE_GROUP,
@@ -659,9 +685,12 @@ public class JPublic extends SchemaImpl {
             JIssueTypeProject.ISSUE_TYPE_PROJECT,
             JItemAttribute.ITEM_ATTRIBUTE,
             JLaunch.LAUNCH,
+            JLaunchAttribute.LAUNCH_ATTRIBUTE,
             JLaunchAttributeRules.LAUNCH_ATTRIBUTE_RULES,
             JLaunchNames.LAUNCH_NAMES,
             JLaunchNumber.LAUNCH_NUMBER,
+            JLaunchStatistics.LAUNCH_STATISTICS,
+            JLaunchesModified.LAUNCHES_MODIFIED,
             JLog.LOG,
             JLogType.LOG_TYPE,
             JOrganization.ORGANIZATION,
@@ -677,6 +706,7 @@ public class JPublic extends SchemaImpl {
             JProjectUser.PROJECT_USER,
             JRecipients.RECIPIENTS,
             JRestorePasswordBid.RESTORE_PASSWORD_BID,
+            JRevokedToken.REVOKED_TOKEN,
             JSenderCase.SENDER_CASE,
             JServerSettings.SERVER_SETTINGS,
             JShedlock.SHEDLOCK,

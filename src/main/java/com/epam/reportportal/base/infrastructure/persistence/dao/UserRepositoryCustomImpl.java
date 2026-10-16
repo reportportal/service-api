@@ -16,6 +16,7 @@
 
 package com.epam.reportportal.base.infrastructure.persistence.dao;
 
+import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.FilterTarget.FILTERED_ID;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.util.RecordMappers.REPORT_PORTAL_USER_MAPPER;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.util.RecordMappers.USER_MAPPER;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.util.ResultFetchers.REPORTPORTAL_USER_FETCHER;
@@ -31,14 +32,18 @@ import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Qu
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Queryable;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectRole;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.User;
+import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserExportProjection;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import org.jooq.DSLContext;
+import org.jooq.Field;
 import org.jooq.SortOrder;
+import org.jooq.impl.DSL;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -70,6 +75,39 @@ public class UserRepositoryCustomImpl implements UserRepositoryCustom {
     return PageableExecutionUtils.getPage(USER_FETCHER.apply(dsl.fetch(
         QueryBuilder.newBuilder(filter).with(pageable).wrap().withWrapperSort(pageable.getSort())
             .build())), pageable, () -> dsl.fetchCount(QueryBuilder.newBuilder(filter).build()));
+  }
+
+  @Override
+  public List<UserExportProjection> findForExportByFilter(Queryable filter, Pageable pageable) {
+    QueryBuilder filterQuery = QueryBuilder.newBuilder(filter);
+    if (pageable != null) {
+      filterQuery.with(pageable);
+    }
+    List<Long> ids = dsl.fetch(filterQuery.build()).getValues(FILTERED_ID, Long.class);
+    if (ids.isEmpty()) {
+      return List.of();
+    }
+
+    Field<String> lastLogin = DSL.field("{0} -> 'metadata' ->> 'last_login'", String.class,
+        USERS.METADATA);
+    Field<Integer> organizationsCount = DSL.countDistinct(ORGANIZATION_USER.ORGANIZATION_ID);
+    Map<Long, UserExportProjection> rowsById = dsl.select(USERS.ID, USERS.FULL_NAME, USERS.TYPE,
+            USERS.EMAIL, lastLogin, organizationsCount)
+        .from(USERS)
+        .leftJoin(ORGANIZATION_USER).on(ORGANIZATION_USER.USER_ID.eq(USERS.ID))
+        .where(USERS.ID.eq(DSL.any(ids.toArray(Long[]::new))))
+        .groupBy(USERS.ID)
+        .fetchMap(USERS.ID, r -> new UserExportProjection(
+            r.get(USERS.ID),
+            r.get(USERS.FULL_NAME),
+            r.get(USERS.TYPE),
+            r.get(USERS.EMAIL),
+            r.get(lastLogin),
+            r.get(organizationsCount)
+        ));
+
+    // keep the order produced by the filter query (sorting is applied there)
+    return ids.stream().map(rowsById::get).filter(Objects::nonNull).toList();
   }
 
   @Override

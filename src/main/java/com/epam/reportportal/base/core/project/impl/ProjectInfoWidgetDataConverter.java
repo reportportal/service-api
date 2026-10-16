@@ -30,7 +30,7 @@ import static java.time.temporal.IsoFields.WEEK_BASED_YEAR;
 
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.InfoInterval;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
-import com.epam.reportportal.base.infrastructure.persistence.entity.statistics.Statistics;
+import com.epam.reportportal.base.infrastructure.persistence.entity.statistics.StatisticsView;
 import com.epam.reportportal.base.model.widget.ChartObject;
 import com.google.common.collect.Lists;
 import java.text.DecimalFormat;
@@ -159,7 +159,9 @@ public class ProjectInfoWidgetDataConverter {
       DoubleSummaryStatistics statistics = group.stream().mapToDouble(
           launch -> launch.getStatistics().stream()
               .filter(it -> it.getStatisticsField().getName().equalsIgnoreCase(EXECUTIONS_TOTAL))
-              .findFirst().orElse(new Statistics()).getCounter()).summaryStatistics();
+              .findFirst()
+              .map(StatisticsView::getCounter)
+              .orElse(0)).summaryStatistics();
 
       values.put(MIN, String.valueOf(statistics.getMin()));
       values.put(MAX, String.valueOf(statistics.getMax()));

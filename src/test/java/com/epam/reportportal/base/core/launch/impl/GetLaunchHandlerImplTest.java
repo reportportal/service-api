@@ -35,7 +35,7 @@ import com.epam.reportportal.base.infrastructure.model.launch.cluster.ClusterInf
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.FilterCondition;
-import com.epam.reportportal.base.infrastructure.persistence.dao.ItemAttributeRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchAttributeRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.UserRepository;
@@ -81,7 +81,7 @@ class GetLaunchHandlerImplTest {
   private LaunchRepository launchRepository;
 
   @Mock
-  private ItemAttributeRepository itemAttributeRepository;
+  private LaunchAttributeRepository launchAttributeRepository;
 
   @Mock
   private ProjectRepository projectRepository;

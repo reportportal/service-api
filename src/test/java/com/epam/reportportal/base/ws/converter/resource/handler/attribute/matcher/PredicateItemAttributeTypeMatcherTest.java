@@ -16,6 +16,7 @@
 
 package com.epam.reportportal.base.ws.converter.resource.handler.attribute.matcher;
 
+import com.epam.reportportal.base.infrastructure.persistence.entity.Attribute;
 import com.epam.reportportal.base.infrastructure.persistence.entity.ItemAttribute;
 import com.epam.reportportal.base.ws.converter.resource.handler.attribute.ItemAttributeType;
 import org.junit.jupiter.api.Assertions;
@@ -27,7 +28,7 @@ import org.junit.jupiter.api.Test;
 class PredicateItemAttributeTypeMatcherTest {
 
   private final PredicateItemAttributeTypeMatcher systemAttributeMatcher = new PredicateItemAttributeTypeMatcher(
-      ItemAttribute::isSystem, ItemAttributeType.SYSTEM);
+      Attribute::isSystem, ItemAttributeType.SYSTEM);
   private final PredicateItemAttributeTypeMatcher publicAttributeMatcher = new PredicateItemAttributeTypeMatcher(
       it -> !it.isSystem(), ItemAttributeType.PUBLIC);
 

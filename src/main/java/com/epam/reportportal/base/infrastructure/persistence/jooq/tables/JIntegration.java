@@ -12,12 +12,10 @@ import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JIntegr
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JOrganization.JOrganizationPath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JProject.JProjectPath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.records.JIntegrationRecord;
-
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-
 import org.jooq.Condition;
 import org.jooq.Field;
 import org.jooq.ForeignKey;
@@ -178,7 +176,9 @@ public class JIntegration extends TableImpl<JIntegrationRecord> {
 
     @Override
     public List<Index> getIndexes() {
-        return Arrays.asList(Indexes.INTEGR_PROJECT_IDX, Indexes.UNIQUE_GLOBAL_INTEGRATION_NAME, Indexes.UNIQUE_PROJECT_INTEGRATION_NAME);
+      return Arrays.asList(Indexes.IDX_INTEGRATION_ORGANIZATION_ID, Indexes.INTEGR_PROJECT_IDX,
+          Indexes.UNIQUE_GLOBAL_INTEGRATION_NAME, Indexes.UNIQUE_ORGANIZATION_INTEGRATION_NAME,
+          Indexes.UNIQUE_PROJECT_INTEGRATION_NAME);
     }
 
     @Override

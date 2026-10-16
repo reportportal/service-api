@@ -34,8 +34,8 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * JPA-based implementation of {@link TestItemStatisticsService}.
  * <p>
- * All methods acquire a PostgreSQL advisory lock ({@code pg_advisory_xact_lock}) on the launch ID to serialize
- * statistics operations within the same launch, preventing deadlocks.
+ * All methods acquire a PostgreSQL advisory lock ({@code pg_advisory_xact_lock}) on the launch ID
+ * to serialize statistics operations within the same launch, preventing deadlocks.
  * <p>
  * Uses JPA repositories for all database operations.
  *
@@ -43,7 +43,8 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 @RequiredArgsConstructor
-public class TestItemStatisticsServiceImpl implements TestItemStatisticsService {
+public class
+TestItemStatisticsServiceImpl implements TestItemStatisticsService {
 
   private static final String EXECUTIONS_TOTAL = "statistics$executions$total";
   private static final String EXECUTIONS_PREFIX = "statistics$executions$";
@@ -176,8 +177,8 @@ public class TestItemStatisticsServiceImpl implements TestItemStatisticsService 
 
 
   /**
-   * Acquires a transaction-scoped advisory lock on the launch ID. Serializes all statistics operations within the same
-   * launch, preventing deadlocks.
+   * Acquires a transaction-scoped advisory lock on the launch ID. Serializes all statistics
+   * operations within the same launch, preventing deadlocks.
    */
   public void acquireAdvisoryLock(Long launchId) {
     statisticsRepository.performAdvisoryLock(launchId);
@@ -212,8 +213,8 @@ public class TestItemStatisticsServiceImpl implements TestItemStatisticsService 
   }
 
   /**
-   * Maps a {@link StatusEnum} to the execution statistics field name. INTERRUPTED is treated as "failed" (same
-   * convention as the DB function).
+   * Maps a {@link StatusEnum} to the execution statistics field name. INTERRUPTED is treated as
+   * "failed" (same convention as the DB function).
    */
   private String executionFieldName(StatusEnum status) {
     return EXECUTIONS_PREFIX + status.getExecutionCounterField();
@@ -239,8 +240,8 @@ public class TestItemStatisticsServiceImpl implements TestItemStatisticsService 
   }
 
   /**
-   * Increments the specified statistics fields by 1 for all items in the path (ancestors + self). Uses native SQL
-   * UPSERT for efficient bulk operations.
+   * Increments the specified statistics fields by 1 for all items in the path (ancestors + self).
+   * Uses native SQL UPSERT for efficient bulk operations.
    */
   private void incrementForAncestors(Long[] pathIds, StatisticsField... fields) {
     Long[] fieldIds = Arrays.stream(fields).map(StatisticsField::getId).toArray(Long[]::new);
@@ -248,7 +249,8 @@ public class TestItemStatisticsServiceImpl implements TestItemStatisticsService 
   }
 
   /**
-   * Increments the specified statistics fields by 1 for the launch. Uses native SQL UPSERT for efficient operations.
+   * Increments the specified statistics fields by 1 for the launch. Uses native SQL UPSERT for
+   * efficient operations.
    */
   private void incrementForLaunch(Long launchId, StatisticsField... fields) {
     Long[] fieldIds = Arrays.stream(fields).map(StatisticsField::getId).toArray(Long[]::new);
@@ -256,8 +258,8 @@ public class TestItemStatisticsServiceImpl implements TestItemStatisticsService 
   }
 
   /**
-   * Decrements the specified statistics fields by the given amount for all items in the path (ancestors + self). Uses
-   * native SQL with GREATEST(0, ...) to prevent negative values.
+   * Decrements the specified statistics fields by the given amount for all items in the path
+   * (ancestors + self). Uses native SQL with GREATEST(0, ...) to prevent negative values.
    */
   private void decrementForAncestors(Long[] pathIds, int amount, StatisticsField... fields) {
     Long[] fieldIds = Arrays.stream(fields).map(StatisticsField::getId).toArray(Long[]::new);
@@ -265,8 +267,8 @@ public class TestItemStatisticsServiceImpl implements TestItemStatisticsService 
   }
 
   /**
-   * Decrements the specified statistics fields by the given amount for the launch. Uses native SQL with GREATEST(0,
-   * ...) to prevent negative values.
+   * Decrements the specified statistics fields by the given amount for the launch. Uses native SQL
+   * with GREATEST(0, ...) to prevent negative values.
    */
   private void decrementForLaunch(Long launchId, int amount, StatisticsField... fields) {
     Long[] fieldIds = Arrays.stream(fields).map(StatisticsField::getId).toArray(Long[]::new);

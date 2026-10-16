@@ -16,18 +16,17 @@
 
 package com.epam.reportportal.base.ws.converter.resource.handler.attribute;
 
-import com.epam.reportportal.base.infrastructure.persistence.entity.ItemAttribute;
+import com.epam.reportportal.base.infrastructure.persistence.entity.Attribute;
 import java.util.Collection;
 
 /**
- * Applies or merges {@link com.epam.reportportal.base.infrastructure.persistence.entity.ItemAttribute} collections onto
- * a resource.
+ * Applies or merges persisted attribute collections onto a resource.
  *
  * @param <T> resource type
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public interface ResourceAttributeHandler<T> {
 
-  void handle(T resource, Collection<ItemAttribute> attributes);
+  void handle(T resource, Collection<? extends Attribute> attributes);
 
 }

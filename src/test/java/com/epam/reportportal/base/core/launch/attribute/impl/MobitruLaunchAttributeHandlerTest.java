@@ -29,8 +29,8 @@ import static org.mockito.Mockito.when;
 import com.epam.reportportal.base.core.events.attachment.ExternalAttachmentLoadProducer;
 import com.epam.reportportal.base.core.log.MobitruAttachmentService;
 import com.epam.reportportal.base.core.log.SystemLogService;
-import com.epam.reportportal.base.infrastructure.persistence.entity.ItemAttribute;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
+import com.epam.reportportal.base.infrastructure.persistence.entity.launch.LaunchAttribute;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
@@ -207,13 +207,13 @@ class MobitruLaunchAttributeHandlerTest {
     return launchWithAttributes(attr(key, value));
   }
 
-  private Launch launchWithAttributes(ItemAttribute... attrs) {
+  private Launch launchWithAttributes(LaunchAttribute... attrs) {
     Launch launch = new Launch();
     launch.setId(1L);
     launch.setProjectId(2L);
-    Set<ItemAttribute> set = new LinkedHashSet<>();
+    Set<LaunchAttribute> set = new LinkedHashSet<>();
     int idCounter = 1;
-    for (ItemAttribute a : attrs) {
+    for (LaunchAttribute a : attrs) {
       a.setId((long) idCounter++);
       set.add(a);
     }
@@ -221,8 +221,8 @@ class MobitruLaunchAttributeHandlerTest {
     return launch;
   }
 
-  private ItemAttribute attr(String key, String value) {
-    return new ItemAttribute(key, value, false);
+  private LaunchAttribute attr(String key, String value) {
+    return new LaunchAttribute(key, value, false);
   }
 
   private String logMessage(String value) {

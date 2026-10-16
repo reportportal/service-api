@@ -19,8 +19,8 @@ package com.epam.reportportal.base.ws.converter.resource.handler.attribute.launc
 import static java.util.stream.Collectors.groupingBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.epam.reportportal.base.infrastructure.persistence.entity.ItemAttribute;
-import com.epam.reportportal.base.reporting.ItemAttributeResource;
+import com.epam.reportportal.base.infrastructure.persistence.entity.launch.LaunchAttribute;
+import com.epam.reportportal.base.reporting.AttributeResource;
 import com.epam.reportportal.base.reporting.LaunchResource;
 import java.util.List;
 import java.util.Map;
@@ -38,29 +38,23 @@ class LaunchResourceAttributeUpdaterTest {
   @Test
   void shouldUpdate() {
     final LaunchResource launchResource = new LaunchResource();
-    final List<ItemAttribute> attributes = List.of(new ItemAttribute("k1", "v1", false),
-        new ItemAttribute("k2", "v2", false));
+    final List<LaunchAttribute> attributes = List.of(new LaunchAttribute("k1", "v1", false),
+        new LaunchAttribute("k2", "v2", false));
     launchResourceAttributeUpdater.handle(launchResource, attributes);
 
-    final Set<ItemAttributeResource> resourceAttributes = launchResource.getAttributes();
+    final Set<AttributeResource> resourceAttributes = launchResource.getAttributes();
     Assertions.assertEquals(2, resourceAttributes.size());
 
-    final Map<String, List<ItemAttributeResource>> mapping = resourceAttributes.stream()
-        .collect(groupingBy(ItemAttributeResource::getKey));
+    final Map<String, List<AttributeResource>> mapping = resourceAttributes.stream()
+        .collect(groupingBy(AttributeResource::getKey));
 
-    final ItemAttributeResource firstResource = mapping.get("k1").get(0);
-    final ItemAttributeResource secondResource = mapping.get("k2").get(0);
-
-    final ItemAttribute firstAttribute = attributes.get(0);
-    final ItemAttribute secondAttribute = attributes.get(1);
-    shouldEqual(firstAttribute, firstResource);
-    shouldEqual(secondAttribute, secondResource);
-
+    shouldEqual(attributes.get(0), mapping.get("k1").get(0));
+    shouldEqual(attributes.get(1), mapping.get("k2").get(0));
   }
 
-  private void shouldEqual(ItemAttribute itemAttribute, ItemAttributeResource resource) {
-    assertEquals(itemAttribute.getKey(), resource.getKey());
-    assertEquals(itemAttribute.getValue(), resource.getValue());
+  private void shouldEqual(LaunchAttribute attribute, AttributeResource resource) {
+    assertEquals(attribute.getKey(), resource.getKey());
+    assertEquals(attribute.getValue(), resource.getValue());
   }
 
 }

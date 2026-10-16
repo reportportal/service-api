@@ -16,7 +16,7 @@
 
 package com.epam.reportportal.base.ws.converter.resource.handler.attribute.matcher;
 
-import com.epam.reportportal.base.infrastructure.persistence.entity.ItemAttribute;
+import com.epam.reportportal.base.infrastructure.persistence.entity.Attribute;
 import com.epam.reportportal.base.ws.converter.resource.handler.attribute.ItemAttributeType;
 
 /**
@@ -26,7 +26,7 @@ import com.epam.reportportal.base.ws.converter.resource.handler.attribute.ItemAt
  */
 public interface ItemAttributeTypeMatcher {
 
-  boolean matches(ItemAttribute attribute);
+  boolean matches(Attribute attribute);
 
   ItemAttributeType getType();
 }

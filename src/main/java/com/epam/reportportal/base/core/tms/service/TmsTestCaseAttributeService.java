@@ -16,6 +16,17 @@ public interface TmsTestCaseAttributeService {
   void createTestCaseAttributes(long projectId, @NotNull TmsTestCase tmsTestCase,
       @NotEmpty List<TmsTestCaseAttributeRQ> attributes);
 
+  /**
+   * Attaches already-resolved/validated attribute IDs to a test case without re-fetching each
+   * attribute from the database. Intended for bulk flows (e.g. CSV import) where attribute IDs
+   * were already resolved/validated in bulk for the same project.
+   *
+   * @param testCase     the test case to attach attributes to
+   * @param attributeIds IDs of attributes already known to belong to the test case's project
+   */
+  void createTestCaseAttributesByIds(@NotNull TmsTestCase tmsTestCase,
+      @NotEmpty Collection<Long> attributeIds);
+
   void updateTestCaseAttributes(long projectId, @NotNull TmsTestCase tmsTestCase,
       List<TmsTestCaseAttributeRQ> attributes);
 

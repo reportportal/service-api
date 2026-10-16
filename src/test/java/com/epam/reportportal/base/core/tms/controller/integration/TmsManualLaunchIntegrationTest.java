@@ -56,9 +56,6 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * Integration tests for TMS Manual Launch functionality.
- */
 @Sql("/db/tms/tms-manual-launch/tms-manual-launch-fill.sql")
 @ExtendWith(MockitoExtension.class)
 public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
@@ -66,6 +63,7 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
   private static final String SUPERADMIN_PROJECT_KEY = "superadmin_personal";
   private static final String DEFAULT_PROJECT_KEY = "default_personal";
   private final ObjectMapper mapper = new ObjectMapper();
+
   @Autowired
   private LaunchRepository launchRepository;
   @Autowired
@@ -81,11 +79,8 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
   @PersistenceContext
   private EntityManager entityManager;
 
-  // ==================== CREATE MANUAL LAUNCH ====================
-
   @Test
   void createManualLaunch_WithAllFields_ShouldSucceed() throws Exception {
-    // Given
     var launchRQ = TmsManualLaunchRQ.builder()
         .name("Manual Launch Full")
         .uuid("550e8400-e29b-41d4-a716-446655440999")
@@ -100,7 +95,6 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
         ))
         .build();
 
-    // When
     var result = mockMvc.perform(
             post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual")
                 .contentType(APPLICATION_JSON)
@@ -115,15 +109,10 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
         .andExpect(jsonPath("$.testPlan").exists())
         .andExpect(jsonPath("$.testPlan.id").value(6L))
         .andExpect(jsonPath("$.mode").value("DEFAULT"))
-        .andExpect(jsonPath("$.status").exists())
+        .andExpect(jsonPath("$.status").doesNotExist())
         .andReturn();
 
-    // Then
-    var response = mapper.readValue(
-        result.getResponse().getContentAsString(),
-        TmsManualLaunchRS.class
-    );
-
+    var response = mapper.readValue(result.getResponse().getContentAsString(), TmsManualLaunchRS.class);
     var launch = launchRepository.findById(response.getId());
     assertTrue(launch.isPresent());
     assertEquals(LaunchTypeEnum.MANUAL, launch.get().getLaunchType());
@@ -134,13 +123,11 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
 
   @Test
   void createManualLaunch_WithTestPlanBatchMode_ShouldAddAllTestCasesFromPlan() throws Exception {
-    // Given - test plan 1 has test cases: 4, 5, 6, 13, 14, 15, 16 (based on test data)
     var launchRQ = TmsManualLaunchRQ.builder()
         .name("Launch with Test Plan Batch")
-        .testPlan(new com.epam.reportportal.base.core.tms.dto.TmsManualLaunchTestPlanRQ(1L)) // Test Plan 1 from test data
+        .testPlan(new com.epam.reportportal.base.core.tms.dto.TmsManualLaunchTestPlanRQ(1L))
         .build();
 
-    // When
     var result = mockMvc.perform(
             post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual")
                 .contentType(APPLICATION_JSON)
@@ -154,34 +141,22 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
         .andExpect(jsonPath("$.executionStatistic.toRun").exists())
         .andReturn();
 
-    var response = mapper.readValue(
-        result.getResponse().getContentAsString(),
-        TmsManualLaunchRS.class
-    );
-
-    // Then - verify ALL test case executions from test plan were created in batch mode
+    var response = mapper.readValue(result.getResponse().getContentAsString(), TmsManualLaunchRS.class);
     entityManager.clear();
     var executions = testCaseExecutionRepository.findByLaunchId(response.getId());
-    assertThat(executions).hasSizeGreaterThan(3); // Test Plan 1 has multiple test cases
-
-    // Verify that all test cases from the test plan are included
-    var testCaseIds = executions.stream()
-        .map(exec -> exec.getTestCaseId())
-        .toList();
-
+    assertThat(executions).hasSizeGreaterThan(3);
+    var testCaseIds = executions.stream().map(exec -> exec.getTestCaseId()).toList();
     assertThat(testCaseIds).contains(4L, 5L, 6L, 13L, 14L, 15L, 16L);
   }
 
   @Test
   void createManualLaunch_WithSpecificTestCasesBatchMode_ShouldAddOnlySpecifiedTestCases() throws Exception {
-    // Given - specify particular test cases along with test plan
     var launchRQ = TmsManualLaunchRQ.builder()
         .name("Launch with Specific Test Cases Batch")
         .testPlan(new com.epam.reportportal.base.core.tms.dto.TmsManualLaunchTestPlanRQ(1L))
-        .testCaseIds(List.of(4L, 5L)) // Only these specific cases, not all from test plan
+        .testCaseIds(List.of(4L, 5L))
         .build();
 
-    // When
     var result = mockMvc.perform(
             post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual")
                 .contentType(APPLICATION_JSON)
@@ -195,29 +170,21 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
         .andExpect(jsonPath("$.executionStatistic.toRun").value(2))
         .andReturn();
 
-    var response = mapper.readValue(
-        result.getResponse().getContentAsString(),
-        TmsManualLaunchRS.class
-    );
-
-    // Then - verify ONLY specified test case executions were created
+    var response = mapper.readValue(result.getResponse().getContentAsString(), TmsManualLaunchRS.class);
     entityManager.clear();
     var executions = testCaseExecutionRepository.findByLaunchId(response.getId());
     assertThat(executions).hasSize(2);
-    assertThat(executions).extracting("testCaseId")
-        .containsExactlyInAnyOrder(4L, 5L);
+    assertThat(executions).extracting("testCaseId").containsExactlyInAnyOrder(4L, 5L);
   }
 
   @Test
   void createManualLaunch_WithTestCaseAttributes_ShouldMapToItemAttributes() throws Exception {
-    // Given - test case 4 has attribute with key="test4" (attribute_id=4, from test data)
     var launchRQ = TmsManualLaunchRQ.builder()
         .name("Launch for Attribute Mapping Test")
         .testPlan(new com.epam.reportportal.base.core.tms.dto.TmsManualLaunchTestPlanRQ(6L))
-        .testCaseIds(List.of(4L)) // Test case 4 has attributes
+        .testCaseIds(List.of(4L))
         .build();
 
-    // When
     var result = mockMvc.perform(
             post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual")
                 .contentType(APPLICATION_JSON)
@@ -226,53 +193,31 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
         .andExpect(status().isOk())
         .andReturn();
 
-    var response = mapper.readValue(
-        result.getResponse().getContentAsString(),
-        TmsManualLaunchRS.class
-    );
-
-    // Then - verify test case attributes are mapped to item attributes
+    var response = mapper.readValue(result.getResponse().getContentAsString(), TmsManualLaunchRS.class);
     entityManager.clear();
-
-    // Get the test item created for this test case
     var executions = testCaseExecutionRepository.findByLaunchId(response.getId());
     assertThat(executions).hasSize(1);
-
     var testItem = executions.getFirst().getTestItem();
     assertThat(testItem).isNotNull();
-
-    // Find item attributes for this test item
     var itemAttributes = itemAttributeRepository.findAllByTestItem(testItem);
-
-    // Verify mapping: testCaseAttribute.key -> ItemAttribute(key="tag", value=testCaseAttribute.key)
     assertThat(itemAttributes).isNotEmpty();
-
-    var tagAttributes = itemAttributes
-        .stream()
-        .filter(attr -> "tag".equals(attr.getKey()))
-        .toList();
-
+    var tagAttributes = itemAttributes.stream().filter(attr -> "tag".equals(attr.getKey())).toList();
     assertThat(tagAttributes).isNotEmpty();
-
-    // Test case 4 has attribute with key "test4", so there should be ItemAttribute(key="tag", value="test4")
-    assertThat(tagAttributes)
-        .anySatisfy(attr -> {
-          assertEquals("tag", attr.getKey());
-          assertEquals("test4", attr.getValue());
-          assertEquals(false, attr.isSystem());
-        });
+    assertThat(tagAttributes).anySatisfy(attr -> {
+      assertEquals("tag", attr.getKey());
+      assertEquals("test4", attr.getValue());
+      assertEquals(false, attr.isSystem());
+    });
   }
 
   @Test
   void createManualLaunch_WithMultipleTestCaseAttributes_ShouldMapAllAttributes() throws Exception {
-    // Given - test case 37 has multiple attributes (test1, test2 from test data)
     var launchRQ = TmsManualLaunchRQ.builder()
         .name("Launch for Multiple Attributes Test")
         .testPlan(new com.epam.reportportal.base.core.tms.dto.TmsManualLaunchTestPlanRQ(6L))
-        .testCaseIds(List.of(37L)) // Test case 37 has multiple attributes
+        .testCaseIds(List.of(37L))
         .build();
 
-    // When
     var result = mockMvc.perform(
             post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual")
                 .contentType(APPLICATION_JSON)
@@ -281,45 +226,28 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
         .andExpect(status().isOk())
         .andReturn();
 
-    var response = mapper.readValue(
-        result.getResponse().getContentAsString(),
-        TmsManualLaunchRS.class
-    );
-
-    // Then - verify all test case attributes are mapped correctly
+    var response = mapper.readValue(result.getResponse().getContentAsString(), TmsManualLaunchRS.class);
     entityManager.clear();
-
     var executions = testCaseExecutionRepository.findByLaunchId(response.getId());
     var testItem = executions.get(0).getTestItem();
     var itemAttributes = itemAttributeRepository.findAllByTestItem(testItem);
+    var tagAttributes = itemAttributes.stream().filter(attr -> "tag".equals(attr.getKey())).toList();
 
-    var tagAttributes = itemAttributes.stream()
-        .filter(attr -> "tag".equals(attr.getKey()))
-        .toList();
-
-    // Test case 37 has attributes with keys "test1" and "test2"
     assertThat(tagAttributes).hasSize(2);
-    assertThat(tagAttributes)
-        .extracting("value")
-        .containsExactlyInAnyOrder("test1", "test2");
-
-    // Verify all are non-system attributes
-    assertThat(tagAttributes)
-        .allSatisfy(attr -> {
-          assertEquals("tag", attr.getKey());
-          assertEquals(false, attr.isSystem());
-        });
+    assertThat(tagAttributes).extracting("value").containsExactlyInAnyOrder("test1", "test2");
+    assertThat(tagAttributes).allSatisfy(attr -> {
+      assertEquals("tag", attr.getKey());
+      assertEquals(false, attr.isSystem());
+    });
   }
 
   @Test
   void createManualLaunch_MinimalData_ShouldSucceed() throws Exception {
-    // Given
     var launchRQ = TmsManualLaunchRQ.builder()
         .name("Minimal Manual Launch")
         .testPlan(new com.epam.reportportal.base.core.tms.dto.TmsManualLaunchTestPlanRQ(6L))
         .build();
 
-    // When
     mockMvc.perform(
             post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual")
                 .contentType(APPLICATION_JSON)
@@ -333,14 +261,12 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
 
   @Test
   void createManualLaunch_WithTestCases_ShouldCreateExecutions() throws Exception {
-    // Given
     var launchRQ = TmsManualLaunchRQ.builder()
         .name("Launch with Test Cases")
         .testPlan(new com.epam.reportportal.base.core.tms.dto.TmsManualLaunchTestPlanRQ(6L))
         .testCaseIds(List.of(4L, 5L, 6L))
         .build();
 
-    // When
     var result = mockMvc.perform(
             post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual")
                 .contentType(APPLICATION_JSON)
@@ -349,23 +275,14 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
         .andExpect(status().isOk())
         .andReturn();
 
-    var response = mapper.readValue(
-        result.getResponse().getContentAsString(),
-        TmsManualLaunchRS.class
-    );
-
-    // Then - verify test case executions were created
+    var response = mapper.readValue(result.getResponse().getContentAsString(), TmsManualLaunchRS.class);
     var executions = testCaseExecutionRepository.findByLaunchId(response.getId());
     assertThat(executions).hasSize(3);
-    assertThat(executions).extracting("testCaseId")
-        .containsExactlyInAnyOrder(4L, 5L, 6L);
+    assertThat(executions).extracting("testCaseId").containsExactlyInAnyOrder(4L, 5L, 6L);
   }
-
-  // ==================== GET MANUAL LAUNCHES ====================
 
   @Test
   void getManualLaunches_ShouldReturnOnlyManualLaunches() throws Exception {
-    // When/Then - Updated to check all required fields
     mockMvc.perform(
             get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual")
                 .with(token(oAuthHelper.getSuperadminToken())))
@@ -374,12 +291,12 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
         .andExpect(jsonPath("$.content").isNotEmpty())
         .andExpect(jsonPath("$.content[0].description").exists())
         .andExpect(jsonPath("$.content[0].owner").exists())
-        .andExpect(jsonPath("$.content[0].owner.email").exists());
+        .andExpect(jsonPath("$.content[0].owner.email").exists())
+        .andExpect(jsonPath("$.content[0].status").doesNotExist());
   }
 
   @Test
   void getManualLaunches_WithPagination_ShouldReturnCorrectPage() throws Exception {
-    // When/Then - Updated to check all required fields
     mockMvc.perform(
             get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual")
                 .param("offset", "0")
@@ -394,7 +311,6 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
 
   @Test
   void getManualLaunches_WithSorting_ShouldReturnSorted() throws Exception {
-    // When/Then
     mockMvc.perform(
             get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual")
                 .param("sort", "startTime,desc")
@@ -405,18 +321,16 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
 
   @Test
   void getManualLaunches_WithStatusFilter_ShouldFilterCorrectly() throws Exception {
-    // When/Then
     mockMvc.perform(
             get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual")
                 .param("filter.eq.status", "IN_PROGRESS")
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.content[*].status").value(everyItem(equalTo("IN_PROGRESS"))));
+        .andExpect(jsonPath("$.content[*].status").doesNotExist());
   }
 
   @Test
   void getManualLaunches_WithNameFilter_ShouldFilterCorrectly() throws Exception {
-    // When/Then
     mockMvc.perform(
             get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual")
                 .param("filter.cnt.name", "Manual Launch 1")
@@ -425,45 +339,36 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
         .andExpect(jsonPath("$.content").isArray());
   }
 
-  // ==================== GET MANUAL LAUNCH BY ID ====================
-
   @Test
   void getManualLaunchById_ShouldReturnLaunchWithAllFields() throws Exception {
-    // When/Then - Updated to check all required fields including description, owner, type, testPlan
     mockMvc.perform(
             get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/200")
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.id").value(200))
         .andExpect(jsonPath("$.name").exists())
-        .andExpect(jsonPath("$.description").exists()) // UPDATED: Check description field
-        .andExpect(jsonPath("$.owner").exists()) // UPDATED: Check owner field
+        .andExpect(jsonPath("$.description").exists())
+        .andExpect(jsonPath("$.owner").exists())
         .andExpect(jsonPath("$.owner.id").exists())
         .andExpect(jsonPath("$.owner.email").exists())
-        .andExpect(jsonPath("$.type").exists()) // UPDATED: Check type field
-        .andExpect(jsonPath("$.testPlan").exists()) // UPDATED: Check testPlan field
+        .andExpect(jsonPath("$.type").exists())
+        .andExpect(jsonPath("$.testPlan").exists())
         .andExpect(jsonPath("$.testPlan.id").exists())
         .andExpect(jsonPath("$.testPlan.name").exists())
         .andExpect(jsonPath("$.startTime").exists())
-        .andExpect(jsonPath("$.status").exists())
+        .andExpect(jsonPath("$.status").doesNotExist())
         .andExpect(jsonPath("$.executionStatistic").exists());
   }
 
   @Test
   void getManualLaunchById_ShouldValidateDescriptionContent() throws Exception {
-    // When/Then - Verify that description field contains actual content
     var result = mockMvc.perform(
             get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/200")
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andReturn();
 
-    var response = mapper.readValue(
-        result.getResponse().getContentAsString(),
-        TmsManualLaunchRS.class
-    );
-
-    // Validate that required fields are not null and contain meaningful data
+    var response = mapper.readValue(result.getResponse().getContentAsString(), TmsManualLaunchRS.class);
     assertThat(response.getDescription()).isNotNull();
     assertThat(response.getOwner()).isNotNull();
     assertThat(response.getOwner().getEmail()).isNotNull();
@@ -474,7 +379,6 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
 
   @Test
   void getManualLaunchById_ShouldReturnCorrectOwnerInformation() throws Exception {
-    // When/Then - Specific test for owner field validation
     mockMvc.perform(
             get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/200")
                 .with(token(oAuthHelper.getSuperadminToken())))
@@ -486,7 +390,6 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
 
   @Test
   void getManualLaunchById_ShouldReturnCorrectTestPlanInformation() throws Exception {
-    // When/Then - Specific test for testPlan field validation
     mockMvc.perform(
             get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/200")
                 .with(token(oAuthHelper.getSuperadminToken())))
@@ -497,7 +400,6 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
 
   @Test
   void getManualLaunchById_NonExistent_ShouldReturnNotFound() throws Exception {
-    // When/Then
     mockMvc.perform(
             get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/999")
                 .with(token(oAuthHelper.getSuperadminToken())))
@@ -507,23 +409,16 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
 
   @Test
   void getManualLaunchById_FromDifferentProject_ShouldReturnNotFound() throws Exception {
-    // When/Then
     mockMvc.perform(
             get("/v1/project/" + DEFAULT_PROJECT_KEY + "/launch/manual/200")
                 .with(token(oAuthHelper.getDefaultToken())))
         .andExpect(status().isNotFound());
   }
 
-  // ==================== PATCH MANUAL LAUNCH ====================
-
   @Test
   void patchManualLaunch_UpdateName_ShouldSucceed() throws Exception {
-    // Given
-    var patchRQ = TmsManualLaunchRQ.builder()
-        .name("Updated Launch Name")
-        .build();
+    var patchRQ = TmsManualLaunchRQ.builder().name("Updated Launch Name").build();
 
-    // When
     mockMvc.perform(
             patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/200")
                 .contentType(APPLICATION_JSON)
@@ -532,7 +427,6 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.name").value("Updated Launch Name"));
 
-    // Then
     var launch = launchRepository.findById(200L);
     assertTrue(launch.isPresent());
     assertEquals("Updated Launch Name", launch.get().getName());
@@ -540,12 +434,8 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
 
   @Test
   void patchManualLaunch_UpdateDescription_ShouldSucceed() throws Exception {
-    // Given
-    var patchRQ = TmsManualLaunchRQ.builder()
-        .description("Updated description")
-        .build();
+    var patchRQ = TmsManualLaunchRQ.builder().description("Updated description").build();
 
-    // When
     mockMvc.perform(
             patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/200")
                 .contentType(APPLICATION_JSON)
@@ -554,7 +444,6 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.id").value(200));
 
-    // Then
     var launch = launchRepository.findById(200L);
     assertTrue(launch.isPresent());
     assertEquals("Updated description", launch.get().getDescription());
@@ -562,7 +451,6 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
 
   @Test
   void patchManualLaunch_UpdateAttributes_ShouldSucceed() throws Exception {
-    // Given
     var patchRQ = TmsManualLaunchRQ.builder()
         .attributes(List.of(
             new ItemAttributesRQ("environment", "staging"),
@@ -570,7 +458,6 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
         ))
         .build();
 
-    // When
     mockMvc.perform(
             patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/200")
                 .contentType(APPLICATION_JSON)
@@ -583,12 +470,10 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
 
   @Test
   void patchManualLaunch_UnlinkTestPlan_ShouldSucceed() throws Exception {
-    // Given
     var patchRQ = TmsManualLaunchRQ.builder()
         .testPlan(new com.epam.reportportal.base.core.tms.dto.TmsManualLaunchTestPlanRQ())
         .build();
 
-    // When
     mockMvc.perform(
             patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/200")
                 .contentType(APPLICATION_JSON)
@@ -601,12 +486,8 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
 
   @Test
   void patchManualLaunch_NonExistent_ShouldReturnNotFound() throws Exception {
-    // Given
-    var patchRQ = TmsManualLaunchRQ.builder()
-        .name("New Name")
-        .build();
+    var patchRQ = TmsManualLaunchRQ.builder().name("New Name").build();
 
-    // When/Then
     mockMvc.perform(
             patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/999")
                 .contentType(APPLICATION_JSON)
@@ -617,25 +498,19 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
 
   @Test
   void deleteManualLaunch_InProgress_ShouldSucceed() throws Exception {
-    // When
     mockMvc.perform(
             delete("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/202")
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk());
 
-    // Then
     var launch = launchRepository.findById(202L);
     assertTrue(launch.isEmpty());
   }
 
   @Test
   void batchDeleteManualLaunches_InProgress_ShouldSucceed() throws Exception {
-    // Given
-    var batchDeleteRQ = BatchDeleteManualLaunchesRQ.builder()
-        .launchIds(List.of(202L))
-        .build();
+    var batchDeleteRQ = BatchDeleteManualLaunchesRQ.builder().launchIds(List.of(202L)).build();
 
-    // When
     mockMvc.perform(
             delete("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual")
                 .contentType(APPLICATION_JSON)
@@ -643,30 +518,22 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk());
 
-    // Then
     var launch = launchRepository.findById(202L);
     assertTrue(launch.isEmpty());
   }
 
   @Test
   void deleteManualLaunch_NonExistent_ShouldReturnNotFound() throws Exception {
-    // When/Then
     mockMvc.perform(
             delete("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/999")
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isNotFound());
   }
 
-  // ==================== ADD TEST CASE TO LAUNCH ====================
-
   @Test
   void addTestCaseToLaunch_ShouldCreateExecution() throws Exception {
-    // Given
-    var addTestCaseRQ = AddTestCaseToLaunchRQ.builder()
-        .testCaseId(7L)
-        .build();
+    var addTestCaseRQ = AddTestCaseToLaunchRQ.builder().testCaseId(7L).build();
 
-    // When
     mockMvc.perform(
             post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/200/test-case")
                 .contentType(APPLICATION_JSON)
@@ -674,22 +541,15 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk());
 
-    // Then
     entityManager.clear();
     var executions = testCaseExecutionRepository.findByLaunchId(200L);
-    assertThat(executions).anySatisfy(execution ->
-        assertEquals(7L, execution.getTestCaseId())
-    );
+    assertThat(executions).anySatisfy(execution -> assertEquals(7L, execution.getTestCaseId()));
   }
 
   @Test
   void addTestCaseToLaunch_DuplicateTestCase_ShouldNotAllowMultipleExecutions() throws Exception {
-    // Given
-    var addTestCaseRQ = AddTestCaseToLaunchRQ.builder()
-        .testCaseId(4L) // Test case 4 already exists in launch 200
-        .build();
+    var addTestCaseRQ = AddTestCaseToLaunchRQ.builder().testCaseId(4L).build();
 
-    // When/Then
     mockMvc.perform(
             post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/200/test-case")
                 .contentType(APPLICATION_JSON)
@@ -700,12 +560,8 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
 
   @Test
   void addTestCaseToLaunch_NonExistentTestCase_ShouldReturnBadRequest() throws Exception {
-    // Given
-    var addTestCaseRQ = AddTestCaseToLaunchRQ.builder()
-        .testCaseId(999L)
-        .build();
+    var addTestCaseRQ = AddTestCaseToLaunchRQ.builder().testCaseId(999L).build();
 
-    // When/Then
     mockMvc.perform(
             post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/200/test-case")
                 .contentType(APPLICATION_JSON)
@@ -716,12 +572,8 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
 
   @Test
   void addTestCaseToLaunch_NonExistentLaunch_ShouldReturnNotFound() throws Exception {
-    // Given
-    var addTestCaseRQ = AddTestCaseToLaunchRQ.builder()
-        .testCaseId(4L)
-        .build();
+    var addTestCaseRQ = AddTestCaseToLaunchRQ.builder().testCaseId(4L).build();
 
-    // When/Then
     mockMvc.perform(
             post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/999/test-case")
                 .contentType(APPLICATION_JSON)
@@ -730,16 +582,10 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
         .andExpect(status().isNotFound());
   }
 
-  // ==================== BATCH ADD TEST CASES TO LAUNCH ====================
-
   @Test
   void batchAddTestCasesToLaunch_ShouldAddAll() throws Exception {
-    // Given
-    var batchAddRQ = BatchAddTestCasesToLaunchRQ.builder()
-        .testCaseIds(List.of(7L, 8L, 9L))
-        .build();
+    var batchAddRQ = BatchAddTestCasesToLaunchRQ.builder().testCaseIds(List.of(7L, 8L, 9L)).build();
 
-    // When
     var result = mockMvc.perform(
             post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/200/test-case/batch")
                 .contentType(APPLICATION_JSON)
@@ -754,24 +600,17 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
         result.getResponse().getContentAsString(),
         BatchTestCaseOperationResultRS.class
     );
-
-    // Then
     assertThat(response.getSuccessTestCaseIds()).containsExactlyInAnyOrder(7L, 8L, 9L);
 
     entityManager.clear();
     var executions = testCaseExecutionRepository.findByLaunchId(200L);
-    assertThat(executions).extracting("testCaseId")
-        .contains(7L, 8L, 9L);
+    assertThat(executions).extracting("testCaseId").contains(7L, 8L, 9L);
   }
 
   @Test
   void batchAddTestCasesToLaunch_WithSomeNonExistent_ShouldReturnPartialSuccess() throws Exception {
-    // Given
-    var batchAddRQ = BatchAddTestCasesToLaunchRQ.builder()
-        .testCaseIds(List.of(7L, 999L, 8L))
-        .build();
+    var batchAddRQ = BatchAddTestCasesToLaunchRQ.builder().testCaseIds(List.of(7L, 999L, 8L)).build();
 
-    // When
     mockMvc.perform(
             post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/200/test-case/batch")
                 .contentType(APPLICATION_JSON)
@@ -783,11 +622,8 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
         .andExpect(jsonPath("$.errors[0].testCaseId").value(999));
   }
 
-  // ==================== GET LAUNCH FOLDERS ====================
-
   @Test
   void getLaunchFolders_ShouldReturnFolders() throws Exception {
-    // When/Then
     mockMvc.perform(
             get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/200/folder")
                 .with(token(oAuthHelper.getSuperadminToken())))
@@ -800,7 +636,6 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
 
   @Test
   void getLaunchFolders_WithPagination_ShouldReturnCorrectPage() throws Exception {
-    // When/Then
     mockMvc.perform(
             get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/200/folder")
                 .param("offset", "0")
@@ -813,24 +648,14 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
   @Test
   @Transactional
   void getLaunchFolders_WithFilters_ShouldReturnFilteredFolders() throws Exception {
-    // Given
-    // 1. Manually populate `name` and `priority` for Launch 201 executions because
-    //    the SQL init script leaves them null for existing items.
-    //    Launch 201 has executions: id=12 (test_item=2002, parent=10005 Smoke Tests),
-    //    id=13 (test_item=2003, parent=10006 Regression Tests),
-    //    id=14 (test_item=2004, parent=10006 Regression Tests).
     var executions = testCaseExecutionRepository.findByLaunchId(201L);
     assertThat(executions).isNotEmpty();
 
-    // Update execution for filtering
     var execToUpdate = executions.getFirst();
     execToUpdate.setName("Search Functionality Test");
     execToUpdate.setPriority("P1");
     testCaseExecutionRepository.save(execToUpdate);
 
-    // 2. Add an attribute to the child TEST item (not the SUITE/folder) to test attribute filtering.
-    //    The filter `testCaseAttributeKey` joins child_item (TEST) -> item_attribute,
-    //    so the attribute must belong to the TEST item linked to the execution.
     var testItem = execToUpdate.getTestItem();
     var attribute = new ItemAttribute("tag", "suite_type", false);
     attribute.setTestItem(testItem);
@@ -839,7 +664,6 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
     entityManager.flush();
     entityManager.clear();
 
-    // When & Then - Case 1: Filter by test case name
     mockMvc.perform(
             get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/201/folder")
                 .param("filter.cnt.testCaseName", "Search")
@@ -849,7 +673,6 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
         .andExpect(jsonPath("$.content", hasSize(1)))
         .andExpect(jsonPath("$.content[0].countOfTestCases", equalTo(1)));
 
-    // When & Then - Case 2: Filter by test case priority
     mockMvc.perform(
             get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/201/folder")
                 .param("filter.eq.testCasePriority", "P1")
@@ -859,7 +682,6 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
         .andExpect(jsonPath("$.content", hasSize(1)))
         .andExpect(jsonPath("$.content[0].countOfTestCases", equalTo(1)));
 
-    // When & Then - Case 3: Filter by test item attribute (child TEST item attribute)
     mockMvc.perform(
             get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/201/folder")
                 .param("filter.has.testCaseAttributeKey", "suite_type")
@@ -870,11 +692,8 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
         .andExpect(jsonPath("$.content[0].countOfTestCases", equalTo(1)));
   }
 
-  // ==================== GET TEST CASE EXECUTIONS ====================
-
   @Test
   void getLaunchTestCaseExecutions_ShouldReturnAll() throws Exception {
-    // When/Then
     mockMvc.perform(
             get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/200/test-case/execution")
                 .with(token(oAuthHelper.getSuperadminToken())))
@@ -887,19 +706,16 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
 
   @Test
   void getLaunchTestCaseExecutions_WithStatusFilter_ShouldFilterCorrectly() throws Exception {
-    // When/Then
     mockMvc.perform(
             get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/200/test-case/execution")
                 .param("filter.eq.status", "PASSED")
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.content[*].executionStatus")
-            .value(everyItem(equalTo("PASSED"))));
+        .andExpect(jsonPath("$.content[*].executionStatus").value(everyItem(equalTo("PASSED"))));
   }
 
   @Test
   void getLaunchTestCaseExecutions_WithPagination_ShouldReturnCorrectPage() throws Exception {
-    // When/Then
     mockMvc.perform(
             get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/200/test-case/execution")
                 .param("offset", "0")
@@ -909,11 +725,8 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
         .andExpect(jsonPath("$.page.size").value(10));
   }
 
-  // ==================== GET SPECIFIC TEST CASE EXECUTION ====================
-
   @Test
   void getTestCaseExecution_ShouldReturnExecution() throws Exception {
-    // When/Then
     mockMvc.perform(
             get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/200/test-case/execution/10")
                 .with(token(oAuthHelper.getSuperadminToken())))
@@ -926,7 +739,6 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
 
   @Test
   void getTestCaseExecution_NonExistent_ShouldReturnNotFound() throws Exception {
-    // When/Then
     mockMvc.perform(
             get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/200/test-case/execution/999")
                 .with(token(oAuthHelper.getSuperadminToken())))
@@ -935,53 +747,44 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
 
   @Test
   void getTestCaseExecution_FromDifferentLaunch_ShouldReturnNotFound() throws Exception {
-    // When/Then
     mockMvc.perform(
             get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/201/test-case/execution/10")
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isNotFound());
   }
 
-  // ==================== DELETE TEST CASE EXECUTION ====================
-
   @Test
   void deleteTestCaseExecution_ShouldRemoveExecution() throws Exception {
-    // When
     mockMvc.perform(
-            delete(
-                "/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/200/test-case/execution/10")
+            delete("/v1/project/" + SUPERADMIN_PROJECT_KEY
+                + "/launch/manual/200/test-case/execution/10")
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk());
-    // Then
+
     var execution = testCaseExecutionRepository.findById(10L);
     assertTrue(execution.isEmpty());
   }
 
   @Test
   void deleteTestCaseExecution_ShouldRemoveRelatedComment() throws Exception {
-    // When
     mockMvc.perform(
-            delete(
-                "/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/200/test-case/execution/10")
+            delete("/v1/project/" + SUPERADMIN_PROJECT_KEY
+                + "/launch/manual/200/test-case/execution/10")
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk());
   }
 
   @Test
   void deleteTestCaseExecution_NonExistent_ShouldReturnNotFound() throws Exception {
-    // When/Then
     mockMvc.perform(
-            delete(
-                "/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/200/test-case/execution/999")
+            delete("/v1/project/" + SUPERADMIN_PROJECT_KEY
+                + "/launch/manual/200/test-case/execution/999")
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isNotFound());
   }
 
-  // ==================== GET TEST CASE EXECUTIONS FOR SPECIFIC TEST CASE ====================
-
   @Test
   void getTestCaseExecutionsInLaunch_ShouldReturnAllExecutions() throws Exception {
-    // When/Then
     mockMvc.perform(
             get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/200/test-case/4/execution")
                 .with(token(oAuthHelper.getSuperadminToken())))
@@ -992,7 +795,6 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
 
   @Test
   void getTestCaseExecutionsInLaunch_WithPagination_ShouldReturnCorrectPage() throws Exception {
-    // When/Then
     mockMvc.perform(
             get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/200/test-case/4/execution")
                 .param("limit", "5")
@@ -1004,7 +806,6 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
 
   @Test
   void getTestCaseExecutionsInLaunch_NonExistentTestCase_ShouldReturnEmpty() throws Exception {
-    // When/Then
     mockMvc.perform(
             get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/200/test-case/999/execution")
                 .with(token(oAuthHelper.getSuperadminToken())))
@@ -1012,25 +813,19 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
         .andExpect(jsonPath("$.content").isEmpty());
   }
 
-  // ==================== PATCH TEST CASE EXECUTION ====================
-
   @Test
   void patchTestCaseExecution_UpdateStatus_ShouldSucceed() throws Exception {
-    // Given
-    var patchRQ = TmsTestCaseExecutionRQ.builder()
-        .status("PASSED")
-        .build();
+    var patchRQ = TmsTestCaseExecutionRQ.builder().status("PASSED").build();
 
-    // When
     mockMvc.perform(
-            patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/200/test-case/execution/10")
+            patch("/v1/project/" + SUPERADMIN_PROJECT_KEY
+                + "/launch/manual/200/test-case/execution/10")
                 .contentType(APPLICATION_JSON)
                 .content(mapper.writeValueAsString(patchRQ))
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.executionStatus").value("PASSED"));
 
-    // Then - verify test item status is also updated
     entityManager.clear();
     var execution = testCaseExecutionRepository.findById(10L);
     assertTrue(execution.isPresent());
@@ -1044,14 +839,11 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
 
   @Test
   void patchTestCaseExecution_UpdateToFailed_ShouldSucceed() throws Exception {
-    // Given
-    var patchRQ = TmsTestCaseExecutionRQ.builder()
-        .status("FAILED")
-        .build();
+    var patchRQ = TmsTestCaseExecutionRQ.builder().status("FAILED").build();
 
-    // When
     mockMvc.perform(
-            patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/200/test-case/execution/11")
+            patch("/v1/project/" + SUPERADMIN_PROJECT_KEY
+                + "/launch/manual/200/test-case/execution/11")
                 .contentType(APPLICATION_JSON)
                 .content(mapper.writeValueAsString(patchRQ))
                 .with(token(oAuthHelper.getSuperadminToken())))
@@ -1061,14 +853,11 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
 
   @Test
   void patchTestCaseExecution_UpdateToSkipped_ShouldSucceed() throws Exception {
-    // Given
-    var patchRQ = TmsTestCaseExecutionRQ.builder()
-        .status("SKIPPED")
-        .build();
+    var patchRQ = TmsTestCaseExecutionRQ.builder().status("SKIPPED").build();
 
-    // When
     mockMvc.perform(
-            patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/200/test-case/execution/10")
+            patch("/v1/project/" + SUPERADMIN_PROJECT_KEY
+                + "/launch/manual/200/test-case/execution/10")
                 .contentType(APPLICATION_JSON)
                 .content(mapper.writeValueAsString(patchRQ))
                 .with(token(oAuthHelper.getSuperadminToken())))
@@ -1078,14 +867,11 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
 
   @Test
   void patchTestCaseExecution_InvalidStatus_ShouldReturnBadRequest() throws Exception {
-    // Given
-    var patchRQ = TmsTestCaseExecutionRQ.builder()
-        .status("INVALID_STATUS")
-        .build();
+    var patchRQ = TmsTestCaseExecutionRQ.builder().status("INVALID_STATUS").build();
 
-    // When/Then
     mockMvc.perform(
-            patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/200/test-case/execution/10")
+            patch("/v1/project/" + SUPERADMIN_PROJECT_KEY
+                + "/launch/manual/200/test-case/execution/10")
                 .contentType(APPLICATION_JSON)
                 .content(mapper.writeValueAsString(patchRQ))
                 .with(token(oAuthHelper.getSuperadminToken())))
@@ -1094,31 +880,23 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
 
   @Test
   void patchTestCaseExecution_NonExistent_ShouldReturnNotFound() throws Exception {
-    // Given
-    var patchRQ = TmsTestCaseExecutionRQ.builder()
-        .status("PASSED")
-        .build();
+    var patchRQ = TmsTestCaseExecutionRQ.builder().status("PASSED").build();
 
-    // When/Then
     mockMvc.perform(
-            patch(
-                "/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/200/test-case/execution/999")
+            patch("/v1/project/" + SUPERADMIN_PROJECT_KEY
+                + "/launch/manual/200/test-case/execution/999")
                 .contentType(APPLICATION_JSON)
                 .content(mapper.writeValueAsString(patchRQ))
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isNotFound());
   }
 
-  // ==================== PUT TEST CASE EXECUTION COMMENT ====================
-
   @Test
   void putTestCaseExecutionComment_CreateNew_ShouldSucceed() throws Exception {
-    // Given
     var commentRQ = TmsTestCaseExecutionCommentRQ.builder()
         .comment("Test failed due to timeout issue")
         .build();
 
-    // When
     mockMvc.perform(
             put("/v1/project/" + SUPERADMIN_PROJECT_KEY
                 + "/launch/manual/200/test-case/execution/11/comment")
@@ -1131,12 +909,8 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
 
   @Test
   void putTestCaseExecutionComment_UpdateExisting_ShouldSucceed() throws Exception {
-    // Given - existing comment
-    var commentRQ = TmsTestCaseExecutionCommentRQ.builder()
-        .comment("Updated comment text")
-        .build();
+    var commentRQ = TmsTestCaseExecutionCommentRQ.builder().comment("Updated comment text").build();
 
-    // When
     mockMvc.perform(
             put("/v1/project/" + SUPERADMIN_PROJECT_KEY
                 + "/launch/manual/200/test-case/execution/10/comment")
@@ -1149,9 +923,8 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
 
   @Test
   void putTestCaseExecutionComment_WithAttachments_ShouldLinkAttachments() throws Exception {
-    // Given - upload attachment first
     var attachment = uploadTestAttachment("error-screenshot.png", "image/png");
-var commentRQ = TmsTestCaseExecutionCommentRQ.builder()
+    var commentRQ = TmsTestCaseExecutionCommentRQ.builder()
         .comment("See attached screenshot")
         .attachments(List.of(
             TmsTestCaseExecutionCommentAttachmentRQ.builder()
@@ -1160,7 +933,6 @@ var commentRQ = TmsTestCaseExecutionCommentRQ.builder()
         ))
         .build();
 
-    // When
     mockMvc.perform(
             put("/v1/project/" + SUPERADMIN_PROJECT_KEY
                 + "/launch/manual/200/test-case/execution/11/comment")
@@ -1175,7 +947,6 @@ var commentRQ = TmsTestCaseExecutionCommentRQ.builder()
 
   @Test
   void putTestCaseExecutionComment_WithMultipleAttachments_ShouldLinkAll() throws Exception {
-    // Given
     var attachment1 = uploadTestAttachment("screenshot1.png", "image/png");
     var attachment2 = uploadTestAttachment("log-file.txt", "text/plain");
 
@@ -1189,7 +960,6 @@ var commentRQ = TmsTestCaseExecutionCommentRQ.builder()
         ))
         .build();
 
-    // When
     mockMvc.perform(
             put("/v1/project/" + SUPERADMIN_PROJECT_KEY
                 + "/launch/manual/200/test-case/execution/11/comment")
@@ -1205,7 +975,6 @@ var commentRQ = TmsTestCaseExecutionCommentRQ.builder()
   @Test
   void putTestCaseExecutionComment_UpdateWithNewAttachments_ShouldReplaceAttachments()
       throws Exception {
-    // Given - existing comment with attachment
     var oldAttachment = uploadTestAttachment("old.png", "image/png");
     var commentRQ1 = TmsTestCaseExecutionCommentRQ.builder()
         .comment("Old comment")
@@ -1223,7 +992,6 @@ var commentRQ = TmsTestCaseExecutionCommentRQ.builder()
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk());
 
-    // When - update with new attachment
     var newAttachment = uploadTestAttachment("new.png", "image/png");
     var commentRQ2 = TmsTestCaseExecutionCommentRQ.builder()
         .comment("Updated comment")
@@ -1246,12 +1014,8 @@ var commentRQ = TmsTestCaseExecutionCommentRQ.builder()
 
   @Test
   void putTestCaseExecutionComment_EmptyComment_ShouldSucceed() throws Exception {
-    // Given
-    var commentRQ = TmsTestCaseExecutionCommentRQ.builder()
-        .comment("")
-        .build();
+    var commentRQ = TmsTestCaseExecutionCommentRQ.builder().comment("").build();
 
-    // When/Then
     mockMvc.perform(
             put("/v1/project/" + SUPERADMIN_PROJECT_KEY
                 + "/launch/manual/200/test-case/execution/11/comment")
@@ -1264,7 +1028,6 @@ var commentRQ = TmsTestCaseExecutionCommentRQ.builder()
   @Test
   void putTestCaseExecutionComment_WithNonExistentAttachment_ShouldReturnNotFound()
       throws Exception {
-    // Given
     var commentRQ = TmsTestCaseExecutionCommentRQ.builder()
         .comment("Comment with invalid attachment")
         .attachments(List.of(
@@ -1272,7 +1035,6 @@ var commentRQ = TmsTestCaseExecutionCommentRQ.builder()
         ))
         .build();
 
-    // When/Then
     mockMvc.perform(
             put("/v1/project/" + SUPERADMIN_PROJECT_KEY
                 + "/launch/manual/200/test-case/execution/11/comment")
@@ -1284,12 +1046,10 @@ var commentRQ = TmsTestCaseExecutionCommentRQ.builder()
 
   @Test
   void putTestCaseExecutionComment_NonExistentExecution_ShouldReturnNotFound() throws Exception {
-    // Given
     var commentRQ = TmsTestCaseExecutionCommentRQ.builder()
         .comment("Comment for non-existent execution")
         .build();
 
-    // When/Then
     mockMvc.perform(
             put("/v1/project/" + SUPERADMIN_PROJECT_KEY
                 + "/launch/manual/200/test-case/execution/999/comment")
@@ -1299,22 +1059,17 @@ var commentRQ = TmsTestCaseExecutionCommentRQ.builder()
         .andExpect(status().isNotFound());
   }
 
-  // ==================== DELETE TEST CASE EXECUTION COMMENT ====================
-
   @Test
   void deleteTestCaseExecutionComment_ShouldRemoveComment() throws Exception {
-    // Given - verify comment exists
     var commentBefore = executionCommentRepository.findByExecutionId(10L);
     assertTrue(commentBefore.isPresent());
 
-    // When
     mockMvc.perform(
             delete("/v1/project/" + SUPERADMIN_PROJECT_KEY
                 + "/launch/manual/200/test-case/execution/10/comment")
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk());
 
-    // Then
     entityManager.clear();
     var commentAfter = executionCommentRepository.findByExecutionId(10L);
     assertTrue(commentAfter.isEmpty());
@@ -1322,7 +1077,6 @@ var commentRQ = TmsTestCaseExecutionCommentRQ.builder()
 
   @Test
   void deleteTestCaseExecutionComment_NonExistentComment_ShouldReturnNotFound() throws Exception {
-    // When/Then
     mockMvc.perform(
             delete("/v1/project/" + SUPERADMIN_PROJECT_KEY
                 + "/launch/manual/203/test-case/execution/20/comment")
@@ -1332,7 +1086,6 @@ var commentRQ = TmsTestCaseExecutionCommentRQ.builder()
 
   @Test
   void deleteTestCaseExecutionComment_NonExistentExecution_ShouldReturnNotFound() throws Exception {
-    // When/Then
     mockMvc.perform(
             delete("/v1/project/" + SUPERADMIN_PROJECT_KEY
                 + "/launch/manual/200/test-case/execution/999/comment")
@@ -1340,19 +1093,14 @@ var commentRQ = TmsTestCaseExecutionCommentRQ.builder()
         .andExpect(status().isNotFound());
   }
 
-  // ==================== COMPLEX WORKFLOW SCENARIOS ====================
-
   @Test
   void fullManualLaunchWorkflow_CreateExecuteAndFinish_ShouldSucceed() throws Exception {
-    // STEP 1: Create manual launch
     var launchRQ = TmsManualLaunchRQ.builder()
         .name("Full Workflow Test Launch")
         .description("Complete workflow from start to finish")
         .testPlan(new com.epam.reportportal.base.core.tms.dto.TmsManualLaunchTestPlanRQ(6L))
         .mode(Mode.DEFAULT)
-        .attributes(List.of(
-            new ItemAttributesRQ("sprint", "Sprint-25")
-        ))
+        .attributes(List.of(new ItemAttributesRQ("sprint", "Sprint-25")))
         .build();
 
     var createResult = mockMvc.perform(
@@ -1367,10 +1115,8 @@ var commentRQ = TmsTestCaseExecutionCommentRQ.builder()
         createResult.getResponse().getContentAsString(),
         TmsManualLaunchRS.class
     );
-
     entityManager.clear();
 
-    // STEP 2: Add test cases to launch
     var batchAddRQ = BatchAddTestCasesToLaunchRQ.builder()
         .testCaseIds(List.of(4L, 5L, 6L))
         .build();
@@ -1386,7 +1132,6 @@ var commentRQ = TmsTestCaseExecutionCommentRQ.builder()
 
     entityManager.clear();
 
-    // STEP 3: Get executions and update their statuses
     var executionsResult = mockMvc.perform(
             get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/" + launch.getId()
                 + "/test-case/execution")
@@ -1402,7 +1147,6 @@ var commentRQ = TmsTestCaseExecutionCommentRQ.builder()
 
     assertThat(executionsPage.getContent()).hasSize(3);
 
-    // STEP 4: Execute first test case - PASSED
     var executions = new ArrayList<>(executionsPage.getContent());
     var execution1 = executions.get(0);
     mockMvc.perform(
@@ -1418,10 +1162,7 @@ var commentRQ = TmsTestCaseExecutionCommentRQ.builder()
 
     entityManager.clear();
 
-    // STEP 5: Execute second test case - FAILED with comment and attachment
     var execution2 = executions.get(1);
-
-    // First update status to FAILED
     mockMvc.perform(
             patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/" + launch.getId()
                 + "/test-case/execution/" + execution2.getId())
@@ -1432,7 +1173,6 @@ var commentRQ = TmsTestCaseExecutionCommentRQ.builder()
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk());
 
-    // Then add comment with attachment
     var attachment = uploadTestAttachment("failure-screenshot.png", "image/png");
     var commentRQ = TmsTestCaseExecutionCommentRQ.builder()
         .comment("Test failed - element not found. See screenshot.")
@@ -1442,7 +1182,7 @@ var commentRQ = TmsTestCaseExecutionCommentRQ.builder()
         ))
         .build();
 
-    mockMvc.perform( //TODO here
+    mockMvc.perform(
             put("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/" + launch.getId()
                 + "/test-case/execution/" + execution2.getId() + "/comment")
                 .contentType(APPLICATION_JSON)
@@ -1454,7 +1194,6 @@ var commentRQ = TmsTestCaseExecutionCommentRQ.builder()
 
     entityManager.clear();
 
-    // STEP 6: Execute third test case - SKIPPED
     var execution3 = executions.get(2);
     mockMvc.perform(
             patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/" + launch.getId()
@@ -1466,7 +1205,6 @@ var commentRQ = TmsTestCaseExecutionCommentRQ.builder()
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk());
 
-    // STEP 7: Verify launch execution statistics
     mockMvc.perform(
             get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/" + launch.getId())
                 .with(token(oAuthHelper.getSuperadminToken())))
@@ -1476,10 +1214,7 @@ var commentRQ = TmsTestCaseExecutionCommentRQ.builder()
 
   @Test
   void complexScenario_UpdateCommentMultipleTimes_ShouldKeepLatest() throws Exception {
-    // Given - execution with initial comment
-    var commentRQ1 = TmsTestCaseExecutionCommentRQ.builder()
-        .comment("Initial comment")
-        .build();
+    var commentRQ1 = TmsTestCaseExecutionCommentRQ.builder().comment("Initial comment").build();
 
     mockMvc.perform(
             put("/v1/project/" + SUPERADMIN_PROJECT_KEY
@@ -1489,10 +1224,7 @@ var commentRQ = TmsTestCaseExecutionCommentRQ.builder()
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk());
 
-    // When - update comment multiple times
-    var commentRQ2 = TmsTestCaseExecutionCommentRQ.builder()
-        .comment("Updated comment v2")
-        .build();
+    var commentRQ2 = TmsTestCaseExecutionCommentRQ.builder().comment("Updated comment v2").build();
 
     mockMvc.perform(
             put("/v1/project/" + SUPERADMIN_PROJECT_KEY
@@ -1502,9 +1234,7 @@ var commentRQ = TmsTestCaseExecutionCommentRQ.builder()
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk());
 
-    var commentRQ3 = TmsTestCaseExecutionCommentRQ.builder()
-        .comment("Final comment v3")
-        .build();
+    var commentRQ3 = TmsTestCaseExecutionCommentRQ.builder().comment("Final comment v3").build();
 
     mockMvc.perform(
             put("/v1/project/" + SUPERADMIN_PROJECT_KEY
@@ -1516,18 +1246,15 @@ var commentRQ = TmsTestCaseExecutionCommentRQ.builder()
         .andExpect(jsonPath("$.comment").value("Final comment v3"));
   }
 
-  // ==================== BATCH DELETE TEST CASE EXECUTIONS ====================
-
   @Test
   void batchDeleteTestCaseExecutions_AllValid_ShouldDeleteAll() throws Exception {
-    // Given
     var batchDeleteRQ = BatchDeleteTestCaseExecutionsRQ.builder()
         .executionIds(List.of(10L, 11L))
         .build();
 
-    // When
     var result = mockMvc.perform(
-            delete("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/200/test-case/execution")
+            delete("/v1/project/" + SUPERADMIN_PROJECT_KEY
+                + "/launch/manual/200/test-case/execution")
                 .contentType(APPLICATION_JSON)
                 .content(mapper.writeValueAsString(batchDeleteRQ))
                 .with(token(oAuthHelper.getSuperadminToken())))
@@ -1540,21 +1267,18 @@ var commentRQ = TmsTestCaseExecutionCommentRQ.builder()
         result.getResponse().getContentAsString(),
         BatchDeleteTestCaseExecutionsResultRS.class
     );
-
-    // Then
     assertThat(response.getSuccessExecutionIds()).containsExactlyInAnyOrder(10L, 11L);
   }
 
   @Test
   void batchDeleteTestCaseExecutions_SomeNonExistent_ShouldReturnPartialSuccess() throws Exception {
-    // Given
     var batchDeleteRQ = BatchDeleteTestCaseExecutionsRQ.builder()
         .executionIds(List.of(10L, 999L))
         .build();
 
-    // When
     mockMvc.perform(
-            delete("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/200/test-case/execution")
+            delete("/v1/project/" + SUPERADMIN_PROJECT_KEY
+                + "/launch/manual/200/test-case/execution")
                 .contentType(APPLICATION_JSON)
                 .content(mapper.writeValueAsString(batchDeleteRQ))
                 .with(token(oAuthHelper.getSuperadminToken())))
@@ -1566,14 +1290,13 @@ var commentRQ = TmsTestCaseExecutionCommentRQ.builder()
 
   @Test
   void batchDeleteTestCaseExecutions_AllNonExistent_ShouldReturnAllErrors() throws Exception {
-    // Given
     var batchDeleteRQ = BatchDeleteTestCaseExecutionsRQ.builder()
         .executionIds(List.of(998L, 999L))
         .build();
 
-    // When
     mockMvc.perform(
-            delete("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/200/test-case/execution")
+            delete("/v1/project/" + SUPERADMIN_PROJECT_KEY
+                + "/launch/manual/200/test-case/execution")
                 .contentType(APPLICATION_JSON)
                 .content(mapper.writeValueAsString(batchDeleteRQ))
                 .with(token(oAuthHelper.getSuperadminToken())))
@@ -1584,29 +1307,24 @@ var commentRQ = TmsTestCaseExecutionCommentRQ.builder()
 
   @Test
   void batchDeleteTestCaseExecutions_EmptyList_ShouldReturnBadRequest() throws Exception {
-    // Given
-    var batchDeleteRQ = BatchDeleteTestCaseExecutionsRQ.builder()
-        .executionIds(List.of())
-        .build();
+    var batchDeleteRQ = BatchDeleteTestCaseExecutionsRQ.builder().executionIds(List.of()).build();
 
-    // When/Then
     mockMvc.perform(
-            delete("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/200/test-case/execution")
+            delete("/v1/project/" + SUPERADMIN_PROJECT_KEY
+                + "/launch/manual/200/test-case/execution")
                 .contentType(APPLICATION_JSON)
                 .content(mapper.writeValueAsString(batchDeleteRQ))
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isBadRequest());
   }
-@Test
-  void batchDeleteTestCaseExecutions_NonExistentLaunch_ShouldReturnNotFound() throws Exception {
-    // Given
-    var batchDeleteRQ = BatchDeleteTestCaseExecutionsRQ.builder()
-        .executionIds(List.of(10L))
-        .build();
 
-    // When/Then
+  @Test
+  void batchDeleteTestCaseExecutions_NonExistentLaunch_ShouldReturnNotFound() throws Exception {
+    var batchDeleteRQ = BatchDeleteTestCaseExecutionsRQ.builder().executionIds(List.of(10L)).build();
+
     mockMvc.perform(
-            delete("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/999/test-case/execution")
+            delete("/v1/project/" + SUPERADMIN_PROJECT_KEY
+                + "/launch/manual/999/test-case/execution")
                 .contentType(APPLICATION_JSON)
                 .content(mapper.writeValueAsString(batchDeleteRQ))
                 .with(token(oAuthHelper.getSuperadminToken())))
@@ -1614,15 +1332,13 @@ var commentRQ = TmsTestCaseExecutionCommentRQ.builder()
   }
 
   @Test
-  void batchDeleteTestCaseExecutions_ExecutionFromDifferentLaunch_ShouldReturnError() throws Exception {
-    // Given - execution 10 is in launch 200. Try to delete it from launch 201.
-    var batchDeleteRQ = BatchDeleteTestCaseExecutionsRQ.builder()
-        .executionIds(List.of(10L))
-        .build();
+  void batchDeleteTestCaseExecutions_ExecutionFromDifferentLaunch_ShouldReturnError()
+      throws Exception {
+    var batchDeleteRQ = BatchDeleteTestCaseExecutionsRQ.builder().executionIds(List.of(10L)).build();
 
-    // When
     mockMvc.perform(
-            delete("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/201/test-case/execution")
+            delete("/v1/project/" + SUPERADMIN_PROJECT_KEY
+                + "/launch/manual/201/test-case/execution")
                 .contentType(APPLICATION_JSON)
                 .content(mapper.writeValueAsString(batchDeleteRQ))
                 .with(token(oAuthHelper.getSuperadminToken())))
@@ -1630,7 +1346,8 @@ var commentRQ = TmsTestCaseExecutionCommentRQ.builder()
         .andExpect(jsonPath("$.successCount").value(0))
         .andExpect(jsonPath("$.failureCount").value(1))
         .andExpect(jsonPath("$.errors[0].executionId").value(10))
-        .andExpect(jsonPath("$.errors[0].errorMessage").value(containsString("not found in launch 201")));
+        .andExpect(jsonPath("$.errors[0].errorMessage").value(
+            containsString("not found in launch 201")));
   }
 
   @Test
@@ -1652,8 +1369,6 @@ var commentRQ = TmsTestCaseExecutionCommentRQ.builder()
     assertTrue(launch.get().getAttributes().isEmpty());
   }
 
-  // ==================== HELPER METHODS ====================
-
   private UploadAttachmentRS uploadTestAttachment(String fileName, String contentType)
       throws Exception {
     var file = new MockMultipartFile(
@@ -1670,10 +1385,7 @@ var commentRQ = TmsTestCaseExecutionCommentRQ.builder()
         .andExpect(status().isOk())
         .andReturn();
 
-    return mapper.readValue(
-        result.getResponse().getContentAsString(),
-        UploadAttachmentRS.class
-    );
+    return mapper.readValue(result.getResponse().getContentAsString(), UploadAttachmentRS.class);
   }
 
   @Test
@@ -1686,7 +1398,8 @@ var commentRQ = TmsTestCaseExecutionCommentRQ.builder()
         .build();
 
     mockMvc.perform(
-            patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/200/test-case/execution/11")
+            patch("/v1/project/" + SUPERADMIN_PROJECT_KEY
+                + "/launch/manual/200/test-case/execution/11")
                 .contentType(APPLICATION_JSON)
                 .content(mapper.writeValueAsString(patchRQ))
                 .with(token(oAuthHelper.getSuperadminToken())))
@@ -1708,12 +1421,14 @@ var commentRQ = TmsTestCaseExecutionCommentRQ.builder()
         .build();
 
     mockMvc.perform(
-            patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/200/test-case/execution/10")
+            patch("/v1/project/" + SUPERADMIN_PROJECT_KEY
+                + "/launch/manual/200/test-case/execution/10")
                 .contentType(APPLICATION_JSON)
                 .content(mapper.writeValueAsString(patchRQ))
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.executionComment.comment").value("Updated partial comment via patch"));
+        .andExpect(jsonPath("$.executionComment.comment").value(
+            "Updated partial comment via patch"));
   }
 
   @Test
@@ -1723,7 +1438,8 @@ var commentRQ = TmsTestCaseExecutionCommentRQ.builder()
         .build();
 
     mockMvc.perform(
-            patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/200/test-case/execution/10")
+            patch("/v1/project/" + SUPERADMIN_PROJECT_KEY
+                + "/launch/manual/200/test-case/execution/10")
                 .contentType(APPLICATION_JSON)
                 .content(mapper.writeValueAsString(patchRQ))
                 .with(token(oAuthHelper.getSuperadminToken())))

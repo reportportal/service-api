@@ -86,7 +86,7 @@ public class LaunchResource extends OwnedResource {
   private StatisticsResource statisticsResource;
 
   @JsonProperty(value = "attributes")
-  private Set<ItemAttributeResource> attributes;
+  private Set<AttributeResource> attributes;
 
   @JsonProperty(value = "mode")
   private Mode mode;

@@ -60,6 +60,39 @@ public class TmsTestCaseVersionServiceImpl implements TmsTestCaseVersionService 
 
   @Override
   @Transactional
+  public List<TmsTestCaseVersion> createDefaultTestCaseVersionsBatch(long projectId,
+      List<TmsTestCase> tmsTestCases, List<TmsManualScenarioRQ> tmsManualScenarioRQs) {
+
+    var defaultVersions = tmsTestCases
+        .stream()
+        .map(testCase -> {
+          var version = tmsTestCaseVersionMapper.createDefaultTestCaseVersion();
+          version.setTestCase(testCase);
+          return version;
+        })
+        .toList();
+
+    var savedVersions = tmsTestCaseVersionRepository.saveAll(defaultVersions);
+
+    for (var version : savedVersions) {
+      version.getTestCase().setVersions(Collections.singleton(version));
+    }
+
+    var scenarios = tmsManualScenarioService.createTmsManualScenariosBatch(
+        projectId, savedVersions, tmsManualScenarioRQs);
+
+    for (int i = 0; i < savedVersions.size(); i++) {
+      var scenario = scenarios.get(i);
+      if (scenario != null) {
+        savedVersions.get(i).setManualScenario(scenario);
+      }
+    }
+
+    return savedVersions;
+  }
+
+  @Override
+  @Transactional
   public TmsTestCaseVersion updateDefaultTestCaseVersion(long projectId, TmsTestCase tmsTestCase,
       @Valid TmsManualScenarioRQ tmsManualScenarioRQ) {
     return tmsTestCaseVersionRepository

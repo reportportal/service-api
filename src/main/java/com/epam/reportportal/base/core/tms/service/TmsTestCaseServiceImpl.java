@@ -5,10 +5,10 @@ import static com.epam.reportportal.base.infrastructure.persistence.commons.quer
 import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.NOT_FOUND;
 import static java.util.Objects.nonNull;
 
+import com.epam.reportportal.base.core.tms.TmsTestCasePriority;
 import com.epam.reportportal.base.core.tms.dto.NewTestFolderRQ;
 import com.epam.reportportal.base.core.tms.dto.PreparedTestCase;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseAttributeImportRQ;
-import com.epam.reportportal.base.core.tms.dto.TmsTestCaseAttributeRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseImportParseResult;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseImportRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseInTestPlanRS;
@@ -134,13 +134,24 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
   @Override
   @Transactional(readOnly = true)
   public TmsTestCaseRS getById(long projectId, Long testCaseId) {
+    return getById(projectId, testCaseId, true);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public TmsTestCaseRS getById(long projectId, Long testCaseId, boolean includeLastExecution) {
+    var testCase = tmsTestCaseRepository
+        .findByProjectIdAndId(projectId, testCaseId)
+        .orElseThrow(() -> new ReportPortalException(
+            NOT_FOUND, TEST_CASE_NOT_FOUND_BY_ID.formatted(testCaseId, projectId))
+        );
+    var defaultVersion = tmsTestCaseVersionService.getDefaultVersion(testCaseId);
+    if (!includeLastExecution) {
+      return tmsTestCaseMapper.convert(testCase, defaultVersion);
+    }
     return tmsTestCaseMapper.convert(
-        tmsTestCaseRepository
-            .findByProjectIdAndId(projectId, testCaseId)
-            .orElseThrow(() -> new ReportPortalException(
-                NOT_FOUND, TEST_CASE_NOT_FOUND_BY_ID.formatted(testCaseId, projectId))
-            ),
-        tmsTestCaseVersionService.getDefaultVersion(testCaseId),
+        testCase,
+        defaultVersion,
         tmsTestCaseExecutionService.getLastTestCaseExecution(testCaseId));
   }
 
@@ -330,7 +341,9 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
           projectId, patchRequest.getTestFolderId(), patchRequest.getTestFolder()
       );
     }
-    var priority = patchRequest.getPriority() != null ? patchRequest.getPriority().toUpperCase() : null;
+    var priority = StringUtils.isNotBlank(patchRequest.getPriority())
+        ? TmsTestCasePriority.normalize(patchRequest.getPriority())
+        : null;
     if (nonNull(testFolderId)
         || nonNull(priority)) {
       tmsTestCaseRepository.patch(projectId,
@@ -486,12 +499,20 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
       var importRQ = preparedTestCases.get(i).getTestCase();
 
       if (importRQ.getAttributes() != null) {
-        createAttributesFromImport(projectId, savedTestCase, importRQ.getAttributes(),
-            keyToAttributeId);
+        createAttributesFromImport(savedTestCase, importRQ.getAttributes(), keyToAttributeId);
       }
+    }
 
-      var defaultVersion = tmsTestCaseVersionService.createDefaultTestCaseVersion(projectId, savedTestCase,
-          importRQ.getManualScenario());
+    var manualScenarioRQs = preparedTestCases.stream()
+        .map(prepared -> prepared.getTestCase().getManualScenario())
+        .toList();
+
+    var defaultVersions = tmsTestCaseVersionService.createDefaultTestCaseVersionsBatch(
+        projectId, savedTestCases, manualScenarioRQs);
+
+    for (int i = 0; i < savedTestCases.size(); i++) {
+      var savedTestCase = savedTestCases.get(i);
+      var defaultVersion = defaultVersions.get(i);
 
       var resource = tmsTestCaseActivityResourceMapper.buildActivityResource(savedTestCase, defaultVersion);
       var event = tmsTestCaseActivityResourceMapper.buildTestCaseImportedEvent(membershipDetails, user, resource);
@@ -526,22 +547,20 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
   }
 
   private void createAttributesFromImport(
-      long projectId, TmsTestCase testCase,
+      TmsTestCase testCase,
       List<TmsTestCaseAttributeImportRQ> importAttributes,
       Map<String, Long> keyToAttributeId) {
 
-    List<TmsTestCaseAttributeRQ> attributeRequests = importAttributes.stream()
+    // Attribute IDs were already resolved/validated in bulk for this project in importFromFile,
+    // so attach them directly instead of re-fetching each one via createTestCaseAttributes.
+    var attributeIds = importAttributes.stream()
         .map(TmsTestCaseAttributeImportRQ::getKey)
-        .filter(keyToAttributeId::containsKey)
-        .map(key -> {
-          var attrRQ = new TmsTestCaseAttributeRQ();
-          attrRQ.setId(keyToAttributeId.get(key));
-          return attrRQ;
-        })
+        .map(keyToAttributeId::get)
+        .filter(Objects::nonNull)
         .toList();
 
-    if (!attributeRequests.isEmpty()) {
-      tmsTestCaseAttributeService.createTestCaseAttributes(projectId, testCase, attributeRequests);
+    if (!attributeIds.isEmpty()) {
+      tmsTestCaseAttributeService.createTestCaseAttributesByIds(testCase, attributeIds);
     }
   }
 
@@ -977,6 +996,26 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
 
   @Override
   @Transactional(readOnly = true)
+  public Map<Long, TmsTestCaseRS> getByIdsMap(long projectId, List<Long> testCaseIds, boolean includeLastExecution) {
+    if (CollectionUtils.isEmpty(testCaseIds)) {
+      return Collections.emptyMap();
+    }
+    var testCases = tmsTestCaseRepository.findByProjectIdAndIds(projectId, testCaseIds);
+    var defaultVersions = tmsTestCaseVersionService.getDefaultVersions(testCaseIds);
+    var lastExecutions = includeLastExecution
+        ? tmsTestCaseExecutionService.getLastTestCasesExecutionsByTestCaseIds(testCaseIds)
+        : Collections.<Long, TmsTestCaseExecution>emptyMap();
+
+    return testCases.stream().collect(Collectors.toMap(
+        TmsTestCase::getId,
+        testCase -> toTestCaseResource(testCase, defaultVersions, lastExecutions,
+            includeLastExecution),
+        (first, ignored) -> first
+    ));
+  }
+
+  @Override
+  @Transactional(readOnly = true)
   public List<Long> getTestCaseIdsInTestPlan(long projectId, Long testPlanId) {
     return PageableUtils
         .loadAll(
@@ -1045,5 +1084,16 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
     }
 
     return new Filter(TmsTestCase.class, conditions);
+  }
+
+  private TmsTestCaseRS toTestCaseResource(
+      TmsTestCase testCase,
+      Map<Long, TmsTestCaseVersion> defaultVersions,
+      Map<Long, TmsTestCaseExecution> lastExecutions,
+      boolean includeLastExecution) {
+    var defaultVersion = defaultVersions.get(testCase.getId());
+    return includeLastExecution
+        ? tmsTestCaseMapper.convert(testCase, defaultVersion, lastExecutions.get(testCase.getId()))
+        : tmsTestCaseMapper.convert(testCase, defaultVersion);
   }
 }

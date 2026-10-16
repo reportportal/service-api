@@ -25,7 +25,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import com.epam.reportportal.base.core.launch.cluster.config.GenerateClustersConfig;
-import com.epam.reportportal.base.infrastructure.persistence.dao.ItemAttributeRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchAttributeRepository;
 import com.epam.reportportal.base.pipeline.PipelinePart;
 import org.junit.jupiter.api.Test;
 
@@ -34,11 +34,11 @@ import org.junit.jupiter.api.Test;
  */
 class SaveLastRunAttributePartProviderTest {
 
-  private final ItemAttributeRepository itemAttributeRepository = mock(
-      ItemAttributeRepository.class);
+  private final LaunchAttributeRepository launchAttributeRepository = mock(
+      LaunchAttributeRepository.class);
 
   private final SaveLastRunAttributePartProvider provider = new SaveLastRunAttributePartProvider(
-      itemAttributeRepository);
+      launchAttributeRepository);
 
   @Test
   void shouldDeletePreviousAndSaveNew() {
@@ -48,13 +48,13 @@ class SaveLastRunAttributePartProviderTest {
 
     pipelinePart.handle();
 
-    verify(itemAttributeRepository, times(1)).deleteAllByLaunchIdAndKeyAndSystem(
+    verify(launchAttributeRepository, times(1)).deleteAllByLaunchIdAndKeyAndSystem(
         eq(config.getEntityContext().getLaunchId()),
         eq(RP_CLUSTER_LAST_RUN_KEY),
         eq(true)
     );
 
-    verify(itemAttributeRepository, times(1)).saveByLaunchId(
+    verify(launchAttributeRepository, times(1)).saveByLaunchId(
         eq(config.getEntityContext().getLaunchId()),
         eq(RP_CLUSTER_LAST_RUN_KEY),
         anyString(),
@@ -70,12 +70,12 @@ class SaveLastRunAttributePartProviderTest {
 
     pipelinePart.handle();
 
-    verify(itemAttributeRepository, times(0)).deleteAllByLaunchIdAndKeyAndSystem(
+    verify(launchAttributeRepository, times(0)).deleteAllByLaunchIdAndKeyAndSystem(
         eq(config.getEntityContext().getLaunchId()),
         eq(RP_CLUSTER_LAST_RUN_KEY),
         eq(true)
     );
-    verify(itemAttributeRepository, times(0)).saveByLaunchId(
+    verify(launchAttributeRepository, times(0)).saveByLaunchId(
         eq(config.getEntityContext().getLaunchId()),
         eq(RP_CLUSTER_LAST_RUN_KEY),
         anyString(),

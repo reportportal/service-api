@@ -251,6 +251,35 @@ class QaSpaceSyncConnectorTest {
         assertEquals("Expected: Result", tc.getExpectedResults());
     }
 
+    @Test
+    void fetchTestCases_whenSinceIsAfterRemoteUpdate_stillReturnsUnchangedTestCase() {
+        var searchResponse = """
+                {
+                  "issues": [
+                    {
+                      "key": "EPMRPP-102",
+                      "fields": {
+                        "summary": "Old Test Case",
+                        "updated": "2024-01-15T10:30:00.000+0000"
+                      }
+                    }
+                  ]
+                }
+                """;
+        var folder = RemoteFolder.builder()
+                .id("27082")
+                .testCaseIds(List.of("EPMRPP-102"))
+                .build();
+        when(jiraHttpClient.post(eq(BASE_URL), eq("Bearer " + BEARER_PAT), eq("rest/api/2/search"), anyString()))
+                .thenReturn(searchResponse);
+
+        var result = connector.fetchTestCases(
+                integration, folder, java.time.Instant.parse("2025-01-01T00:00:00Z"), 0, 50);
+
+        assertEquals(1, result.getTestCases().size());
+        assertEquals("EPMRPP-102", result.getTestCases().get(0).getId());
+    }
+
     private Integration createIntegration(Map<String, Object> paramsMap) {
         Integration testIntegration = new Integration();
         IntegrationParams params = new IntegrationParams();

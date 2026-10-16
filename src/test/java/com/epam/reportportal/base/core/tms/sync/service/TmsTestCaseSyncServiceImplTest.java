@@ -1,11 +1,13 @@
 package com.epam.reportportal.base.core.tms.sync.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -231,8 +233,222 @@ class TmsTestCaseSyncServiceImplTest {
     assertTrue(!fileName.startsWith("tms/"));
     assertTrue(fileName.endsWith("_screen_shot.png"));
     assertEquals(1, syncJob.getCounters().getProcessed());
+    assertEquals(1, syncJob.getCounters().getImported());
+    assertEquals(0, syncJob.getCounters().getSkipped());
     assertEquals(0, syncJob.getCounters().getFailed());
     verify(tmsSyncJobRepository).save(syncJob);
+  }
+
+  @Test
+  void processTestCaseBatch_WhenExistingTestCaseIsUnchanged_ShouldSkipTestCaseAndUpdateCounters() {
+    var project = new Project();
+    project.setOrganizationId(organizationId);
+    when(projectRepository.findById(projectId)).thenReturn(Optional.of(project));
+
+    var remoteTestCase = new RemoteTestCase();
+    remoteTestCase.setId("EXT-UNCHANGED-1");
+    remoteTestCase.setName("Unchanged Remote TC");
+    remoteTestCase.setUpdatedAt(Instant.now());
+
+    var existingTestCase = new TmsTestCase();
+    existingTestCase.setId(90L);
+    existingTestCase.setExternalId("EXT-UNCHANGED-1");
+    existingTestCase.setSourceUpdatedAt(remoteTestCase.getUpdatedAt().plusSeconds(1));
+
+    when(tmsTestCaseRepository.findByProjectIdAndExternalIdIn(projectId, List.of("EXT-UNCHANGED-1")))
+        .thenReturn(List.of(existingTestCase));
+
+    var syncJob = new TmsSyncJob();
+    syncJob.setCounters(new SyncCounters());
+    syncJob.setErrorLog(new SyncErrorLog());
+    when(tmsSyncJobRepository.findById(jobId)).thenReturn(Optional.of(syncJob));
+
+    @SuppressWarnings("unchecked")
+    TmsSyncConnector<Integration> connector = mock(TmsSyncConnector.class);
+    var integration = new Integration();
+
+    sut.processTestCaseBatch(jobId, projectId, connector, integration, List.of(remoteTestCase), null);
+
+    assertEquals(1, syncJob.getCounters().getProcessed());
+    assertEquals(0, syncJob.getCounters().getImported());
+    assertEquals(1, syncJob.getCounters().getSkipped());
+    assertEquals(0, syncJob.getCounters().getFailed());
+    verify(tmsSyncJobRepository).save(syncJob);
+  }
+
+  @Test
+  void processTestCaseBatch_WhenTestCaseSyncFails_ShouldIncludeFailedTestCaseInProcessedCounters() {
+    var project = new Project();
+    project.setOrganizationId(organizationId);
+    when(projectRepository.findById(projectId)).thenReturn(Optional.of(project));
+
+    var remoteTestCase = new RemoteTestCase();
+    remoteTestCase.setId("EXT-FAILED-1");
+    remoteTestCase.setName("Failed Remote TC");
+    remoteTestCase.setUpdatedAt(Instant.now());
+
+    when(tmsTestCaseRepository.findByProjectIdAndExternalIdIn(projectId, List.of("EXT-FAILED-1")))
+        .thenReturn(List.of());
+    when(tmsTestCaseMapper.convertFromRemote(any(), any(), eq(projectId), any()))
+        .thenThrow(new IllegalStateException("sync failure"));
+
+    var syncJob = new TmsSyncJob();
+    syncJob.setCounters(new SyncCounters());
+    syncJob.setErrorLog(new SyncErrorLog());
+    when(tmsSyncJobRepository.findById(jobId)).thenReturn(Optional.of(syncJob));
+
+    @SuppressWarnings("unchecked")
+    TmsSyncConnector<Integration> connector = mock(TmsSyncConnector.class);
+    var integration = new Integration();
+
+    sut.processTestCaseBatch(jobId, projectId, connector, integration, List.of(remoteTestCase), null);
+
+    assertEquals(1, syncJob.getCounters().getProcessed());
+    assertEquals(0, syncJob.getCounters().getImported());
+    assertEquals(0, syncJob.getCounters().getSkipped());
+    assertEquals(1, syncJob.getCounters().getFailed());
+    verify(tmsSyncJobRepository).save(syncJob);
+  }
+
+  @Test
+  void processTestCaseBatch_WhenBatchIsMixed_ShouldKeepProcessedEqualToImportedPlusSkippedPlusFailed() {
+    var project = new Project();
+    project.setOrganizationId(organizationId);
+    when(projectRepository.findById(projectId)).thenReturn(Optional.of(project));
+
+    var newRemote = new RemoteTestCase();
+    newRemote.setId("EXT-NEW");
+    newRemote.setName("New");
+    newRemote.setUpdatedAt(Instant.now());
+
+    var unchangedRemote = new RemoteTestCase();
+    unchangedRemote.setId("EXT-UNCHANGED");
+    unchangedRemote.setName("Unchanged");
+    unchangedRemote.setUpdatedAt(Instant.now());
+
+    var failingRemote = new RemoteTestCase();
+    failingRemote.setId("EXT-FAILING");
+    failingRemote.setName("Failing");
+    failingRemote.setUpdatedAt(Instant.now());
+
+    var unchangedExisting = new TmsTestCase();
+    unchangedExisting.setId(91L);
+    unchangedExisting.setExternalId("EXT-UNCHANGED");
+    unchangedExisting.setSourceUpdatedAt(unchangedRemote.getUpdatedAt().plusSeconds(1));
+
+    when(tmsTestCaseRepository.findByProjectIdAndExternalIdIn(
+        projectId, List.of("EXT-NEW", "EXT-UNCHANGED", "EXT-FAILING")))
+        .thenReturn(List.of(unchangedExisting));
+
+    var newTestCase = new TmsTestCase();
+    newTestCase.setId(92L);
+    newTestCase.setExternalId("EXT-NEW");
+    when(tmsTestCaseMapper.convertFromRemote(eq(newRemote), any(), eq(projectId), any()))
+        .thenReturn(newTestCase);
+    when(tmsTestCaseMapper.convertFromRemote(eq(failingRemote), any(), eq(projectId), any()))
+        .thenThrow(new IllegalStateException("sync failure"));
+    when(tmsTestCaseRepository.saveAll(anyList())).thenReturn(List.of(newTestCase));
+
+    var syncJob = new TmsSyncJob();
+    syncJob.setCounters(new SyncCounters());
+    syncJob.setErrorLog(new SyncErrorLog());
+    when(tmsSyncJobRepository.findById(jobId)).thenReturn(Optional.of(syncJob));
+
+    @SuppressWarnings("unchecked")
+    TmsSyncConnector<Integration> connector = mock(TmsSyncConnector.class);
+
+    sut.processTestCaseBatch(jobId, projectId, connector, new Integration(),
+        List.of(newRemote, unchangedRemote, failingRemote), null);
+
+    var counters = syncJob.getCounters();
+    assertEquals(3, counters.getProcessed());
+    assertEquals(1, counters.getImported());
+    assertEquals(1, counters.getSkipped());
+    assertEquals(1, counters.getFailed());
+    assertEquals(counters.getProcessed(),
+        counters.getImported() + counters.getSkipped() + counters.getFailed());
+    assertEquals(1, syncJob.getErrorLog().getErrors().size());
+  }
+
+  @Test
+  void processTestCaseBatch_WhenBatchHasDuplicateIds_ShouldUseNewestRecordOnceAndCountDuplicateAsSkipped() {
+    var project = new Project();
+    project.setOrganizationId(organizationId);
+    when(projectRepository.findById(projectId)).thenReturn(Optional.of(project));
+
+    var older = new RemoteTestCase();
+    older.setId("EXT-DUP");
+    older.setName("Older");
+    older.setUpdatedAt(Instant.now().minusSeconds(60));
+    var newer = new RemoteTestCase();
+    newer.setId("EXT-DUP");
+    newer.setName("Newer");
+    newer.setUpdatedAt(Instant.now());
+
+    when(tmsTestCaseRepository.findByProjectIdAndExternalIdIn(projectId, List.of("EXT-DUP")))
+        .thenReturn(List.of());
+    var newTestCase = new TmsTestCase();
+    newTestCase.setExternalId("EXT-DUP");
+    newTestCase.setId(60L);
+    when(tmsTestCaseMapper.convertFromRemote(any(), any(), eq(projectId), any()))
+        .thenReturn(newTestCase);
+    when(tmsTestCaseRepository.saveAll(anyList())).thenReturn(List.of(newTestCase));
+    when(tmsManualScenarioMapper.convertFromRemote(any(), any()))
+        .thenReturn(new TmsTextManualScenarioRQ());
+
+    var syncJob = new TmsSyncJob();
+    syncJob.setCounters(new SyncCounters());
+    syncJob.setErrorLog(new SyncErrorLog());
+    when(tmsSyncJobRepository.findById(jobId)).thenReturn(Optional.of(syncJob));
+
+    @SuppressWarnings("unchecked")
+    TmsSyncConnector<Integration> connector = mock(TmsSyncConnector.class);
+
+    sut.processTestCaseBatch(jobId, projectId, connector, new Integration(),
+        List.of(older, newer), null);
+
+    verify(tmsTestCaseMapper, times(1)).convertFromRemote(any(), any(), eq(projectId), any());
+    verify(tmsTestCaseMapper).convertFromRemote(eq(newer), any(), eq(projectId), any());
+    verify(tmsManualScenarioMapper, times(1)).convertFromRemote(eq(newer), any());
+    assertEquals(2, syncJob.getCounters().getProcessed());
+    assertEquals(1, syncJob.getCounters().getImported());
+    assertEquals(1, syncJob.getCounters().getSkipped());
+  }
+
+  @Test
+  void processTestCaseBatch_WhenPersistingBatchFails_ShouldCountImportCandidatesAsFailedAndRethrow() {
+    var project = new Project();
+    project.setOrganizationId(organizationId);
+    when(projectRepository.findById(projectId)).thenReturn(Optional.of(project));
+
+    var remoteTestCase = new RemoteTestCase();
+    remoteTestCase.setId("EXT-ROLLBACK-1");
+    remoteTestCase.setName("Rolled Back Remote TC");
+    remoteTestCase.setUpdatedAt(Instant.now());
+
+    when(tmsTestCaseRepository.findByProjectIdAndExternalIdIn(projectId, List.of("EXT-ROLLBACK-1")))
+        .thenReturn(List.of());
+    var newTestCase = new TmsTestCase();
+    newTestCase.setExternalId("EXT-ROLLBACK-1");
+    when(tmsTestCaseMapper.convertFromRemote(any(), any(), eq(projectId), any()))
+        .thenReturn(newTestCase);
+    when(tmsTestCaseRepository.saveAll(anyList())).thenThrow(new IllegalStateException("db down"));
+
+    var syncJob = new TmsSyncJob();
+    syncJob.setCounters(new SyncCounters());
+    syncJob.setErrorLog(new SyncErrorLog());
+    when(tmsSyncJobRepository.findById(jobId)).thenReturn(Optional.of(syncJob));
+
+    @SuppressWarnings("unchecked")
+    TmsSyncConnector<Integration> connector = mock(TmsSyncConnector.class);
+
+    assertThrows(IllegalStateException.class, () -> sut.processTestCaseBatch(
+        jobId, projectId, connector, new Integration(), List.of(remoteTestCase), null));
+
+    assertEquals(1, syncJob.getCounters().getProcessed());
+    assertEquals(0, syncJob.getCounters().getImported());
+    assertEquals(0, syncJob.getCounters().getSkipped());
+    assertEquals(1, syncJob.getCounters().getFailed());
   }
 
   @Test

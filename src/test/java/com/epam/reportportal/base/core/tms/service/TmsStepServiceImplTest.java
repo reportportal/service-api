@@ -72,8 +72,7 @@ class TmsStepServiceImplTest {
     // Then
     verify(tmsStepMapper).convertToTmsStep(stepRQList.get(0));
     verify(tmsStepMapper).convertToTmsStep(stepRQList.get(1));
-    verify(tmsStepRepository).save(step1);
-    verify(tmsStepRepository).save(step2);
+    verify(tmsStepRepository).saveAll(List.of(step1, step2));
     verify(tmsStepAttachmentService).createAttachments(projectId, step1, stepRQList.get(0));
     verify(tmsStepAttachmentService).createAttachments(projectId, step2, stepRQList.get(1));
 
@@ -107,8 +106,7 @@ class TmsStepServiceImplTest {
     // Then
     verify(tmsStepMapper).convertToTmsStep(stepRQList.get(0));
     verify(tmsStepMapper).convertToTmsStep(stepRQList.get(1));
-    verify(tmsStepRepository).save(step1);
-    verify(tmsStepRepository).save(step2);
+    verify(tmsStepRepository).saveAll(List.of(step1, step2));
     verify(tmsStepAttachmentService).createAttachments(projectId, step1, stepRQList.get(0));
     verify(tmsStepAttachmentService).createAttachments(projectId, step2, stepRQList.get(1));
 
@@ -134,7 +132,7 @@ class TmsStepServiceImplTest {
     // Then
     verify(tmsStepMapper, never()).convertToTmsStep(any());
     verify(tmsStepAttachmentService, never()).createAttachments(any(), any(), any());
-    verify(tmsStepRepository, never()).save(any());
+    verify(tmsStepRepository, never()).saveAll(any());
   }
 
   @Test
@@ -150,7 +148,7 @@ class TmsStepServiceImplTest {
     // Then
     verify(tmsStepMapper, never()).convertToTmsStep(any());
     verify(tmsStepAttachmentService, never()).createAttachments(any(), any(), any());
-    verify(tmsStepRepository, never()).save(any());
+    verify(tmsStepRepository, never()).saveAll(any());
   }
 
   @Test
@@ -177,7 +175,7 @@ class TmsStepServiceImplTest {
 
     // Then
     verify(tmsStepMapper).convertToTmsStep(singleStepRQ);
-    verify(tmsStepRepository).save(singleStep);
+    verify(tmsStepRepository).saveAll(List.of(singleStep));
     verify(tmsStepAttachmentService).createAttachments(projectId, singleStep, singleStepRQ);
 
     // Verify that number is set correctly
@@ -208,8 +206,7 @@ class TmsStepServiceImplTest {
     verify(tmsStepRepository).deleteAll(existingSteps);
     verify(tmsStepMapper).convertToTmsStep(stepRQList.get(0));
     verify(tmsStepMapper).convertToTmsStep(stepRQList.get(1));
-    verify(tmsStepRepository).save(step1);
-    verify(tmsStepRepository).save(step2);
+    verify(tmsStepRepository).saveAll(List.of(step1, step2));
     verify(tmsStepAttachmentService).createAttachments(projectId, step1, stepRQList.get(0));
     verify(tmsStepAttachmentService).createAttachments(projectId, step2, stepRQList.get(1));
 
@@ -241,8 +238,7 @@ class TmsStepServiceImplTest {
     verify(tmsStepRepository, never()).deleteAll(any());
     verify(tmsStepMapper).convertToTmsStep(stepRQList.get(0));
     verify(tmsStepMapper).convertToTmsStep(stepRQList.get(1));
-    verify(tmsStepRepository).save(step1);
-    verify(tmsStepRepository).save(step2);
+    verify(tmsStepRepository).saveAll(List.of(step1, step2));
     verify(tmsStepAttachmentService).createAttachments(projectId, step1, stepRQList.get(0));
     verify(tmsStepAttachmentService).createAttachments(projectId, step2, stepRQList.get(1));
 
@@ -276,8 +272,7 @@ class TmsStepServiceImplTest {
     verify(tmsStepMapper).convertToTmsStep(stepRQList.get(1));
     verify(tmsStepAttachmentService).createAttachments(projectId, step1, stepRQList.get(0));
     verify(tmsStepAttachmentService).createAttachments(projectId, step2, stepRQList.get(1));
-    verify(tmsStepRepository).save(step1);
-    verify(tmsStepRepository).save(step2);
+    verify(tmsStepRepository).saveAll(List.of(step1, step2));
 
     // Verify that numbers are set correctly (starting from 0 after replace)
     assertThat(step1.getNumber()).isZero();
@@ -307,8 +302,7 @@ class TmsStepServiceImplTest {
     verify(tmsStepMapper).convertToTmsStep(stepRQList.get(1));
     verify(tmsStepAttachmentService).createAttachments(projectId, step1, stepRQList.get(0));
     verify(tmsStepAttachmentService).createAttachments(projectId, step2, stepRQList.get(1));
-    verify(tmsStepRepository).save(step1);
-    verify(tmsStepRepository).save(step2);
+    verify(tmsStepRepository).saveAll(List.of(step1, step2));
 
     // Verify that numbers are set correctly (starting from 0 when no existing steps)
     assertThat(step1.getNumber()).isZero();
@@ -343,8 +337,7 @@ class TmsStepServiceImplTest {
     verify(tmsStepMapper).convertToTmsStep(stepRQList.get(1));
     verify(tmsStepAttachmentService).createAttachments(projectId, step1, stepRQList.get(0));
     verify(tmsStepAttachmentService).createAttachments(projectId, step2, stepRQList.get(1));
-    verify(tmsStepRepository).save(step1);
-    verify(tmsStepRepository).save(step2);
+    verify(tmsStepRepository).saveAll(List.of(step1, step2));
 
     // Verify that numbers are set correctly (starting from 0 when existing steps is empty)
     assertThat(step1.getNumber()).isZero();

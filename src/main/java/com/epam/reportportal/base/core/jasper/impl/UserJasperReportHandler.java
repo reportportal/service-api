@@ -16,15 +16,13 @@
 
 package com.epam.reportportal.base.core.jasper.impl;
 
-import static com.epam.reportportal.base.ws.converter.builders.UserBuilder.USER_LAST_LOGIN;
 import static java.util.Optional.ofNullable;
 
 import com.epam.reportportal.base.core.jasper.JasperReportRender;
 import com.epam.reportportal.base.core.jasper.ReportFormat;
 import com.epam.reportportal.base.core.jasper.ReportType;
 import com.epam.reportportal.base.core.jasper.constants.UserReportConstants;
-import com.epam.reportportal.base.infrastructure.persistence.entity.Metadata;
-import com.epam.reportportal.base.infrastructure.persistence.entity.user.User;
+import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserExportProjection;
 import com.google.common.collect.Sets;
 import java.time.Instant;
 import java.time.ZoneOffset;
@@ -39,12 +37,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
- * Handler for generating Jasper reports for {@link User} entities. Supports only CSV report format.
+ * Handler for generating Jasper reports for {@link UserExportProjection} rows. Supports only CSV report format.
  *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Service("userJasperReportHandler")
-public class UserJasperReportHandler extends AbstractJasperReportHandler<User> {
+public class UserJasperReportHandler extends AbstractJasperReportHandler<UserExportProjection> {
 
   private static final String UNSUPPORTED_REPORT_FORMAT_MESSAGE_EXCEPTION =
       "Report format - {} is not supported for user reports.";
@@ -73,20 +71,18 @@ public class UserJasperReportHandler extends AbstractJasperReportHandler<User> {
   }
 
   @Override
-  public Map<String, Object> convertParams(User user) {
+  public Map<String, Object> convertParams(UserExportProjection user) {
     Map<String, Object> params = new HashMap<>();
 
-    params.put(UserReportConstants.FULL_NAME, user.getFullName());
-    params.put(UserReportConstants.TYPE, user.getUserType().name());
-    params.put(UserReportConstants.EMAIL, user.getEmail());
-    params.put(UserReportConstants.ORGS_COUNT, (long) user.getOrganizationUsers().size());
+    params.put(UserReportConstants.FULL_NAME, user.fullName());
+    params.put(UserReportConstants.TYPE, user.type());
+    params.put(UserReportConstants.EMAIL, user.email());
+    params.put(UserReportConstants.ORGS_COUNT, user.organizationsCount());
 
-    ofNullable(user.getMetadata())
-        .map(Metadata::getMetadata)
-        .map(meta -> meta.get(USER_LAST_LOGIN))
+    ofNullable(user.lastLogin())
         .ifPresent(lastLogin -> {
           try {
-            long epochMilli = Double.valueOf(String.valueOf(lastLogin)).longValue();
+            long epochMilli = Double.valueOf(lastLogin).longValue();
             Instant instant = Instant.ofEpochMilli(epochMilli);
             params.put(
                 UserReportConstants.LAST_LOGIN,

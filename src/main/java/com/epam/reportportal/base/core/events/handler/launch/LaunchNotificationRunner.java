@@ -42,7 +42,7 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.project.emai
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.User;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
-import com.epam.reportportal.base.reporting.ItemAttributeResource;
+import com.epam.reportportal.base.reporting.AttributeResource;
 import com.epam.reportportal.base.util.email.EmailService;
 import com.epam.reportportal.base.util.email.MailServiceFactory;
 import com.epam.reportportal.base.ws.converter.converters.NotificationConfigConverter;
@@ -142,14 +142,14 @@ public class LaunchNotificationRunner
       return true;
     }
 
-    Set<ItemAttributeResource> itemAttributesResource =
+    Set<AttributeResource> itemAttributesResource =
         launchAttributeRules.stream().map(NotificationConfigConverter.TO_ATTRIBUTE_RULE_RESOURCE)
             .collect(Collectors.toSet());
 
-    Set<ItemAttributeResource> itemAttributes =
+    Set<AttributeResource> itemAttributes =
         launch.getAttributes().stream().filter(attribute -> !attribute.isSystem())
             .map(attribute -> {
-              ItemAttributeResource attributeResource = new ItemAttributeResource();
+              AttributeResource attributeResource = new AttributeResource();
               attributeResource.setKey(attribute.getKey());
               attributeResource.setValue(attribute.getValue());
               return attributeResource;
@@ -164,17 +164,17 @@ public class LaunchNotificationRunner
         .anyMatch(resourceAttr -> areAttributesMatched(attr, resourceAttr)));
   }
 
-  private static boolean areAttributesMatched(ItemAttributeResource itemAttribute,
-      ItemAttributeResource itemAttributeResource) {
+  private static boolean areAttributesMatched(AttributeResource itemAttribute,
+      AttributeResource attributeResource) {
     // Case 1: Key and Value are the same
     boolean isEqual =
-        Objects.equals(itemAttribute.getKey(), itemAttributeResource.getKey()) && Objects.equals(
-            itemAttribute.getValue(), itemAttributeResource.getValue());
+        Objects.equals(itemAttribute.getKey(), attributeResource.getKey()) && Objects.equals(
+            itemAttribute.getValue(), attributeResource.getValue());
 
     // Case 2: Key is null in itemAttributesResource and the Value is the same
     boolean isValueEqualWithKeyNull =
-        itemAttributeResource.getKey() == null && Objects.equals(itemAttribute.getValue(),
-            itemAttributeResource.getValue()
+        attributeResource.getKey() == null && Objects.equals(itemAttribute.getValue(),
+            attributeResource.getValue()
         );
 
     return isEqual || isValueEqualWithKeyNull;

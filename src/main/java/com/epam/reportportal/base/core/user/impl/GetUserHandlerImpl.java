@@ -45,6 +45,7 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.project.Proj
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectUtils;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.ProjectUser;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.User;
+import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserExportProjection;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.model.user.UserResource;
@@ -59,7 +60,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
 import org.jooq.Operator;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -83,7 +83,7 @@ public class GetUserHandlerImpl implements GetUserHandler {
 
   private final GroupMembershipRepository groupMembershipRepository;
 
-  private final GetJasperReportHandler<User> jasperReportHandler;
+  private final GetJasperReportHandler<UserExportProjection> jasperReportHandler;
 
   /**
    * Constructor.
@@ -98,7 +98,7 @@ public class GetUserHandlerImpl implements GetUserHandler {
       UserRepository userRepo,
       ProjectRepository projectRepository,
       GroupMembershipRepository groupMembershipRepository,
-      @Qualifier("userJasperReportHandler") GetJasperReportHandler<User> jasperReportHandler
+      @Qualifier("userJasperReportHandler") GetJasperReportHandler<UserExportProjection> jasperReportHandler
   ) {
     this.userRepository = Preconditions.checkNotNull(userRepo);
     this.groupMembershipRepository = groupMembershipRepository;
@@ -194,13 +194,10 @@ public class GetUserHandlerImpl implements GetUserHandler {
 
   @Override
   public void exportUsers(ReportFormat reportFormat, OutputStream outputStream, Queryable filter, Pageable pageable) {
-    var users = (pageable == null)
-        ? userRepository.findByFilter(filter)
-        : userRepository.findByFilter(filter, pageable);
-
-    List<? extends Map<String, ?>> data = StreamSupport.stream(users.spliterator(), false)
+    List<? extends Map<String, ?>> data = userRepository.findForExportByFilter(filter, pageable)
+        .stream()
         .map(jasperReportHandler::convertParams)
-        .collect(Collectors.toList());
+        .toList();
     var jrDataSource = new JRBeanCollectionDataSource(data);
     //don't provide any params to not overwrite params from the Jasper template
     var jasperPrint = jasperReportHandler.getJasperPrint(null, jrDataSource);

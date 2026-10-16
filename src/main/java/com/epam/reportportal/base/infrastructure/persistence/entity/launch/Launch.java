@@ -17,13 +17,12 @@
 package com.epam.reportportal.base.infrastructure.persistence.entity.launch;
 
 import com.epam.reportportal.base.infrastructure.persistence.dao.converters.JpaInstantConverter;
-import com.epam.reportportal.base.infrastructure.persistence.entity.ItemAttribute;
+import com.epam.reportportal.base.infrastructure.persistence.entity.Attribute;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.LaunchModeEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.LaunchTypeEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.RetentionPolicyEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.StatusEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.log.Log;
-import com.epam.reportportal.base.infrastructure.persistence.entity.statistics.Statistics;
 import com.google.common.collect.Sets;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -37,12 +36,12 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
-import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import java.io.Serializable;
 import java.time.Instant;
+import java.util.Collection;
 import java.util.Objects;
 import java.util.Set;
 import lombok.Getter;
@@ -135,12 +134,11 @@ public class Launch implements Serializable {
 
   @OneToMany(mappedBy = "launch", cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
   @Fetch(FetchMode.JOIN)
-  private Set<ItemAttribute> attributes = Sets.newHashSet();
+  private Set<LaunchAttribute> attributes = Sets.newHashSet();
 
-  @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+  @OneToMany(mappedBy = "launch", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
   @Fetch(FetchMode.JOIN)
-  @JoinColumn(name = "launch_id", insertable = false, updatable = false)
-  private Set<Statistics> statistics = Sets.newHashSet();
+  private Set<LaunchStatistics> statistics = Sets.newHashSet();
 
   @OneToMany(mappedBy = "launch", fetch = FetchType.LAZY, orphanRemoval = true)
   private Set<Log> logs = Sets.newHashSet();
@@ -158,13 +156,22 @@ public class Launch implements Serializable {
     this.id = id;
   }
 
-  public Set<ItemAttribute> getAttributes() {
+  public Set<LaunchAttribute> getAttributes() {
     return attributes;
   }
 
-  public void setAttributes(Set<ItemAttribute> tags) {
+  public void setAttributes(Collection<? extends Attribute> tags) {
     this.attributes.clear();
-    this.attributes.addAll(tags);
+    tags.forEach(attribute -> {
+      if (attribute instanceof LaunchAttribute launchAttribute) {
+        this.attributes.add(launchAttribute);
+      } else {
+        LaunchAttribute launchAttribute =
+            new LaunchAttribute(attribute.getKey(), attribute.getValue(), attribute.isSystem());
+        launchAttribute.setLaunch(this);
+        this.attributes.add(launchAttribute);
+      }
+    });
   }
 
   public Long getId() {
@@ -231,11 +238,11 @@ public class Launch implements Serializable {
     this.startTime = startTime;
   }
 
-  public Set<Statistics> getStatistics() {
+  public Set<LaunchStatistics> getStatistics() {
     return statistics;
   }
 
-  public void setStatistics(Set<Statistics> statistics) {
+  public void setStatistics(Set<LaunchStatistics> statistics) {
     this.statistics = statistics;
   }
 

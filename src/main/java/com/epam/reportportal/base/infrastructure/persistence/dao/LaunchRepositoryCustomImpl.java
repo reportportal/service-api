@@ -24,11 +24,11 @@ import static com.epam.reportportal.base.infrastructure.persistence.dao.constant
 import static com.epam.reportportal.base.infrastructure.persistence.dao.util.JooqFieldNameTransformer.fieldName;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.util.RecordMappers.INDEX_LAUNCH_RECORD_MAPPER;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.util.ResultFetchers.LAUNCH_FETCHER;
-import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.ITEM_ATTRIBUTE;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.LAUNCH;
+import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.LAUNCH_ATTRIBUTE;
+import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.LAUNCH_STATISTICS;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.LOG;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.PROJECT;
-import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.STATISTICS;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.STATISTICS_FIELD;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.USERS;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTestItem.TEST_ITEM;
@@ -206,12 +206,12 @@ public class LaunchRepositoryCustomImpl implements LaunchRepositoryCustom {
             .from(LAUNCH)
             .join(FILTERED_QUERY)
             .on(field(name(FILTERED_QUERY, ID), Long.class).eq(LAUNCH.ID))
-            .leftJoin(STATISTICS)
-            .on(LAUNCH.ID.eq(STATISTICS.LAUNCH_ID))
+            .leftJoin(LAUNCH_STATISTICS)
+            .on(LAUNCH.ID.eq(LAUNCH_STATISTICS.LAUNCH_ID))
             .leftJoin(STATISTICS_FIELD)
-            .on(STATISTICS.STATISTICS_FIELD_ID.eq(STATISTICS_FIELD.SF_ID))
-            .leftJoin(ITEM_ATTRIBUTE)
-            .on(LAUNCH.ID.eq(ITEM_ATTRIBUTE.LAUNCH_ID))
+            .on(LAUNCH_STATISTICS.STATISTICS_FIELD_ID.eq(STATISTICS_FIELD.SF_ID))
+            .leftJoin(LAUNCH_ATTRIBUTE)
+            .on(LAUNCH.ID.eq(LAUNCH_ATTRIBUTE.LAUNCH_ID))
             .leftJoin(USERS)
             .on(LAUNCH.USER_ID.eq(USERS.ID))
             .groupBy(groupFields)
@@ -232,9 +232,9 @@ public class LaunchRepositoryCustomImpl implements LaunchRepositoryCustom {
   private ArrayList<Field<JSON[]>> getAttributeConcatenatedFields() {
     return Lists.newArrayList(
         DSL.arrayAgg(DSL.jsonArray(
-                coalesce(ITEM_ATTRIBUTE.KEY, ""),
-                coalesce(ITEM_ATTRIBUTE.VALUE, ""),
-                ITEM_ATTRIBUTE.SYSTEM
+                coalesce(LAUNCH_ATTRIBUTE.KEY, ""),
+                coalesce(LAUNCH_ATTRIBUTE.VALUE, ""),
+                LAUNCH_ATTRIBUTE.SYSTEM
             ))
             .as(ATTRIBUTE_ALIAS));
   }
@@ -259,7 +259,7 @@ public class LaunchRepositoryCustomImpl implements LaunchRepositoryCustom {
         LAUNCH.LAUNCH_TYPE,
         LAUNCH.TEST_PLAN_ID,
         LAUNCH.DISPLAY_ID,
-        STATISTICS.S_COUNTER,
+        LAUNCH_STATISTICS.S_COUNTER,
         STATISTICS_FIELD.NAME,
         USERS.ID,
         USERS.LOGIN);
@@ -290,14 +290,14 @@ public class LaunchRepositoryCustomImpl implements LaunchRepositoryCustom {
         .from(LAUNCH)
         .join(FILTERED_QUERY)
         .on(LAUNCH.ID.eq(fieldName(FILTERED_QUERY, ID).cast(Long.class)))
-        .leftJoin(STATISTICS)
-        .on(LAUNCH.ID.eq(STATISTICS.LAUNCH_ID))
+        .leftJoin(LAUNCH_STATISTICS)
+        .on(LAUNCH.ID.eq(LAUNCH_STATISTICS.LAUNCH_ID))
         .leftJoin(USERS)
         .on(LAUNCH.USER_ID.eq(USERS.ID))
         .leftJoin(STATISTICS_FIELD)
-        .on(STATISTICS.STATISTICS_FIELD_ID.eq(STATISTICS_FIELD.SF_ID))
-        .leftJoin(ITEM_ATTRIBUTE)
-        .on(LAUNCH.ID.eq(ITEM_ATTRIBUTE.LAUNCH_ID))
+        .on(LAUNCH_STATISTICS.STATISTICS_FIELD_ID.eq(STATISTICS_FIELD.SF_ID))
+        .leftJoin(LAUNCH_ATTRIBUTE)
+        .on(LAUNCH.ID.eq(LAUNCH_ATTRIBUTE.LAUNCH_ID))
         .groupBy(simpleSelectedFields)
     )).stream().findFirst();
   }
@@ -394,24 +394,24 @@ public class LaunchRepositoryCustomImpl implements LaunchRepositoryCustom {
         .from(LAUNCH)
         .where(LAUNCH.ID.in(dsl.select(LAUNCH.ID)
             .from(LAUNCH)
-            .leftJoin(ITEM_ATTRIBUTE)
-            .on(LAUNCH.ID.eq(ITEM_ATTRIBUTE.LAUNCH_ID))
-            .where(ITEM_ATTRIBUTE.SYSTEM.eq(false))
+            .leftJoin(LAUNCH_ATTRIBUTE)
+            .on(LAUNCH.ID.eq(LAUNCH_ATTRIBUTE.LAUNCH_ID))
+            .where(LAUNCH_ATTRIBUTE.SYSTEM.eq(false))
             .and(LAUNCH.PROJECT_ID.eq(projectId))
             .and(LAUNCH.NAME.eq(name))
             .and(LAUNCH.ID.lt(launchId))
             .and(LAUNCH.MODE.ne(mode))
             .groupBy(LAUNCH.ID)
             .having(field("{0}::varchar[] || {1}::varchar[] || {2}::varchar[]",
-                arrayAggDistinct(concat(coalesce(ITEM_ATTRIBUTE.KEY, ""))).filterWhere(
-                    ITEM_ATTRIBUTE.SYSTEM.eq(false)),
-                arrayAggDistinct(concat(KEY_VALUE_SEPARATOR, ITEM_ATTRIBUTE.VALUE)).filterWhere(
-                    ITEM_ATTRIBUTE.SYSTEM.eq(
+                arrayAggDistinct(concat(coalesce(LAUNCH_ATTRIBUTE.KEY, ""))).filterWhere(
+                    LAUNCH_ATTRIBUTE.SYSTEM.eq(false)),
+                arrayAggDistinct(concat(KEY_VALUE_SEPARATOR, LAUNCH_ATTRIBUTE.VALUE)).filterWhere(
+                    LAUNCH_ATTRIBUTE.SYSTEM.eq(
                         false)),
-                arrayAgg(concat(coalesce(ITEM_ATTRIBUTE.KEY, ""),
+                arrayAgg(concat(coalesce(LAUNCH_ATTRIBUTE.KEY, ""),
                     val(KEY_VALUE_SEPARATOR),
-                    ITEM_ATTRIBUTE.VALUE
-                )).filterWhere(ITEM_ATTRIBUTE.SYSTEM.eq(false))
+                    LAUNCH_ATTRIBUTE.VALUE
+                )).filterWhere(LAUNCH_ATTRIBUTE.SYSTEM.eq(false))
             ).contains(launchAttributes))))
         .orderBy(LAUNCH.NUMBER.desc())
         .limit(1)

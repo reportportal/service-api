@@ -16,7 +16,7 @@
 
 package com.epam.reportportal.base.ws.converter.builders;
 
-import static com.epam.reportportal.base.ws.converter.converters.ItemAttributeConverter.FROM_RESOURCE;
+import static com.epam.reportportal.base.ws.converter.converters.AttributeConverter.FROM_RESOURCE;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.Optional.ofNullable;
 
@@ -28,7 +28,7 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestIte
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItemResults;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
-import com.epam.reportportal.base.reporting.ItemAttributeResource;
+import com.epam.reportportal.base.reporting.AttributeResource;
 import com.epam.reportportal.base.reporting.ItemAttributesRQ;
 import com.epam.reportportal.base.reporting.ParameterResource;
 import com.epam.reportportal.base.reporting.StartTestItemRQ;
@@ -136,7 +136,7 @@ public class TestItemBuilder implements Supplier<TestItem> {
     return this;
   }
 
-  public TestItemBuilder overwriteAttributes(Set<? extends ItemAttributeResource> attributes) {
+  public TestItemBuilder overwriteAttributes(Set<? extends AttributeResource> attributes) {
     if (attributes != null) {
       final Set<ItemAttribute> overwrittenAttributes = testItem.getAttributes()
           .stream()

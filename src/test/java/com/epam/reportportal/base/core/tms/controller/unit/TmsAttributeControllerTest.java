@@ -13,7 +13,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.springframework.test.web.servlet.setup.MockMvcBuilders.standaloneSetup;
+import static com.epam.reportportal.base.util.StandaloneMockMvcSupport.standaloneJsonSetup;
 
 import com.epam.reportportal.base.core.tms.controller.TmsAttributeController;
 import com.epam.reportportal.base.core.tms.dto.TmsAttributeRQ;
@@ -82,7 +82,7 @@ public class TmsAttributeControllerTest {
         .build();
 
     // Configure MockMvc with custom argument resolvers
-    mockMvc = standaloneSetup(tmsAttributeController)
+    mockMvc = standaloneJsonSetup(tmsAttributeController)
         .setCustomArgumentResolvers(
             new HandlerMethodArgumentResolver() {
               @Override

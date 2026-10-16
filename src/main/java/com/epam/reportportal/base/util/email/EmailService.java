@@ -33,11 +33,11 @@ import static java.util.stream.Collectors.toMap;
 
 import com.epam.reportportal.api.model.NewUserRequest;
 import com.epam.reportportal.base.infrastructure.commons.template.TemplateEngine;
-import com.epam.reportportal.base.infrastructure.persistence.entity.ItemAttribute;
+import com.epam.reportportal.base.infrastructure.persistence.entity.Attribute;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectIssueType;
-import com.epam.reportportal.base.infrastructure.persistence.entity.statistics.Statistics;
+import com.epam.reportportal.base.infrastructure.persistence.entity.statistics.StatisticsView;
 import com.epam.reportportal.base.infrastructure.persistence.util.UserUtils;
 import com.epam.reportportal.base.util.email.constant.IssueRegexConstant;
 import com.google.common.annotations.VisibleForTesting;
@@ -163,7 +163,7 @@ public class EmailService extends JavaMailSenderImpl {
             .collect(
                 Collectors.toMap(
                     s -> s.getStatisticsField().getName(),
-                    Statistics::getCounter,
+                    StatisticsView::getCounter,
                     (prev, curr) -> prev));
 
     email.put("total", ofNullable(statistics.get(EXECUTIONS_TOTAL)).orElse(0));
@@ -223,7 +223,7 @@ public class EmailService extends JavaMailSenderImpl {
         .orElse(baseUrl);
   }
 
-  private String buildAttributesLink(String basicUrl, ItemAttribute attribute) {
+  private String buildAttributesLink(String basicUrl, Attribute attribute) {
     if (null != attribute.getKey()) {
       return format(
           COMPOSITE_ATTRIBUTE_FILTER_FORMAT,

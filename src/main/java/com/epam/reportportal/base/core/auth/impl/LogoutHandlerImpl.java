@@ -18,21 +18,25 @@ package com.epam.reportportal.base.core.auth.impl;
 
 import com.epam.reportportal.base.core.auth.LogoutHandler;
 import com.epam.reportportal.base.core.auth.TokenBlacklistService;
+import com.epam.reportportal.base.core.integration.grafana.GrafanaSessionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 
 /**
- * Default {@link LogoutHandler} that invalidates a JWT by adding its {@code jti} to the {@link TokenBlacklistService}.
+ * Default {@link LogoutHandler} that invalidates a JWT by adding its {@code jti} to the {@link TokenBlacklistService},
+ * and revokes the subject's Grafana proxy sessions so access doesn't outlive the JWT.
  */
 @Service
 @RequiredArgsConstructor
 public class LogoutHandlerImpl implements LogoutHandler {
 
   private final TokenBlacklistService tokenBlacklistService;
+  private final GrafanaSessionService grafanaSessionService;
 
   @Override
   public void logout(Jwt jwt) {
     tokenBlacklistService.revoke(jwt.getId());
+    grafanaSessionService.revokeForSubject(jwt.getSubject());
   }
 }

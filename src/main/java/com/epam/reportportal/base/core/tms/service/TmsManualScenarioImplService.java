@@ -16,6 +16,18 @@ public interface TmsManualScenarioImplService {
       TmsManualScenarioRQ testCaseManualScenarioRq);
 
   /**
+   * Creates implementation-specific manual scenario data for multiple scenarios in bulk. All
+   * entries belong to this service's own {@link #getTmsManualScenarioType()}.
+   *
+   * @param projectId         project id
+   * @param tmsManualScenarios manual scenarios, aligned by index with testCaseManualScenarioRqs
+   * @param testCaseManualScenarioRqs request DTOs for each scenario
+   */
+  void createTmsManualScenarioBatch(Long projectId,
+      List<TmsManualScenario> tmsManualScenarios,
+      List<TmsManualScenarioRQ> testCaseManualScenarioRqs);
+
+  /**
    * Updates implementation-specific manual scenario data.
    */
   void updateTmsManualScenarioImpl(Long projectId, TmsManualScenario manualScenario,

@@ -17,7 +17,7 @@
 package com.epam.reportportal.base.core.item.merge;
 
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
-import com.epam.reportportal.base.infrastructure.persistence.entity.statistics.Statistics;
+import com.epam.reportportal.base.infrastructure.persistence.entity.launch.LaunchStatistics;
 import java.util.Collection;
 import java.util.Set;
 
@@ -28,5 +28,5 @@ import java.util.Set;
  */
 public interface StatisticsCalculationStrategy {
 
-  Set<Statistics> recalculateLaunchStatistics(Launch newLaunch, Collection<Launch> launches);
+  Set<LaunchStatistics> recalculateLaunchStatistics(Launch newLaunch, Collection<Launch> launches);
 }

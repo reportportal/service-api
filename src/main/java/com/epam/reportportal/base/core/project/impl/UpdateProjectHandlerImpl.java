@@ -95,7 +95,7 @@ import com.epam.reportportal.base.model.project.UpdateProjectRQ;
 import com.epam.reportportal.base.model.project.config.ProjectConfigurationUpdate;
 import com.epam.reportportal.base.model.project.email.ProjectNotificationConfigDTO;
 import com.epam.reportportal.base.model.project.email.SenderCaseDTO;
-import com.epam.reportportal.base.reporting.ItemAttributeResource;
+import com.epam.reportportal.base.reporting.AttributeResource;
 import com.epam.reportportal.base.reporting.OperationCompletionRS;
 import com.epam.reportportal.base.util.ProjectExtractor;
 import com.epam.reportportal.base.util.email.EmailRulesValidator;
@@ -576,7 +576,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
         }).collect(Collectors.toSet())));
   }
 
-  private void cutAttributeToMaxLength(ItemAttributeResource entity) {
+  private void cutAttributeToMaxLength(AttributeResource entity) {
     String key = entity.getKey();
     String value = entity.getValue();
     if (key != null && key.length() > ValidationConstraints.MAX_ATTRIBUTE_LENGTH) {

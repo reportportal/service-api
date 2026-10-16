@@ -18,7 +18,7 @@ package com.epam.reportportal.base.ws.converter.resource.handler.attribute.launc
 
 import static com.epam.reportportal.base.core.launch.cluster.pipeline.SaveLastRunAttributePartProvider.RP_CLUSTER_LAST_RUN_KEY;
 
-import com.epam.reportportal.base.infrastructure.persistence.entity.ItemAttribute;
+import com.epam.reportportal.base.infrastructure.persistence.entity.launch.LaunchAttribute;
 import com.epam.reportportal.base.reporting.LaunchResource;
 import java.util.List;
 import java.util.Map;
@@ -38,9 +38,9 @@ class LaunchResourceMetadataAttributeUpdaterTest {
   @Test
   void shouldUpdateMetadataWhenAttributeMatches() {
     final LaunchResource launchResource = new LaunchResource();
-    final List<ItemAttribute> attributes = List.of(
-        new ItemAttribute(RP_CLUSTER_LAST_RUN_KEY, "v1", false),
-        new ItemAttribute("k2", "v2", false)
+    final List<LaunchAttribute> attributes = List.of(
+        new LaunchAttribute(RP_CLUSTER_LAST_RUN_KEY, "v1", false),
+        new LaunchAttribute("k2", "v2", false)
     );
     updater.handle(launchResource, attributes);
 
@@ -52,8 +52,8 @@ class LaunchResourceMetadataAttributeUpdaterTest {
   @Test
   void shouldNotUpdateMetadataWhenAttributeMatches() {
     final LaunchResource launchResource = new LaunchResource();
-    final List<ItemAttribute> attributes = List.of(new ItemAttribute("k1", "v1", false),
-        new ItemAttribute("k2", "v2", false)
+    final List<LaunchAttribute> attributes = List.of(new LaunchAttribute("k1", "v1", false),
+        new LaunchAttribute("k2", "v2", false)
     );
     updater.handle(launchResource, attributes);
 

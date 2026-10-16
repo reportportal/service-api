@@ -18,6 +18,9 @@ package com.epam.reportportal.base.core.item.impl;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.epam.reportportal.base.core.item.identity.IdentityUtil;
@@ -25,6 +28,7 @@ import com.epam.reportportal.base.core.item.identity.TestCaseHashGeneratorImpl;
 import com.epam.reportportal.base.infrastructure.persistence.dao.TestItemRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.Parameter;
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItem;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -75,6 +79,51 @@ class TestCaseHashGeneratorImplTest {
     assertNotNull(first);
     assertNotNull(second);
     assertEquals(first, second);
+  }
+
+  @Test
+  void hashGenerationWithCacheTest() {
+    TestItem item = getItem();
+    item.setItemId(3L);
+    item.setPath("1.2.3");
+
+    Map<Long, String> testItemNamesByIds = new HashMap<>();
+    testItemNamesByIds.put(1L, "suite");
+    testItemNamesByIds.put(2L, "test");
+
+    final List<Long> parentIds = IdentityUtil.getParentIds(item);
+
+    Integer hash1 = testCaseHashGenerator.generate(item, parentIds, 100L, testItemNamesByIds);
+    Integer hash2 = testCaseHashGenerator.generate(item, parentIds, 100L, testItemNamesByIds);
+
+    assertNotNull(hash1);
+    assertEquals(hash1, hash2);
+    verify(testItemRepository, never()).findAllById(any());
+  }
+
+  @Test
+  void hashGenerationWithPartialCacheTest() {
+    TestItem item = getItem();
+    item.setItemId(3L);
+    item.setPath("1.2.3");
+
+    Map<Long, String> testItemNamesByIds = new HashMap<>();
+    testItemNamesByIds.put(1L, "suite");
+    // 2L is missing from cache
+
+    TestItem parent2 = new TestItem();
+    parent2.setItemId(2L);
+    parent2.setName("test");
+
+    when(testItemRepository.findAllById(List.of(2L))).thenReturn(List.of(parent2));
+
+    final List<Long> parentIds = IdentityUtil.getParentIds(item);
+
+    Integer hash1 = testCaseHashGenerator.generate(item, parentIds, 100L, testItemNamesByIds);
+
+    assertNotNull(hash1);
+    assertEquals("test", testItemNamesByIds.get(2L));
+    verify(testItemRepository).findAllById(List.of(2L));
   }
 
   private TestItem getItem() {

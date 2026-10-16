@@ -13,7 +13,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.springframework.test.web.servlet.setup.MockMvcBuilders.standaloneSetup;
+import static com.epam.reportportal.base.util.StandaloneMockMvcSupport.standaloneJsonSetup;
 
 import com.epam.reportportal.base.core.tms.controller.TestCaseController;
 import com.epam.reportportal.base.core.tms.dto.DeleteTagsRQ;
@@ -96,7 +96,7 @@ public class TmsTestCaseControllerTest {
         .withAuthorities(Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER")))
         .build();
 
-    mockMvc = standaloneSetup(testCaseController)
+    mockMvc = standaloneJsonSetup(testCaseController)
         .setCustomArgumentResolvers(
             new HandlerMethodArgumentResolver() {
               @Override

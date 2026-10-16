@@ -1,7 +1,7 @@
 package com.epam.reportportal.base.core.tms.dto;
 
 import com.epam.reportportal.base.core.tms.dto.batch.BatchTestCaseOperationResultRS;
-import com.epam.reportportal.base.reporting.ItemAttributeResource;
+import com.epam.reportportal.base.reporting.AttributeResource;
 import com.epam.reportportal.base.reporting.Mode;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -56,9 +56,6 @@ public class CreateTmsManualLaunchRS {
   @Schema(description = "Launch displayId", example = "ML123")
   private String displayId;
 
-  @Schema(description = "Launch status", example = "IN_PROGRESS")
-  private String status;
-
   @Schema(description = "Test plan information")
   @JsonProperty("testPlan")
   private TmsManualLaunchTestPlanRS testPlan;
@@ -68,7 +65,7 @@ public class CreateTmsManualLaunchRS {
   private TmsManualLaunchExecutionStatisticRS executionStatistic;
 
   @Schema(description = "Launch attributes")
-  private Set<ItemAttributeResource> attributes;
+  private Set<AttributeResource> attributes;
 
   @Schema(description = "Launch attributes")
   private BatchTestCaseOperationResultRS addTestCasesStatistic;

@@ -22,9 +22,9 @@ import static java.util.stream.Collectors.toSet;
 
 import com.epam.reportportal.base.core.analyzer.auto.impl.AnalyzerStatusCache;
 import com.epam.reportportal.base.infrastructure.persistence.dao.UserRepository;
-import com.epam.reportportal.base.infrastructure.persistence.entity.ItemAttribute;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.LaunchTypeEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
+import com.epam.reportportal.base.infrastructure.persistence.entity.launch.LaunchAttribute;
 import com.epam.reportportal.base.model.activity.LaunchActivityResource;
 import com.epam.reportportal.base.model.launch.LaunchViewModel;
 import com.epam.reportportal.base.reporting.LaunchResource;
@@ -125,8 +125,8 @@ public class LaunchConverter {
     return resource;
   };
 
-  private void updateAttributes(LaunchViewModel resource, Set<ItemAttribute> attributes) {
-    final Map<ItemAttributeType, Set<ItemAttribute>> attributeMapping =
+  private void updateAttributes(LaunchViewModel resource, Set<LaunchAttribute> attributes) {
+    final Map<ItemAttributeType, Set<LaunchAttribute>> attributeMapping =
         attributes.stream().collect(groupingBy(
             attr -> itemAttributeTypeResolver.resolve(attr).orElse(ItemAttributeType.UNRESOLVED),
             toSet()

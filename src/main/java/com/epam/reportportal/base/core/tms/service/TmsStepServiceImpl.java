@@ -5,6 +5,7 @@ import com.epam.reportportal.base.core.tms.mapper.TmsStepMapper;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsStepRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsStep;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsStepsManualScenario;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -36,7 +37,7 @@ public class TmsStepServiceImpl implements TmsStepService {
       return;
     }
 
-    var createdSteps = new HashSet<TmsStep>();
+    var createdSteps = new ArrayList<TmsStep>(stepsRqs.size());
     for (var i = 0; i < stepsRqs.size(); i++) {
       var stepRq = stepsRqs.get(i);
       var tmsStep = tmsStepMapper.convertToTmsStep(stepRq);
@@ -44,10 +45,13 @@ public class TmsStepServiceImpl implements TmsStepService {
       tmsStep.setNumber(i);
       tmsStep.setStepsManualScenario(tmsManualScenario);
 
-      tmsStepRepository.save(tmsStep);
       createdSteps.add(tmsStep);
+    }
 
-      tmsStepAttachmentService.createAttachments(projectId, tmsStep, stepRq);
+    tmsStepRepository.saveAll(createdSteps);
+
+    for (var i = 0; i < stepsRqs.size(); i++) {
+      tmsStepAttachmentService.createAttachments(projectId, createdSteps.get(i), stepsRqs.get(i));
     }
 
     if (tmsManualScenario.getSteps() == null) {

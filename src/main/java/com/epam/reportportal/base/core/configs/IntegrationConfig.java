@@ -18,6 +18,7 @@ package com.epam.reportportal.base.core.configs;
 
 import com.epam.reportportal.base.core.integration.util.EmailServerIntegrationService;
 import com.epam.reportportal.base.core.integration.util.IntegrationService;
+import com.epam.reportportal.base.core.integration.util.QaSpaceIntegrationService;
 import com.google.common.collect.ImmutableMap;
 import java.util.Map;
 import org.springframework.beans.BeansException;
@@ -45,6 +46,7 @@ public class IntegrationConfig implements ApplicationContextAware {
   public Map<String, IntegrationService> integrationServiceMapping() {
     return ImmutableMap.<String, IntegrationService>builder()
         .put("email", applicationContext.getBean(EmailServerIntegrationService.class))
+        .put("qa-space", applicationContext.getBean(QaSpaceIntegrationService.class))
         .build();
 
   }

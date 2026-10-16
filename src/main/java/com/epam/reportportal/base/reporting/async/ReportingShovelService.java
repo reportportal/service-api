@@ -25,17 +25,17 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 /**
- * Moves messages left in an abandoned reporting queue back to the reporting exchange, so that they
- * get re-hashed onto the queues of the instances that are still alive.
+ * Moves messages left in an abandoned reporting queue back to the reporting exchange, so that they get re-hashed onto
+ * the queues of the instances that are still alive.
  *
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 @Slf4j
-@Component
+@Service
 public class ReportingShovelService {
 
   private static final long RECONNECT_DELAY_SECONDS = 60L;
@@ -54,8 +54,8 @@ public class ReportingShovelService {
   }
 
   /**
-   * Declares a shovel that republishes the current content of the given queue to the reporting
-   * exchange. The shovel deletes itself once the initial queue length has been moved.
+   * Declares a shovel that republishes the current content of the given queue to the reporting exchange. The shovel
+   * deletes itself once the initial queue length has been moved.
    *
    * @param queueName queue to drain, also used as the shovel name
    */
@@ -71,8 +71,7 @@ public class ReportingShovelService {
   }
 
   /**
-   * Removes the shovel declared for the given queue. Missing shovels are ignored by the management
-   * client.
+   * Removes the shovel declared for the given queue. Missing shovels are ignored by the management client.
    *
    * @param queueName queue the shovel was declared for
    */

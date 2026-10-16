@@ -19,9 +19,9 @@ package com.epam.reportportal.base.core.launch.attribute.impl;
 
 import com.epam.reportportal.base.core.launch.attribute.AttributeHandler;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
-import com.epam.reportportal.base.infrastructure.persistence.entity.ItemAttribute;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.LaunchTypeEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
+import com.epam.reportportal.base.infrastructure.persistence.entity.launch.LaunchAttribute;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -30,11 +30,12 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
 /**
- * Sets the {@link Launch#getLaunchType()} at launch start based on a launch-type system attribute such as
- * {@code isAgentic} or {@code isPipeline}.
+ * Sets the {@link Launch#getLaunchType()} at launch start based on a launch-type system attribute
+ * such as {@code isAgentic} or {@code isPipeline}.
  *
  * <p>A {@code true} value applies the mapped type; {@code false} falls back to
- * {@link LaunchTypeEnum#AUTOMATION}. At most one such attribute is allowed. Launch type is immutable on update.
+ * {@link LaunchTypeEnum#AUTOMATION}. At most one such attribute is allowed. Launch type is
+ * immutable on update.
  *
  * <p>To support a new launch type, add an entry to {@link #TYPE_BY_ATTRIBUTE_KEY}.
  */
@@ -58,15 +59,15 @@ public class LaunchTypeAttributeHandler implements AttributeHandler {
     // launch_type is immutable after creation; launch-type attributes on update are ignored.
   }
 
-  private Optional<LaunchTypeEnum> resolveLaunchType(Collection<ItemAttribute> attributes) {
-    List<ItemAttribute> typeAttributes = attributes.stream()
+  private Optional<LaunchTypeEnum> resolveLaunchType(Collection<LaunchAttribute> attributes) {
+    List<LaunchAttribute> typeAttributes = attributes.stream()
         .filter(this::isLaunchTypeAttribute)
         .toList();
 
     if (typeAttributes.size() > 1) {
       throw new IllegalArgumentException(
           "Launch cannot have more than one launch-type system attribute %s. Specify only one."
-              .formatted(typeAttributes.stream().map(ItemAttribute::getKey).toList()));
+              .formatted(typeAttributes.stream().map(LaunchAttribute::getKey).toList()));
     }
 
     return typeAttributes.stream()
@@ -74,17 +75,17 @@ public class LaunchTypeAttributeHandler implements AttributeHandler {
         .map(this::toLaunchType);
   }
 
-  private boolean isLaunchTypeAttribute(ItemAttribute attribute) {
+  private boolean isLaunchTypeAttribute(LaunchAttribute attribute) {
     return Boolean.TRUE.equals(attribute.isSystem()) && findType(attribute).isPresent();
   }
 
-  private LaunchTypeEnum toLaunchType(ItemAttribute attribute) {
+  private LaunchTypeEnum toLaunchType(LaunchAttribute attribute) {
     return Boolean.parseBoolean(attribute.getValue())
         ? findType(attribute).orElseThrow()
         : LaunchTypeEnum.AUTOMATION;
   }
 
-  private Optional<LaunchTypeEnum> findType(ItemAttribute attribute) {
+  private Optional<LaunchTypeEnum> findType(LaunchAttribute attribute) {
     return TYPE_BY_ATTRIBUTE_KEY.entrySet().stream()
         .filter(entry -> entry.getKey().equalsIgnoreCase(attribute.getKey()))
         .map(Map.Entry::getValue)

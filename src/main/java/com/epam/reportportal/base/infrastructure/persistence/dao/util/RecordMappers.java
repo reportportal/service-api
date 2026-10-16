@@ -17,6 +17,7 @@
 package com.epam.reportportal.base.infrastructure.persistence.dao.util;
 
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.FilterTarget.ATTRIBUTE_ALIAS;
+import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.StatisticsConstant.LAUNCH_STATISTICS;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.LogRepositoryCustomImpl.ROOT_ITEM_ID;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.constant.TestItemRepositoryConstants.ATTACHMENTS_COUNT;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.constant.TestItemRepositoryConstants.HAS_CONTENT;
@@ -45,8 +46,8 @@ import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.TEST_ITEM_RESULTS;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.TICKET;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.TMS_ATTRIBUTE;
-import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.TMS_TEST_CASE;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.TMS_MILESTONE;
+import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.TMS_TEST_CASE;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.TMS_TEST_CASE_EXECUTION;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.TMS_TEST_CASE_EXECUTION_COMMENT;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.TMS_TEST_FOLDER;
@@ -96,6 +97,8 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.item.issue.I
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.issue.IssueGroup;
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.issue.IssueType;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
+import com.epam.reportportal.base.infrastructure.persistence.entity.launch.LaunchAttribute;
+import com.epam.reportportal.base.infrastructure.persistence.entity.launch.LaunchStatistics;
 import com.epam.reportportal.base.infrastructure.persistence.entity.log.Log;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.MembershipDetails;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.Organization;
@@ -106,15 +109,15 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.project.Proj
 import com.epam.reportportal.base.infrastructure.persistence.entity.statistics.Statistics;
 import com.epam.reportportal.base.infrastructure.persistence.entity.statistics.StatisticsField;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsAttribute;
-import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCase;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsMilestone;
-import com.epam.reportportal.base.infrastructure.persistence.entity.tms.enums.TmsMilestoneStatus;
-import com.epam.reportportal.base.infrastructure.persistence.entity.tms.enums.TmsMilestoneType;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCase;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCaseExecution;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCaseExecutionComment;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestFolder;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestFolderTestItem;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestPlan;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.enums.TmsMilestoneStatus;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.enums.TmsMilestoneType;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.OrganizationUser;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.OrganizationUserId;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.ProjectUser;
@@ -138,10 +141,10 @@ import java.io.IOException;
 import java.lang.reflect.Type;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -281,6 +284,17 @@ public class RecordMappers {
 
     statistics.setStatisticsField(statisticsField);
     statistics.setCounter(ofNullable(r.get(Tables.STATISTICS.S_COUNTER)).orElse(0));
+    return statistics;
+  };
+
+  public static final RecordMapper<? super Record, LaunchStatistics> LAUNCH_STATISTICS_RECORD_MAPPER = r -> {
+    LaunchStatistics statistics = new LaunchStatistics();
+
+    StatisticsField statisticsField = new StatisticsField();
+    statisticsField.setName(r.get(STATISTICS_FIELD.NAME));
+
+    statistics.setStatisticsField(statisticsField);
+    statistics.setCounter(ofNullable(r.get(LAUNCH_STATISTICS.S_COUNTER)).orElse(0));
     return statistics;
   };
 
@@ -643,6 +657,45 @@ public class RecordMappers {
           }
           attributeList.add(
               new ItemAttribute(attributes[0], attributes[1], systemAttribute)
+          );
+        }
+      }
+    }
+
+    if (CollectionUtils.isNotEmpty(attributeList)) {
+      return Optional.of(attributeList);
+    } else {
+      return Optional.empty();
+    }
+  };
+
+  public static final Function<? super Record, Optional<List<LaunchAttribute>>> LAUNCH_ATTRIBUTE_MAPPER = r -> {
+    List<LaunchAttribute> attributeList = new ArrayList<>();
+
+    if (r.get(ATTRIBUTE_ALIAS) != null) {
+      List<JSON> attributesArray = r.get(ATTRIBUTE_ALIAS, List.class);
+      Gson gson = new Gson();
+      Type listType = new TypeToken<List<String>>() {
+      }.getType();
+
+      for (JSON attributeEntry : attributesArray) {
+        if (attributeEntry == null) {
+          continue;
+        }
+        String[] attributes = gson.<List<String>>fromJson(attributeEntry.data(), listType)
+            .toArray(new String[0]);
+
+        if (attributes.length > 1 && (Strings.isNotEmpty(attributes[0])
+            || Strings.isNotEmpty(attributes[1]))) {
+          Boolean systemAttribute;
+          //Case when system attribute is retrieved as 't' or 'f'
+          if ("t".equals(attributes[2]) || "f".equals(attributes[2])) {
+            systemAttribute = "t".equals(attributes[2]) ? Boolean.TRUE : Boolean.FALSE;
+          } else {
+            systemAttribute = Boolean.parseBoolean(attributes[2]);
+          }
+          attributeList.add(
+              new LaunchAttribute(attributes[0], attributes[1], systemAttribute)
           );
         }
       }

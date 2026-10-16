@@ -27,7 +27,7 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.project.emai
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.model.project.email.SenderCaseDTO;
-import com.epam.reportportal.base.reporting.ItemAttributeResource;
+import com.epam.reportportal.base.reporting.AttributeResource;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -44,9 +44,9 @@ import java.util.stream.Collectors;
  */
 public final class NotificationConfigConverter {
 
-  public static final Function<LaunchAttributeRule, ItemAttributeResource>
+  public static final Function<LaunchAttributeRule, AttributeResource>
       TO_ATTRIBUTE_RULE_RESOURCE = model -> {
-    ItemAttributeResource attributeResource = new ItemAttributeResource();
+    AttributeResource attributeResource = new AttributeResource();
     attributeResource.setKey(model.getKey());
     attributeResource.setValue(model.getValue());
     return attributeResource;
@@ -74,7 +74,7 @@ public final class NotificationConfigConverter {
   public final static Function<Set<SenderCase>, List<SenderCaseDTO>> TO_RESOURCE =
       senderCaseSet -> senderCaseSet.stream().map(NotificationConfigConverter.TO_CASE_RESOURCE)
           .collect(Collectors.toList());
-  public static final Function<ItemAttributeResource, LaunchAttributeRule> TO_ATTRIBUTE_RULE_MODEL =
+  public static final Function<AttributeResource, LaunchAttributeRule> TO_ATTRIBUTE_RULE_MODEL =
       resource -> {
         LaunchAttributeRule launchAttributeRule = new LaunchAttributeRule();
         cutAttributeToMaxLength(resource);
@@ -112,7 +112,7 @@ public final class NotificationConfigConverter {
     //static only
   }
 
-  private static void cutAttributeToMaxLength(ItemAttributeResource entity) {
+  private static void cutAttributeToMaxLength(AttributeResource entity) {
     String key = entity.getKey();
     String value = entity.getValue();
     if (key != null && key.length() > ValidationConstraints.MAX_ATTRIBUTE_LENGTH) {

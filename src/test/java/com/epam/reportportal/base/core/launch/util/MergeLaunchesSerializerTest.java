@@ -18,7 +18,7 @@ package com.epam.reportportal.base.core.launch.util;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.epam.reportportal.base.reporting.ItemAttributeResource;
+import com.epam.reportportal.base.reporting.AttributeResource;
 import com.epam.reportportal.base.reporting.MergeLaunchesRQ;
 import com.epam.reportportal.base.reporting.Mode;
 import com.epam.reportportal.base.ws.BaseMvcTest;
@@ -63,8 +63,8 @@ public class MergeLaunchesSerializerTest extends BaseMvcTest {
     rq.setDescription("description");
     rq.setMode(Mode.DEFAULT);
     rq.setStartTime(Instant.EPOCH);
-    ItemAttributeResource itemAttributeResource = new ItemAttributeResource("key", "value");
-    rq.setAttributes(Collections.singleton(itemAttributeResource));
+    AttributeResource attributeResource = new AttributeResource("key", "value");
+    rq.setAttributes(Collections.singleton(attributeResource));
     rq.setEndTime(Instant.EPOCH.plusMillis(1));
     rq.setExtendSuitesDescription(true);
     rq.setLaunches(Collections.singleton(1L));

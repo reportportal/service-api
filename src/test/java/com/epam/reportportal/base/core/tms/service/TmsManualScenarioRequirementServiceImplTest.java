@@ -60,8 +60,8 @@ class TmsManualScenarioRequirementServiceImplTest {
     var entity2 = createRequirementEntity("REQ-002", "Requirement 2");
     var savedEntities = List.of(entity1, entity2);
 
-    when(tmsManualScenarioRequirementRepository.findById("REQ-001")).thenReturn(Optional.empty());
-    when(tmsManualScenarioRequirementRepository.findById("REQ-002")).thenReturn(Optional.empty());
+    when(tmsManualScenarioRequirementRepository.findAllById(any()))
+        .thenReturn(Collections.emptyList());
     when(tmsManualScenarioRequirementMapper.toEntity(requirementRQ1)).thenReturn(entity1);
     when(tmsManualScenarioRequirementMapper.toEntity(requirementRQ2)).thenReturn(entity2);
     when(tmsManualScenarioRequirementRepository.saveAll(anyList())).thenReturn(savedEntities);
@@ -94,8 +94,8 @@ class TmsManualScenarioRequirementServiceImplTest {
     var existingEntity = createRequirementEntity("REQ-001", "Old Value");
     existingEntity.setNumber(5); // Old number
 
-    when(tmsManualScenarioRequirementRepository.findById("REQ-001"))
-        .thenReturn(Optional.of(existingEntity));
+    when(tmsManualScenarioRequirementRepository.findAllById(any()))
+        .thenReturn(List.of(existingEntity));
     when(tmsManualScenarioRequirementRepository.saveAll(anyList()))
         .thenReturn(List.of(existingEntity));
 
@@ -144,7 +144,8 @@ class TmsManualScenarioRequirementServiceImplTest {
     var requirements = List.of(requirementRQ);
     var entity = createRequirementEntity("REQ-NEW", "New Requirement");
 
-    when(tmsManualScenarioRequirementRepository.findById("REQ-NEW")).thenReturn(Optional.empty());
+    when(tmsManualScenarioRequirementRepository.findAllById(any()))
+        .thenReturn(Collections.emptyList());
     when(tmsManualScenarioRequirementMapper.toEntity(requirementRQ)).thenReturn(entity);
     when(tmsManualScenarioRequirementRepository.saveAll(anyList())).thenReturn(List.of(entity));
 
@@ -168,7 +169,8 @@ class TmsManualScenarioRequirementServiceImplTest {
     var requirements = List.of(requirementRQ);
     var entity = createRequirementEntity("REQ-NEW", "New Requirement");
 
-    when(tmsManualScenarioRequirementRepository.findById("REQ-NEW")).thenReturn(Optional.empty());
+    when(tmsManualScenarioRequirementRepository.findAllById(any()))
+        .thenReturn(Collections.emptyList());
     when(tmsManualScenarioRequirementMapper.toEntity(requirementRQ)).thenReturn(entity);
     when(tmsManualScenarioRequirementRepository.saveAll(anyList())).thenReturn(List.of(entity));
 
@@ -192,7 +194,8 @@ class TmsManualScenarioRequirementServiceImplTest {
     var requirements = List.of(requirementRQ);
     var entity = createRequirementEntity("REQ-NEW", "New Requirement");
 
-    when(tmsManualScenarioRequirementRepository.findById("REQ-NEW")).thenReturn(Optional.empty());
+    when(tmsManualScenarioRequirementRepository.findAllById(any()))
+        .thenReturn(Collections.emptyList());
     when(tmsManualScenarioRequirementMapper.toEntity(requirementRQ)).thenReturn(entity);
     when(tmsManualScenarioRequirementRepository.saveAll(anyList())).thenReturn(List.of(entity));
 

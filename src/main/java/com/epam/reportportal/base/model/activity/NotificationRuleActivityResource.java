@@ -16,7 +16,7 @@
 
 package com.epam.reportportal.base.model.activity;
 
-import com.epam.reportportal.base.reporting.ItemAttributeResource;
+import com.epam.reportportal.base.reporting.AttributeResource;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import java.util.LinkedHashSet;
@@ -45,7 +45,7 @@ public class NotificationRuleActivityResource {
 
   @JsonProperty(value = "attributes")
   @JsonDeserialize(as = LinkedHashSet.class)
-  private Set<ItemAttributeResource> attributes;
+  private Set<AttributeResource> attributes;
 
   @JsonProperty(value = "enabled")
   private boolean enabled;

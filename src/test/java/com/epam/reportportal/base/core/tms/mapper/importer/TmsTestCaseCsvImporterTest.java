@@ -12,6 +12,8 @@ import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 class TmsTestCaseCsvImporterTest {
 
@@ -420,6 +422,33 @@ class TmsTestCaseCsvImporterTest {
     var testCase = result.getTestCases().get(0);
     assertThat(testCase.getName()).isEqualTo("Test Case");
     assertThat(testCase.getDescription()).isEqualTo("Description");
+  }
+
+  @ParameterizedTest
+  @CsvSource({
+      "blocker, BLOCKER",
+      "CRITICAL, CRITICAL",
+      "major, HIGH",
+      "Medium, MEDIUM",
+      "minor, LOW",
+      "TrIvIaL, LOW",
+      "high, HIGH",
+      "low, LOW",
+      "unspecified, UNSPECIFIED",
+      "custom, UNSPECIFIED"
+  })
+  void shouldNormalizePriorityCaseInsensitivelyToCanonicalTmsValue(String priority, String expectedPriority) {
+    // Given
+    var csvContent = "summary,priority\n" +
+        "Test Case," + priority;
+    var inputStream = toInputStream(csvContent);
+
+    // When
+    var result = csvImporter.parse(inputStream);
+
+    // Then
+    assertThat(result.getTestCases()).hasSize(1);
+    assertThat(result.getTestCases().get(0).getPriority()).isEqualTo(expectedPriority);
   }
 
   @Test

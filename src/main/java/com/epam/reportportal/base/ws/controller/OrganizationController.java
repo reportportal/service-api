@@ -55,9 +55,9 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -135,12 +135,13 @@ public class OrganizationController extends BaseController implements Organizati
         throw new AccessDeniedException("Only administrators allowed to export users");
       }
       ReportFormat format = organizationReportHandler.getReportFormat(accept);
+      Pageable exportPageable = Pageable.unpaged(pageable.getSort());
       try (OutputStream outputStream = httpServletResponse.getOutputStream()) {
         httpServletResponse.setContentType("text/csv");
         httpServletResponse.setHeader(CONTENT_DISPOSITION,
             String.format("attachment; filename=\"RP_ORGANIZATIONS_%s_Report.%s\"", ReportFormat.CSV.name(),
                 ReportFormat.CSV.getValue()));
-        outputStream.write(getOrganizationHandler.exportOrganizations(filter, pageable, format, outputStream));
+        outputStream.write(getOrganizationHandler.exportOrganizations(filter, exportPageable, format, outputStream));
         return null;
       } catch (IOException e) {
         log.error(e.getMessage(), e);

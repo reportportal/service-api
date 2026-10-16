@@ -8,7 +8,9 @@ import com.epam.reportportal.base.core.tms.dto.TmsTextManualScenarioRQ;
 import com.epam.reportportal.base.core.tms.mapper.TmsTextManualScenarioMapper;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTextManualScenarioRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsManualScenario;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTextManualScenario;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
@@ -51,6 +53,35 @@ public class TmsTextManualScenarioImplService implements TmsManualScenarioImplSe
     tmsTextManualScenario.setManualScenario(tmsManualScenario);
 
     tmsTextManualScenarioRepository.save(tmsTextManualScenario);
+  }
+
+  @Override
+  @Transactional
+  public void createTmsManualScenarioBatch(Long projectId,
+      List<TmsManualScenario> tmsManualScenarios,
+      List<TmsManualScenarioRQ> testCaseManualScenarioRqs) {
+
+    var textScenarios = new ArrayList<TmsTextManualScenario>(tmsManualScenarios.size());
+
+    for (int i = 0; i < tmsManualScenarios.size(); i++) {
+      var tmsManualScenario = tmsManualScenarios.get(i);
+      var tmsTextManualScenarioRQ = (TmsTextManualScenarioRQ) testCaseManualScenarioRqs.get(i);
+
+      var tmsTextManualScenario = tmsTextManualScenarioMapper.createTmsManualScenario(
+          tmsTextManualScenarioRQ);
+
+      tmsManualScenario.setTextScenario(tmsTextManualScenario);
+      tmsTextManualScenario.setManualScenario(tmsManualScenario);
+
+      textScenarios.add(tmsTextManualScenario);
+    }
+
+    var savedTextScenarios = tmsTextManualScenarioRepository.saveAll(textScenarios);
+
+    for (int i = 0; i < savedTextScenarios.size(); i++) {
+      tmsTextManualScenarioAttachmentService.createAttachments(projectId,
+          savedTextScenarios.get(i), (TmsTextManualScenarioRQ) testCaseManualScenarioRqs.get(i));
+    }
   }
 
   @Override

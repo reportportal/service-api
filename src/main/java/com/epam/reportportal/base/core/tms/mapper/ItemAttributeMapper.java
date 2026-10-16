@@ -61,7 +61,6 @@ public class ItemAttributeMapper {
       if (tmsAttr.getKey() != null && !tmsAttr.getKey().isEmpty()) {
         var itemAttr = new ItemAttribute(tmsAttr.getKey(), tmsAttr.getValue(), false);
         itemAttr.setTestItem(testItem);
-        itemAttr.setLaunch(launch);
         itemAttributes.add(itemAttr);
         log.trace("Mapped attribute: {} = {}", tmsAttr.getKey(), tmsAttr.getValue());
       } else {

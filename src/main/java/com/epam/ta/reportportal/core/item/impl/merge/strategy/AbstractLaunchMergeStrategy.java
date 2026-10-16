@@ -34,9 +34,11 @@ import com.epam.ta.reportportal.dao.AttachmentRepository;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
+import com.epam.ta.reportportal.dao.TestItemRepository.TestItemIdentity;
+import com.epam.ta.reportportal.dao.TestItemRepository.TestItemParameter;
 import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.entity.enums.TestItemTypeEnum;
-import com.epam.ta.reportportal.entity.item.TestItem;
+import com.epam.ta.reportportal.entity.item.Parameter;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.ws.converter.builders.LaunchBuilder;
@@ -49,11 +51,11 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
@@ -61,10 +63,12 @@ import java.util.stream.Collectors;
  */
 public abstract class AbstractLaunchMergeStrategy implements LaunchMergeStrategy {
 
-  private static final Set<TestItemTypeEnum> SUITE_LEVEL_TYPES = Arrays.stream(
-          TestItemTypeEnum.values())
+  private static final Set<String> SUITE_LEVEL_TYPES = Arrays.stream(TestItemTypeEnum.values())
       .filter(type -> type.sameLevel(TestItemTypeEnum.SUITE))
+      .map(Enum::name)
       .collect(Collectors.toUnmodifiableSet());
+
+  private static final int UNIQUE_ID_UPDATE_BATCH_SIZE = 10_000;
 
   protected final LaunchRepository launchRepository;
 
@@ -182,11 +186,12 @@ public abstract class AbstractLaunchMergeStrategy implements LaunchMergeStrategy
   }
 
   /**
-   * Update test-items of specified launches with new LaunchID. Items are moved with a single bulk
-   * update per launch, only items that require additional changes are loaded and saved: unique id
-   * regeneration if launch name was changed and suite description extension.
+   * Update test-items of specified launches with new LaunchID. All updates are performed with
+   * native bulk queries without loading test item entities: unique ids are regenerated if launch
+   * name was changed, suites description is extended if required, then items, logs and attachments
+   * are moved to the new launch.
    *
-   * <p>Bulk update clears the persistence context, so all previously loaded entities become
+   * <p>Bulk updates clear the persistence context, so all previously loaded entities become
    * detached.
    *
    * @param newLaunch         {@link Launch}
@@ -197,9 +202,17 @@ public abstract class AbstractLaunchMergeStrategy implements LaunchMergeStrategy
   private void updateChildrenOfLaunches(Launch newLaunch, List<Launch> launches,
       boolean extendDescription, boolean isNameChanged) {
     launches.forEach(launch -> {
-      List<TestItem> changedItems =
-          updateItemsBeforeMove(newLaunch, launch, extendDescription, isNameChanged);
-      testItemRepository.saveAll(changedItems);
+      if (isNameChanged) {
+        regenerateUniqueIds(newLaunch, launch.getId());
+      }
+      if (extendDescription) {
+        // Add launch reference description for top level items
+        testItemRepository.appendDescriptionByLaunchIdAndTypeIn(launch.getId(), SUITE_LEVEL_TYPES,
+            Suppliers.formattedSupplier("\r\n@launch '{} #{}'", launch.getName(),
+                launch.getNumber()
+            ).get()
+        );
+      }
 
       testItemRepository.updateLaunchIdByLaunchId(launch.getId(), newLaunch.getId());
       logRepository.updateLaunchIdByLaunchId(launch.getId(), newLaunch.getId());
@@ -209,39 +222,57 @@ public abstract class AbstractLaunchMergeStrategy implements LaunchMergeStrategy
     });
   }
 
-  private List<TestItem> updateItemsBeforeMove(Launch newLaunch, Launch launch,
-      boolean extendDescription, boolean isNameChanged) {
-    List<TestItem> testItems;
-    if (isNameChanged) {
-      testItems = testItemRepository.findTestItemsByLaunchId(launch.getId());
-    } else if (extendDescription) {
-      testItems = testItemRepository.findTestItemsByLaunchIdAndTypeIn(launch.getId(),
-          SUITE_LEVEL_TYPES);
-    } else {
-      return Collections.emptyList();
-    }
+  /**
+   * Regenerates auto-generated unique ids of the launch items using the new launch name. Parent
+   * names and parameters are resolved from lightweight projections of the whole launch instead of
+   * per-item queries.
+   *
+   * @param newLaunch {@link Launch} - result of merge
+   * @param launchId  id of the merged launch which items are processed
+   */
+  private void regenerateUniqueIds(Launch newLaunch, Long launchId) {
+    List<TestItemIdentity> items = testItemRepository.findItemIdentitiesByLaunchId(launchId);
+    Map<Long, String> namesById = items.stream()
+        .collect(Collectors.toMap(TestItemIdentity::getItemId, TestItemIdentity::getName));
+    Map<Long, Set<Parameter>> parametersByItemId =
+        testItemRepository.findItemParametersByLaunchId(launchId).stream()
+            .collect(Collectors.groupingBy(TestItemParameter::getItemId,
+                Collectors.mapping(AbstractLaunchMergeStrategy::toParameter, Collectors.toSet())
+            ));
 
-    List<TestItem> changedItems = new ArrayList<>();
-    testItems.forEach(testItem -> {
-      boolean changed = false;
-      if (isNameChanged && identifierGenerator.validate(testItem.getUniqueId())) {
-        testItem.setUniqueId(
-            identifierGenerator.generate(testItem, IdentityUtil.getParentIds(testItem), newLaunch));
-        changed = true;
-      }
-      if (extendDescription && testItem.getType().sameLevel(TestItemTypeEnum.SUITE)) {
-        // Add launch reference description for top level items
-        Supplier<String> newDescription = Suppliers.formattedSupplier(
-            ofNullable(testItem.getDescription()).orElse("") + "\r\n@launch '{} #{}'",
-            launch.getName(), launch.getNumber()
-        );
-        testItem.setDescription(newDescription.get());
-        changed = true;
-      }
-      if (changed) {
-        changedItems.add(testItem);
-      }
-    });
-    return changedItems;
+    List<Long> itemIds = new ArrayList<>();
+    List<String> uniqueIds = new ArrayList<>();
+    items.stream()
+        .filter(item -> identifierGenerator.validate(item.getUniqueId()))
+        .forEach(item -> {
+          List<String> pathNames = getParentIds(item.getPath()).stream()
+              .sorted()
+              .map(namesById::get)
+              .filter(Objects::nonNull)
+              .collect(Collectors.toList());
+          itemIds.add(item.getItemId());
+          uniqueIds.add(identifierGenerator.generate(newLaunch.getProjectId(), newLaunch.getName(),
+              pathNames, item.getName(), parametersByItemId.get(item.getItemId())
+          ));
+        });
+
+    for (int from = 0; from < itemIds.size(); from += UNIQUE_ID_UPDATE_BATCH_SIZE) {
+      int to = Math.min(from + UNIQUE_ID_UPDATE_BATCH_SIZE, itemIds.size());
+      testItemRepository.updateUniqueIds(itemIds.subList(from, to).toArray(Long[]::new),
+          uniqueIds.subList(from, to).toArray(String[]::new)
+      );
+    }
+  }
+
+  private static List<Long> getParentIds(String path) {
+    List<Long> treeIds = IdentityUtil.getItemTreeIds(path);
+    return treeIds.subList(0, treeIds.size() - 1);
+  }
+
+  private static Parameter toParameter(TestItemParameter itemParameter) {
+    Parameter parameter = new Parameter();
+    parameter.setKey(itemParameter.getKey());
+    parameter.setValue(itemParameter.getValue());
+    return parameter;
   }
 }

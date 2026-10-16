@@ -63,6 +63,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -241,6 +242,37 @@ class LaunchControllerTest extends BaseMvcTest {
               "auto:6bac3cae67ef43f2aa252b36a8d246cd")
           .anyMatch(uniqueId -> uniqueId.equals(suite.get("unique_id"))));
     });
+  }
+
+  @Test
+  void mergeLaunchesRegeneratesUniqueIdsWhenNameChanged() throws Exception {
+    jdbcTemplate.update("INSERT INTO parameter (item_id, key, value) VALUES (3, 'key', 'value')");
+
+    MergeLaunchesRQ rq = new MergeLaunchesRQ();
+    rq.setLaunches(new HashSet<>(List.of(1L, 2L)));
+    rq.setName("Renamed merged");
+    rq.setMergeStrategyType("BASIC");
+
+    String response = mockMvc.perform(
+            post(DEFAULT_PROJECT_BASE_URL + "/launch/merge").contentType(APPLICATION_JSON)
+                .with(token(oAuthHelper.getDefaultToken()))
+                .content(objectMapper.writeValueAsBytes(rq)))
+        .andExpect(status().is(200))
+        .andReturn().getResponse().getContentAsString();
+    Long newLaunchId = objectMapper.readTree(response).get("id").asLong();
+
+    Map<Long, String> uniqueIds = jdbcTemplate.queryForList(
+            "SELECT item_id, unique_id FROM test_item WHERE item_id IN (1, 3) AND launch_id = ?",
+            newLaunchId
+        ).stream()
+        .collect(Collectors.toMap(row -> ((Number) row.get("item_id")).longValue(),
+            row -> (String) row.get("unique_id")));
+
+    assertEquals("auto:" + DigestUtils.md5Hex("2;Renamed merged;Test suite"), uniqueIds.get(1L));
+    assertEquals(
+        "auto:" + DigestUtils.md5Hex("2;Renamed merged;Test suite;Test item 1;Step item 1;key=value"),
+        uniqueIds.get(3L)
+    );
   }
 
   @Test

@@ -11,6 +11,7 @@ import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsAttribut
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestCaseAttributeRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestCaseRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCase;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCaseAttribute;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCaseAttributeId;
 import com.epam.reportportal.base.model.Page;
 import com.epam.reportportal.base.ws.converter.PagedResourcesAssembler;
@@ -18,8 +19,11 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
@@ -43,18 +47,41 @@ public class TmsTestCaseAttributeServiceImpl implements TmsTestCaseAttributeServ
   @Transactional
   public void createTestCaseAttributes(long projectId, @NotNull TmsTestCase tmsTestCase,
       @NotEmpty List<TmsTestCaseAttributeRQ> attributes) {
-    
-    var tmsTestCaseAttributes = attributes.stream()
-        .map(req -> {
-          var attribute = req.getId() != null
-              ? tmsAttributeService.getEntityById(projectId, req.getId())
-              : tmsAttributeService.findOrCreateTag(projectId, req.getKey());
-          return tmsTestCaseAttributeMapper.createTestCaseAttribute(tmsTestCase, attribute);
-        })
+    var byAttributeId = buildDistinctTestCaseAttributes(projectId, tmsTestCase, attributes);
+
+    // persist() (unlike the merge() used before TmsTestCaseAttribute implemented Persistable)
+    // fails on a pair that already exists, e.g. when a test case is re-synced, so only insert
+    // the missing ones.
+    var existingAttributeIds = tmsTestCaseAttributeRepository.findExistingIds(
+            Collections.singletonList(tmsTestCase.getId()), byAttributeId.keySet())
+        .stream()
+        .map(TmsTestCaseAttributeId::getAttributeId)
         .collect(Collectors.toSet());
-    
-    tmsTestCase.setAttributes(tmsTestCaseAttributes);
-    tmsTestCaseAttributeRepository.saveAll(tmsTestCaseAttributes);
+    var newTestCaseAttributes = byAttributeId.entrySet().stream()
+        .filter(entry -> !existingAttributeIds.contains(entry.getKey()))
+        .map(Map.Entry::getValue)
+        .collect(Collectors.toSet());
+
+    tmsTestCase.setAttributes(new HashSet<>(byAttributeId.values()));
+    tmsTestCaseAttributeRepository.saveAll(newTestCaseAttributes);
+  }
+
+  /**
+   * Resolves the requested attributes and builds one entity per distinct attribute. The same
+   * attribute can be requested more than once (repeated label, or an id and a key resolving to the
+   * same tag); two entities with an equal id in one persistence context make persist() throw.
+   */
+  private Map<Long, TmsTestCaseAttribute> buildDistinctTestCaseAttributes(long projectId,
+      TmsTestCase tmsTestCase, List<TmsTestCaseAttributeRQ> attributes) {
+    var byAttributeId = new LinkedHashMap<Long, TmsTestCaseAttribute>();
+    for (var req : attributes) {
+      var attribute = req.getId() != null
+          ? tmsAttributeService.getEntityById(projectId, req.getId())
+          : tmsAttributeService.findOrCreateTag(projectId, req.getKey());
+      byAttributeId.computeIfAbsent(attribute.getId(),
+          id -> tmsTestCaseAttributeMapper.createTestCaseAttribute(tmsTestCase, attribute));
+    }
+    return byAttributeId;
   }
 
   @Override
@@ -68,6 +95,7 @@ public class TmsTestCaseAttributeServiceImpl implements TmsTestCaseAttributeServ
     // as already-persistent, without issuing a SELECT.
     var tmsTestCaseAttributes = attributeIds
         .stream()
+        .distinct()
         .map(attributeId -> tmsTestCaseAttributeMapper.createTestCaseAttribute(
             tmsTestCase, tmsAttributeRepository.getReferenceById(attributeId)))
         .collect(Collectors.toSet());
@@ -85,16 +113,9 @@ public class TmsTestCaseAttributeServiceImpl implements TmsTestCaseAttributeServ
       tmsTestCase.setAttributes(new HashSet<>());
     }
     if (CollectionUtils.isNotEmpty(attributes)) {
-      
-      var tmsTestCaseAttributes = attributes.stream()
-          .map(req -> {
-            var attribute = req.getId() != null
-                ? tmsAttributeService.getEntityById(projectId, req.getId())
-                : tmsAttributeService.findOrCreateTag(projectId, req.getKey());
-            return tmsTestCaseAttributeMapper.createTestCaseAttribute(tmsTestCase, attribute);
-          })
-          .collect(Collectors.toSet());
-      
+      var tmsTestCaseAttributes =
+          new HashSet<>(buildDistinctTestCaseAttributes(projectId, tmsTestCase, attributes).values());
+
       tmsTestCase.setAttributes(tmsTestCaseAttributes);
       tmsTestCaseAttributeRepository.saveAll(tmsTestCaseAttributes);
     }

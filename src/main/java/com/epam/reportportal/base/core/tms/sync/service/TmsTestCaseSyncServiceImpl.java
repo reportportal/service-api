@@ -30,6 +30,7 @@ import java.io.InputStream;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -101,17 +102,23 @@ public class TmsTestCaseSyncServiceImpl implements TmsTestCaseSyncService {
       Long projectId,
       TmsSyncConnector<Integration> connector,
       Integration integration,
-      List<RemoteTestCase> remoteTestCaseBatch,
+      List<RemoteTestCase> originalBatch,
       Long localFolderId) {
     var organizationId = projectRepository.findById(projectId)
         .map(Project::getOrganizationId)
         .orElse(null);
+    var remoteTestCaseBatch = deduplicateByExternalId(originalBatch);
+    var duplicatesCount = originalBatch.size() - remoteTestCaseBatch.size();
+    if (duplicatesCount > 0) {
+      log.warn("Remote batch of job {} contains {} duplicate test case id(s); using one record per id",
+          jobId, duplicatesCount);
+    }
     var existingTestCases = loadExistingTestCasesAndBeforeSnapshots(projectId, remoteTestCaseBatch);
     var testCaseSyncContext = new TestCaseSyncContext(
         projectId, connector, integration, localFolderId
     );
     var batchProcessingResult = processRemoteTestCaseBatch(
-        remoteTestCaseBatch, existingTestCases.testCases(), testCaseSyncContext
+        remoteTestCaseBatch, existingTestCases.testCases(), testCaseSyncContext, duplicatesCount
     );
 
     try {
@@ -130,6 +137,24 @@ public class TmsTestCaseSyncServiceImpl implements TmsTestCaseSyncService {
       recordRolledBackBatch(jobId, batchProcessingResult);
       throw e;
     }
+  }
+
+  /**
+   * Keeps a single record per remote id (the most recently updated one, the last one on a tie) so
+   * the entity, attributes and scenario of a test case always come from the same remote record.
+   */
+  private List<RemoteTestCase> deduplicateByExternalId(List<RemoteTestCase> batch) {
+    var byId = new LinkedHashMap<String, RemoteTestCase>();
+    for (var candidate : batch) {
+      byId.merge(candidate.getId(), candidate,
+          (kept, next) -> isOlder(next, kept) ? kept : next);
+    }
+    return new ArrayList<>(byId.values());
+  }
+
+  private boolean isOlder(RemoteTestCase candidate, RemoteTestCase other) {
+    return candidate.getUpdatedAt() != null && other.getUpdatedAt() != null
+        && candidate.getUpdatedAt().isBefore(other.getUpdatedAt());
   }
 
   /**
@@ -184,15 +209,17 @@ public class TmsTestCaseSyncServiceImpl implements TmsTestCaseSyncService {
   private BatchProcessingResult processRemoteTestCaseBatch(
       List<RemoteTestCase> remoteTestCaseBatch,
       Map<String, TmsTestCase> existingTestCases,
-      TestCaseSyncContext context) {
+      TestCaseSyncContext context,
+      int duplicatesCount) {
     var testCasesToSave = new ArrayList<TmsTestCase>();
     var isNewTestCaseMap = new HashMap<String, Boolean>();
     var attachmentsByTestCaseId = new HashMap<String, List<TmsAttachment>>();
     var storedAttachmentIds = new ArrayList<String>();
     var errors = new ArrayList<SyncError>();
-    var processedCount = 0;
+    // Dropped duplicates still count as processed (and skipped) so job totals match the remote page.
+    var processedCount = duplicatesCount;
     var importedCount = 0;
-    var skippedCount = 0;
+    var skippedCount = duplicatesCount;
     var failedCount = 0;
 
     for (var remoteTestCase : remoteTestCaseBatch) {

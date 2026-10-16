@@ -7,6 +7,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -367,6 +368,51 @@ class TmsTestCaseSyncServiceImplTest {
     assertEquals(counters.getProcessed(),
         counters.getImported() + counters.getSkipped() + counters.getFailed());
     assertEquals(1, syncJob.getErrorLog().getErrors().size());
+  }
+
+  @Test
+  void processTestCaseBatch_WhenBatchHasDuplicateIds_ShouldUseNewestRecordOnceAndCountDuplicateAsSkipped() {
+    var project = new Project();
+    project.setOrganizationId(organizationId);
+    when(projectRepository.findById(projectId)).thenReturn(Optional.of(project));
+
+    var older = new RemoteTestCase();
+    older.setId("EXT-DUP");
+    older.setName("Older");
+    older.setUpdatedAt(Instant.now().minusSeconds(60));
+    var newer = new RemoteTestCase();
+    newer.setId("EXT-DUP");
+    newer.setName("Newer");
+    newer.setUpdatedAt(Instant.now());
+
+    when(tmsTestCaseRepository.findByProjectIdAndExternalIdIn(projectId, List.of("EXT-DUP")))
+        .thenReturn(List.of());
+    var newTestCase = new TmsTestCase();
+    newTestCase.setExternalId("EXT-DUP");
+    newTestCase.setId(60L);
+    when(tmsTestCaseMapper.convertFromRemote(any(), any(), eq(projectId), any()))
+        .thenReturn(newTestCase);
+    when(tmsTestCaseRepository.saveAll(anyList())).thenReturn(List.of(newTestCase));
+    when(tmsManualScenarioMapper.convertFromRemote(any(), any()))
+        .thenReturn(new TmsTextManualScenarioRQ());
+
+    var syncJob = new TmsSyncJob();
+    syncJob.setCounters(new SyncCounters());
+    syncJob.setErrorLog(new SyncErrorLog());
+    when(tmsSyncJobRepository.findById(jobId)).thenReturn(Optional.of(syncJob));
+
+    @SuppressWarnings("unchecked")
+    TmsSyncConnector<Integration> connector = mock(TmsSyncConnector.class);
+
+    sut.processTestCaseBatch(jobId, projectId, connector, new Integration(),
+        List.of(older, newer), null);
+
+    verify(tmsTestCaseMapper, times(1)).convertFromRemote(any(), any(), eq(projectId), any());
+    verify(tmsTestCaseMapper).convertFromRemote(eq(newer), any(), eq(projectId), any());
+    verify(tmsManualScenarioMapper, times(1)).convertFromRemote(eq(newer), any());
+    assertEquals(2, syncJob.getCounters().getProcessed());
+    assertEquals(1, syncJob.getCounters().getImported());
+    assertEquals(1, syncJob.getCounters().getSkipped());
   }
 
   @Test

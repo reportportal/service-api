@@ -10,6 +10,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import java.io.Serializable;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import lombok.AllArgsConstructor;
@@ -56,7 +57,7 @@ public class PipelineSection implements Serializable {
    * Example: an upload report whose rows carry the targets TEST_CASE TC-12 and TEST_CASE TC-13 yields those two.
    */
   public static List<EntityReference> entityReferences(List<PipelineSection> sections) {
-    var references = new java.util.LinkedHashSet<EntityReference>();
+    var references = new LinkedHashSet<EntityReference>();
     if (sections != null) {
       for (var section : sections) {
         for (var row : section.getRows() == null ? List.<Row>of() : section.getRows()) {

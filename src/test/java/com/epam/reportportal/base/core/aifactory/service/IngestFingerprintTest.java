@@ -4,7 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.epam.reportportal.base.core.aifactory.dto.PipelineDefinitionRQ;
+import com.epam.reportportal.base.core.aifactory.dto.IterationRQ;
 import com.epam.reportportal.base.core.aifactory.dto.PipelineIterationRQ;
 import com.epam.reportportal.base.core.aifactory.dto.PipelineStageRQ;
 import java.util.LinkedHashMap;
@@ -15,9 +15,7 @@ import org.junit.jupiter.api.Test;
 class IngestFingerprintTest {
 
   private PipelineIterationRQ rq(Map<String, Object> document, String status) {
-    return PipelineIterationRQ.builder().pipeline(PipelineDefinitionRQ.named("p"))
-        .stages(List.of(PipelineStageRQ.builder().stageKey("s").sequence(1).status(status).document(document).build()))
-        .build();
+    return PipelineIterationRQ.builder().name("p").iteration(IterationRQ.builder().stages(List.of(PipelineStageRQ.builder().stageKey("s").sequence(1).status(status).document(document).build())).build()).build();
   }
 
   @Test

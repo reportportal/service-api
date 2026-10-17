@@ -206,7 +206,6 @@ public class PipelineMapper {
     stage.setAttributes(rq.getAttributes() == null ? null : new PipelineAttributes(rq.getAttributes()));
     stage.setSections(rq.getSections() == null ? null : new PipelineSections(rq.getSections()));
     stage.setSummary(rq.getSummary());
-    stage.setSummary(rq.getSummary());
     stage.setMessage(rq.getMessage());
     var related = PipelineSection.entityReferences(rq.getSections());
     stage.setRelatedEntities(related.isEmpty() ? null : new PipelineRelatedEntities(related));

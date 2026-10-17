@@ -1,6 +1,6 @@
 package com.epam.reportportal.base.core.aifactory.dto;
 
-import com.epam.reportportal.base.core.aifactory.enums.StageOrigin;
+import com.epam.reportportal.base.core.aifactory.enums.StageOwner;
 import com.epam.reportportal.base.core.aifactory.enums.StatusCategory;
 import com.epam.reportportal.base.core.aifactory.model.PipelineAttribute;
 import com.epam.reportportal.base.core.aifactory.model.PipelineLink;
@@ -35,15 +35,21 @@ public class PipelineStageRS {
   @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
   private StatusCategory statusCategory;
   @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-  private StageOrigin origin;
+  private StageOwner ownedBy;
   private Instant startedAt;
   private Instant finishedAt;
   private Long durationMillis;
   private List<PipelineAttribute> attributes;
+  @Schema(description = "Short text for the stage chip, e.g. \"4 cases\" or \"79\"; as reported")
+  private String summary;
   @Schema(description = "What the stage is doing or waiting for right now")
   private String message;
-  @Schema(description = "Things elsewhere in ReportPortal the stage reported it worked on or produced, as "
-      + "reported. Example: an Upload stage that created TC-12 returns "
+  @Schema(description = "Whether the stage's status counts towards the iteration status; false for a stage that "
+      + "is evaluation only (e.g. Grade)")
+  private boolean affectsIterationStatus;
+  @Schema(description = "Things elsewhere in ReportPortal the stage worked on or produced, collected by ReportPortal from the "
+      + "cell targets of its sections (the agent sends each only once, in the row). "
+      + "Example: an Upload stage whose rows link TC-12 returns "
       + "[{entityType: \"TEST_CASE\", entityId: \"TC-12\"}], which the UI shows as a link to that test case")
   private List<PipelineSection.EntityReference> relatedEntities;
   @Schema(description = "Result tables of the stage")

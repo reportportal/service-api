@@ -3,7 +3,7 @@ package com.epam.reportportal.base.core.aifactory.service;
 import com.epam.reportportal.base.core.aifactory.connector.CiTriggerConnector;
 import com.epam.reportportal.base.core.aifactory.dto.PipelineStageRetryRQ;
 import com.epam.reportportal.base.core.aifactory.dto.PipelineStageRetryRS;
-import com.epam.reportportal.base.core.aifactory.enums.StageOrigin;
+import com.epam.reportportal.base.core.aifactory.enums.StageOwner;
 import com.epam.reportportal.base.core.aifactory.enums.StatusCategory;
 import com.epam.reportportal.base.core.aifactory.event.PipelineStageRetryRequestedEvent;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationRepository;
@@ -101,7 +101,7 @@ public class PipelineStageRetryServiceImpl implements PipelineStageRetryService 
           "Stage '" + stageId + "' has passed and cannot be retried");
     }
     var execution = stage.getExecution() == null ? null : stage.getExecution().getContent();
-    if (category == StatusCategory.UNKNOWN || stage.getOrigin() == StageOrigin.DERIVED
+    if (category == StatusCategory.UNKNOWN || stage.getOwnedBy() == StageOwner.REPORTPORTAL
         || execution == null || !execution.isRetryable()) {
       throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "Stage '" + stageId + "' is not retryable");
     }

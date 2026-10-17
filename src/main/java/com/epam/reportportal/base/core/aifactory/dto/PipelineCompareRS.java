@@ -25,7 +25,7 @@ public class PipelineCompareRS {
   private PipelineIterationDetailRS baseline;
   private PipelineIterationDetailRS candidate;
 
-  @Schema(description = "True when the identity attributes of both iterations are equal (e.g. the same requirement), "
+  @Schema(description = "True when the comparison-key attributes of both iterations are equal (e.g. the same requirement), "
       + "so their result rows can be compared case by case")
   private boolean sameScope;
 

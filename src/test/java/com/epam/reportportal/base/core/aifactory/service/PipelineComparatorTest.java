@@ -24,12 +24,12 @@ class PipelineComparatorTest {
   private final PipelineComparator comparator = new PipelineComparator();
 
   private static PipelineAttribute requirement(String value) {
-    return PipelineAttribute.builder().key("requirement").value(value).type(AttributeType.MAIN).identity(true).build();
+    return PipelineAttribute.builder().key("requirement").value(value).type(AttributeType.META).comparisonKey(true).build();
   }
 
   private static PipelineAttribute metric(String key, String value, AttributeValueType type,
       AttributeDirection direction) {
-    return PipelineAttribute.builder().key(key).label(key).value(value).type(AttributeType.MAIN).valueType(type)
+    return PipelineAttribute.builder().key(key).label(key).value(value).type(AttributeType.META).valueType(type)
         .direction(direction).build();
   }
 

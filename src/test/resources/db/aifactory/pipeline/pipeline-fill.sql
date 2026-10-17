@@ -13,7 +13,7 @@ values (901, 'Pipeline Second Test Case', 'Another linked test case', 900, 'MEDI
 -- Pipeline definitions
 insert into pipeline (id, project_id, name, type, description, attributes, settings, created_at)
 values (900, 1, 'factory-tc-gen', 'TEST_CASE_GENERATION', 'Factory pipeline: agents convert requirements into test cases',
-        '[{"key": "repo", "label": "Repository", "value": "org/repo", "type": "MAIN", "valueType": "TEXT"}]',
+        '[{"key": "repo", "label": "Repository", "value": "org/repo", "type": "META", "valueType": "TEXT"}]',
         null, '2026-08-28 16:40:00');
 
 insert into pipeline (id, project_id, name, description, created_at)
@@ -30,10 +30,10 @@ values (902, 1, 'other-pipeline-same-project', 'A different pipeline definition,
 insert into pipeline_iteration (id, pipeline_id, iteration_number, status, status_category, attributes, search_text, attribute_index,
                                 started_at, finished_at, rerun, created_by, created_at)
 values (900, 900, 1, 'Completed', 'PASSED',
-        '[{"key": "requirement", "label": "Requirement", "value": "US-TMS-EXP-002", "type": "MAIN", "valueType": "TEXT", "identity": true},
-          {"key": "trigger", "label": "Trigger", "value": "CI - booking pack", "type": "MAIN", "valueType": "TEXT"},
-          {"key": "suiteScore", "label": "Suite score", "value": "86", "type": "MAIN", "valueType": "SCORE", "direction": "HIGHER_BETTER"},
-          {"key": "cost", "label": "Cost", "value": "0.61", "type": "MAIN", "valueType": "MONEY", "direction": "LOWER_BETTER"},
+        '[{"key": "requirement", "label": "Requirement", "value": "US-TMS-EXP-002", "type": "META", "valueType": "TEXT", "comparisonKey": true},
+          {"key": "trigger", "label": "Trigger", "value": "CI - booking pack", "type": "META", "valueType": "TEXT"},
+          {"key": "suiteScore", "label": "Suite score", "value": "86", "type": "META", "valueType": "SCORE", "direction": "HIGHER_BETTER"},
+          {"key": "cost", "label": "Cost", "value": "0.61", "type": "META", "valueType": "MONEY", "direction": "LOWER_BETTER"},
           {"key": "env", "value": "beta5", "type": "TAG", "valueType": "TEXT"},
           {"key": "ci", "value": "#1284551", "type": "TAG", "valueType": "LINK", "url": "https://ci.example/runs/1284551"}]',
         'us-tms-exp-002 ci - booking pack 86 0.61 beta5 #1284551',
@@ -43,10 +43,10 @@ values (900, 900, 1, 'Completed', 'PASSED',
 insert into pipeline_iteration (id, pipeline_id, iteration_number, status, status_category, attributes, search_text, attribute_index,
                                 started_at, finished_at, rerun, created_by, created_at)
 values (901, 900, 2, 'In review', 'WAITING',
-        '[{"key": "requirement", "label": "Requirement", "value": "US-TMS-EXP-002", "type": "MAIN", "valueType": "TEXT", "identity": true},
-          {"key": "trigger", "label": "Trigger", "value": "CI - booking pack retry", "type": "MAIN", "valueType": "TEXT"},
-          {"key": "suiteScore", "label": "Suite score", "value": "72", "type": "MAIN", "valueType": "SCORE", "direction": "HIGHER_BETTER"},
-          {"key": "cost", "label": "Cost", "value": "0.98", "type": "MAIN", "valueType": "MONEY", "direction": "LOWER_BETTER"}]',
+        '[{"key": "requirement", "label": "Requirement", "value": "US-TMS-EXP-002", "type": "META", "valueType": "TEXT", "comparisonKey": true},
+          {"key": "trigger", "label": "Trigger", "value": "CI - booking pack retry", "type": "META", "valueType": "TEXT"},
+          {"key": "suiteScore", "label": "Suite score", "value": "72", "type": "META", "valueType": "SCORE", "direction": "HIGHER_BETTER"},
+          {"key": "cost", "label": "Cost", "value": "0.98", "type": "META", "valueType": "MONEY", "direction": "LOWER_BETTER"}]',
         'us-tms-exp-002 ci - booking pack retry 72 0.98',
         chr(1) || 'requirement' || chr(2) || 'us-tms-exp-002' || chr(1),
         '2026-09-03 14:22:00', '2026-09-03 14:26:12', false, 1, '2026-09-03 14:26:12');
@@ -62,7 +62,7 @@ values (920, 902, 1, 'Completed', 'PASSED', false, '2026-09-01 09:05:00');
 -- Stages (path = own id: these fixture rows are all top-level, no nesting)
 insert into pipeline_stage (id, iteration_id, stage_key, name, sequence, path, status, status_category, attributes, sections)
 values (900, 900, 'stage-gen-tc', 'MD -> Test cases', 1, '900', 'Passed', 'PASSED',
-        '[{"key": "cases", "label": "cases", "value": "4", "type": "MAIN", "valueType": "NUMBER"},
+        '[{"key": "cases", "label": "cases", "value": "4", "type": "META", "valueType": "NUMBER"},
           {"key": "agent", "value": "create-test-cases@0.4", "type": "TAG", "valueType": "TEXT"}]',
         '[{"key": "grades", "title": "Grades",
            "columns": [{"key": "case", "label": "Test case", "valueType": "TEXT"}, {"key": "score", "label": "Score", "valueType": "SCORE"}],

@@ -9,7 +9,7 @@ import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
-import com.epam.reportportal.base.core.aifactory.enums.StageOrigin;
+import com.epam.reportportal.base.core.aifactory.enums.StageOwner;
 import com.epam.reportportal.base.core.aifactory.enums.StatusCategory;
 import com.epam.reportportal.base.core.aifactory.model.PipelineAttribute;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.PipelineStageTestCaseRepository;
@@ -49,7 +49,7 @@ class TestCaseReviewContributorTest {
     stage.setSequence(sequence);
     stage.setStatus(category.defaultLabel());
     stage.setStatusCategory(category);
-    stage.setOrigin(StageOrigin.REPORTED);
+    stage.setOwnedBy(StageOwner.PIPELINE);
     return stage;
   }
 
@@ -101,7 +101,7 @@ class TestCaseReviewContributorTest {
     assertEquals("review", review.getStageKey());
     assertEquals("Review", review.getName());
     assertEquals(4, review.getSequence());
-    assertEquals(StageOrigin.DERIVED, review.getOrigin());
+    assertEquals(StageOwner.REPORTPORTAL, review.getOwnedBy());
     assertEquals(StatusCategory.PENDING, review.getStatusCategory());
     assertFalse(review.isAffectsIterationStatus());
     assertSame(iteration, review.getIteration());
@@ -124,6 +124,7 @@ class TestCaseReviewContributorTest {
     assertTrue(review.isAffectsIterationStatus());
     assertEquals("1/4", attribute(review, "review"));
     assertEquals("1", attribute(review, "ready"));
+    assertEquals("1/4 Ready", review.getSummary());
     assertEquals("4", attribute(review, "total"));
     assertNotNull(review.getStartedAt());
     assertNull(review.getFinishedAt());
@@ -188,7 +189,7 @@ class TestCaseReviewContributorTest {
   @Test
   void contribute_WhenACaseGoesBackToDraft_ShouldReopenAnExistingReviewStage() {
     var existing = stage("review", 4, StatusCategory.PASSED);
-    existing.setOrigin(StageOrigin.DERIVED);
+    existing.setOwnedBy(StageOwner.REPORTPORTAL);
     existing.setFinishedAt(java.time.Instant.parse("2026-01-01T00:00:00Z"));
     var stages = List.of(stage("upload", 3, StatusCategory.PASSED), existing);
     when(stageTestCaseRepository.countTestCasesByIterationIdIn(anyCollection(), eq(TmsTestCaseStatus.READY)))

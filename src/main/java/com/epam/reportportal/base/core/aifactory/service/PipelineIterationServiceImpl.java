@@ -9,7 +9,7 @@ import com.epam.reportportal.base.core.aifactory.dto.PipelineStageRQ;
 import com.epam.reportportal.base.core.aifactory.dto.PipelineWarningRS;
 import com.epam.reportportal.base.core.aifactory.enums.AttributeType;
 import com.epam.reportportal.base.core.aifactory.enums.AttributeValueType;
-import com.epam.reportportal.base.core.aifactory.enums.StageOrigin;
+import com.epam.reportportal.base.core.aifactory.enums.StageOwner;
 import com.epam.reportportal.base.core.aifactory.enums.StatusCategory;
 import com.epam.reportportal.base.core.aifactory.event.PipelineIterationIngestedEvent;
 import com.epam.reportportal.base.core.aifactory.mapper.PipelineMapper;
@@ -76,8 +76,8 @@ public class PipelineIterationServiceImpl implements PipelineIterationService {
     validateStages(stageRQs);
 
     var pipeline = pipelineRepository
-        .findByProjectIdAndName(projectId, rq.getPipelineName())
-        .orElseGet(() -> createPipeline(projectId, rq.getPipelineName(), rq.getPipelineType()));
+        .findByProjectIdAndName(projectId, rq.getPipeline().getName())
+        .orElseGet(() -> createPipeline(projectId, rq.getPipeline().getName(), rq.getPipeline().getType()));
     // Serializes concurrent ingests of this pipeline: next iteration number, idempotency lookup.
     var lockedPipeline = pipelineRepository.findByIdForUpdate(pipeline.getId())
         .orElseThrow(() -> new ReportPortalException(ErrorType.NOT_FOUND, "Pipeline '" + pipeline.getId() + "'"));
@@ -144,7 +144,7 @@ public class PipelineIterationServiceImpl implements PipelineIterationService {
     var warnings = new ArrayList<PipelineWarningRS>();
     for (int i = 0; i < stageRQs.size(); i++) {
       var stage = savedStages.get(i);
-      warnings.addAll(resolveRelatedEntities(projectId, lockedPipeline, stage, stageRQs.get(i).getRelatedEntities()));
+      warnings.addAll(resolveRelatedEntities(projectId, lockedPipeline, stage, false));
       notifyStageReportedHandlers(projectId, lockedPipeline, stage, stage.getStatusCategory() == StatusCategory.PASSED);
     }
 
@@ -172,6 +172,7 @@ public class PipelineIterationServiceImpl implements PipelineIterationService {
 
     PipelineStage stage;
     boolean becamePassed;
+    boolean hadRelatedEntities = false;
     if (existing == null) {
       rq.setStageKey(stageKey);
       stage = pipelineMapper.toStageEntity(rq);
@@ -190,13 +191,14 @@ public class PipelineIterationServiceImpl implements PipelineIterationService {
       becamePassed = stage.getStatusCategory() == StatusCategory.PASSED;
     } else {
       stage = existing;
-      if (stage.getOrigin() == StageOrigin.DERIVED) {
+      if (stage.getOwnedBy() == StageOwner.REPORTPORTAL) {
         throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
             "Stage '" + stageKey + "' is maintained by ReportPortal and cannot be reported");
       }
       if (rq.getParentStageKey() != null) {
         resolveParent(iterationId, rq.getParentStageKey(), stage);
       }
+      hadRelatedEntities = stage.getRelatedEntities() != null && !stage.getRelatedEntities().getItems().isEmpty();
       var previousCategory = stage.getStatusCategory();
       if (startsNewAttempt(stage, rq)) {
         pipelineStageAttemptRepository.save(PipelineStageAttempt.snapshotOf(stage));
@@ -209,7 +211,7 @@ public class PipelineIterationServiceImpl implements PipelineIterationService {
       becamePassed = previousCategory != StatusCategory.PASSED && stage.getStatusCategory() == StatusCategory.PASSED;
     }
 
-    var warnings = resolveRelatedEntities(projectId, iteration.getPipeline(), stage, rq.getRelatedEntities());
+    var warnings = resolveRelatedEntities(projectId, iteration.getPipeline(), stage, hadRelatedEntities);
     notifyStageReportedHandlers(projectId, iteration.getPipeline(), stage, becamePassed);
 
     var refreshed = refresher.refresh(iteration);
@@ -311,7 +313,7 @@ public class PipelineIterationServiceImpl implements PipelineIterationService {
           stage.getAttributes() == null ? List.of() : stage.getAttributes().getItems());
       attributes.removeIf(attribute -> "failureReason".equals(attribute.getKey()));
       attributes.add(PipelineAttribute.builder().key("failureReason").label("Failure reason").value(reason)
-          .type(AttributeType.MAIN).valueType(AttributeValueType.TEXT).build());
+          .type(AttributeType.META).valueType(AttributeValueType.TEXT).build());
       stage.setAttributes(new PipelineAttributes(attributes));
     });
   }
@@ -329,7 +331,7 @@ public class PipelineIterationServiceImpl implements PipelineIterationService {
    * type than the recorded one is rejected.
    */
   private void applyPipelineDescription(Pipeline pipeline, PipelineIterationRQ rq) {
-    var reportedType = rq.getPipelineType();
+    var reportedType = rq.getPipeline().getType();
     if (reportedType != null && !reportedType.isBlank()) {
       if (pipeline.getType() == null) {
         pipeline.setType(reportedType);
@@ -338,9 +340,9 @@ public class PipelineIterationServiceImpl implements PipelineIterationService {
             "Pipeline '" + pipeline.getName() + "' is of type '" + pipeline.getType() + "', not '" + reportedType + "'");
       }
     }
-    if (rq.getPipelineAttributes() != null && !rq.getPipelineAttributes().isEmpty()) {
+    if (rq.getPipeline().getAttributes() != null && !rq.getPipeline().getAttributes().isEmpty()) {
       pipeline.setAttributes(PipelineAttributeSupport.toColumn(
-          PipelineAttributeSupport.merge(pipeline.getAttributes(), rq.getPipelineAttributes(), null)));
+          PipelineAttributeSupport.merge(pipeline.getAttributes(), rq.getPipeline().getAttributes(), null)));
     }
     pipelineRepository.save(pipeline);
   }
@@ -406,16 +408,19 @@ public class PipelineIterationServiceImpl implements PipelineIterationService {
   }
 
   /**
-   * Hands the related entities a stage reported to the resolver of their type, which replaces what the
-   * stage was related to before. Entities a resolver cannot find come back as warnings; the report itself is
-   * not rejected. Entities of a type no resolver handles need no handling: they are kept as reported.
+   * Hands the entities the stage's result tables point to (the {@code target} of their cells) to the resolver
+   * of their type, which replaces what the stage was related to before. Entities a resolver cannot find come
+   * back as warnings; the report itself is not rejected. Entities of a type no resolver handles need no
+   * handling: they stay in the table as reported.
    * <p>
-   * Example: a stage reports {@code [{entityType: "TEST_CASE", entityId: "TC-12"}]}; the resolver for
-   * {@code TEST_CASE} links the stage to test case TC-12.
+   * Example: an Upload report has a row whose cell target is {@code {entityType: "TEST_CASE", entityId: "TC-12"}};
+   * the resolver for {@code TEST_CASE} links the stage to test case TC-12.
    */
   private List<PipelineWarningRS> resolveRelatedEntities(Long projectId, Pipeline pipeline, PipelineStage stage,
-      List<PipelineSection.EntityReference> relatedEntities) {
-    if (relatedEntities == null) {
+      boolean hadRelatedEntities) {
+    var relatedEntities = stage.getRelatedEntities() == null ? List.<PipelineSection.EntityReference>of()
+        : stage.getRelatedEntities().getItems();
+    if (relatedEntities.isEmpty() && !hadRelatedEntities) {
       return List.of();
     }
     var entityIdsByType = new LinkedHashMap<String, List<String>>();

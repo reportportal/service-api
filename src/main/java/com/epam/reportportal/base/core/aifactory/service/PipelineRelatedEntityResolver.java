@@ -7,8 +7,7 @@ import java.util.List;
 /**
  * Extension point for the things elsewhere in ReportPortal that a stage reports it worked on or produced.
  * <p>
- * Example: a test case generation stage reports
- * {@code relatedEntities: [{entityType: "TEST_CASE", entityId: "TC-12"}]}. The resolver whose
+ * Example: a test case generation stage has a row cell with target {@code {entityType: "TEST_CASE", entityId: "TC-12"}}. The resolver whose
  * {@link #entityType()} is {@code TEST_CASE} (see {@code TestCaseRelatedEntityResolver}) finds test case
  * TC-12 and links it to the stage. A plain CI/CD pipeline reports no related entities, so no resolver is
  * involved.

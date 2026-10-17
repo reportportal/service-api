@@ -66,6 +66,11 @@ public class PipelineStageRQ {
   @Schema(description = "Result tables of the stage")
   private List<PipelineSection> sections;
 
+  @Size(max = 128)
+  @Schema(description = "Short text for the stage chip in the iteration card, e.g. \"4 cases\", \"79\" or "
+      + "\"4 ↑\". Separate from the attributes, which stay numbers for totals and comparison")
+  private String summary;
+
   @Size(max = 512)
   @Schema(description = "What the stage is doing or waiting for right now, e.g. 'Queued - waiting for runner'")
   private String message;
@@ -86,14 +91,6 @@ public class PipelineStageRQ {
   private String documentSchemaName;
 
   private PipelineStepResultRQ result;
-
-  @Valid
-  @Schema(description = "Things elsewhere in ReportPortal the stage worked on or produced. Example: an Upload "
-      + "stage that created test cases TC-12 and TC-13 reports "
-      + "[{entityType: \"TEST_CASE\", entityId: \"TC-12\"}, {entityType: \"TEST_CASE\", entityId: \"TC-13\"}]. "
-      + "Each entity type is resolved by its own handler. A report that sends this list replaces the stage's "
-      + "earlier one; a report that leaves it out keeps it")
-  private List<PipelineSection.EntityReference> relatedEntities;
 
   @Valid
   @Schema(description = "Where and how the stage ran, and what is needed to run it again")

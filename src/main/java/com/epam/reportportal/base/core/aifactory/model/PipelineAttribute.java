@@ -41,6 +41,12 @@ public class PipelineAttribute implements Serializable {
   @Schema(description = "Value as text; its interpretation is given by valueType")
   private String value;
 
+  @Size(max = 1024)
+  @Schema(description = "Longer text that belongs to the value. Example: attribute requirement = "
+      + "\"US-TMS-MIG-001\" with description \"Test Case Library empty state display and navigation panel\"; "
+      + "the card shows the value, the details header shows both")
+  private String description;
+
   @Builder.Default
   @Schema(description = "Placement hint for the UI (default TAG)")
   private AttributeType type = AttributeType.TAG;
@@ -53,7 +59,8 @@ public class PipelineAttribute implements Serializable {
   @Schema(description = "Link target, used with valueType LINK")
   private String url;
 
-  @Schema(description = "Position among attributes of the same type; unordered attributes keep the reported order")
+  @Schema(description = "Position among attributes of the same type (lower first); attributes without it follow "
+      + "in the reported order")
   private Integer order;
 
   @Schema(description = "For numeric attributes: which direction is an improvement when iterations are compared")
@@ -62,9 +69,10 @@ public class PipelineAttribute implements Serializable {
   @Schema(description = "Stage attributes only: sum this attribute over the stages into the iteration")
   private AttributeRollup rollup;
 
-  @Schema(description = "Marks what the owner is about (e.g. the requirement). Iterations whose identity "
-      + "attributes are equal cover the same scope and can be compared case by case")
-  private boolean identity;
+  @Schema(description = "Marks the attribute that tells what the iteration is about (e.g. the requirement). "
+      + "Iterations whose comparison-key attributes are equal cover the same scope, so Compare lines up their "
+      + "result rows case by case; otherwise it only notes that the scopes differ")
+  private boolean comparisonKey;
 
   /**
    * Token stored in the iteration's attribute index for an attribute: control characters around the

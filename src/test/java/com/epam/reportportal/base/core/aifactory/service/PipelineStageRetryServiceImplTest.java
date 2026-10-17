@@ -12,7 +12,7 @@ import static org.mockito.Mockito.when;
 
 import com.epam.reportportal.base.core.aifactory.connector.CiTriggerConnector;
 import com.epam.reportportal.base.core.aifactory.dto.PipelineStageRetryRQ;
-import com.epam.reportportal.base.core.aifactory.enums.StageOrigin;
+import com.epam.reportportal.base.core.aifactory.enums.StageOwner;
 import com.epam.reportportal.base.core.aifactory.enums.StatusCategory;
 import com.epam.reportportal.base.core.aifactory.event.PipelineStageRetryRequestedEvent;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationRepository;
@@ -167,7 +167,7 @@ class PipelineStageRetryServiceImplTest {
     assertThrows(ReportPortalException.class, () -> sut.retryPipelineIterationStage(1L, 9L, 3L, 4L, null));
 
     stage.setStatusCategory(StatusCategory.FAILED);
-    stage.setOrigin(StageOrigin.DERIVED);
+    stage.setOwnedBy(StageOwner.REPORTPORTAL);
     assertThrows(ReportPortalException.class, () -> sut.retryPipelineIterationStage(1L, 9L, 3L, 4L, null));
 
     verify(githubConnector, never()).triggerStageRerun(any(), any());

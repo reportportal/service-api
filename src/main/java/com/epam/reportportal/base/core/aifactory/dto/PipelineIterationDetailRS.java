@@ -30,7 +30,7 @@ public class PipelineIterationDetailRS {
   private String status;
   @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
   private StatusCategory statusCategory;
-  @Schema(description = "Typed facts about the iteration: MAIN ones form the meta line and totals, TAG ones are chips")
+  @Schema(description = "Typed facts about the iteration: META ones form the meta line and totals, TAG ones are chips")
   private List<PipelineAttribute> attributes;
   private Instant startedAt;
   private Instant finishedAt;

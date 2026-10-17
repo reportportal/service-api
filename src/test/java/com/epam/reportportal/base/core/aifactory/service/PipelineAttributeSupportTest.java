@@ -105,8 +105,27 @@ class PipelineAttributeSupportTest {
     assertEquals("cost", result.get(0).getKey());
     assertEquals("Cost", result.get(0).getLabel());
     assertEquals("0.96", result.get(0).getValue());
-    assertEquals(AttributeType.MAIN, result.get(0).getType());
+    assertEquals(AttributeType.META, result.get(0).getType());
     assertEquals(AttributeValueType.MONEY, result.get(0).getValueType());
+  }
+
+  @Test
+  void rollup_ShouldKeepThePositionOfTheFirstStageAttributeItSums() {
+    var create = stage(PipelineAttribute.builder().key("testCases").value("4").order(4)
+        .rollup(AttributeRollup.SUM).build());
+
+    var result = PipelineAttributeSupport.rollup(List.of(create), Set.of());
+
+    assertEquals(4, result.get(0).getOrder());
+  }
+
+  @Test
+  void normalize_ShouldKeepTheDescriptionAndTheComparisonKeyFlag() {
+    var result = PipelineAttributeSupport.normalize(List.of(PipelineAttribute.builder().key("requirement")
+        .value("US-1").description("Empty state").comparisonKey(true).build()));
+
+    assertEquals("Empty state", result.get(0).getDescription());
+    assertTrue(result.get(0).isComparisonKey());
   }
 
   @Test

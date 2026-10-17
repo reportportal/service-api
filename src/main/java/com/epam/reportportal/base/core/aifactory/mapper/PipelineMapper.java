@@ -10,7 +10,7 @@ import com.epam.reportportal.base.core.aifactory.dto.PipelineStageRS;
 import com.epam.reportportal.base.core.aifactory.dto.PipelineStageSummaryRS;
 import com.epam.reportportal.base.core.aifactory.dto.PipelineStepResultRS;
 import com.epam.reportportal.base.core.aifactory.dto.PipelineUserRS;
-import com.epam.reportportal.base.core.aifactory.enums.StageOrigin;
+import com.epam.reportportal.base.core.aifactory.enums.StageOwner;
 import com.epam.reportportal.base.core.aifactory.enums.StatusCategory;
 import com.epam.reportportal.base.core.aifactory.model.PipelineAttribute;
 import com.epam.reportportal.base.core.aifactory.model.PipelineExecution;
@@ -115,12 +115,14 @@ public class PipelineMapper {
         .parentStageId(stage.getParentStageId())
         .status(stage.getStatus())
         .statusCategory(stage.getStatusCategory())
-        .origin(stage.getOrigin())
+        .ownedBy(stage.getOwnedBy())
         .startedAt(stage.getStartedAt())
         .finishedAt(stage.getFinishedAt())
         .durationMillis(durationMillis(stage.getStartedAt(), stage.getFinishedAt()))
         .attributes(attributeList(stage.getAttributes()))
+        .summary(stage.getSummary())
         .message(stage.getMessage())
+        .affectsIterationStatus(stage.isAffectsIterationStatus())
         .build();
   }
 
@@ -133,12 +135,14 @@ public class PipelineMapper {
         .parentStageId(stage.getParentStageId())
         .status(stage.getStatus())
         .statusCategory(stage.getStatusCategory())
-        .origin(stage.getOrigin())
+        .ownedBy(stage.getOwnedBy())
         .startedAt(stage.getStartedAt())
         .finishedAt(stage.getFinishedAt())
         .durationMillis(durationMillis(stage.getStartedAt(), stage.getFinishedAt()))
         .attributes(attributeList(stage.getAttributes()))
+        .summary(stage.getSummary())
         .message(stage.getMessage())
+        .affectsIterationStatus(stage.isAffectsIterationStatus())
         .relatedEntities(relatedEntityList(stage.getRelatedEntities()))
         .sections(sectionList(stage.getSections()))
         .result(toStepResultRS(stage.getResultType(), stage.getResultRef()))
@@ -174,7 +178,7 @@ public class PipelineMapper {
   public PipelineStage toStageEntity(PipelineStageRQ rq) {
     var stage = new PipelineStage();
     stage.setStageKey(rq.getStageKey());
-    stage.setOrigin(StageOrigin.REPORTED);
+    stage.setOwnedBy(StageOwner.PIPELINE);
     applyStage(stage, rq);
     return stage;
   }
@@ -201,10 +205,11 @@ public class PipelineMapper {
     stage.setFinishedAt(rq.getFinishedAt());
     stage.setAttributes(rq.getAttributes() == null ? null : new PipelineAttributes(rq.getAttributes()));
     stage.setSections(rq.getSections() == null ? null : new PipelineSections(rq.getSections()));
+    stage.setSummary(rq.getSummary());
+    stage.setSummary(rq.getSummary());
     stage.setMessage(rq.getMessage());
-    if (rq.getRelatedEntities() != null) {
-      stage.setRelatedEntities(new PipelineRelatedEntities(rq.getRelatedEntities()));
-    }
+    var related = PipelineSection.entityReferences(rq.getSections());
+    stage.setRelatedEntities(related.isEmpty() ? null : new PipelineRelatedEntities(related));
     stage.setLinks(rq.getLinks() == null || rq.getLinks().isEmpty() ? null : new PipelineLinks(rq.getLinks()));
     stage.setDocument(rq.getDocument() == null ? null : new PipelineDocument(rq.getDocument()));
     stage.setDocumentSchemaName(rq.getDocumentSchemaName());

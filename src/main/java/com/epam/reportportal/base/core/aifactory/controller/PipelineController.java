@@ -137,7 +137,7 @@ public class PipelineController {
   @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @Operation(summary = "Create a pipeline iteration (called by CI/the agent)",
       description = "Reporting endpoint; requires project edit permission. The pipeline definition is created on the "
-          + "first report for a given pipelineName (unique per project) and records its type. The iteration may "
+          + "first report that names a pipeline (unique per project) and records its type. The iteration may "
           + "carry the stages known so far; further stages are reported one by one with PUT "
           + ".../iteration/{iterationId}/stage/{stageKey}. With rerunOfIterationId the new iteration is marked as "
           + "a re-run of that iteration. Test case display ids that do not resolve are skipped and returned in "
@@ -218,7 +218,7 @@ public class PipelineController {
   @Operation(summary = "Compare two iterations of the same pipeline definition",
       description = "The iteration in the path is the candidate, the one given by 'with' is the baseline. Stages "
           + "are matched by name, metrics are the numeric attributes, and when both iterations cover the same "
-          + "scope (equal identity attributes) result rows are joined side by side.")
+          + "scope (equal comparison-key attributes) result rows are joined side by side.")
   @Parameter(name = "with", in = ParameterIn.QUERY, required = true, description = "Id of the baseline iteration")
   public PipelineCompareRS comparePipelineIterations(
       @PathVariable String projectKey,

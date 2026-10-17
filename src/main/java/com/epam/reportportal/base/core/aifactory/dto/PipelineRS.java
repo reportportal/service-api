@@ -29,6 +29,5 @@ public class PipelineRS {
   private Map<String, Object> settings;
   @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
   private long iterationsCount;
-  private PipelineIterationSummaryRS latestIteration;
   private Instant createdAt;
 }

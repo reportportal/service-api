@@ -217,10 +217,7 @@ class PipelineIterationE2eIntegrationTest extends BaseMvcTest {
     assertEquals("EPM-RPP/rp-tests", attribute(pipeline, "repository"));
     assertEquals(1, pipeline.get("iterationsCount").asInt());
     assertFalse(pipeline.has("settings"), "Auto-Ready is not switched on yet");
-    var latest = pipeline.get("latestIteration");
-    assertIterationStatus(latest, "Running", "RUNNING");
-    assertEquals(4, latest.get("stages").size());
-    assertFalse(stage(latest, "Create").has("links"), "a summary stage carries no links");
+    assertFalse(pipeline.has("latestIteration"), "iterations are read by expanding the group (step 3)");
   }
 
   private void step3_iterationCardsOfThePipeline() throws Exception {
@@ -439,13 +436,14 @@ class PipelineIterationE2eIntegrationTest extends BaseMvcTest {
     var page = send(get(PIPELINES), null, HttpStatus.OK);
     var pipeline = page.get("content").get(0);
     assertEquals(90, pipeline.get("settings").get("autoReady").get("threshold").asInt());
-    var latest = pipeline.get("latestIteration");
+    assertEquals(1, pipeline.get("iterationsCount").asInt());
+
+    var cards = send(get(PIPELINES + "/" + pipelineId + "/iteration"), null, HttpStatus.OK);
+    var latest = cards.get("content").get(0);
+    assertEquals(iterationId, latest.get("id").asLong());
     assertIterationStatus(latest, "In review", "WAITING");
     assertEquals(580000, latest.get("durationMillis").asLong());
     assertEquals("2", attribute(latest, "readyNow"));
-
-    var cards = send(get(PIPELINES + "/" + pipelineId + "/iteration"), null, HttpStatus.OK);
-    assertEquals(iterationId, cards.get("content").get(0).get("id").asLong());
 
     var detail = iteration();
     assertIterationStatus(detail, "In review", "WAITING");

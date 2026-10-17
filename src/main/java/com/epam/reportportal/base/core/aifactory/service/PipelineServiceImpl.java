@@ -1,6 +1,5 @@
 package com.epam.reportportal.base.core.aifactory.service;
 
-import com.epam.reportportal.base.core.aifactory.dto.PipelineIterationSummaryRS;
 import com.epam.reportportal.base.core.aifactory.dto.PipelineRS;
 import com.epam.reportportal.base.core.aifactory.dto.PipelineSettingsRQ;
 import com.epam.reportportal.base.core.aifactory.mapper.PipelineMapper;
@@ -16,7 +15,6 @@ import com.epam.reportportal.base.util.OffsetRequest;
 import java.util.List;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -31,7 +29,6 @@ public class PipelineServiceImpl implements PipelineService {
 
   private final PipelineRepository pipelineRepository;
   private final PipelineIterationRepository pipelineIterationRepository;
-  private final PipelineViewAssembler viewAssembler;
   private final PipelineMapper pipelineMapper;
   private final List<PipelineSettingsValidator> settingsValidators;
 
@@ -46,7 +43,7 @@ public class PipelineServiceImpl implements PipelineService {
         .map(Pipeline::getId)
         .toList();
     if (pipelineIds.isEmpty()) {
-      return page.map(pipeline -> pipelineMapper.toPipelineRS(pipeline, 0, null));
+      return page.map(pipeline -> pipelineMapper.toPipelineRS(pipeline, 0));
     }
 
     var iterationsCountByPipelineId = pipelineIterationRepository
@@ -56,14 +53,8 @@ public class PipelineServiceImpl implements PipelineService {
             PipelineIterationRepository.PipelineIterationCount::getPipelineId,
             PipelineIterationRepository.PipelineIterationCount::getCount)
         );
-    var latestIterations = pipelineIterationRepository.findLatestByPipelineIdIn(pipelineIds);
-    var latestSummaryByPipelineId = viewAssembler.summaries(latestIterations)
-        .stream()
-        .collect(Collectors.toMap(PipelineIterationSummaryRS::getPipelineId, Function.identity()));
-
     return page.map(pipeline -> pipelineMapper.toPipelineRS(pipeline,
-        iterationsCountByPipelineId.getOrDefault(pipeline.getId(), 0L),
-        latestSummaryByPipelineId.get(pipeline.getId())));
+        iterationsCountByPipelineId.getOrDefault(pipeline.getId(), 0L)));
   }
 
   @Override
@@ -92,10 +83,6 @@ public class PipelineServiceImpl implements PipelineService {
 
   private PipelineRS toPipelineRS(Pipeline pipeline) {
     var iterationsCount = pipelineIterationRepository.countByPipelineId(pipeline.getId());
-    var latest = pipelineIterationRepository
-        .findFirstByPipelineIdOrderByIterationNumberDesc(pipeline.getId())
-        .map(viewAssembler::summary)
-        .orElse(null);
-    return pipelineMapper.toPipelineRS(pipeline, iterationsCount, latest);
+    return pipelineMapper.toPipelineRS(pipeline, iterationsCount);
   }
 }

@@ -108,15 +108,13 @@ class PipelineIntegrationTest extends BaseMvcTest {
   // ------------------------------------------------------------------ pipelines
 
   @Test
-  void getPipelines_ShouldReturnOnlyThisProjectsPipelinesWithTypeAttributesAndLatestIterationSummary() throws Exception {
+  void getPipelines_ShouldReturnOnlyThisProjectsPipelinesWithTypeAttributesAndIterationsCount() throws Exception {
     mockMvc.perform(get(BASE).with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.content[?(@.name=='factory-tc-gen')].id").value(900))
         .andExpect(jsonPath("$.content[?(@.name=='factory-tc-gen')].type").value("TEST_CASE_GENERATION"))
         .andExpect(jsonPath("$.content[?(@.name=='factory-tc-gen')].iterationsCount").value(2))
-        .andExpect(jsonPath("$.content[?(@.name=='factory-tc-gen')].latestIteration.iterationNumber").value(2))
-        .andExpect(jsonPath("$.content[?(@.name=='factory-tc-gen')].latestIteration.status").value("In review"))
-        .andExpect(jsonPath("$.content[?(@.name=='factory-tc-gen')].latestIteration.statusCategory").value("WAITING"))
+        .andExpect(jsonPath("$.content[?(@.name=='factory-tc-gen')].latestIteration").isEmpty())
         .andExpect(jsonPath("$.content[?(@.name=='other-project-pipeline')]").isEmpty());
   }
 

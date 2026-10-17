@@ -12,7 +12,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * An iteration as shown on a list card: header facts as attributes (MAIN in the meta line, TAG as chips),
+ * An iteration as shown on a list card: header facts as attributes (META in the meta line, TAG as chips),
  * stage chips and timing.
  */
 @Data

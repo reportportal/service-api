@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 /**
  * Something in a report that was accepted but not fully applied. Only returned in the response to a report.
  * <p>
- * Example: a stage reported {@code relatedEntities: [{entityType: "TEST_CASE", entityId: "TC-404"}]} but the
+ * Example: a stage row links {@code {entityType: "TEST_CASE", entityId: "TC-404"}} but the
  * project has no test case TC-404. The report is still saved and the response carries
  * {@code {code: "RELATED_ENTITY_NOT_FOUND", stageId: 12, entityType: "TEST_CASE", entityIds: ["TC-404"]}}.
  */

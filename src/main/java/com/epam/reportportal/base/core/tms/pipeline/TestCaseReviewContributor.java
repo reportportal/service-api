@@ -3,7 +3,7 @@ package com.epam.reportportal.base.core.tms.pipeline;
 import com.epam.reportportal.base.core.aifactory.service.PipelineStageContributor;
 import com.epam.reportportal.base.core.aifactory.enums.AttributeType;
 import com.epam.reportportal.base.core.aifactory.enums.AttributeValueType;
-import com.epam.reportportal.base.core.aifactory.enums.StageOrigin;
+import com.epam.reportportal.base.core.aifactory.enums.StageOwner;
 import com.epam.reportportal.base.core.aifactory.enums.StatusCategory;
 import com.epam.reportportal.base.core.aifactory.model.PipelineAttribute;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.PipelineStageTestCaseRepository;
@@ -43,7 +43,7 @@ public class TestCaseReviewContributor implements PipelineStageContributor {
   public List<PipelineStage> contribute(PipelineIteration iteration, List<PipelineStage> stages) {
     var review = stages.stream().filter(stage -> REVIEW_KEY.equals(stage.getStageKey())).findFirst()
         .orElseGet(() -> newReviewStage(iteration, stages));
-    if (review.getId() != null && review.getOrigin() != StageOrigin.DERIVED) {
+    if (review.getId() != null && review.getOwnedBy() != StageOwner.REPORTPORTAL) {
       // the pipeline reports a stage of its own under this key; leave it alone
       return List.of();
     }
@@ -68,6 +68,7 @@ public class TestCaseReviewContributor implements PipelineStageContributor {
     review.setAffectsIterationStatus(true);
     review.setStatus(done ? "Done" : "In progress");
     review.setStatusCategory(done ? StatusCategory.PASSED : StatusCategory.WAITING);
+    review.setSummary(ready + "/" + total + " Ready");
     review.setMessage(done ? "All Test Cases of this iteration are Ready"
         : (total - ready) + " Draft Test Case" + (total - ready == 1 ? " waits" : "s wait")
         + " for review in the Test Case Library");
@@ -77,11 +78,11 @@ public class TestCaseReviewContributor implements PipelineStageContributor {
     review.setFinishedAt(done ? Objects.requireNonNullElseGet(review.getFinishedAt(), Instant::now) : null);
     review.setAttributes(new PipelineAttributes(List.of(
         PipelineAttribute.builder().key("review").label("Ready").value(ready + "/" + total)
-            .type(AttributeType.MAIN).valueType(AttributeValueType.TEXT).build(),
+            .type(AttributeType.META).valueType(AttributeValueType.TEXT).build(),
         PipelineAttribute.builder().key("ready").label("Ready").value(String.valueOf(ready))
-            .type(AttributeType.HIDDEN).valueType(AttributeValueType.NUMBER).build(),
+            .type(AttributeType.NONE).valueType(AttributeValueType.NUMBER).build(),
         PipelineAttribute.builder().key("total").label("Test Cases").value(String.valueOf(total))
-            .type(AttributeType.HIDDEN).valueType(AttributeValueType.NUMBER).build())));
+            .type(AttributeType.NONE).valueType(AttributeValueType.NUMBER).build())));
     return List.of(review);
   }
 
@@ -97,14 +98,14 @@ public class TestCaseReviewContributor implements PipelineStageContributor {
   @Override
   public List<PipelineAttribute> iterationAttributes(PipelineIteration iteration, List<PipelineStage> stages) {
     return stages.stream()
-        .filter(stage -> REVIEW_KEY.equals(stage.getStageKey()) && stage.getOrigin() == StageOrigin.DERIVED)
+        .filter(stage -> REVIEW_KEY.equals(stage.getStageKey()) && stage.getOwnedBy() == StageOwner.REPORTPORTAL)
         .findFirst()
         .map(PipelineStage::getAttributes)
         .flatMap(attributes -> attributes.getItems().stream()
             .filter(attribute -> "ready".equals(attribute.getKey()))
             .findFirst())
         .map(ready -> List.of(PipelineAttribute.builder().key("readyNow").label("Ready now")
-            .value(ready.getValue()).type(AttributeType.MAIN).valueType(AttributeValueType.NUMBER).build()))
+            .value(ready.getValue()).type(AttributeType.META).valueType(AttributeValueType.NUMBER).build()))
         .orElse(List.of());
   }
 
@@ -115,7 +116,7 @@ public class TestCaseReviewContributor implements PipelineStageContributor {
     review.setName("Review");
     review.setSequence(stages.stream().map(PipelineStage::getSequence).filter(Objects::nonNull)
         .max(Integer::compare).orElse(0) + 1);
-    review.setOrigin(StageOrigin.DERIVED);
+    review.setOwnedBy(StageOwner.REPORTPORTAL);
     review.setAttempt(1);
     review.setStatus("Pending");
     review.setStatusCategory(StatusCategory.PENDING);

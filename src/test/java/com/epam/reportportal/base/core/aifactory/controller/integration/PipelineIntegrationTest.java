@@ -19,6 +19,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.epam.reportportal.base.core.aifactory.connector.CiHttpClient;
+import com.epam.reportportal.base.core.aifactory.PipelineTestData;
+import com.epam.reportportal.base.core.aifactory.dto.PipelineDefinitionRQ;
 import com.epam.reportportal.base.core.aifactory.dto.PipelineIterationPatchRQ;
 import com.epam.reportportal.base.core.aifactory.dto.PipelineIterationRQ;
 import com.epam.reportportal.base.core.aifactory.dto.PipelineSettingsRQ;
@@ -100,7 +102,7 @@ class PipelineIntegrationTest extends BaseMvcTest {
   }
 
   private static PipelineAttribute main(String key, String value) {
-    return PipelineAttribute.builder().key(key).value(value).type(AttributeType.MAIN).build();
+    return PipelineAttribute.builder().key(key).value(value).type(AttributeType.META).build();
   }
 
   // ------------------------------------------------------------------ pipelines
@@ -164,7 +166,7 @@ class PipelineIntegrationTest extends BaseMvcTest {
     assertEquals("WAITING", newest.get("statusCategory").asText());
     assertEquals("US-TMS-EXP-002", attribute(newest, "requirement"));
     assertEquals("beta5", attribute(oldest, "env"));
-    assertEquals("MAIN", oldest.get("attributes").get(0).get("type").asText());
+    assertEquals("META", oldest.get("attributes").get(0).get("type").asText());
     assertEquals("SCORE", oldest.get("attributes").get(2).get("valueType").asText());
     assertEquals("LINK", oldest.get("attributes").get(5).get("valueType").asText());
   }
@@ -216,15 +218,14 @@ class PipelineIntegrationTest extends BaseMvcTest {
   @Test
   void createIteration_ForNewPipelineName_ShouldCreatePipelineWithTypeAndLinkTestCases() throws Exception {
     var rq = PipelineIterationRQ.builder()
-        .pipelineName("brand-new-pipeline")
-        .pipelineType("TEST_AUTOMATION")
-        .pipelineAttributes(List.of(main("repo", "org/auto")))
+        .pipeline(PipelineDefinitionRQ.builder().name("brand-new-pipeline").type("TEST_AUTOMATION")
+            .attributes(List.of(main("repo", "org/auto"))).build())
         .attributes(List.of(main("trigger", "CI - smoke pack")))
         .stages(List.of(PipelineStageRQ.builder()
             .stageKey("stage-gen-tc")
             .status("Passed")
             .attributes(List.of(PipelineAttribute.builder().key("agent").value("create-test-cases@0.4").build()))
-            .relatedEntities(List.of(new PipelineSection.EntityReference("TEST_CASE", "TC-900"), new PipelineSection.EntityReference("TEST_CASE", "TC-404")))
+            .sections(PipelineTestData.sectionLinking(List.of(new PipelineSection.EntityReference("TEST_CASE", "TC-900"), new PipelineSection.EntityReference("TEST_CASE", "TC-404"))))
             .build()))
         .build();
 
@@ -249,7 +250,7 @@ class PipelineIntegrationTest extends BaseMvcTest {
 
   @Test
   void createIteration_WithADifferentPipelineTypeThanRecorded_ShouldBeBadRequest() throws Exception {
-    var rq = PipelineIterationRQ.builder().pipelineName("factory-tc-gen").pipelineType("TEST_AUTOMATION").build();
+    var rq = PipelineIterationRQ.builder().pipeline(PipelineDefinitionRQ.builder().name("factory-tc-gen").type("TEST_AUTOMATION").build()).build();
 
     mockMvc.perform(post(BASE + "/iteration")
             .contentType(APPLICATION_JSON)
@@ -261,11 +262,11 @@ class PipelineIntegrationTest extends BaseMvcTest {
   @Test
   void createIteration_WithIdempotencyKey_ShouldReplaySameBodyAndRejectDifferentBody() throws Exception {
     var rq = PipelineIterationRQ.builder()
-        .pipelineName("factory-tc-gen")
+        .pipeline(PipelineDefinitionRQ.named("factory-tc-gen"))
         .stages(List.of(PipelineStageRQ.builder().stageKey("stage-gen-tc").status("Passed").build()))
         .build();
     var other = PipelineIterationRQ.builder()
-        .pipelineName("factory-tc-gen")
+        .pipeline(PipelineDefinitionRQ.named("factory-tc-gen"))
         .stages(List.of(PipelineStageRQ.builder().stageKey("stage-gen-tc").status("Failed").build()))
         .build();
     var url = BASE + "/iteration";
@@ -298,7 +299,7 @@ class PipelineIntegrationTest extends BaseMvcTest {
 
   @Test
   void createIteration_ForExistingPipelineNameWithRerunOf_ShouldIncrementNumberAndLinkTheSource() throws Exception {
-    var rq = PipelineIterationRQ.builder().pipelineName("factory-tc-gen").rerunOfIterationId(901L).build();
+    var rq = PipelineIterationRQ.builder().pipeline(PipelineDefinitionRQ.named("factory-tc-gen")).rerunOfIterationId(901L).build();
 
     mockMvc.perform(post(BASE + "/iteration")
             .contentType(APPLICATION_JSON)
@@ -314,7 +315,7 @@ class PipelineIntegrationTest extends BaseMvcTest {
   @Test
   void createIteration_WithNestedStageSectionsAndResultPointer_ShouldRoundTripTreeTablesAndResult() throws Exception {
     var rq = PipelineIterationRQ.builder()
-        .pipelineName("brand-new-automation-pipeline")
+        .pipeline(PipelineDefinitionRQ.named("brand-new-automation-pipeline"))
         .stages(List.of(
             PipelineStageRQ.builder()
                 .stageKey("automate")
@@ -358,7 +359,7 @@ class PipelineIntegrationTest extends BaseMvcTest {
   @Test
   void createIteration_WithBareScalarCells_ShouldAcceptThem() throws Exception {
     var json = """
-        {"pipelineName": "scalar-cells",
+        {"pipeline": {"name": "scalar-cells"},
          "stages": [{"stageKey": "grade", "status": "Passed",
            "sections": [{"key": "grades", "columns": [{"key": "score", "valueType": "SCORE"}],
                          "rows": [{"key": "r1", "cells": {"score": 90}}]}]}]}
@@ -378,7 +379,7 @@ class PipelineIntegrationTest extends BaseMvcTest {
   void reportStage_ShouldReportAStageStepByStepAndKeepTheIterationStatusInStep() throws Exception {
     var created = body(mockMvc.perform(post(BASE + "/iteration")
             .contentType(APPLICATION_JSON)
-            .content(mapper.writeValueAsString(PipelineIterationRQ.builder().pipelineName("incremental").build()))
+            .content(mapper.writeValueAsString(PipelineIterationRQ.builder().pipeline(PipelineDefinitionRQ.named("incremental")).build()))
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isCreated())
         .andExpect(jsonPath("$.statusCategory").value("PENDING")));
@@ -406,7 +407,7 @@ class PipelineIntegrationTest extends BaseMvcTest {
   void reportStage_OfAFinishedStageByAnotherJob_ShouldStartANewAttemptAndKeepTheFinishedOne() throws Exception {
     var created = body(mockMvc.perform(post(BASE + "/iteration")
             .contentType(APPLICATION_JSON)
-            .content(mapper.writeValueAsString(PipelineIterationRQ.builder().pipelineName("attempts").build()))
+            .content(mapper.writeValueAsString(PipelineIterationRQ.builder().pipeline(PipelineDefinitionRQ.named("attempts")).build()))
             .with(token(oAuthHelper.getSuperadminToken()))));
     var url = BASE + "/iteration/" + created.get("id").asLong() + "/stage/upload";
 
@@ -433,7 +434,7 @@ class PipelineIntegrationTest extends BaseMvcTest {
   void reportStage_ForAStageWithAnUnknownStatusText_ShouldKeepTheTextAndShowItNeutrally() throws Exception {
     var created = body(mockMvc.perform(post(BASE + "/iteration")
             .contentType(APPLICATION_JSON)
-            .content(mapper.writeValueAsString(PipelineIterationRQ.builder().pipelineName("unknown-status").build()))
+            .content(mapper.writeValueAsString(PipelineIterationRQ.builder().pipeline(PipelineDefinitionRQ.named("unknown-status")).build()))
             .with(token(oAuthHelper.getSuperadminToken()))));
 
     mockMvc.perform(put(BASE + "/iteration/" + created.get("id").asLong() + "/stage/grade")
@@ -452,13 +453,13 @@ class PipelineIntegrationTest extends BaseMvcTest {
     draft.setStatus(TmsTestCaseStatus.DRAFT);
     tmsTestCaseRepository.saveAndFlush(draft);
     var rq = PipelineIterationRQ.builder()
-        .pipelineName("factory-tc-gen")
+        .pipeline(PipelineDefinitionRQ.named("factory-tc-gen"))
         .stages(List.of(
             PipelineStageRQ.builder().stageKey("create").status("Passed").build(),
             PipelineStageRQ.builder().stageKey("grade").status("Failed").affectsIterationStatus(false).build(),
             PipelineStageRQ.builder().stageKey("upload").status("Passed")
-                .relatedEntities(List.of(new PipelineSection.EntityReference("TEST_CASE", "TC-900"),
-                    new PipelineSection.EntityReference("TEST_CASE", "TC-901"))).build()))
+                .sections(PipelineTestData.sectionLinking(List.of(new PipelineSection.EntityReference("TEST_CASE", "TC-900"),
+                    new PipelineSection.EntityReference("TEST_CASE", "TC-901")))).build()))
         .build();
 
     var detail = body(mockMvc.perform(post(BASE + "/iteration")
@@ -471,7 +472,7 @@ class PipelineIntegrationTest extends BaseMvcTest {
 
     var review = stage(detail, "Review");
     assertNotNull(review);
-    assertEquals("DERIVED", review.get("origin").asText());
+    assertEquals("REPORTPORTAL", review.get("ownedBy").asText());
     assertEquals("In progress", review.get("status").asText());
     assertEquals("1/2", attribute(review, "review"));
   }
@@ -480,7 +481,7 @@ class PipelineIntegrationTest extends BaseMvcTest {
   void reportStage_ForTheReviewStageMaintainedByReportPortal_ShouldBeRejected() throws Exception {
     var created = body(mockMvc.perform(post(BASE + "/iteration")
             .contentType(APPLICATION_JSON)
-            .content(mapper.writeValueAsString(PipelineIterationRQ.builder().pipelineName("factory-tc-gen").build()))
+            .content(mapper.writeValueAsString(PipelineIterationRQ.builder().pipeline(PipelineDefinitionRQ.named("factory-tc-gen")).build()))
             .with(token(oAuthHelper.getSuperadminToken()))));
 
     mockMvc.perform(put(BASE + "/iteration/" + created.get("id").asLong() + "/stage/review")

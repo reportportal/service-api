@@ -44,13 +44,14 @@ final class PipelineAttributeSupport {
           .key(attribute.getKey().trim())
           .label(attribute.getLabel())
           .value(attribute.getValue())
+          .description(attribute.getDescription())
           .type(attribute.getType() == null ? AttributeType.TAG : attribute.getType())
           .valueType(attribute.getValueType() == null ? AttributeValueType.TEXT : attribute.getValueType())
           .url(attribute.getUrl())
           .order(attribute.getOrder())
           .direction(attribute.getDirection())
           .rollup(attribute.getRollup())
-          .identity(attribute.isIdentity())
+          .comparisonKey(attribute.isComparisonKey())
           .build();
       byKey.put(copy.getKey(), copy);
     }
@@ -139,8 +140,9 @@ final class PipelineAttributeSupport {
               .key(template.getKey())
               .label(template.getLabel())
               .value(entry.getValue().stripTrailingZeros().toPlainString())
-              .type(AttributeType.MAIN)
+              .type(AttributeType.META)
               .valueType(template.getValueType())
+              .order(template.getOrder())
               .direction(template.getDirection())
               .build();
         })

@@ -15,6 +15,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.epam.reportportal.base.core.aifactory.dto.PipelineDefinitionRQ;
 import com.epam.reportportal.base.core.aifactory.dto.PipelineCompareRS;
 import com.epam.reportportal.base.core.aifactory.dto.PipelineIterationDetailRS;
 import com.epam.reportportal.base.core.aifactory.dto.PipelineIterationPatchRQ;
@@ -165,7 +166,7 @@ class PipelineControllerTest {
   @Test
   void ingestIteration_ShouldDelegateToServiceWithUserIdAndReturnCreated() throws Exception {
     var rq = PipelineIterationRQ.builder()
-        .pipelineName("factory-tc-gen")
+        .pipeline(PipelineDefinitionRQ.named("factory-tc-gen"))
         .stages(List.of(PipelineStageRQ.builder()
             .stageKey("stage-gen-tc").sequence(1).status("Passed").build()))
         .build();
@@ -186,7 +187,7 @@ class PipelineControllerTest {
   @Test
   void ingestIteration_WithIdempotencyKey_ShouldPassKeyAndReturn200WithReplayHeaderOnReplay() throws Exception {
     var rq = PipelineIterationRQ.builder()
-        .pipelineName("factory-tc-gen")
+        .pipeline(PipelineDefinitionRQ.named("factory-tc-gen"))
         .stages(List.of(PipelineStageRQ.builder()
             .stageKey("stage-gen-tc").sequence(1).status("Passed").build()))
         .build();

@@ -1,6 +1,6 @@
 package com.epam.reportportal.base.infrastructure.persistence.entity.aifactory;
 
-import com.epam.reportportal.base.core.aifactory.enums.StageOrigin;
+import com.epam.reportportal.base.core.aifactory.enums.StageOwner;
 import com.epam.reportportal.base.core.aifactory.enums.StatusCategory;
 import com.epam.reportportal.base.infrastructure.persistence.dao.converters.JpaInstantConverter;
 import com.epam.reportportal.base.infrastructure.persistence.entity.LTreeType;
@@ -85,8 +85,8 @@ public class PipelineStage implements Serializable {
   private StatusCategory statusCategory;
 
   @Enumerated(EnumType.STRING)
-  @Column(name = "origin", nullable = false)
-  private StageOrigin origin = StageOrigin.REPORTED;
+  @Column(name = "owned_by", nullable = false)
+  private StageOwner ownedBy = StageOwner.PIPELINE;
 
   @Column(name = "affects_iteration_status", nullable = false)
   private boolean affectsIterationStatus = true;
@@ -102,6 +102,9 @@ public class PipelineStage implements Serializable {
   @Type(PipelineRelatedEntities.class)
   @Column(name = "related_entities", columnDefinition = "jsonb")
   private PipelineRelatedEntities relatedEntities;
+
+  @Column(name = "summary")
+  private String summary;
 
   @Column(name = "message")
   private String message;

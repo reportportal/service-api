@@ -49,7 +49,7 @@ class PipelineOpenApiIntegrationTest extends BaseMvcTest {
     assertRequired("PipelineRS", "id", "name", "iterationsCount");
     assertRequired("PipelineIterationSummaryRS", "id", "pipelineId", "iterationNumber", "status", "statusCategory", "stages");
     assertRequired("PipelineIterationDetailRS", "id", "pipelineId", "iterationNumber", "status", "statusCategory", "stages");
-    assertRequired("PipelineStageRS", "id", "name", "sequence", "status", "statusCategory", "origin");
+    assertRequired("PipelineStageRS", "id", "name", "sequence", "status", "statusCategory", "ownedBy");
     assertRequired("PipelineStageRetryRS", "stageId", "status", "statusCategory");
     assertRequired("TmsQualityStandardRS", "id", "name", "criteria");
     assertRequired("TmsQualityStandardCriterionRS", "id", "name", "maxPoints", "sequence");

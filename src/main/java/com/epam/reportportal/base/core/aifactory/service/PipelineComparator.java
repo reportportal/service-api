@@ -22,7 +22,7 @@ import org.springframework.stereotype.Component;
 /**
  * Builds the comparison of two iterations from what they carry, without knowing what they are about:
  * stages are matched by name, metrics are the numeric attributes, per-row detail comes from result
- * sections both iterations have, and "same scope" means equal identity attributes.
+ * sections both iterations have, and "same scope" means equal comparison-key attributes.
  */
 @Component
 public class PipelineComparator {
@@ -43,17 +43,17 @@ public class PipelineComparator {
   }
 
   private boolean sameScope(PipelineIterationDetailRS baseline, PipelineIterationDetailRS candidate) {
-    var baselineScope = identity(baseline);
-    var candidateScope = identity(candidate);
+    var baselineScope = comparisonKeys(baseline);
+    var candidateScope = comparisonKeys(candidate);
     return !baselineScope.isEmpty() && baselineScope.equals(candidateScope);
   }
 
-  private Set<String> identity(PipelineIterationDetailRS iteration) {
+  private Set<String> comparisonKeys(PipelineIterationDetailRS iteration) {
     if (iteration.getAttributes() == null) {
       return Set.of();
     }
     return iteration.getAttributes().stream()
-        .filter(PipelineAttribute::isIdentity)
+        .filter(PipelineAttribute::isComparisonKey)
         .map(attribute -> attribute.getKey() + "=" + attribute.getValue())
         .collect(Collectors.toSet());
   }
@@ -90,12 +90,14 @@ public class PipelineComparator {
         .parentStageId(stage.getParentStageId())
         .status(stage.getStatus())
         .statusCategory(stage.getStatusCategory())
-        .origin(stage.getOrigin())
+        .ownedBy(stage.getOwnedBy())
         .startedAt(stage.getStartedAt())
         .finishedAt(stage.getFinishedAt())
         .durationMillis(stage.getDurationMillis())
         .attributes(stage.getAttributes())
+        .summary(stage.getSummary())
         .message(stage.getMessage())
+        .affectsIterationStatus(stage.isAffectsIterationStatus())
         .build();
   }
 

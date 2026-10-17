@@ -63,6 +63,26 @@ class PipelineIterationRefresherTest {
   }
 
   @Test
+  void refresh_WhenAStageThatDoesNotCountIsRunning_ShouldStillShowTheIterationAsRunning() {
+    givenStages(stage(1, StatusCategory.PASSED, true), stage(2, StatusCategory.RUNNING, false),
+        stage(3, StatusCategory.PENDING, true));
+
+    refresher.refresh(iteration);
+
+    assertEquals(StatusCategory.RUNNING, iteration.getStatusCategory());
+  }
+
+  @Test
+  void refresh_WhenAStageThatDoesNotCountFails_ShouldNotFailTheIteration() {
+    givenStages(stage(1, StatusCategory.PASSED, true), stage(2, StatusCategory.FAILED, false),
+        stage(3, StatusCategory.PASSED, true));
+
+    refresher.refresh(iteration);
+
+    assertEquals(StatusCategory.PASSED, iteration.getStatusCategory());
+  }
+
+  @Test
   void refresh_ShouldDeriveWorstCategoryOfCountingStagesAndDefaultLabel() {
     givenStages(stage(1, StatusCategory.PASSED, true), stage(2, StatusCategory.FAILED, true),
         stage(3, StatusCategory.RUNNING, true));
@@ -140,7 +160,7 @@ class PipelineIterationRefresherTest {
     when(contributor.iterationAttributes(any(), any())).thenReturn(List.of(
         com.epam.reportportal.base.core.aifactory.model.PipelineAttribute.builder().key("readyNow")
             .label("Ready now").value("2")
-            .type(com.epam.reportportal.base.core.aifactory.enums.AttributeType.MAIN)
+            .type(com.epam.reportportal.base.core.aifactory.enums.AttributeType.META)
             .valueType(com.epam.reportportal.base.core.aifactory.enums.AttributeValueType.NUMBER).build()));
 
     refresher.refresh(iteration);

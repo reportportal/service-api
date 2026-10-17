@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.epam.reportportal.base.core.aifactory.PipelineTestData;
 import com.epam.reportportal.base.core.aifactory.dto.PipelineIterationRefRS;
 import com.epam.reportportal.base.core.aifactory.dto.PipelineIterationSummaryRS;
 import com.epam.reportportal.base.core.aifactory.dto.PipelineStageRQ;
@@ -12,7 +13,7 @@ import com.epam.reportportal.base.core.aifactory.dto.PipelineStageSummaryRS;
 import com.epam.reportportal.base.core.aifactory.dto.PipelineStepResultRQ;
 import com.epam.reportportal.base.core.aifactory.dto.PipelineUserRS;
 import com.epam.reportportal.base.core.aifactory.enums.AttributeType;
-import com.epam.reportportal.base.core.aifactory.enums.StageOrigin;
+import com.epam.reportportal.base.core.aifactory.enums.StageOwner;
 import com.epam.reportportal.base.core.aifactory.enums.StatusCategory;
 import com.epam.reportportal.base.core.aifactory.model.PipelineAttribute;
 import com.epam.reportportal.base.core.aifactory.model.PipelineExecution;
@@ -91,7 +92,7 @@ class PipelineMapperTest {
   @Test
   void toIterationSummaryRS_ShouldMapHeaderFactsAndGivenAttributes() {
     var attributes = List.of(PipelineAttribute.builder().key("requirement").value("US-1")
-        .type(AttributeType.MAIN).build());
+        .type(AttributeType.META).build());
     var stages = List.of(PipelineStageSummaryRS.builder().id(50L).build(),
         PipelineStageSummaryRS.builder().id(51L).build());
     var startedBy = PipelineUserRS.builder().id(10L).login("jane").build();
@@ -160,9 +161,9 @@ class PipelineMapperTest {
     stage.setParentStageId(40L);
     stage.setStatus("Queued · waiting for runner");
     stage.setStatusCategory(StatusCategory.UNKNOWN);
-    stage.setOrigin(StageOrigin.REPORTED);
+    stage.setOwnedBy(StageOwner.PIPELINE);
     stage.setAttributes(new PipelineAttributes(List.of(
-        PipelineAttribute.builder().key("score").value("90").type(AttributeType.MAIN).build())));
+        PipelineAttribute.builder().key("score").value("90").type(AttributeType.META).build())));
     stage.setSections(new PipelineSections(List.of(PipelineSection.builder().key("grades").build())));
 
     var result = mapper.toStageSummaryRS(stage);
@@ -221,10 +222,12 @@ class PipelineMapperTest {
   }
 
   @Test
-  void relatedEntities_ShouldBeKeptAsReportedAndReturnedOnTheStage() {
+  void relatedEntities_ShouldBeCollectedFromTheCellTargetsOfTheSectionsAndReturnedOnTheStage() {
     var rq = PipelineStageRQ.builder().stageKey("upload").status("Passed")
-        .relatedEntities(List.of(new PipelineSection.EntityReference("TEST_CASE", "TC-12"),
-            new PipelineSection.EntityReference("LAUNCH", "7")))
+        .sections(PipelineTestData.sectionLinking(List.of(
+            new PipelineSection.EntityReference("TEST_CASE", "TC-12"),
+            new PipelineSection.EntityReference("LAUNCH", "7"),
+            new PipelineSection.EntityReference("TEST_CASE", "TC-12"))))
         .build();
 
     var entity = mapper.toStageEntity(rq);
@@ -237,13 +240,25 @@ class PipelineMapperTest {
   }
 
   @Test
-  void relatedEntities_WhenTheReportLeavesThemOut_ShouldKeepTheEarlierOnes() {
+  void relatedEntities_WhenTheReportNoLongerLinksAnything_ShouldClearThem() {
     var stage = mapper.toStageEntity(PipelineStageRQ.builder().stageKey("upload").status("Running")
-        .relatedEntities(List.of(new PipelineSection.EntityReference("TEST_CASE", "TC-12"))).build());
+        .sections(PipelineTestData.sectionLinking(List.of(new PipelineSection.EntityReference("TEST_CASE", "TC-12"))))
+        .build());
 
     mapper.applyStage(stage, PipelineStageRQ.builder().status("Passed").build());
 
-    assertEquals("TC-12", stage.getRelatedEntities().getItems().get(0).getEntityId());
+    assertNull(stage.getRelatedEntities());
+  }
+
+  @Test
+  void stageSummaryAndCountingFlag_ShouldFlowFromRequestToBothResponses() {
+    var stage = mapper.toStageEntity(PipelineStageRQ.builder().stageKey("grade").status("Passed")
+        .summary("79").affectsIterationStatus(false).build());
+
+    assertEquals("79", mapper.toStageRS(stage).getSummary());
+    assertEquals("79", mapper.toStageSummaryRS(stage).getSummary());
+    assertFalse(mapper.toStageRS(stage).isAffectsIterationStatus());
+    assertFalse(mapper.toStageSummaryRS(stage).isAffectsIterationStatus());
   }
 
   @Test
@@ -284,14 +299,14 @@ class PipelineMapperTest {
     stage.setSequence(2);
     stage.setStatus("In progress");
     stage.setStatusCategory(StatusCategory.WAITING);
-    stage.setOrigin(StageOrigin.DERIVED);
+    stage.setOwnedBy(StageOwner.REPORTPORTAL);
 
     var result = mapper.toStageRS(stage);
 
     assertEquals(50L, result.getId());
     assertEquals("In progress", result.getStatus());
     assertEquals(StatusCategory.WAITING, result.getStatusCategory());
-    assertEquals(StageOrigin.DERIVED, result.getOrigin());
+    assertEquals(StageOwner.REPORTPORTAL, result.getOwnedBy());
     assertNull(result.getLinks());
     assertNull(result.getResult());
     assertNull(result.getParentStageId());
@@ -361,7 +376,7 @@ class PipelineMapperTest {
     assertEquals(2, stage.getSequence());
     assertEquals("Passed", stage.getStatus());
     assertEquals(StatusCategory.PASSED, stage.getStatusCategory());
-    assertEquals(StageOrigin.REPORTED, stage.getOrigin());
+    assertEquals(StageOwner.PIPELINE, stage.getOwnedBy());
     assertFalse(stage.isAffectsIterationStatus());
     assertEquals("agent", stage.getAttributes().getItems().get(0).getKey());
     assertEquals("rows", stage.getSections().getItems().get(0).getKey());

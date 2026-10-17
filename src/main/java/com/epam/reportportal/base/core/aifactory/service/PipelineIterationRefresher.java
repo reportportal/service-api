@@ -62,7 +62,13 @@ public class PipelineIterationRefresher {
         .filter(PipelineStage::isAffectsIterationStatus)
         .map(PipelineStage::getStatusCategory)
         .filter(category -> category != StatusCategory.SKIPPED && category != StatusCategory.UNKNOWN)
-        .collect(Collectors.toSet());
+        .collect(Collectors.toCollection(java.util.HashSet::new));
+    // A stage that does not count (e.g. an evaluation) can never fail or hold up the iteration, but work
+    // that is running is running: the iteration is not idle while it executes.
+    if (stages.stream().anyMatch(stage -> !stage.isAffectsIterationStatus()
+        && stage.getStatusCategory() == StatusCategory.RUNNING)) {
+      categories.add(StatusCategory.RUNNING);
+    }
     var category = categories.isEmpty() ? derivedWhenNothingCounts(stages) : StatusCategory.aggregate(categories);
     iteration.setStatusCategory(category);
     iteration.setStatus(applicable.stream()

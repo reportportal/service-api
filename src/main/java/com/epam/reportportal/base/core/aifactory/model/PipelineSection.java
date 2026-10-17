@@ -1,6 +1,7 @@
 package com.epam.reportportal.base.core.aifactory.model;
 
 import com.epam.reportportal.base.core.aifactory.enums.AttributeValueType;
+import com.epam.reportportal.base.core.aifactory.enums.SectionRole;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -37,6 +38,10 @@ public class PipelineSection implements Serializable {
   @Size(max = 256)
   private String title;
 
+  @Builder.Default
+  @Schema(description = "RESULT (default) for what the stage produced, DETAILS for how it ran, e.g. token usage")
+  private SectionRole role = SectionRole.RESULT;
+
   @Valid
   @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
   private List<Column> columns;
@@ -44,6 +49,27 @@ public class PipelineSection implements Serializable {
   @Valid
   @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
   private List<Row> rows;
+
+  /**
+   * The distinct entities the cells of the given sections point to, in the order they appear.
+   * <p>
+   * Example: an upload report whose rows carry the targets TEST_CASE TC-12 and TEST_CASE TC-13 yields those two.
+   */
+  public static List<EntityReference> entityReferences(List<PipelineSection> sections) {
+    var references = new java.util.LinkedHashSet<EntityReference>();
+    if (sections != null) {
+      for (var section : sections) {
+        for (var row : section.getRows() == null ? List.<Row>of() : section.getRows()) {
+          for (var cell : row.getCells() == null ? List.<Cell>of() : row.getCells().values()) {
+            if (cell != null && cell.getTarget() != null) {
+              references.add(cell.getTarget());
+            }
+          }
+        }
+      }
+    }
+    return new java.util.ArrayList<>(references);
+  }
 
   @Data
   @Builder
@@ -78,6 +104,30 @@ public class PipelineSection implements Serializable {
     @Valid
     @Schema(description = "Cells by column key. A cell may be sent as a bare scalar instead of an object")
     private Map<String, Cell> cells;
+
+    @Valid
+    @Schema(description = "What the row shows when it is expanded. Example for a graded test case: "
+        + "[{heading: \"Clear expected results 17/20\", items: [\"Step 3 does not state which fields the modal "
+        + "shows.\"]}]")
+    private List<Detail> details;
+  }
+
+  /**
+   * One block of an expanded row: a heading and the points under it.
+   */
+  @Data
+  @Builder
+  @NoArgsConstructor
+  @AllArgsConstructor
+  @JsonInclude(JsonInclude.Include.NON_NULL)
+  public static class Detail implements Serializable {
+
+    @Size(max = 256)
+    private String heading;
+
+    @Size(max = 100)
+    @Schema(description = "The points under the heading, e.g. failure reasons")
+    private List<@Size(max = 2048) String> items;
   }
 
   /**

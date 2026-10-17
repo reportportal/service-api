@@ -1,6 +1,6 @@
 package com.epam.reportportal.base.core.aifactory.dto;
 
-import com.epam.reportportal.base.core.aifactory.enums.StageOrigin;
+import com.epam.reportportal.base.core.aifactory.enums.StageOwner;
 import com.epam.reportportal.base.core.aifactory.enums.StatusCategory;
 import com.epam.reportportal.base.core.aifactory.model.PipelineAttribute;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -13,7 +13,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * A stage as shown in a chip row: status plus its attributes (the MAIN one is the chip metric).
+ * A stage as shown in a chip row: status plus its attributes (see summary for the chip text).
  */
 @Data
 @Builder
@@ -35,11 +35,16 @@ public class PipelineStageSummaryRS {
   @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
   private StatusCategory statusCategory;
   @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-  private StageOrigin origin;
+  private StageOwner ownedBy;
   private Instant startedAt;
   private Instant finishedAt;
   private Long durationMillis;
   private List<PipelineAttribute> attributes;
+  @Schema(description = "Short text for the stage chip, e.g. \"4 cases\" or \"79\"; as reported")
+  private String summary;
   @Schema(description = "What the stage is doing or waiting for right now")
   private String message;
+  @Schema(description = "Whether the stage's status counts towards the iteration status; false for a stage that "
+      + "is evaluation only (e.g. Grade)")
+  private boolean affectsIterationStatus;
 }

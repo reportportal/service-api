@@ -43,10 +43,10 @@ public class AutoReadyOnStagePassed implements PipelineStageReportedHandler {
     var promoted = tmsTestCaseService.applyAutoReadyBatch(report.projectId(), testCases, autoReady.threshold());
     return List.of(
         PipelineAttribute.builder().key(PROMOTED_ATTRIBUTE_KEY).label("Auto-Ready promoted")
-            .value(String.valueOf(promoted)).type(AttributeType.MAIN).valueType(AttributeValueType.NUMBER)
+            .value(String.valueOf(promoted)).type(AttributeType.META).valueType(AttributeValueType.NUMBER)
             .rollup(AttributeRollup.SUM).build(),
         PipelineAttribute.builder().key(THRESHOLD_ATTRIBUTE_KEY).label("Auto-Ready threshold")
-            .value(String.valueOf(autoReady.threshold())).type(AttributeType.HIDDEN)
+            .value(String.valueOf(autoReady.threshold())).type(AttributeType.NONE)
             .valueType(AttributeValueType.NUMBER).build());
   }
 }

@@ -14,8 +14,8 @@ import org.junit.jupiter.api.Test;
 
 class IngestFingerprintTest {
 
-  private PipelineIterationRQ rq(Map<String, Object> document, String status) {
-    return PipelineIterationRQ.builder().name("p").iteration(IterationRQ.builder().stages(List.of(PipelineStageRQ.builder().stageKey("s").sequence(1).status(status).document(document).build())).build()).build();
+  private PipelineIterationRQ rq(Map<String, Object> rawOutput, String status) {
+    return PipelineIterationRQ.builder().name("p").iteration(IterationRQ.builder().stages(List.of(PipelineStageRQ.builder().stageKey("s").sequence(1).status(status).rawOutput(rawOutput).build())).build()).build();
   }
 
   @Test

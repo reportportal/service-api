@@ -55,9 +55,9 @@ public class PipelineStageRS {
   @Schema(description = "Result tables of the stage")
   private List<PipelineSection> sections;
   private PipelineStepResultRS result;
-  @Schema(description = "A document the stage reported, exactly as received")
-  private Map<String, Object> document;
-  private String documentSchemaName;
+  @Schema(description = "The raw output the stage reported, exactly as received")
+  private Map<String, Object> rawOutput;
+  private String rawOutputSchemaName;
   @Schema(description = "Links out of the stage, e.g. to the run that executed it")
   private List<PipelineLink> links;
   @Schema(description = "Whether the stage can be run again through the handler of its execution type")

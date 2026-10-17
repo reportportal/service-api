@@ -79,16 +79,16 @@ public class PipelineStageRQ {
   @Schema(description = "Links out of the stage; the link to the run is derived from 'execution' and need not be repeated")
   private List<PipelineLink> links;
 
-  @Schema(description = "A document produced by the stage, kept exactly as received. Example: the grader's "
+  @Schema(description = "The raw output of the stage, kept exactly as received. Example: the grader's "
       + "output {\"total_score\": 90, \"cases\": [...]} on a Grade stage")
-  private Map<String, Object> document;
+  private Map<String, Object> rawOutput;
 
   @Size(max = 128)
-  @Schema(description = "Name of the schema the document must follow. When ReportPortal has a schema with "
-      + "this name the document is checked against it; a document that does not match is rejected and the "
+  @Schema(description = "Name of the schema the raw output must follow. When ReportPortal has a schema with "
+      + "this name the raw output is checked against it; a raw output that does not match is rejected and the "
       + "stage is marked Failed with the reason. Example: \"grade\" for the grader's output. "
-      + "Leave it out for a document that needs no check")
-  private String documentSchemaName;
+      + "Leave it out for a raw output that needs no check")
+  private String rawOutputSchemaName;
 
   private PipelineStepResultRQ result;
 

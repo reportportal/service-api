@@ -38,7 +38,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
  * <p>
  * {@code status} is the text exactly as reported; {@code statusCategory} is what it counts as.
  * What the stage did is described by typed {@code attributes} (the chip metric, cost, ...) and
- * {@code sections} (result tables); {@code document} keeps a reported document as received.
+ * {@code sections} (result tables); {@code rawOutput} keeps what the stage reported as received.
  */
 @Entity
 @Table(name = "pipeline_stage", schema = "public")
@@ -113,12 +113,12 @@ public class PipelineStage implements Serializable {
   @Column(name = "links", columnDefinition = "jsonb")
   private PipelineLinks links;
 
-  @Type(PipelineDocument.class)
-  @Column(name = "document", columnDefinition = "jsonb")
-  private PipelineDocument document;
+  @Type(PipelineRawOutput.class)
+  @Column(name = "raw_output", columnDefinition = "jsonb")
+  private PipelineRawOutput rawOutput;
 
-  @Column(name = "document_schema_name")
-  private String documentSchemaName;
+  @Column(name = "raw_output_schema_name")
+  private String rawOutputSchemaName;
 
   @Column(name = "result_type")
   private String resultType;

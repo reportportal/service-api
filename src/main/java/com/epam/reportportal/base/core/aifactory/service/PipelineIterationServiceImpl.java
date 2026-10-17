@@ -65,7 +65,7 @@ public class PipelineIterationServiceImpl implements PipelineIterationService {
   private final PipelineIterationRefresher refresher;
   private final PipelineComparator comparator;
   private final ApplicationEventPublisher eventPublisher;
-  private final PipelineDocumentValidator documentValidator;
+  private final PipelineRawOutputValidator rawOutputValidator;
 
   @Override
   @Transactional
@@ -130,7 +130,7 @@ public class PipelineIterationServiceImpl implements PipelineIterationService {
     for (int i = 0; i < stageRQs.size(); i++) {
       var stageRQ = stageRQs.get(i);
       var stage = pipelineMapper.toStageEntity(stageRQ);
-      checkDocument(stage);
+      checkRawOutput(stage);
       stage.setIteration(savedIteration);
       stage.setAttempt(1);
       if (stage.getSequence() == null) {
@@ -177,7 +177,7 @@ public class PipelineIterationServiceImpl implements PipelineIterationService {
     if (existing == null) {
       rq.setStageKey(stageKey);
       stage = pipelineMapper.toStageEntity(rq);
-      checkDocument(stage);
+      checkRawOutput(stage);
       stage.setIteration(iteration);
       stage.setAttempt(1);
       if (stage.getSequence() == null) {
@@ -207,7 +207,7 @@ public class PipelineIterationServiceImpl implements PipelineIterationService {
         previousCategory = StatusCategory.PENDING;
       }
       pipelineMapper.applyStage(stage, rq);
-      checkDocument(stage);
+      checkRawOutput(stage);
       stage = pipelineStageRepository.save(stage);
       becamePassed = previousCategory != StatusCategory.PASSED && stage.getStatusCategory() == StatusCategory.PASSED;
     }
@@ -301,13 +301,13 @@ public class PipelineIterationServiceImpl implements PipelineIterationService {
   }
 
   /**
-   * A reported document that does not match the schema it names is rejected: it is not kept, and the
+   * A reported raw output that does not match the schema it names is rejected: it is not kept, and the
    * stage is marked failed with the reason.
    */
-  private void checkDocument(PipelineStage stage) {
-    var document = stage.getDocument() == null ? null : stage.getDocument().getContent();
-    documentValidator.validate(stage.getDocumentSchemaName(), document).ifPresent(reason -> {
-      stage.setDocument(null);
+  private void checkRawOutput(PipelineStage stage) {
+    var rawOutput = stage.getRawOutput() == null ? null : stage.getRawOutput().getContent();
+    rawOutputValidator.validate(stage.getRawOutputSchemaName(), rawOutput).ifPresent(reason -> {
+      stage.setRawOutput(null);
       stage.setStatus("Failed");
       stage.setStatusCategory(StatusCategory.FAILED);
       var attributes = new ArrayList<PipelineAttribute>(

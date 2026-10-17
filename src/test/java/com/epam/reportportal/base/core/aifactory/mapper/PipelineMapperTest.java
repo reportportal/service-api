@@ -20,7 +20,7 @@ import com.epam.reportportal.base.core.aifactory.model.PipelineLink;
 import com.epam.reportportal.base.core.aifactory.model.PipelineSection;
 import com.epam.reportportal.base.infrastructure.persistence.entity.aifactory.Pipeline;
 import com.epam.reportportal.base.infrastructure.persistence.entity.aifactory.PipelineAttributes;
-import com.epam.reportportal.base.infrastructure.persistence.entity.aifactory.PipelineDocument;
+import com.epam.reportportal.base.infrastructure.persistence.entity.aifactory.PipelineRawOutput;
 import com.epam.reportportal.base.infrastructure.persistence.entity.aifactory.PipelineExecutionData;
 import com.epam.reportportal.base.infrastructure.persistence.entity.aifactory.PipelineIteration;
 import com.epam.reportportal.base.infrastructure.persistence.entity.aifactory.PipelineSections;
@@ -308,12 +308,12 @@ class PipelineMapperTest {
     assertNull(result.getResult());
     assertNull(result.getParentStageId());
     assertNull(result.getSections());
-    assertNull(result.getDocument());
+    assertNull(result.getRawOutput());
     assertFalse(result.isRetryable());
   }
 
   @Test
-  void toStageRS_WithDetails_ShouldMapAttributesSectionsDocumentResultAndLinks() {
+  void toStageRS_WithDetails_ShouldMapAttributesSectionsRawOutputResultAndLinks() {
     var stage = new PipelineStage();
     stage.setId(50L);
     stage.setStageKey("grade");
@@ -325,8 +325,8 @@ class PipelineMapperTest {
         .runUrl("https://ci/runs/1").externalRunId("77").retryable(true).retryParameters(Map.of("repo", "org/repo")).build()));
     stage.setAttributes(new PipelineAttributes(List.of(PipelineAttribute.builder().key("agent").value("a@0.4").build())));
     stage.setSections(new PipelineSections(List.of(PipelineSection.builder().key("grades").title("Grades").build())));
-    stage.setDocument(new PipelineDocument(Map.of("total_score", 90)));
-    stage.setDocumentSchemaName("grade.schema.json@1");
+    stage.setRawOutput(new PipelineRawOutput(Map.of("total_score", 90)));
+    stage.setRawOutputSchemaName("grade.schema.json@1");
     stage.setResultType("LAUNCH");
     stage.setResultRef("12");
 
@@ -336,8 +336,8 @@ class PipelineMapperTest {
     assertTrue(result.isRetryable());
     assertEquals("agent", result.getAttributes().get(0).getKey());
     assertEquals("grades", result.getSections().get(0).getKey());
-    assertEquals(Map.of("total_score", 90), result.getDocument());
-    assertEquals("grade.schema.json@1", result.getDocumentSchemaName());
+    assertEquals(Map.of("total_score", 90), result.getRawOutput());
+    assertEquals("grade.schema.json@1", result.getRawOutputSchemaName());
     assertEquals("LAUNCH", result.getResult().getResultType());
     assertEquals("12", result.getResult().getResultRef());
     assertEquals(PipelineLink.RUN, result.getLinks().get(0).getType());
@@ -354,8 +354,8 @@ class PipelineMapperTest {
         .affectsIterationStatus(false)
         .attributes(List.of(PipelineAttribute.builder().key("agent").value("create-test-cases@0.4").build()))
         .sections(List.of(PipelineSection.builder().key("rows").build()))
-        .document(Map.of("k", "v"))
-        .documentSchemaName("s@1")
+        .rawOutput(Map.of("k", "v"))
+        .rawOutputSchemaName("s@1")
         .result(PipelineStepResultRQ.builder().resultType("LAUNCH").resultRef("12").build())
         .execution(PipelineExecution.builder()
             .executorType("GITHUB_ACTIONS")
@@ -377,8 +377,8 @@ class PipelineMapperTest {
     assertFalse(stage.isAffectsIterationStatus());
     assertEquals("agent", stage.getAttributes().getItems().get(0).getKey());
     assertEquals("rows", stage.getSections().getItems().get(0).getKey());
-    assertEquals(Map.of("k", "v"), stage.getDocument().getContent());
-    assertEquals("s@1", stage.getDocumentSchemaName());
+    assertEquals(Map.of("k", "v"), stage.getRawOutput().getContent());
+    assertEquals("s@1", stage.getRawOutputSchemaName());
     assertEquals("LAUNCH", stage.getResultType());
     assertEquals("12", stage.getResultRef());
     var execution = stage.getExecution().getContent();
@@ -398,7 +398,7 @@ class PipelineMapperTest {
     assertNull(stage.getExecution());
     assertNull(stage.getAttributes());
     assertNull(stage.getSections());
-    assertNull(stage.getDocument());
+    assertNull(stage.getRawOutput());
     assertNull(stage.getResultType());
     assertTrue(stage.isAffectsIterationStatus());
     assertEquals("stage-reqs", stage.getName());

@@ -18,7 +18,7 @@ import com.epam.reportportal.base.core.aifactory.model.PipelineLink;
 import com.epam.reportportal.base.core.aifactory.model.PipelineSection;
 import com.epam.reportportal.base.infrastructure.persistence.entity.aifactory.Pipeline;
 import com.epam.reportportal.base.infrastructure.persistence.entity.aifactory.PipelineAttributes;
-import com.epam.reportportal.base.infrastructure.persistence.entity.aifactory.PipelineDocument;
+import com.epam.reportportal.base.infrastructure.persistence.entity.aifactory.PipelineRawOutput;
 import com.epam.reportportal.base.infrastructure.persistence.entity.aifactory.PipelineExecutionData;
 import com.epam.reportportal.base.infrastructure.persistence.entity.aifactory.PipelineIteration;
 import com.epam.reportportal.base.infrastructure.persistence.entity.aifactory.PipelineLinks;
@@ -145,8 +145,8 @@ public class PipelineMapper {
         .relatedEntities(relatedEntityList(stage.getRelatedEntities()))
         .sections(sectionList(stage.getSections()))
         .result(toStepResultRS(stage.getResultType(), stage.getResultRef()))
-        .document(stage.getDocument() == null ? null : stage.getDocument().getContent())
-        .documentSchemaName(stage.getDocumentSchemaName())
+        .rawOutput(stage.getRawOutput() == null ? null : stage.getRawOutput().getContent())
+        .rawOutputSchemaName(stage.getRawOutputSchemaName())
         .links(allLinks(stage))
         .retryable(execution(stage.getExecution()) != null && execution(stage.getExecution()).isRetryable())
         .lastRetriedAt(stage.getLastRetriedAt())
@@ -209,8 +209,8 @@ public class PipelineMapper {
     var related = PipelineSection.entityReferences(rq.getSections());
     stage.setRelatedEntities(related.isEmpty() ? null : new PipelineRelatedEntities(related));
     stage.setLinks(rq.getLinks() == null || rq.getLinks().isEmpty() ? null : new PipelineLinks(rq.getLinks()));
-    stage.setDocument(rq.getDocument() == null ? null : new PipelineDocument(rq.getDocument()));
-    stage.setDocumentSchemaName(rq.getDocumentSchemaName());
+    stage.setRawOutput(rq.getRawOutput() == null ? null : new PipelineRawOutput(rq.getRawOutput()));
+    stage.setRawOutputSchemaName(rq.getRawOutputSchemaName());
     stage.setResultType(rq.getResult() == null ? null : rq.getResult().getResultType());
     stage.setResultRef(rq.getResult() == null ? null : rq.getResult().getResultRef());
     if (rq.getExecution() != null) {

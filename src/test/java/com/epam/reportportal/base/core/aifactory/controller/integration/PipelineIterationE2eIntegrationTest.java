@@ -125,7 +125,7 @@ class PipelineIterationE2eIntegrationTest extends BaseMvcTest {
     step5_editorSwitchesAutoReadyOn();
     step6_createFinishes();
     step7_gradeStarts();
-    step8_gradeFinishesWithTheDocumentAndTheTable();
+    step8_gradeFinishesWithTheRawOutputAndTheTable();
     step9_suiteScoreGoesToTheIteration();
     step10_agentWritesTheTestCasesToTheLibrary();
     step11_uploadStarts();
@@ -291,7 +291,7 @@ class PipelineIterationE2eIntegrationTest extends BaseMvcTest {
     assertIterationStatus(detail, "Running", "RUNNING");
   }
 
-  private void step8_gradeFinishesWithTheDocumentAndTheTable() throws Exception {
+  private void step8_gradeFinishesWithTheRawOutputAndTheTable() throws Exception {
     var detail = reportStage("grade", gradeStageBody(false));
 
     var grade = stage(detail, "Grade");
@@ -299,8 +299,8 @@ class PipelineIterationE2eIntegrationTest extends BaseMvcTest {
     assertEquals(151000, grade.get("durationMillis").asLong());
     assertEquals("79", grade.get("summary").asText());
     assertEquals("79", attribute(grade, "suiteScore"));
-    assertEquals("grade", grade.get("documentSchemaName").asText());
-    assertEquals(79, grade.get("document").get("total_score").asInt());
+    assertEquals("grade", grade.get("rawOutputSchemaName").asText());
+    assertEquals(79, grade.get("rawOutput").get("total_score").asInt());
     var firstRow = grade.get("sections").get(0).get("rows").get(0);
     assertEquals("94", firstRow.get("cells").get("total").get("value").asText());
     assertEquals(3, firstRow.get("details").size(), "one block per criterion that lost points");
@@ -530,7 +530,7 @@ class PipelineIterationE2eIntegrationTest extends BaseMvcTest {
     var body = mapper.createObjectNode();
     body.put("name", "Grade").put("status", "Passed").put("affectsIterationStatus", false)
         .put("startedAt", "2026-09-19T10:19:10Z").put("finishedAt", "2026-09-19T10:21:41Z")
-        .put("message", "4 cases graded").put("summary", "79").put("documentSchemaName", "grade");
+        .put("message", "4 cases graded").put("summary", "79").put("rawOutputSchemaName", "grade");
     var attributes = body.putArray("attributes");
     attributes.add(attribute("suiteScore", "Suite score", "79", "META", "SCORE").put("order", 1)
         .put("direction", "HIGHER_BETTER"));
@@ -548,10 +548,10 @@ class PipelineIterationE2eIntegrationTest extends BaseMvcTest {
     }
     column(columns, "total", "TOTAL /100", "SCORE");
     var rows = graded.putArray("rows");
-    var document = body.putObject("document");
-    document.put("total_score", 79).putArray("warnings");
-    document.putNull("error");
-    var documentCases = document.putArray("cases");
+    var rawOutput = body.putObject("rawOutput");
+    rawOutput.put("total_score", 79).putArray("warnings");
+    rawOutput.putNull("error");
+    var rawOutputCases = rawOutput.putArray("cases");
     for (int i = 0; i < CASES.size(); i++) {
       var authored = CASES.get(i);
       var row = rows.addObject().put("key", "case-" + (i + 1));
@@ -561,8 +561,8 @@ class PipelineIterationE2eIntegrationTest extends BaseMvcTest {
       }
       cells.put("name", authored.name());
       var details = row.putArray("details");
-      var documentCase = documentCases.addObject().put("name", authored.name()).put("total_score", authored.total());
-      var criteria = documentCase.putArray("criteria");
+      var rawOutputCase = rawOutputCases.addObject().put("name", authored.name()).put("total_score", authored.total());
+      var criteria = rawOutputCase.putArray("criteria");
       for (int c = 0; c < CRITERIA.length; c++) {
         cells.put(camel(CRITERIA[c]), authored.scores()[c]);
         var reasons = criteria.addObject().put("name", CRITERIA[c]).put("score", authored.scores()[c])

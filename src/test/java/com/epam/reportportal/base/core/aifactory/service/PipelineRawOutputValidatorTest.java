@@ -11,9 +11,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
 
-class PipelineDocumentValidatorTest {
+class PipelineRawOutputValidatorTest {
 
-  private PipelineDocumentValidator validator;
+  private PipelineRawOutputValidator validator;
 
   @BeforeEach
   void setUp() {
@@ -21,19 +21,19 @@ class PipelineDocumentValidatorTest {
     ReflectionTestUtils.setField(config, "schemaVersion", "V7");
     ReflectionTestUtils.setField(config, "schemaSource", "https://schema.reportportal.io/");
     ReflectionTestUtils.setField(config, "schemaLocation", "classpath:schema/");
-    validator = new PipelineDocumentValidator(new JsonSchemaValidator(config), new ObjectMapper());
+    validator = new PipelineRawOutputValidator(new JsonSchemaValidator(config), new ObjectMapper());
   }
 
   @Test
-  void validate_WithAValidGradeDocument_ShouldHaveNoReason() {
-    var document = Map.<String, Object>of("total_score", 83, "warnings", List.of("w"),
+  void validate_WithAValidGradeRawOutput_ShouldHaveNoReason() {
+    var rawOutput = Map.<String, Object>of("total_score", 83, "warnings", List.of("w"),
         "cases", List.of(Map.of("name", "Case", "total_score", 42)));
 
-    assertTrue(validator.validate("grade", document).isEmpty());
+    assertTrue(validator.validate("grade", rawOutput).isEmpty());
   }
 
   @Test
-  void validate_WithAGradeDocumentWithoutSuiteScore_ShouldNameTheProblem() {
+  void validate_WithAGradeRawOutputWithoutSuiteScore_ShouldNameTheProblem() {
     var reason = validator.validate("grade", Map.of("warnings", List.of()));
 
     assertTrue(reason.isPresent());
@@ -42,14 +42,14 @@ class PipelineDocumentValidatorTest {
 
   @Test
   void validate_WithAWronglyTypedCaseScore_ShouldBeRejected() {
-    var document = Map.<String, Object>of("total_score", 83,
+    var rawOutput = Map.<String, Object>of("total_score", 83,
         "cases", List.of(Map.of("name", "Case", "total_score", "high")));
 
-    assertTrue(validator.validate("grade", document).isPresent());
+    assertTrue(validator.validate("grade", rawOutput).isPresent());
   }
 
   @Test
-  void validate_WithoutASchemaOrDocumentOrWithAnUnsafeReference_ShouldNotCheck() {
+  void validate_WithoutASchemaOrRawOutputOrWithAnUnsafeReference_ShouldNotCheck() {
     assertTrue(validator.validate("no-such-schema", Map.of("a", 1)).isEmpty());
     assertTrue(validator.validate(null, Map.of("a", 1)).isEmpty());
     assertTrue(validator.validate("grade", null).isEmpty());

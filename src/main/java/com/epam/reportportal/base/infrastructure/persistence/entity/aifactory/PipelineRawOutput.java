@@ -10,17 +10,17 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 /**
- * A document a stage reported, kept exactly as received (e.g. the grader's output) next to the
+ * The raw output a stage reported, kept exactly as received (e.g. the grader's output) next to the
  * reference of the schema it was validated against.
  */
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = false)
-public class PipelineDocument extends JsonbUserType<PipelineDocument> implements Serializable {
+public class PipelineRawOutput extends JsonbUserType<PipelineRawOutput> implements Serializable {
 
   private Map<String, Object> content = new LinkedHashMap<>();
 
   @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
-  public PipelineDocument(Map<String, Object> content) {
+  public PipelineRawOutput(Map<String, Object> content) {
     this.content = content == null ? new LinkedHashMap<>() : new LinkedHashMap<>(content);
   }
 
@@ -30,7 +30,7 @@ public class PipelineDocument extends JsonbUserType<PipelineDocument> implements
   }
 
   @Override
-  public Class<PipelineDocument> returnedClass() {
-    return PipelineDocument.class;
+  public Class<PipelineRawOutput> returnedClass() {
+    return PipelineRawOutput.class;
   }
 }

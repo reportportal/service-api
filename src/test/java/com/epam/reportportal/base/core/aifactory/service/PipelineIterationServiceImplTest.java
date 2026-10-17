@@ -95,7 +95,7 @@ class PipelineIterationServiceImplTest {
   @Mock
   private ApplicationEventPublisher eventPublisher;
   @Mock
-  private PipelineDocumentValidator documentValidator;
+  private PipelineRawOutputValidator rawOutputValidator;
 
   private PipelineIterationServiceImpl sut;
 
@@ -115,7 +115,7 @@ class PipelineIterationServiceImplTest {
     sut = new PipelineIterationServiceImpl(pipelineRepository, pipelineIterationRepository,
         pipelineStageRepository, pipelineStageAttemptRepository, relatedEntityResolvers, stageReportedHandlers,
         projectRepository, pipelineMapper, viewAssembler, refresher, comparator, eventPublisher,
-        documentValidator);
+        rawOutputValidator);
 
     project = new Project();
     project.setId(projectId);
@@ -362,8 +362,8 @@ class PipelineIterationServiceImplTest {
 
   @Test
   void create_WithOversizedReport_ShouldBeRejected() {
-    var document = Map.<String, Object>of("blob", "x".repeat((int) PipelineIterationServiceImpl.MAX_REPORT_BYTES));
-    var rq = PipelineIterationRQ.builder().name("factory-tc-gen").iteration(IterationRQ.builder().stages(List.of(PipelineStageRQ.builder().stageKey("grade").status("Passed").document(document).build())).build()).build();
+    var rawOutput = Map.<String, Object>of("blob", "x".repeat((int) PipelineIterationServiceImpl.MAX_REPORT_BYTES));
+    var rq = PipelineIterationRQ.builder().name("factory-tc-gen").iteration(IterationRQ.builder().stages(List.of(PipelineStageRQ.builder().stageKey("grade").status("Passed").rawOutput(rawOutput).build())).build()).build();
 
     assertThrows(ReportPortalException.class, () -> sut.createPipelineIteration(projectId, userId, rq));
     verify(pipelineRepository, never()).findByProjectIdAndName(any(), any());
@@ -563,13 +563,13 @@ class PipelineIterationServiceImplTest {
   }
 
   @Test
-  void reportStage_WithADocumentThatFailsItsSchema_ShouldFailTheStageAndNotKeepTheDocument() {
+  void reportStage_WithARawOutputThatFailsItsSchema_ShouldFailTheStageAndNotKeepIt() {
     persistedIteration(10L);
     when(pipelineStageRepository.findByIterationIdOrderBySequenceAsc(10L)).thenReturn(List.of());
-    when(documentValidator.validate(org.mockito.ArgumentMatchers.eq("grade"), any()))
+    when(rawOutputValidator.validate(org.mockito.ArgumentMatchers.eq("grade"), any()))
         .thenReturn(Optional.of("total_score is missing"));
-    var rq = PipelineStageRQ.builder().status("Passed").documentSchemaName("grade")
-        .document(java.util.Map.of("warnings", List.of())).build();
+    var rq = PipelineStageRQ.builder().status("Passed").rawOutputSchemaName("grade")
+        .rawOutput(java.util.Map.of("warnings", List.of())).build();
 
     sut.reportStage(projectId, 10L, "grade", rq);
 
@@ -578,7 +578,7 @@ class PipelineIterationServiceImplTest {
     var stage = captor.getValue();
     assertEquals(StatusCategory.FAILED, stage.getStatusCategory());
     assertEquals("Failed", stage.getStatus());
-    org.junit.jupiter.api.Assertions.assertNull(stage.getDocument());
+    org.junit.jupiter.api.Assertions.assertNull(stage.getRawOutput());
     assertEquals("total_score is missing", stage.getAttributes().getItems().stream()
         .filter(attribute -> "failureReason".equals(attribute.getKey()))
         .findFirst().orElseThrow().getValue());

@@ -259,7 +259,7 @@ class PipelineIterationE2eIntegrationTest extends BaseMvcTest {
   private void step6_createFinishes() throws Exception {
     var detail = reportStage("create", createStageBody(false));
 
-    assertIterationStatus(detail, "Pending", "PENDING");
+    assertIterationStatus(detail, "Running", "RUNNING");
     var create = stage(detail, "Create");
     assertStage(create, "Passed", "PASSED", "PIPELINE", true);
     assertEquals(362000, create.get("durationMillis").asLong());
@@ -306,7 +306,7 @@ class PipelineIterationE2eIntegrationTest extends BaseMvcTest {
     assertEquals(3, firstRow.get("details").size(), "one block per criterion that lost points");
     assertEquals("Clear expected results 18/20", firstRow.get("details").get(0).get("heading").asText());
     assertMoney("1.25", attribute(detail, "cost"));
-    assertIterationStatus(detail, "Pending", "PENDING");
+    assertIterationStatus(detail, "Running", "RUNNING");
   }
 
   private void step9_suiteScoreGoesToTheIteration() throws Exception {
@@ -319,7 +319,7 @@ class PipelineIterationE2eIntegrationTest extends BaseMvcTest {
     assertEquals("SCORE", Objects.requireNonNull(attributeNode(detail, "suiteScore")).get("valueType").asText());
     assertEquals("HIGHER_BETTER", Objects.requireNonNull(attributeNode(detail, "suiteScore")).get("direction").asText());
     assertEquals("folder", detail.get("attributes").get(7).get("key").asText(), "the reported attributes keep their place");
-    assertIterationStatus(detail, "Pending", "PENDING");
+    assertIterationStatus(detail, "Running", "RUNNING");
   }
 
   // ------------------------------------------------------------------ step 10

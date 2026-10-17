@@ -73,6 +73,26 @@ class PipelineIterationRefresherTest {
   }
 
   @Test
+  void refresh_BetweenTwoStages_ShouldBeRunningNotPending() {
+    givenStages(stage(1, StatusCategory.PASSED, true), stage(2, StatusCategory.PENDING, false),
+        stage(3, StatusCategory.PENDING, true));
+
+    refresher.refresh(iteration);
+
+    assertEquals(StatusCategory.RUNNING, iteration.getStatusCategory());
+    assertEquals("Running", iteration.getStatus());
+  }
+
+  @Test
+  void refresh_WhenNothingHasStartedYet_ShouldBePending() {
+    givenStages(stage(1, StatusCategory.PENDING, true), stage(2, StatusCategory.PENDING, true));
+
+    refresher.refresh(iteration);
+
+    assertEquals(StatusCategory.PENDING, iteration.getStatusCategory());
+  }
+
+  @Test
   void refresh_WhenAStageThatDoesNotCountFails_ShouldNotFailTheIteration() {
     givenStages(stage(1, StatusCategory.PASSED, true), stage(2, StatusCategory.FAILED, false),
         stage(3, StatusCategory.PASSED, true));

@@ -69,7 +69,7 @@ public class PipelineIterationRefresher {
         && stage.getStatusCategory() == StatusCategory.RUNNING)) {
       categories.add(StatusCategory.RUNNING);
     }
-    var category = categories.isEmpty() ? derivedWhenNothingCounts(stages) : StatusCategory.aggregate(categories);
+    var category = categories.isEmpty() ? derivedWhenNothingCounts(stages) : iterationCategory(categories);
     iteration.setStatusCategory(category);
     iteration.setStatus(applicable.stream()
         .map(contributor -> contributor.iterationStatusLabel(category))
@@ -94,6 +94,16 @@ public class PipelineIterationRefresher {
         log.warn("Could not refresh pipeline iteration {}", id, e);
       }
     }
+  }
+
+  /**
+   * The worst category of the counting stages. Between two stages the iteration is under way, not idle:
+   * something has finished and the rest is still to come, so that is running; "pending" is only for an
+   * iteration in which nothing has started.
+   */
+  private StatusCategory iterationCategory(java.util.Set<StatusCategory> categories) {
+    var worst = StatusCategory.aggregate(categories);
+    return worst == StatusCategory.PENDING && categories.contains(StatusCategory.PASSED) ? StatusCategory.RUNNING : worst;
   }
 
   /**

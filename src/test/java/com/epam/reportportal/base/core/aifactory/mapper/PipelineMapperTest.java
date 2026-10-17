@@ -7,7 +7,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.epam.reportportal.base.core.aifactory.PipelineTestData;
 import com.epam.reportportal.base.core.aifactory.dto.PipelineIterationRefRS;
-import com.epam.reportportal.base.core.aifactory.dto.PipelineIterationSummaryRS;
 import com.epam.reportportal.base.core.aifactory.dto.PipelineStageRQ;
 import com.epam.reportportal.base.core.aifactory.dto.PipelineStageSummaryRS;
 import com.epam.reportportal.base.core.aifactory.dto.PipelineStepResultRQ;
@@ -72,11 +71,10 @@ class PipelineMapperTest {
 
   @Test
   void toPipelineRS_ShouldMapAllFields() {
-    var summary = PipelineIterationSummaryRS.builder().id(7L).build();
     pipeline.setAttributes(new PipelineAttributes(List.of(
         PipelineAttribute.builder().key("repo").value("org/repo").build())));
 
-    var result = mapper.toPipelineRS(pipeline, 5L, summary);
+    var result = mapper.toPipelineRS(pipeline, 5L);
 
     assertEquals(pipeline.getId(), result.getId());
     assertEquals(pipeline.getName(), result.getName());
@@ -85,7 +83,6 @@ class PipelineMapperTest {
     assertEquals("repo", result.getAttributes().get(0).getKey());
     assertEquals(Map.of("autoReady", Map.of("enabled", true, "threshold", 90)), result.getSettings());
     assertEquals(5L, result.getIterationsCount());
-    assertEquals(summary, result.getLatestIteration());
     assertEquals(pipeline.getCreatedAt(), result.getCreatedAt());
   }
 

@@ -36,15 +36,6 @@ public interface PipelineIterationRepository extends JpaRepository<PipelineItera
       + "WHERE it.pipeline.id IN :pipelineIds GROUP BY it.pipeline.id")
   List<PipelineIterationCount> countByPipelineIdIn(@Param("pipelineIds") Collection<Long> pipelineIds);
 
-  /**
-   * Batched form of {@link #findFirstByPipelineIdOrderByIterationNumberDesc(Long)} — the latest
-   * iteration per pipeline in one query instead of one per pipeline.
-   */
-  @Query("SELECT it FROM PipelineIteration it WHERE it.pipeline.id IN :pipelineIds "
-      + "AND it.iterationNumber = (SELECT MAX(it2.iterationNumber) FROM PipelineIteration it2 "
-      + "WHERE it2.pipeline.id = it.pipeline.id)")
-  List<PipelineIteration> findLatestByPipelineIdIn(@Param("pipelineIds") Collection<Long> pipelineIds);
-
   interface PipelineIterationCount {
     Long getPipelineId();
 

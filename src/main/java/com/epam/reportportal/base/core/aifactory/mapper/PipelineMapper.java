@@ -41,7 +41,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class PipelineMapper {
 
-  public PipelineRS toPipelineRS(Pipeline pipeline, long iterationsCount, PipelineIterationSummaryRS latestIteration) {
+  public PipelineRS toPipelineRS(Pipeline pipeline, long iterationsCount) {
     return PipelineRS.builder()
         .id(pipeline.getId())
         .name(pipeline.getName())
@@ -50,7 +50,6 @@ public class PipelineMapper {
         .attributes(attributeList(pipeline.getAttributes()))
         .settings(pipeline.getSettings() == null ? null : pipeline.getSettings().getValues())
         .iterationsCount(iterationsCount)
-        .latestIteration(latestIteration)
         .createdAt(pipeline.getCreatedAt())
         .build();
   }

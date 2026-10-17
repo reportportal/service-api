@@ -9,14 +9,12 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.epam.reportportal.base.core.aifactory.dto.PipelineIterationSummaryRS;
 import com.epam.reportportal.base.core.aifactory.dto.PipelineRS;
 import com.epam.reportportal.base.core.aifactory.dto.PipelineSettingsRQ;
 import com.epam.reportportal.base.core.aifactory.mapper.PipelineMapper;
 import com.epam.reportportal.base.infrastructure.persistence.dao.aifactory.PipelineIterationRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.aifactory.PipelineRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.aifactory.Pipeline;
-import com.epam.reportportal.base.infrastructure.persistence.entity.aifactory.PipelineIteration;
 import com.epam.reportportal.base.infrastructure.persistence.entity.aifactory.PipelineSettings;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
@@ -45,8 +43,6 @@ class PipelineServiceImplTest {
   private PipelineRepository pipelineRepository;
   @Mock
   private PipelineIterationRepository pipelineIterationRepository;
-  @Mock
-  private PipelineViewAssembler viewAssembler;
   @Mock
   private PipelineMapper pipelineMapper;
   @Mock
@@ -80,9 +76,7 @@ class PipelineServiceImplTest {
     when(pipelineRepository.findById(pipelineId)).thenReturn(Optional.of(pipeline));
     when(pipelineRepository.save(pipeline)).thenReturn(pipeline);
     when(pipelineIterationRepository.countByPipelineId(pipelineId)).thenReturn(0L);
-    when(pipelineIterationRepository.findFirstByPipelineIdOrderByIterationNumberDesc(pipelineId))
-        .thenReturn(Optional.empty());
-    when(pipelineMapper.toPipelineRS(pipeline, 0L, null)).thenReturn(expected);
+    when(pipelineMapper.toPipelineRS(pipeline, 0L)).thenReturn(expected);
   }
 
   @Test
@@ -160,46 +154,21 @@ class PipelineServiceImplTest {
   }
 
   @Test
-  void patchSettings_ShouldReturnTheLatestIterationSummary() {
-    var latest = new PipelineIteration();
-    var summary = PipelineIterationSummaryRS.builder().id(42L).build();
-    var expectedRS = PipelineRS.builder().id(pipelineId).build();
-    when(pipelineRepository.findById(pipelineId)).thenReturn(Optional.of(pipeline));
-    when(pipelineRepository.save(pipeline)).thenReturn(pipeline);
-    when(pipelineIterationRepository.countByPipelineId(pipelineId)).thenReturn(3L);
-    when(pipelineIterationRepository.findFirstByPipelineIdOrderByIterationNumberDesc(pipelineId))
-        .thenReturn(Optional.of(latest));
-    when(viewAssembler.summary(latest)).thenReturn(summary);
-    when(pipelineMapper.toPipelineRS(pipeline, 3L, summary)).thenReturn(expectedRS);
-
-    assertEquals(expectedRS,
-        sut.patchPipelineSettings(projectId, pipelineId, PipelineSettingsRQ.builder().settings(Map.of()).build()));
-  }
-
-  @Test
-  void listPipelines_ShouldBatchIterationCountsAndLatestIterationSummariesAcrossThePage() {
+  void listPipelines_ShouldBatchIterationCountsAcrossThePage() {
     var offsetRequest = new OffsetRequest(0, 50);
     var page = new PageImpl<>(List.of(pipeline));
-    var latestIteration = new PipelineIteration();
-    latestIteration.setId(42L);
-    latestIteration.setPipeline(pipeline);
-    var summary = PipelineIterationSummaryRS.builder().id(42L).pipelineId(pipelineId).build();
     var expectedRS = PipelineRS.builder().id(pipelineId).build();
 
     when(pipelineRepository.findAll(org.mockito.ArgumentMatchers.<Specification<Pipeline>>any(), any(Pageable.class)))
         .thenReturn(page);
     when(pipelineIterationRepository.countByPipelineIdIn(List.of(pipelineId)))
         .thenReturn(List.of(iterationCount(pipelineId, 3L)));
-    when(pipelineIterationRepository.findLatestByPipelineIdIn(List.of(pipelineId)))
-        .thenReturn(List.of(latestIteration));
-    when(viewAssembler.summaries(List.of(latestIteration))).thenReturn(List.of(summary));
-    when(pipelineMapper.toPipelineRS(pipeline, 3L, summary)).thenReturn(expectedRS);
+    when(pipelineMapper.toPipelineRS(pipeline, 3L)).thenReturn(expectedRS);
 
     var result = sut.getPipelines(projectId, null, offsetRequest);
 
     assertEquals(List.of(expectedRS), result.getContent());
     verify(pipelineIterationRepository, never()).countByPipelineId(any());
-    verify(pipelineIterationRepository, never()).findFirstByPipelineIdOrderByIterationNumberDesc(any());
   }
 
   @Test
@@ -209,9 +178,7 @@ class PipelineServiceImplTest {
     when(pipelineRepository.findAll(org.mockito.ArgumentMatchers.<Specification<Pipeline>>any(), any(Pageable.class)))
         .thenReturn(page);
     when(pipelineIterationRepository.countByPipelineIdIn(List.of(pipelineId))).thenReturn(List.of());
-    when(pipelineIterationRepository.findLatestByPipelineIdIn(List.of(pipelineId))).thenReturn(List.of());
-    when(viewAssembler.summaries(List.of())).thenReturn(List.of());
-    when(pipelineMapper.toPipelineRS(pipeline, 0L, null)).thenReturn(expectedRS);
+    when(pipelineMapper.toPipelineRS(pipeline, 0L)).thenReturn(expectedRS);
 
     var result = sut.getPipelines(projectId, null, new OffsetRequest(0, 50));
 

@@ -368,6 +368,7 @@ class TmsTestPlanServiceImplTest {
 
     when(testPlanRepository.existsByIdAndProject_Id(testPlanId, projectId)).thenReturn(true);
     when(tmsTestCaseService.getExistingTestCaseIds(projectId, testCaseIds)).thenReturn(List.of(10L, 20L, 30L));
+    when(tmsTestCaseService.getReadyTestCaseIds(projectId, testCaseIds)).thenReturn(List.of(10L, 20L, 30L));
     when(tmsTestPlanTestCaseRepository.findTestCaseIdsByTestPlanId(testPlanId)).thenReturn(List.of(10L));
     when(tmsTestPlanTestCaseRepository.insertTestPlanTestCaseIgnoreConflict(testPlanId, 20L)).thenReturn(1);
     when(tmsTestPlanTestCaseRepository.insertTestPlanTestCaseIgnoreConflict(testPlanId, 30L)).thenReturn(1);
@@ -392,6 +393,7 @@ class TmsTestPlanServiceImplTest {
 
     when(testPlanRepository.existsByIdAndProject_Id(testPlanId, projectId)).thenReturn(true);
     when(tmsTestCaseService.getExistingTestCaseIds(projectId, testCaseIds)).thenReturn(List.of(10L));
+    when(tmsTestCaseService.getReadyTestCaseIds(projectId, testCaseIds)).thenReturn(List.of(10L));
     when(tmsTestPlanTestCaseRepository.findTestCaseIdsByTestPlanId(testPlanId)).thenReturn(List.of());
     when(tmsTestPlanTestCaseRepository.insertTestPlanTestCaseIgnoreConflict(testPlanId, 10L)).thenReturn(1);
     when(tmsTestPlanMapper.convertToRS(anyInt(), anyInt(), anyList())).thenReturn(expectedResult);
@@ -400,6 +402,33 @@ class TmsTestPlanServiceImplTest {
 
     assertNotNull(result);
     verify(tmsTestPlanMapper).convertToRS(eq(2), eq(1), anyList());
+  }
+
+  @Test
+  void shouldRejectNotReadyTestCasesWithNotReadyReasonAndAddTheRest() {
+    var projectId = 1L;
+    var testPlanId = 2L;
+    var testCaseIds = List.of(10L, 20L);
+
+    when(testPlanRepository.existsByIdAndProject_Id(testPlanId, projectId)).thenReturn(true);
+    when(tmsTestCaseService.getExistingTestCaseIds(projectId, testCaseIds)).thenReturn(List.of(10L, 20L));
+    when(tmsTestCaseService.getReadyTestCaseIds(projectId, testCaseIds)).thenReturn(List.of(10L));
+    when(tmsTestPlanTestCaseRepository.findTestCaseIdsByTestPlanId(testPlanId)).thenReturn(List.of());
+    when(tmsTestPlanTestCaseRepository.insertTestPlanTestCaseIgnoreConflict(testPlanId, 10L)).thenReturn(1);
+    when(tmsTestPlanMapper.convertToRS(anyInt(), anyInt(), anyList()))
+        .thenReturn(BatchTestCaseOperationResultRS.builder().build());
+
+    sut.addTestCasesToPlan(projectId, testPlanId, testCaseIds);
+
+    var errors = org.mockito.ArgumentCaptor.forClass(List.class);
+    verify(tmsTestPlanMapper).convertToRS(eq(2), eq(1), errors.capture());
+    var reported = (List<BatchTestCaseOperationError>) errors.getValue();
+    assertEquals(1, reported.size());
+    assertEquals(20L, reported.get(0).getTestCaseId());
+    assertEquals(
+        com.epam.reportportal.base.core.tms.dto.batch.BatchTestCaseOperationErrorReason.NOT_READY,
+        reported.get(0).getReason());
+    verify(tmsTestPlanTestCaseRepository, never()).insertTestPlanTestCaseIgnoreConflict(testPlanId, 20L);
   }
 
   @Test
@@ -591,6 +620,7 @@ class TmsTestPlanServiceImplTest {
     when(tmsTestPlanTestCaseRepository.findTestCaseIdsByTestPlanId(testPlanId)).thenReturn(originalTestCaseIds);
     when(tmsTestCaseService.duplicateTestCases(membershipDetails, user, originalTestCaseIds)).thenReturn(duplicationResult);
     when(tmsTestCaseService.getExistingTestCaseIds(projectId, duplicatedTestCaseIds)).thenReturn(duplicatedTestCaseIds);
+    when(tmsTestCaseService.getReadyTestCaseIds(projectId, duplicatedTestCaseIds)).thenReturn(duplicatedTestCaseIds);
     when(tmsTestPlanTestCaseRepository.findTestCaseIdsByTestPlanId(3L)).thenReturn(List.of());
     when(tmsTestPlanTestCaseRepository.insertTestPlanTestCaseIgnoreConflict(eq(3L), anyLong())).thenReturn(1);
     when(testPlanRepository.existsByIdAndProject_Id(3L, projectId)).thenReturn(true);

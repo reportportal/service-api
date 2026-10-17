@@ -506,7 +506,8 @@ class PipelineIterationE2eIntegrationTest extends BaseMvcTest {
     attributes.add(attribute("note", "Note", "self-review and self-fix included", "META", "TEXT"));
 
     var sections = body.putArray("sections");
-    var cases = sections.addObject().put("key", "authoredCases").put("title", "Authored test cases (child steps)");
+    var cases = sections.addObject().put("key", "authoredCases").put("title", "Authored test cases (child steps)")
+        .put("role", "RESULT");
     var columns = cases.putArray("columns");
     column(columns, "name", "Child step · authored test case", null);
     column(columns, "priority", "Priority", null);
@@ -539,7 +540,7 @@ class PipelineIterationE2eIntegrationTest extends BaseMvcTest {
     attributes.add(attribute("model", "Model", "auto (default)", "NONE", "TEXT"));
 
     var sections = body.putArray("sections");
-    var graded = sections.addObject().put("key", "gradedCases").put("title", "Graded test cases");
+    var graded = sections.addObject().put("key", "gradedCases").put("title", "Graded test cases").put("role", "RESULT");
     var columns = graded.putArray("columns");
     column(columns, "testCase", "Test case", null);
     column(columns, "name", "Name", null);
@@ -593,7 +594,7 @@ class PipelineIterationE2eIntegrationTest extends BaseMvcTest {
     attributes.add(attribute("model", "Model", "auto (default)", "NONE", "TEXT"));
 
     var sections = body.putArray("sections");
-    var report = sections.addObject().put("key", "uploadReport").put("title", "Upload report");
+    var report = sections.addObject().put("key", "uploadReport").put("title", "Upload report").put("role", "RESULT");
     var columns = report.putArray("columns");
     column(columns, "testCase", "Test case", null);
     column(columns, "name", "Name", null);

@@ -13,7 +13,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.epam.reportportal.base.core.aifactory.PipelineTestData;
-import com.epam.reportportal.base.core.aifactory.dto.PipelineDefinitionRQ;
+import com.epam.reportportal.base.core.aifactory.dto.IterationRQ;
 import com.epam.reportportal.base.core.aifactory.dto.PipelineCompareRS;
 import com.epam.reportportal.base.core.aifactory.dto.PipelineIterationDetailRS;
 import com.epam.reportportal.base.core.aifactory.dto.PipelineIterationPatchRQ;
@@ -211,8 +211,7 @@ class PipelineIterationServiceImplTest {
     when(pipelineRepository.findByIdForUpdate(3L)).thenAnswer(inv -> Optional.of(created));
     when(pipelineIterationRepository.findFirstByPipelineIdOrderByIterationNumberDesc(3L))
         .thenReturn(Optional.empty());
-    var rq = PipelineIterationRQ.builder().pipeline(PipelineDefinitionRQ.builder().name("new-pipeline").type("TEST_CASE_GENERATION").build())
-        .stages(List.of(stageRQ("create", "Passed", null))).build();
+    var rq = PipelineIterationRQ.builder().name("new-pipeline").type("TEST_CASE_GENERATION").iteration(IterationRQ.builder().stages(List.of(stageRQ("create", "Passed", null))).build()).build();
 
     sut.createPipelineIteration(projectId, userId, rq);
 
@@ -231,7 +230,7 @@ class PipelineIterationServiceImplTest {
     previous.setIterationNumber(3);
     when(pipelineIterationRepository.findFirstByPipelineIdOrderByIterationNumberDesc(pipeline.getId()))
         .thenReturn(Optional.of(previous));
-    var rq = PipelineIterationRQ.builder().pipeline(PipelineDefinitionRQ.named("factory-tc-gen")).build();
+    var rq = PipelineIterationRQ.builder().name("factory-tc-gen").iteration(IterationRQ.builder().build()).build();
 
     sut.createPipelineIteration(projectId, userId, rq);
 
@@ -243,9 +242,7 @@ class PipelineIterationServiceImplTest {
 
   @Test
   void create_ShouldRecordPipelineTypeTheFirstTimeAndMergePipelineAttributes() {
-    var rq = PipelineIterationRQ.builder().pipeline(PipelineDefinitionRQ.builder().name("factory-tc-gen")
-        .type("TEST_CASE_GENERATION")
-        .attributes(List.of(PipelineAttribute.builder().key("repo").value("org/repo").build())).build()).build();
+    var rq = PipelineIterationRQ.builder().name("factory-tc-gen").type("TEST_CASE_GENERATION").attributes(List.of(PipelineAttribute.builder().key("repo").value("org/repo").build())).iteration(IterationRQ.builder().build()).build();
 
     sut.createPipelineIteration(projectId, userId, rq);
 
@@ -256,7 +253,7 @@ class PipelineIterationServiceImplTest {
   @Test
   void create_WithADifferentTypeThanRecorded_ShouldBeRejected() {
     pipeline.setType("TEST_AUTOMATION");
-    var rq = PipelineIterationRQ.builder().pipeline(PipelineDefinitionRQ.builder().name("factory-tc-gen").type("TEST_CASE_GENERATION").build()).build();
+    var rq = PipelineIterationRQ.builder().name("factory-tc-gen").type("TEST_CASE_GENERATION").iteration(IterationRQ.builder().build()).build();
 
     var ex = assertThrows(ReportPortalException.class, () -> sut.createPipelineIteration(projectId, userId, rq));
 
@@ -266,7 +263,7 @@ class PipelineIterationServiceImplTest {
 
   @Test
   void create_WithoutStages_ShouldBeAllowedAndRefreshTheDerivedStatus() {
-    var rq = PipelineIterationRQ.builder().pipeline(PipelineDefinitionRQ.named("factory-tc-gen")).build();
+    var rq = PipelineIterationRQ.builder().name("factory-tc-gen").iteration(IterationRQ.builder().build()).build();
 
     var result = sut.createPipelineIteration(projectId, userId, rq, null);
 
@@ -277,11 +274,9 @@ class PipelineIterationServiceImplTest {
 
   @Test
   void create_WithAttributes_ShouldStoreNormalizedAttributesSearchTextAndIndex() {
-    var rq = PipelineIterationRQ.builder().pipeline(PipelineDefinitionRQ.named("factory-tc-gen"))
-        .attributes(List.of(
+    var rq = PipelineIterationRQ.builder().name("factory-tc-gen").iteration(IterationRQ.builder().attributes(List.of(
             PipelineAttribute.builder().key("requirement").value("US-TMS-EXP-002").build(),
-            PipelineAttribute.builder().key("env").value("beta5").build()))
-        .build();
+            PipelineAttribute.builder().key("env").value("beta5").build())).build()).build();
 
     sut.createPipelineIteration(projectId, userId, rq);
 
@@ -295,7 +290,7 @@ class PipelineIterationServiceImplTest {
 
   @Test
   void create_WithoutAttributes_ShouldLeaveThemNull() {
-    sut.createPipelineIteration(projectId, userId, PipelineIterationRQ.builder().pipeline(PipelineDefinitionRQ.named("factory-tc-gen")).build());
+    sut.createPipelineIteration(projectId, userId, PipelineIterationRQ.builder().name("factory-tc-gen").iteration(IterationRQ.builder().build()).build());
 
     var captor = ArgumentCaptor.forClass(PipelineIteration.class);
     verify(pipelineIterationRepository).save(captor.capture());
@@ -305,8 +300,7 @@ class PipelineIterationServiceImplTest {
 
   @Test
   void create_WithStages_ShouldSaveThemWithAttemptOneAndSequenceFromPositionWhenAbsent() {
-    var rq = PipelineIterationRQ.builder().pipeline(PipelineDefinitionRQ.named("factory-tc-gen"))
-        .stages(List.of(stageRQ("create", "Passed", null), stageRQ("grade", "Running", null))).build();
+    var rq = PipelineIterationRQ.builder().name("factory-tc-gen").iteration(IterationRQ.builder().stages(List.of(stageRQ("create", "Passed", null), stageRQ("grade", "Running", null))).build()).build();
 
     sut.createPipelineIteration(projectId, userId, rq);
 
@@ -322,11 +316,9 @@ class PipelineIterationServiceImplTest {
 
   @Test
   void create_WithNestedStage_ShouldAssignParentStageIdAndPath() {
-    var rq = PipelineIterationRQ.builder().pipeline(PipelineDefinitionRQ.named("factory-tc-gen"))
-        .stages(List.of(
+    var rq = PipelineIterationRQ.builder().name("factory-tc-gen").iteration(IterationRQ.builder().stages(List.of(
             PipelineStageRQ.builder().stageKey("parent").status("Passed").build(),
-            PipelineStageRQ.builder().stageKey("child").status("Passed").parentStageKey("parent").build()))
-        .build();
+            PipelineStageRQ.builder().stageKey("child").status("Passed").parentStageKey("parent").build())).build()).build();
 
     sut.createPipelineIteration(projectId, userId, rq);
 
@@ -344,31 +336,25 @@ class PipelineIterationServiceImplTest {
 
   @Test
   void create_WithUnknownParentStageKey_ShouldThrowBadRequest() {
-    var rq = PipelineIterationRQ.builder().pipeline(PipelineDefinitionRQ.named("factory-tc-gen"))
-        .stages(List.of(PipelineStageRQ.builder().stageKey("child").status("Passed")
-            .parentStageKey("missing-parent").build()))
-        .build();
+    var rq = PipelineIterationRQ.builder().name("factory-tc-gen").iteration(IterationRQ.builder().stages(List.of(PipelineStageRQ.builder().stageKey("child").status("Passed")
+            .parentStageKey("missing-parent").build())).build()).build();
 
     assertThrows(ReportPortalException.class, () -> sut.createPipelineIteration(projectId, userId, rq));
   }
 
   @Test
   void create_WithCycleInParentChain_ShouldThrowBadRequest() {
-    var rq = PipelineIterationRQ.builder().pipeline(PipelineDefinitionRQ.named("factory-tc-gen"))
-        .stages(List.of(
+    var rq = PipelineIterationRQ.builder().name("factory-tc-gen").iteration(IterationRQ.builder().stages(List.of(
             PipelineStageRQ.builder().stageKey("a").status("Passed").parentStageKey("b").build(),
-            PipelineStageRQ.builder().stageKey("b").status("Passed").parentStageKey("a").build()))
-        .build();
+            PipelineStageRQ.builder().stageKey("b").status("Passed").parentStageKey("a").build())).build()).build();
 
     assertThrows(ReportPortalException.class, () -> sut.createPipelineIteration(projectId, userId, rq));
   }
 
   @Test
   void create_WithDuplicateOrBlankStageKeys_ShouldThrowBadRequest() {
-    var duplicate = PipelineIterationRQ.builder().pipeline(PipelineDefinitionRQ.named("factory-tc-gen"))
-        .stages(List.of(stageRQ("a", "Passed", null), stageRQ("a", "Passed", null))).build();
-    var blank = PipelineIterationRQ.builder().pipeline(PipelineDefinitionRQ.named("factory-tc-gen"))
-        .stages(List.of(stageRQ(" ", "Passed", null))).build();
+    var duplicate = PipelineIterationRQ.builder().name("factory-tc-gen").iteration(IterationRQ.builder().stages(List.of(stageRQ("a", "Passed", null), stageRQ("a", "Passed", null))).build()).build();
+    var blank = PipelineIterationRQ.builder().name("factory-tc-gen").iteration(IterationRQ.builder().stages(List.of(stageRQ(" ", "Passed", null))).build()).build();
 
     assertThrows(ReportPortalException.class, () -> sut.createPipelineIteration(projectId, userId, duplicate));
     assertThrows(ReportPortalException.class, () -> sut.createPipelineIteration(projectId, userId, blank));
@@ -377,9 +363,7 @@ class PipelineIterationServiceImplTest {
   @Test
   void create_WithOversizedReport_ShouldBeRejected() {
     var document = Map.<String, Object>of("blob", "x".repeat((int) PipelineIterationServiceImpl.MAX_REPORT_BYTES));
-    var rq = PipelineIterationRQ.builder().pipeline(PipelineDefinitionRQ.named("factory-tc-gen"))
-        .stages(List.of(PipelineStageRQ.builder().stageKey("grade").status("Passed").document(document).build()))
-        .build();
+    var rq = PipelineIterationRQ.builder().name("factory-tc-gen").iteration(IterationRQ.builder().stages(List.of(PipelineStageRQ.builder().stageKey("grade").status("Passed").document(document).build())).build()).build();
 
     assertThrows(ReportPortalException.class, () -> sut.createPipelineIteration(projectId, userId, rq));
     verify(pipelineRepository, never()).findByProjectIdAndName(any(), any());
@@ -388,7 +372,7 @@ class PipelineIterationServiceImplTest {
   @Test
   void create_RerunOfAnIterationOfTheSamePipeline_ShouldCreateNewIterationLinkedToTheSource() {
     var source = persistedIteration(99L);
-    var rq = PipelineIterationRQ.builder().pipeline(PipelineDefinitionRQ.named("factory-tc-gen")).rerunOfIterationId(99L).build();
+    var rq = PipelineIterationRQ.builder().name("factory-tc-gen").iteration(IterationRQ.builder().rerunOfIterationId(99L).build()).build();
 
     sut.createPipelineIteration(projectId, userId, rq);
 
@@ -407,7 +391,7 @@ class PipelineIterationServiceImplTest {
     source.setId(99L);
     source.setPipeline(other);
     when(pipelineIterationRepository.findById(99L)).thenReturn(Optional.of(source));
-    var rq = PipelineIterationRQ.builder().pipeline(PipelineDefinitionRQ.named("factory-tc-gen")).rerunOfIterationId(99L).build();
+    var rq = PipelineIterationRQ.builder().name("factory-tc-gen").iteration(IterationRQ.builder().rerunOfIterationId(99L).build()).build();
 
     var ex = assertThrows(ReportPortalException.class, () -> sut.createPipelineIteration(projectId, userId, rq));
 
@@ -417,7 +401,7 @@ class PipelineIterationServiceImplTest {
 
   @Test
   void create_ShouldPublishIngestedEventAfterRefreshing() {
-    sut.createPipelineIteration(projectId, userId, PipelineIterationRQ.builder().pipeline(PipelineDefinitionRQ.named("factory-tc-gen")).build());
+    sut.createPipelineIteration(projectId, userId, PipelineIterationRQ.builder().name("factory-tc-gen").iteration(IterationRQ.builder().build()).build());
 
     verify(eventPublisher).publishEvent(any(com.epam.reportportal.base.core.aifactory.event.PipelineIterationIngestedEvent.class));
   }
@@ -426,7 +410,7 @@ class PipelineIterationServiceImplTest {
 
   @Test
   void create_WithBlankOrTooLongIdempotencyKey_ShouldThrowBadRequest() {
-    var rq = PipelineIterationRQ.builder().pipeline(PipelineDefinitionRQ.named("factory-tc-gen")).build();
+    var rq = PipelineIterationRQ.builder().name("factory-tc-gen").iteration(IterationRQ.builder().build()).build();
 
     assertThrows(ReportPortalException.class, () -> sut.createPipelineIteration(projectId, userId, rq, " "));
     assertThrows(ReportPortalException.class, () -> sut.createPipelineIteration(projectId, userId, rq,
@@ -435,7 +419,7 @@ class PipelineIterationServiceImplTest {
 
   @Test
   void create_ReplayOfTheSameKeyAndBody_ShouldAnswerWithTheFirstIterationAndCreateNothing() {
-    var rq = PipelineIterationRQ.builder().pipeline(PipelineDefinitionRQ.named("factory-tc-gen")).build();
+    var rq = PipelineIterationRQ.builder().name("factory-tc-gen").iteration(IterationRQ.builder().build()).build();
     var previous = new PipelineIteration();
     previous.setId(321L);
     previous.setIdempotencyHash(IngestFingerprint.of(rq));
@@ -452,7 +436,7 @@ class PipelineIterationServiceImplTest {
 
   @Test
   void create_SameKeyWithDifferentBody_ShouldThrowIdempotencyConflict() {
-    var rq = PipelineIterationRQ.builder().pipeline(PipelineDefinitionRQ.named("factory-tc-gen")).build();
+    var rq = PipelineIterationRQ.builder().name("factory-tc-gen").iteration(IterationRQ.builder().build()).build();
     var previous = new PipelineIteration();
     previous.setIdempotencyHash("another-hash");
     when(pipelineIterationRepository.findByPipelineIdAndIdempotencyKey(pipeline.getId(), "key-1"))
@@ -466,7 +450,7 @@ class PipelineIterationServiceImplTest {
 
   @Test
   void create_WithNewKey_ShouldStoreKeyAndFingerprintOnTheIteration() {
-    var rq = PipelineIterationRQ.builder().pipeline(PipelineDefinitionRQ.named("factory-tc-gen")).build();
+    var rq = PipelineIterationRQ.builder().name("factory-tc-gen").iteration(IterationRQ.builder().build()).build();
     when(pipelineIterationRepository.findByPipelineIdAndIdempotencyKey(pipeline.getId(), "key-1"))
         .thenReturn(Optional.empty());
 
@@ -489,8 +473,7 @@ class PipelineIterationServiceImplTest {
   void create_WithStageRefs_ShouldHandThemToTheResolverAndWarnAboutTheUnresolvedOnes() {
     when(testCaseResolver.resolve(eq(projectId), any(), any(), eq(List.of("TC-1", "TC-404"))))
         .thenReturn(List.of("TC-404"));
-    var rq = PipelineIterationRQ.builder().pipeline(PipelineDefinitionRQ.named("factory-tc-gen"))
-        .stages(List.of(stageRQ("upload", "Passed", relatedTestCases("TC-1", "TC-404")))).build();
+    var rq = PipelineIterationRQ.builder().name("factory-tc-gen").iteration(IterationRQ.builder().stages(List.of(stageRQ("upload", "Passed", relatedTestCases("TC-1", "TC-404")))).build()).build();
     var detail = PipelineIterationDetailRS.builder().build();
     when(viewAssembler.detail(any())).thenReturn(detail);
 
@@ -505,8 +488,7 @@ class PipelineIterationServiceImplTest {
 
   @Test
   void create_ShouldTellTheHandlersWhetherEachStagePassed() {
-    var rq = PipelineIterationRQ.builder().pipeline(PipelineDefinitionRQ.named("factory-tc-gen"))
-        .stages(List.of(stageRQ("create", "Passed", null), stageRQ("upload", "Running", null))).build();
+    var rq = PipelineIterationRQ.builder().name("factory-tc-gen").iteration(IterationRQ.builder().stages(List.of(stageRQ("create", "Passed", null), stageRQ("upload", "Running", null))).build()).build();
 
     sut.createPipelineIteration(projectId, userId, rq);
 
@@ -521,8 +503,7 @@ class PipelineIterationServiceImplTest {
   void create_WithAHandlerAnswer_ShouldAddItsAttributesToTheStage() {
     var promoted = PipelineAttribute.builder().key("autoReadyPromoted").value("2").build();
     when(stageHandler.onStageReported(any())).thenReturn(List.of(promoted));
-    var rq = PipelineIterationRQ.builder().pipeline(PipelineDefinitionRQ.named("factory-tc-gen"))
-        .stages(List.of(stageRQ("upload", "Passed", null))).build();
+    var rq = PipelineIterationRQ.builder().name("factory-tc-gen").iteration(IterationRQ.builder().stages(List.of(stageRQ("upload", "Passed", null))).build()).build();
 
     sut.createPipelineIteration(projectId, userId, rq);
 
@@ -534,9 +515,7 @@ class PipelineIterationServiceImplTest {
 
   @Test
   void create_WithRelatedEntitiesOfATypeNothingHandles_ShouldKeepThemWithoutWarning() {
-    var rq = PipelineIterationRQ.builder().pipeline(PipelineDefinitionRQ.named("factory-tc-gen"))
-        .stages(List.of(stageRQ("upload", "Passed", List.of(new PipelineSection.EntityReference("LAUNCH", "12")))))
-        .build();
+    var rq = PipelineIterationRQ.builder().name("factory-tc-gen").iteration(IterationRQ.builder().stages(List.of(stageRQ("upload", "Passed", List.of(new PipelineSection.EntityReference("LAUNCH", "12"))))).build()).build();
     var detail = PipelineIterationDetailRS.builder().build();
     when(viewAssembler.detail(any())).thenReturn(detail);
 
@@ -552,8 +531,7 @@ class PipelineIterationServiceImplTest {
 
   @Test
   void create_WithoutRefs_ShouldNotCallTheResolvers() {
-    var rq = PipelineIterationRQ.builder().pipeline(PipelineDefinitionRQ.named("factory-tc-gen"))
-        .stages(List.of(stageRQ("upload", "Passed", null))).build();
+    var rq = PipelineIterationRQ.builder().name("factory-tc-gen").iteration(IterationRQ.builder().stages(List.of(stageRQ("upload", "Passed", null))).build()).build();
 
     sut.createPipelineIteration(projectId, userId, rq);
 

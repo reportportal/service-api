@@ -15,7 +15,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.epam.reportportal.base.core.aifactory.dto.PipelineDefinitionRQ;
+import com.epam.reportportal.base.core.aifactory.dto.IterationRQ;
 import com.epam.reportportal.base.core.aifactory.dto.PipelineCompareRS;
 import com.epam.reportportal.base.core.aifactory.dto.PipelineIterationDetailRS;
 import com.epam.reportportal.base.core.aifactory.dto.PipelineIterationPatchRQ;
@@ -165,11 +165,8 @@ class PipelineControllerTest {
 
   @Test
   void ingestIteration_ShouldDelegateToServiceWithUserIdAndReturnCreated() throws Exception {
-    var rq = PipelineIterationRQ.builder()
-        .pipeline(PipelineDefinitionRQ.named("factory-tc-gen"))
-        .stages(List.of(PipelineStageRQ.builder()
-            .stageKey("stage-gen-tc").sequence(1).status("Passed").build()))
-        .build();
+    var rq = PipelineIterationRQ.builder().name("factory-tc-gen").iteration(IterationRQ.builder().stages(List.of(PipelineStageRQ.builder()
+            .stageKey("stage-gen-tc").sequence(1).status("Passed").build())).build()).build();
     var rs = PipelineIterationDetailRS.builder().id(7L).pipelineName("factory-tc-gen").build();
     given(pipelineIterationService.createPipelineIteration(projectId, 9L, rq, null))
         .willReturn(new PipelineIterationIngestResult(rs, false));
@@ -186,11 +183,8 @@ class PipelineControllerTest {
 
   @Test
   void ingestIteration_WithIdempotencyKey_ShouldPassKeyAndReturn200WithReplayHeaderOnReplay() throws Exception {
-    var rq = PipelineIterationRQ.builder()
-        .pipeline(PipelineDefinitionRQ.named("factory-tc-gen"))
-        .stages(List.of(PipelineStageRQ.builder()
-            .stageKey("stage-gen-tc").sequence(1).status("Passed").build()))
-        .build();
+    var rq = PipelineIterationRQ.builder().name("factory-tc-gen").iteration(IterationRQ.builder().stages(List.of(PipelineStageRQ.builder()
+            .stageKey("stage-gen-tc").sequence(1).status("Passed").build())).build()).build();
     var rs = PipelineIterationDetailRS.builder().id(7L).build();
     given(pipelineIterationService.createPipelineIteration(projectId, 9L, rq, "run-42"))
         .willReturn(new PipelineIterationIngestResult(rs, true));

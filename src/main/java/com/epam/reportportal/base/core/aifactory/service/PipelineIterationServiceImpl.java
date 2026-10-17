@@ -72,12 +72,13 @@ public class PipelineIterationServiceImpl implements PipelineIterationService {
   public PipelineIterationIngestResult createPipelineIteration(Long projectId, Long userId,
       PipelineIterationRQ rq, String idempotencyKey) {
     validateSize(rq);
-    var stageRQs = rq.getStages() == null ? List.<PipelineStageRQ>of() : rq.getStages();
+    var run = rq.getIteration();
+    var stageRQs = run.getStages() == null ? List.<PipelineStageRQ>of() : run.getStages();
     validateStages(stageRQs);
 
     var pipeline = pipelineRepository
-        .findByProjectIdAndName(projectId, rq.getPipeline().getName())
-        .orElseGet(() -> createPipeline(projectId, rq.getPipeline().getName(), rq.getPipeline().getType()));
+        .findByProjectIdAndName(projectId, rq.getName())
+        .orElseGet(() -> createPipeline(projectId, rq.getName(), rq.getType()));
     // Serializes concurrent ingests of this pipeline: next iteration number, idempotency lookup.
     var lockedPipeline = pipelineRepository.findByIdForUpdate(pipeline.getId())
         .orElseThrow(() -> new ReportPortalException(ErrorType.NOT_FOUND, "Pipeline '" + pipeline.getId() + "'"));
@@ -105,11 +106,11 @@ public class PipelineIterationServiceImpl implements PipelineIterationService {
         .map(PipelineIteration::getIterationNumber)
         .orElse(0) + 1);
     iteration.setCreatedBy(userId);
-    if (rq.getRerunOfIterationId() != null) {
-      var source = pipelineIterationRepository.findById(rq.getRerunOfIterationId())
+    if (run.getRerunOfIterationId() != null) {
+      var source = pipelineIterationRepository.findById(run.getRerunOfIterationId())
           .filter(it -> it.getPipeline().getId().equals(lockedPipeline.getId()))
           .orElseThrow(() -> new ReportPortalException(ErrorType.NOT_FOUND,
-              "Pipeline iteration '" + rq.getRerunOfIterationId() + "' for pipeline '"
+              "Pipeline iteration '" + run.getRerunOfIterationId() + "' for pipeline '"
                   + lockedPipeline.getName() + "'"));
       iteration.setRerun(true);
       iteration.setRerunOfIterationId(source.getId());
@@ -118,9 +119,9 @@ public class PipelineIterationServiceImpl implements PipelineIterationService {
       iteration.setIdempotencyKey(idempotencyKey);
       iteration.setIdempotencyHash(fingerprint);
     }
-    iteration.setStartedAt(rq.getStartedAt());
-    iteration.setFinishedAt(rq.getFinishedAt());
-    setAttributes(iteration, PipelineAttributeSupport.normalize(rq.getAttributes()));
+    iteration.setStartedAt(run.getStartedAt());
+    iteration.setFinishedAt(run.getFinishedAt());
+    setAttributes(iteration, PipelineAttributeSupport.normalize(run.getAttributes()));
     iteration.setStatus(StatusCategory.PENDING.defaultLabel());
     iteration.setStatusCategory(StatusCategory.PENDING);
     var savedIteration = pipelineIterationRepository.save(iteration);
@@ -331,7 +332,7 @@ public class PipelineIterationServiceImpl implements PipelineIterationService {
    * type than the recorded one is rejected.
    */
   private void applyPipelineDescription(Pipeline pipeline, PipelineIterationRQ rq) {
-    var reportedType = rq.getPipeline().getType();
+    var reportedType = rq.getType();
     if (reportedType != null && !reportedType.isBlank()) {
       if (pipeline.getType() == null) {
         pipeline.setType(reportedType);
@@ -340,9 +341,9 @@ public class PipelineIterationServiceImpl implements PipelineIterationService {
             "Pipeline '" + pipeline.getName() + "' is of type '" + pipeline.getType() + "', not '" + reportedType + "'");
       }
     }
-    if (rq.getPipeline().getAttributes() != null && !rq.getPipeline().getAttributes().isEmpty()) {
+    if (rq.getAttributes() != null && !rq.getAttributes().isEmpty()) {
       pipeline.setAttributes(PipelineAttributeSupport.toColumn(
-          PipelineAttributeSupport.merge(pipeline.getAttributes(), rq.getPipeline().getAttributes(), null)));
+          PipelineAttributeSupport.merge(pipeline.getAttributes(), rq.getAttributes(), null)));
     }
     pipelineRepository.save(pipeline);
   }

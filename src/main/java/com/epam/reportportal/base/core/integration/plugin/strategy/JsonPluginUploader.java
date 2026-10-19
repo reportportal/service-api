@@ -85,7 +85,7 @@ public class JsonPluginUploader implements PluginUploader {
       throw new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR, Suppliers.formattedSupplier(
           e.getCause().getMessage()
       ));
-    } catch (IOException | JacksonException e) {
+    } catch (JacksonException e) {
       throw new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR, Suppliers.formattedSupplier(
           "Manifest file '{}' read error: {}",
           fileName,
@@ -94,7 +94,7 @@ public class JsonPluginUploader implements PluginUploader {
     }
   }
 
-  private Map<String, Object> parseManifest(InputStream input) throws IOException {
+  private Map<String, Object> parseManifest(InputStream input) {
     Map<String, Object> manifest = objectMapper.readValue(input, new TypeReference<>() {
     });
     validateManifest(manifest);

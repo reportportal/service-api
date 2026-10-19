@@ -552,7 +552,7 @@ public class RecordMappers {
         ActivityDetails details = objectMapper.readValue(s, ActivityDetails.class);
         activity.setDetails(details);
       } catch (JacksonException e) {
-        throw new ReportPortalException(ErrorType.UNCLASSIFIED_REPORT_PORTAL_ERROR);
+        throw new ReportPortalException(ErrorType.UNCLASSIFIED_REPORT_PORTAL_ERROR, e);
       }
     });
     activity.setSubjectId(r.get(ACTIVITY.SUBJECT_ID));

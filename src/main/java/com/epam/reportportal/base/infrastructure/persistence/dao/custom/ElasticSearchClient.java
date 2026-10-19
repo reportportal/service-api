@@ -43,6 +43,7 @@ public class ElasticSearchClient {
   private static final String LAUNCH_ID_FIELD = "launchId";
   private static final String QUERY_FIELD = "query";
   private static final String TERMS_FIELD = "terms";
+  private static final String SOURCE_FIELD = "_source";
 
   private final String host;
   private final RestClient restClient;
@@ -187,7 +188,7 @@ public class ElasticSearchClient {
 
       if (CollectionUtils.isNotEmpty(hits)) {
         for (LinkedHashMap<String, Object> hit : hits) {
-          Map<String, Object> source = (Map<String, Object>) hit.get("_source");
+          Map<String, Object> source = (Map<String, Object>) hit.get(SOURCE_FIELD);
           Long testItemId = ((Integer) source.get(ITEM_ID_FIELD)).longValue();
           testItemIds.add(testItemId);
         }
@@ -218,7 +219,7 @@ public class ElasticSearchClient {
 
       if (CollectionUtils.isNotEmpty(hits)) {
         for (LinkedHashMap<String, Object> hit : hits) {
-          Map<String, Object> source = (Map<String, Object>) hit.get("_source");
+          Map<String, Object> source = (Map<String, Object>) hit.get(SOURCE_FIELD);
           LogMessage logMessage = convertElasticDataToLogMessage(projectId, source);
           logMessageMap.put(logMessage.getId(), logMessage);
         }
@@ -246,7 +247,7 @@ public class ElasticSearchClient {
             DateTimeFormatter.ofPattern(ELASTIC_DATETIME_FORMAT))
         .toInstant(ZoneOffset.UTC);
     return new LogMessage(((Integer) source.get("id")).longValue(), dateTime,
-        (String) source.get("message"), ((Integer) source.get(ITEM_ID_FIELD)).longValue(),
+        (String) source.get(LOG_MESSAGE_FIELD_NAME), ((Integer) source.get(ITEM_ID_FIELD)).longValue(),
         ((Integer) source.get(LAUNCH_ID_FIELD)).longValue(), projectId
     );
   }
@@ -285,7 +286,7 @@ public class ElasticSearchClient {
   private Map<String, Object> getSearchStringJson(String string, Map<String, Object> filterTerms,
       List<String> sourceFields, Integer size) {
     return Map.of(
-        "_source", sourceFields,
+        SOURCE_FIELD, sourceFields,
         QUERY_FIELD, Map.of("match_phrase", Map.of(LOG_MESSAGE_FIELD_NAME, string)),
         "post_filter", Map.of(TERMS_FIELD, filterTerms),
         "size", size
@@ -297,7 +298,7 @@ public class ElasticSearchClient {
   private Map<String, Object> getSearchRegexpJson(String pattern, Map<String, Object> filterTerms,
       List<String> sourceFields, Integer size) {
     return Map.of(
-        "_source", sourceFields,
+        SOURCE_FIELD, sourceFields,
         QUERY_FIELD, Map.of("regexp", Map.of(LOG_MESSAGE_FIELD_NAME, pattern)),
         "post_filter", Map.of(TERMS_FIELD, filterTerms),
         "size", size
@@ -307,7 +308,7 @@ public class ElasticSearchClient {
   private Map<String, Object> convertToDocument(LogMessage logMessage) {
     Map<String, Object> document = new LinkedHashMap<>();
     document.put("id", logMessage.getId());
-    document.put("message", logMessage.getLogMessage());
+    document.put(LOG_MESSAGE_FIELD_NAME, logMessage.getLogMessage());
     document.put(ITEM_ID_FIELD, logMessage.getItemId());
     document.put("@timestamp", logMessage.getLogTime());
     document.put(LAUNCH_ID_FIELD, logMessage.getLaunchId());

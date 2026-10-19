@@ -16,13 +16,9 @@
 
 package com.epam.reportportal.base.infrastructure.persistence.entity.tms;
 
-import com.epam.reportportal.base.infrastructure.persistence.dao.converters.JpaInstantConverter;
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItem;
-import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EntityListeners;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -31,18 +27,14 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.io.Serializable;
-import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 /**
- * Entity representing an execution of a nested step from a manual scenario.
- * Links a nested test item with the test case execution context and original step data.
+ * Entity representing an execution of a nested step from a manual scenario. Links a nested test item with the test case
+ * execution context and original step data.
  *
  * @author ReportPortal
  */
@@ -70,9 +62,8 @@ public class TmsStepExecution implements Serializable {
   private Long launchId;
 
   /**
-   * Optional reference to TmsStep ID from the original scenario.
-   * Helps track correlation between execution step and source step definition.
-   * Not a foreign key - purely for tracking purposes.
+   * Optional reference to TmsStep ID from the original scenario. Helps track correlation between execution step and
+   * source step definition. Not a foreign key - purely for tracking purposes.
    */
   @Column(name = "tms_step_id")
   private Long tmsStepId;

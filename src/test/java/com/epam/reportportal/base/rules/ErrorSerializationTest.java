@@ -20,11 +20,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorRS;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import java.io.IOException;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.MapperFeature;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.SerializationFeature;
 
 /**
  * Serializer/Deserializer unit tests
@@ -35,16 +34,16 @@ public class ErrorSerializationTest {
 
   private static final String SERIALIZATION_RESULT = "{\"errorCode\":5000,\"message\":\"MESSAGE\",\"stackTrace\":\"STACK_TRACE\"}";
 
-  private final ObjectMapper om = getObjectMapper();
+  private final JsonMapper om = getObjectMapper();
 
   @Test
-  public void testSerializer() throws JsonProcessingException {
+  public void testSerializer() {
     String json = om.writeValueAsString(getErrorResponse());
     assertEquals(SERIALIZATION_RESULT, json);
   }
 
   @Test
-  public void testDeserializer() throws IOException {
+  public void testDeserializer() {
     ErrorRS fromJson = om.readValue(SERIALIZATION_RESULT, ErrorRS.class);
     assertEquals(getErrorResponse(), fromJson);
   }
@@ -57,9 +56,10 @@ public class ErrorSerializationTest {
     return error;
   }
 
-  private ObjectMapper getObjectMapper() {
-    ObjectMapper om = new ObjectMapper();
-    om.configure(SerializationFeature.INDENT_OUTPUT, false);
-    return om;
+  private JsonMapper getObjectMapper() {
+    return JsonMapper.builder()
+        .disable(SerializationFeature.INDENT_OUTPUT)
+        .disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
+        .build();
   }
 }

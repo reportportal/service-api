@@ -20,34 +20,26 @@ import com.epam.reportportal.base.auth.userdetails.DefaultUserDetailsService;
 import com.epam.reportportal.base.core.analyzer.auto.client.RabbitMqManagementClient;
 import com.epam.reportportal.base.core.analyzer.auto.client.impl.RabbitMqManagementClientTemplate;
 import com.epam.reportportal.base.util.ApplicationContextAwareFactoryBeanTest;
-import com.epam.reportportal.base.ws.resolver.JacksonViewAwareModule;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.MapperFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector;
-import com.fasterxml.jackson.databind.json.JsonMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.epam.reportportal.base.util.TestJsonMapper;
 import com.rabbitmq.http.client.Client;
-import org.springframework.amqp.core.AmqpAdmin;
+import javax.sql.DataSource;
+import org.flywaydb.core.Flyway;
 import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration;
-import org.springframework.boot.autoconfigure.amqp.SimpleRabbitListenerContainerFactoryConfigurer;
-import org.springframework.boot.autoconfigure.quartz.QuartzAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.quartz.autoconfigure.QuartzAutoConfiguration;
+import org.springframework.boot.rabbitmq.autoconfigure.RabbitAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.context.annotation.Profile;
 import org.springframework.modulith.Modulithic;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -69,34 +61,22 @@ public class TestConfig {
   @Value("${rp.jwt.signing-key}")
   private String secret;
 
-  @MockBean
-  protected Client rabbitClient;
-
-  @MockBean(name = "analyzerRabbitTemplate")
-  protected RabbitTemplate analyzerRabbitTemplate;
-
-  @MockBean(name = "rabbitTemplate")
-  protected RabbitTemplate rabbitTemplate;
-
-  @MockBean(name = "connectionFactory")
-  protected ConnectionFactory connectionFactory;
-
-  @MockBean(name = "simpleRabbitListenerContainerFactoryConfigurer")
-  protected SimpleRabbitListenerContainerFactoryConfigurer simpleRabbitListenerContainerFactoryConfigurer;
-
-  @MockBean(name = "amqpAdmin")
-  protected AmqpAdmin amqpAdmin;
-
-  @MockBean
-  protected MessageConverter messageConverter;
-
   @Autowired
   private DefaultUserDetailsService userDetailsService;
 
+  @Autowired
+  private DataSource dataSource;
+
   @Bean
   @Profile("unittest")
-  protected RabbitMqManagementClient managementTemplate() {
+  protected RabbitMqManagementClient managementTemplate(@Qualifier("rabbitClient") Client rabbitClient) {
     return new RabbitMqManagementClientTemplate(rabbitClient, "analyzer");
+  }
+
+  @Bean
+  @Profile("unittest")
+  public Flyway flyway() {
+    return Flyway.configure().dataSource(dataSource).validateOnMigrate(false).load();
   }
 
   @Bean(name = "analyzerRabbitListenerContainerFactory")
@@ -109,18 +89,8 @@ public class TestConfig {
   }
 
   @Bean
-  public ObjectMapper testObjectMapper() {
-    ObjectMapper om = JsonMapper.builder()
-        .annotationIntrospector(new JacksonAnnotationIntrospector())
-        .configure(MapperFeature.DEFAULT_VIEW_INCLUSION, true)
-        .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-        .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
-        .build();
-
-    om.registerModule(new JacksonViewAwareModule(om));
-    om.registerModule(new JavaTimeModule());
-
-    return om;
+  public JsonMapper testObjectMapper() {
+    return TestJsonMapper.INSTANCE;
   }
 
 }

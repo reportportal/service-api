@@ -10,7 +10,11 @@
   "skipOperationExample": true,
   "java21": true,
   "library": "spring-boot",
-  "useSpringBoot3": true,
+  "useSpringBoot4": true,
+  "useJackson3": true,
+  "useJspecify": true,
+  "generateJsonIncludeAnnotations": false,
+  "generateJsonSetterNullsAnnotations": false,
   "openapiNormalizer": {
     "REF_AS_PARENT_IN_ALLOF": true
   },

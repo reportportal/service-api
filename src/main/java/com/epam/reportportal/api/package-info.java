@@ -18,8 +18,10 @@
  * This package represents the API module of the application. It includes API interfaces and models generated from the
  * OpenAPI specification.
  */
+@NullMarked
 @ApplicationModule(id = "api", type = Type.OPEN, displayName = "OpenAPI generated")
 package com.epam.reportportal.api;
 
+import org.jspecify.annotations.NullMarked;
 import org.springframework.modulith.ApplicationModule;
 import org.springframework.modulith.ApplicationModule.Type;

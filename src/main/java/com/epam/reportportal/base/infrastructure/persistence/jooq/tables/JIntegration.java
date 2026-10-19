@@ -11,11 +11,14 @@ import com.epam.reportportal.base.infrastructure.persistence.jooq.Keys;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JIntegrationType.JIntegrationTypePath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JOrganization.JOrganizationPath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JProject.JProjectPath;
+import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsSyncJob.JTmsSyncJobPath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.records.JIntegrationRecord;
+
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+
 import org.jooq.Condition;
 import org.jooq.Field;
 import org.jooq.ForeignKey;
@@ -30,13 +33,14 @@ import org.jooq.QueryPart;
 import org.jooq.Record;
 import org.jooq.SQL;
 import org.jooq.Schema;
-import org.jooq.Select;
 import org.jooq.Stringly;
 import org.jooq.Table;
 import org.jooq.TableField;
+import org.jooq.TableLike;
 import org.jooq.TableOptions;
 import org.jooq.UniqueKey;
 import org.jooq.impl.DSL;
+import org.jooq.impl.Internal;
 import org.jooq.impl.SQLDataType;
 import org.jooq.impl.TableImpl;
 
@@ -65,7 +69,7 @@ public class JIntegration extends TableImpl<JIntegrationRecord> {
     /**
      * The column <code>public.integration.id</code>.
      */
-    public final TableField<JIntegrationRecord, Integer> ID = createField(DSL.name("id"), SQLDataType.INTEGER.nullable(false).identity(true), this, "");
+    public final TableField<JIntegrationRecord, Integer> ID = createField(DSL.name("id"), SQLDataType.INTEGER.nullable(false).generatedByDefaultAsIdentity(), this, "");
 
     /**
      * The column <code>public.integration.name</code>.
@@ -176,9 +180,7 @@ public class JIntegration extends TableImpl<JIntegrationRecord> {
 
     @Override
     public List<Index> getIndexes() {
-      return Arrays.asList(Indexes.IDX_INTEGRATION_ORGANIZATION_ID, Indexes.INTEGR_PROJECT_IDX,
-          Indexes.UNIQUE_GLOBAL_INTEGRATION_NAME, Indexes.UNIQUE_ORGANIZATION_INTEGRATION_NAME,
-          Indexes.UNIQUE_PROJECT_INTEGRATION_NAME);
+        return Arrays.asList(Indexes.IDX_INTEGRATION_ORGANIZATION_ID, Indexes.INTEGR_PROJECT_IDX, Indexes.UNIQUE_GLOBAL_INTEGRATION_NAME, Indexes.UNIQUE_ORGANIZATION_INTEGRATION_NAME, Indexes.UNIQUE_PROJECT_INTEGRATION_NAME);
     }
 
     @Override
@@ -233,6 +235,19 @@ public class JIntegration extends TableImpl<JIntegrationRecord> {
         return _integrationType;
     }
 
+    private transient JTmsSyncJobPath _tmsSyncJob;
+
+    /**
+     * Get the implicit to-many join path to the
+     * <code>public.tms_sync_job</code> table
+     */
+    public JTmsSyncJobPath tmsSyncJob() {
+        if (_tmsSyncJob == null)
+            _tmsSyncJob = new JTmsSyncJobPath(this, null, Keys.TMS_SYNC_JOB__TMS_SYNC_JOB_INTEGRATION_ID_FKEY.getInverseKey());
+
+        return _tmsSyncJob;
+    }
+
     @Override
     public JIntegration as(String alias) {
         return new JIntegration(DSL.name(alias), this);
@@ -277,7 +292,7 @@ public class JIntegration extends TableImpl<JIntegrationRecord> {
      */
     @Override
     public JIntegration where(Condition condition) {
-        return new JIntegration(getQualifiedName(), aliased() ? this : null, null, condition);
+        return new JIntegration(getQualifiedName(), aliased() ? this : null, null, Internal.condition(this, condition));
     }
 
     /**
@@ -344,7 +359,7 @@ public class JIntegration extends TableImpl<JIntegrationRecord> {
      * Create an inline derived table from this table
      */
     @Override
-    public JIntegration whereExists(Select<?> select) {
+    public JIntegration whereExists(TableLike<?> select) {
         return where(DSL.exists(select));
     }
 
@@ -352,7 +367,7 @@ public class JIntegration extends TableImpl<JIntegrationRecord> {
      * Create an inline derived table from this table
      */
     @Override
-    public JIntegration whereNotExists(Select<?> select) {
+    public JIntegration whereNotExists(TableLike<?> select) {
         return where(DSL.notExists(select));
     }
 }

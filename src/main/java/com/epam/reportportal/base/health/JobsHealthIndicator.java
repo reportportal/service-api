@@ -18,15 +18,13 @@ package com.epam.reportportal.base.health;
 
 import java.util.Map;
 import java.util.Optional;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.actuate.health.AbstractHealthIndicator;
-import org.springframework.boot.actuate.health.Health;
-import org.springframework.boot.actuate.health.Health.Builder;
-import org.springframework.boot.actuate.health.Status;
+import org.springframework.boot.health.contributor.AbstractHealthIndicator;
+import org.springframework.boot.health.contributor.Health.Builder;
+import org.springframework.boot.health.contributor.Status;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.RestClient;
 
 
 /**
@@ -35,24 +33,27 @@ import org.springframework.web.client.RestTemplate;
  * @author Siarhei Hrabko
  */
 @Component
+@Slf4j
 public class JobsHealthIndicator extends AbstractHealthIndicator {
 
-  private static Logger LOGGER = LoggerFactory.getLogger(JobsHealthIndicator.class);
   private static final String ERROR_MESSAGE = "Jobs service health check failed";
-  private final RestTemplate restTemplate;
+  private final RestClient restClient;
 
   @Value("${rp.jobs.baseUrl}")
   private String jobsBaseUrl;
 
-  public JobsHealthIndicator(RestTemplate restTemplate) {
+  public JobsHealthIndicator(RestClient restClient) {
     super(ERROR_MESSAGE);
-    this.restTemplate = restTemplate;
+    this.restClient = restClient;
   }
 
   @Override
   protected void doHealthCheck(Builder builder) {
     try {
-      var jobsHealthRs = restTemplate.getForObject(jobsBaseUrl + "/health", Map.class);
+      var jobsHealthRs = restClient.get()
+          .uri(jobsBaseUrl + "/health")
+          .retrieve()
+          .body(Map.class);
 
       var jobsStatus = new Status((String) jobsHealthRs.get("status"));
       builder.status(jobsStatus);
@@ -64,16 +65,11 @@ public class JobsHealthIndicator extends AbstractHealthIndicator {
       builder.build();
 
     } catch (Exception e) {
-      LOGGER.error("{} : {}", ERROR_MESSAGE, e.getMessage());
+      log.error("{} : {}", ERROR_MESSAGE, e.getMessage());
       builder.unknown()
           .withException(e)
           .build();
     }
-  }
-
-  @Override
-  public Health getHealth(boolean includeDetails) {
-    return super.getHealth(includeDetails);
   }
 
 }

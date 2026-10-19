@@ -257,6 +257,6 @@ public class JActivityRecord extends UpdatableRecordImpl<JActivityRecord> {
         setSubjectName(subjectName);
         setSubjectType(subjectType);
         setOrganizationId(organizationId);
-        resetChangedOnNotNull();
+        resetTouchedOnNotNull();
     }
 }

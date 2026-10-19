@@ -32,10 +32,10 @@ import org.jooq.QueryPart;
 import org.jooq.Record;
 import org.jooq.SQL;
 import org.jooq.Schema;
-import org.jooq.Select;
 import org.jooq.Stringly;
 import org.jooq.Table;
 import org.jooq.TableField;
+import org.jooq.TableLike;
 import org.jooq.TableOptions;
 import org.jooq.UniqueKey;
 import org.jooq.impl.DSL;
@@ -68,7 +68,7 @@ public class JLog extends TableImpl<JLogRecord> {
     /**
      * The column <code>public.log.id</code>.
      */
-    public final TableField<JLogRecord, Long> ID = createField(DSL.name("id"), SQLDataType.BIGINT.nullable(false).identity(true), this, "");
+    public final TableField<JLogRecord, Long> ID = createField(DSL.name("id"), SQLDataType.BIGINT.nullable(false).generatedByDefaultAsIdentity(), this, "");
 
     /**
      * The column <code>public.log.uuid</code>.
@@ -189,7 +189,7 @@ public class JLog extends TableImpl<JLogRecord> {
 
     @Override
     public List<Index> getIndexes() {
-        return Arrays.asList(Indexes.IDX_LOG_PROJECT_LEVEL, Indexes.LOG_ATTACH_ID_IDX, Indexes.LOG_CLUSTER_IDX, Indexes.LOG_LAUNCH_ID_IDX, Indexes.LOG_PROJECT_ID_LOG_TIME_IDX, Indexes.LOG_PROJECT_IDX, Indexes.LOG_TI_IDX);
+        return Arrays.asList(Indexes.IDX_LOG_PROJECT_LEVEL, Indexes.LOG_ATTACH_ID_IDX, Indexes.LOG_CLUSTER_IDX, Indexes.LOG_ITEM_LEVEL_IDX, Indexes.LOG_LAUNCH_ID_IDX, Indexes.LOG_PROJECT_ID_LOG_TIME_IDX, Indexes.LOG_PROJECT_IDX, Indexes.LOG_TI_IDX);
     }
 
     @Override
@@ -294,7 +294,7 @@ public class JLog extends TableImpl<JLogRecord> {
      */
     @Override
     public JLog where(Condition condition) {
-        return new JLog(getQualifiedName(), aliased() ? this : null, null, condition);
+        return new JLog(getQualifiedName(), aliased() ? this : null, null, Internal.condition(this, condition));
     }
 
     /**
@@ -361,7 +361,7 @@ public class JLog extends TableImpl<JLogRecord> {
      * Create an inline derived table from this table
      */
     @Override
-    public JLog whereExists(Select<?> select) {
+    public JLog whereExists(TableLike<?> select) {
         return where(DSL.exists(select));
     }
 
@@ -369,7 +369,7 @@ public class JLog extends TableImpl<JLogRecord> {
      * Create an inline derived table from this table
      */
     @Override
-    public JLog whereNotExists(Select<?> select) {
+    public JLog whereNotExists(TableLike<?> select) {
         return where(DSL.notExists(select));
     }
 }

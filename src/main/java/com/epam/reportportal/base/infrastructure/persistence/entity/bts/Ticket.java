@@ -16,11 +16,9 @@
 
 package com.epam.reportportal.base.infrastructure.persistence.entity.bts;
 
-import com.epam.reportportal.base.infrastructure.persistence.dao.converters.JpaInstantConverter;
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.issue.IssueEntity;
 import com.google.common.collect.Sets;
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -54,7 +52,6 @@ public class Ticket implements Serializable {
   private String submitter;
 
   @Column(name = "submit_date")
-  @Convert(converter = JpaInstantConverter.class)
   private Instant submitDate;
 
   @Column(name = "bts_url")

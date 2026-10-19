@@ -1,5 +1,6 @@
 package com.epam.reportportal.base.core.tms.controller.unit;
 
+import static com.epam.reportportal.base.util.StandaloneMockMvcSupport.standaloneJsonSetup;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -13,7 +14,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static com.epam.reportportal.base.util.StandaloneMockMvcSupport.standaloneJsonSetup;
 
 import com.epam.reportportal.base.core.tms.controller.TestCaseController;
 import com.epam.reportportal.base.core.tms.dto.DeleteTagsRQ;
@@ -42,7 +42,6 @@ import com.epam.reportportal.base.util.OffsetRequest;
 import com.epam.reportportal.base.util.ProjectExtractor;
 import com.epam.reportportal.base.ws.resolver.FilterCriteriaResolver;
 import com.epam.reportportal.base.ws.resolver.OffsetArgumentResolver;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.Arrays;
 import java.util.Collections;
@@ -63,6 +62,7 @@ import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
+import tools.jackson.databind.json.JsonMapper;
 
 public class TmsTestCaseControllerTest {
 
@@ -79,14 +79,14 @@ public class TmsTestCaseControllerTest {
   private TestCaseController testCaseController;
 
   private MockMvc mockMvc;
-  private ObjectMapper objectMapper;
+  private JsonMapper objectMapper;
   private ReportPortalUser testUser;
   private MembershipDetails membershipDetails;
 
   @BeforeEach
   public void setup() {
     MockitoAnnotations.openMocks(this);
-    objectMapper = new ObjectMapper();
+    objectMapper = JsonMapper.builder().build();
 
     testUser = ReportPortalUser.userBuilder()
         .withUserName("testUser")
@@ -761,55 +761,57 @@ public class TmsTestCaseControllerTest {
     var importResult = List.of(new TmsTestFolderRS());
     given(tmsTestCaseService.importFromFile(eq(membershipDetails), eq(testUser), eq(testFolderId), eq(null), eq(file)))
         .willReturn(importResult);
-  
+
     mockMvc.perform(
             multipart("/v1/project/{projectKey}/tms/test-case/import", projectKey)
                 .file(file)
                 .param("testFolderId", String.valueOf(testFolderId))
                 .contentType(MediaType.MULTIPART_FORM_DATA))
         .andExpect(status().isOk());
-  
+
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
-    verify(tmsTestCaseService).importFromFile(eq(membershipDetails), eq(testUser), eq(testFolderId), eq(null), eq(file));
+    verify(tmsTestCaseService).importFromFile(eq(membershipDetails), eq(testUser), eq(testFolderId), eq(null),
+        eq(file));
   }
-  
+
   @Test
   void importTestCasesWithTestFolderNameTest() throws Exception {
     var file = new MockMultipartFile("file", "test.csv", "text/csv", "test,case,data".getBytes());
     var testFolderName = "Test Folder";
     var importResult = List.of(new TmsTestFolderRS());
-    given(tmsTestCaseService.importFromFile(eq(membershipDetails), eq(testUser), eq(null), eq(testFolderName), eq(file)))
+    given(
+        tmsTestCaseService.importFromFile(eq(membershipDetails), eq(testUser), eq(null), eq(testFolderName), eq(file)))
         .willReturn(importResult);
-  
+
     mockMvc.perform(
             multipart("/v1/project/{projectKey}/tms/test-case/import", projectKey)
                 .file(file)
                 .param("testFolderName", testFolderName)
                 .contentType(MediaType.MULTIPART_FORM_DATA))
         .andExpect(status().isOk());
-  
+
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
     verify(tmsTestCaseService).importFromFile(eq(membershipDetails), eq(testUser), eq(null), eq(testFolderName),
         eq(file));
   }
-  
+
   @Test
   void importTestCasesWithoutFolderParametersTest() throws Exception {
     var file = new MockMultipartFile("file", "test.csv", "text/csv", "test,case,data".getBytes());
     var importResult = List.of(new TmsTestFolderRS());
     given(tmsTestCaseService.importFromFile(eq(membershipDetails), eq(testUser), eq(null), eq(null), eq(file)))
         .willReturn(importResult);
-  
+
     mockMvc.perform(
             multipart("/v1/project/{projectKey}/tms/test-case/import", projectKey)
                 .file(file)
                 .contentType(MediaType.MULTIPART_FORM_DATA))
         .andExpect(status().isOk());
-  
+
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
     verify(tmsTestCaseService).importFromFile(eq(membershipDetails), eq(testUser), eq(null), eq(null), eq(file));
   }
-  
+
   @Test
   void importTestCasesWithBothFolderParametersTest() throws Exception {
     var file = new MockMultipartFile("file", "test.csv", "text/csv", "test,case,data".getBytes());

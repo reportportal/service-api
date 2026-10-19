@@ -26,13 +26,14 @@ import org.jooq.QueryPart;
 import org.jooq.Record;
 import org.jooq.SQL;
 import org.jooq.Schema;
-import org.jooq.Select;
 import org.jooq.Stringly;
 import org.jooq.Table;
 import org.jooq.TableField;
+import org.jooq.TableLike;
 import org.jooq.TableOptions;
 import org.jooq.UniqueKey;
 import org.jooq.impl.DSL;
+import org.jooq.impl.Internal;
 import org.jooq.impl.SQLDataType;
 import org.jooq.impl.TableImpl;
 
@@ -61,7 +62,7 @@ public class JProjectAttribute extends TableImpl<JProjectAttributeRecord> {
     /**
      * The column <code>public.project_attribute.attribute_id</code>.
      */
-    public final TableField<JProjectAttributeRecord, Long> ATTRIBUTE_ID = createField(DSL.name("attribute_id"), SQLDataType.BIGINT.nullable(false).identity(true), this, "");
+    public final TableField<JProjectAttributeRecord, Long> ATTRIBUTE_ID = createField(DSL.name("attribute_id"), SQLDataType.BIGINT.nullable(false).generatedByDefaultAsIdentity(), this, "");
 
     /**
      * The column <code>public.project_attribute.value</code>.
@@ -71,7 +72,7 @@ public class JProjectAttribute extends TableImpl<JProjectAttributeRecord> {
     /**
      * The column <code>public.project_attribute.project_id</code>.
      */
-    public final TableField<JProjectAttributeRecord, Long> PROJECT_ID = createField(DSL.name("project_id"), SQLDataType.BIGINT.nullable(false).identity(true), this, "");
+    public final TableField<JProjectAttributeRecord, Long> PROJECT_ID = createField(DSL.name("project_id"), SQLDataType.BIGINT.nullable(false).generatedByDefaultAsIdentity(), this, "");
 
     private JProjectAttribute(Name alias, Table<JProjectAttributeRecord> aliased) {
         this(alias, aliased, (Field<?>[]) null, null);
@@ -223,7 +224,7 @@ public class JProjectAttribute extends TableImpl<JProjectAttributeRecord> {
      */
     @Override
     public JProjectAttribute where(Condition condition) {
-        return new JProjectAttribute(getQualifiedName(), aliased() ? this : null, null, condition);
+        return new JProjectAttribute(getQualifiedName(), aliased() ? this : null, null, Internal.condition(this, condition));
     }
 
     /**
@@ -290,7 +291,7 @@ public class JProjectAttribute extends TableImpl<JProjectAttributeRecord> {
      * Create an inline derived table from this table
      */
     @Override
-    public JProjectAttribute whereExists(Select<?> select) {
+    public JProjectAttribute whereExists(TableLike<?> select) {
         return where(DSL.exists(select));
     }
 
@@ -298,7 +299,7 @@ public class JProjectAttribute extends TableImpl<JProjectAttributeRecord> {
      * Create an inline derived table from this table
      */
     @Override
-    public JProjectAttribute whereNotExists(Select<?> select) {
+    public JProjectAttribute whereNotExists(TableLike<?> select) {
         return where(DSL.notExists(select));
     }
 }

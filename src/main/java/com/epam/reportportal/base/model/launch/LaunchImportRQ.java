@@ -54,10 +54,9 @@ public class LaunchImportRQ {
   private String description;
 
   @Size(max = MAX_PARAMETERS_LENGTH)
-  @Valid
   @JsonProperty("attributes")
   @JsonAlias({"attributes", "tags"})
-  private Set<ItemAttributesRQ> attributes;
+  private Set<@Valid ItemAttributesRQ> attributes;
 
   @JsonProperty
   @JsonAlias({"startTime", "start_time"})

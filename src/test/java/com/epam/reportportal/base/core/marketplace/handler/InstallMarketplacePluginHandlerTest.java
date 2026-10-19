@@ -33,6 +33,7 @@ import static org.mockito.Mockito.when;
 
 import com.epam.reportportal.base.core.events.domain.PluginUploadedEvent;
 import com.epam.reportportal.base.core.marketplace.Ed25519MarketplaceLicence;
+import com.epam.reportportal.base.core.marketplace.LicenceJwt;
 import com.epam.reportportal.base.core.marketplace.MarketplaceArtifactFetcher;
 import com.epam.reportportal.base.core.marketplace.MarketplaceClient;
 import com.epam.reportportal.base.core.marketplace.MarketplaceLicence;
@@ -62,7 +63,6 @@ import com.epam.reportportal.base.model.marketplace.MarketplaceArtifact;
 import com.epam.reportportal.base.model.marketplace.MarketplaceCompatibility;
 import com.epam.reportportal.base.model.marketplace.MarketplaceInstallRQ;
 import com.epam.reportportal.base.model.marketplace.MarketplaceVersionDetail;
-import io.jsonwebtoken.Jwts;
 import java.io.InputStream;
 import java.net.SocketTimeoutException;
 import java.nio.charset.StandardCharsets;
@@ -390,10 +390,9 @@ class InstallMarketplacePluginHandlerTest {
 
     var token = ArgumentCaptor.forClass(String.class);
     verify(client).resolveArtifact(eq(PLUGIN_ID), eq("1.4.2"), token.capture());
-    var claims = Jwts.parser().verifyWith(keyPair.getPublic()).build()
-        .parseSignedClaims(token.getValue()).getPayload();
-    assertEquals("acme-gmbh", claims.get("customerId"));
-    assertEquals(PLUGIN_ID, claims.get("pluginId"));
+    var claims = LicenceJwt.verifiedClaims(token.getValue(), keyPair.getPublic());
+    assertEquals("acme-gmbh", claims.getClaim("customerId"));
+    assertEquals(PLUGIN_ID, claims.getClaim("pluginId"));
   }
 
   /** The same real chain with nothing stored: refused here, before the registry is asked. */

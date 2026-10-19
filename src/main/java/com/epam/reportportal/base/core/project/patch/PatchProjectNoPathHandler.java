@@ -17,8 +17,8 @@
 package com.epam.reportportal.base.core.project.patch;
 
 import com.epam.reportportal.base.core.project.ProjectService;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Handler for patching a project when no specific path is provided. Extends {@link BasePatchProjectHandler} to leverage
@@ -32,7 +32,7 @@ public class PatchProjectNoPathHandler extends BasePatchProjectHandler {
    *
    * @param projectService service for project-related operations
    */
-  protected PatchProjectNoPathHandler(ProjectService projectService, ObjectMapper objectMapper) {
+  protected PatchProjectNoPathHandler(ProjectService projectService, JsonMapper objectMapper) {
     super(projectService, objectMapper);
   }
 }

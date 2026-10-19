@@ -1,12 +1,10 @@
 package com.epam.reportportal.base.infrastructure.persistence.entity.tms.sync;
 
-import com.epam.reportportal.base.infrastructure.persistence.commons.JsonbUserType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.io.Serializable;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 /**
@@ -23,8 +21,8 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(callSuper = false)
-public class SyncCounters extends JsonbUserType<SyncCounters> implements Serializable {
+public class SyncCounters implements Serializable {
+
   @Schema(description = "Remote test cases analyzed so far (imported + skipped + failed).")
   private int processed;
   @Schema(description = "Remote test cases created or updated locally (new and changed cases).")
@@ -33,9 +31,4 @@ public class SyncCounters extends JsonbUserType<SyncCounters> implements Seriali
   private int skipped;
   @Schema(description = "Remote test cases that could not be synchronized.")
   private int failed;
-
-  @Override
-  public Class<SyncCounters> returnedClass() {
-    return SyncCounters.class;
-  }
 }

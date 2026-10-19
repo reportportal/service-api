@@ -28,8 +28,7 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.attachment.B
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.User;
 import com.google.common.collect.Maps;
 import java.io.ByteArrayInputStream;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 import lombok.AllArgsConstructor;
@@ -57,7 +56,7 @@ public class AbstractUserReplicator {
    */
   protected Metadata defaultMetaData() {
     Map<String, Object> metaDataMap = new HashMap<>();
-    long nowInMillis = LocalDateTime.now().toInstant(ZoneOffset.UTC).toEpochMilli();
+    long nowInMillis = Instant.now().toEpochMilli();
     metaDataMap.put("last_login", nowInMillis);
     metaDataMap.put("synchronizationDate", nowInMillis);
     return new Metadata(metaDataMap);
@@ -73,7 +72,7 @@ public class AbstractUserReplicator {
         new Metadata(
             Maps.newHashMap()));
     metadata.getMetadata()
-        .put("synchronizationDate", LocalDateTime.now().toInstant(ZoneOffset.UTC).toEpochMilli());
+        .put("synchronizationDate", Instant.now().toEpochMilli());
     user.setMetadata(metadata);
   }
 

@@ -22,10 +22,12 @@ import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsSte
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTestCaseExecution.JTmsTestCaseExecutionPath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTestFolderTestItem.JTmsTestFolderTestItemPath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.records.JTestItemRecord;
+
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+
 import org.jooq.Condition;
 import org.jooq.Field;
 import org.jooq.ForeignKey;
@@ -39,14 +41,15 @@ import org.jooq.QueryPart;
 import org.jooq.Record;
 import org.jooq.SQL;
 import org.jooq.Schema;
-import org.jooq.Select;
 import org.jooq.Stringly;
 import org.jooq.Table;
 import org.jooq.TableField;
+import org.jooq.TableLike;
 import org.jooq.TableOptions;
 import org.jooq.UniqueKey;
 import org.jooq.impl.DSL;
 import org.jooq.impl.DefaultDataType;
+import org.jooq.impl.Internal;
 import org.jooq.impl.SQLDataType;
 import org.jooq.impl.TableImpl;
 
@@ -75,7 +78,7 @@ public class JTestItem extends TableImpl<JTestItemRecord> {
     /**
      * The column <code>public.test_item.item_id</code>.
      */
-    public final TableField<JTestItemRecord, Long> ITEM_ID = createField(DSL.name("item_id"), SQLDataType.BIGINT.nullable(false).identity(true), this, "");
+    public final TableField<JTestItemRecord, Long> ITEM_ID = createField(DSL.name("item_id"), SQLDataType.BIGINT.nullable(false).generatedByDefaultAsIdentity(), this, "");
 
     /**
      * The column <code>public.test_item.uuid</code>.
@@ -236,10 +239,7 @@ public class JTestItem extends TableImpl<JTestItemRecord> {
 
     @Override
     public List<Index> getIndexes() {
-      return Arrays.asList(Indexes.TEST_CASE_HASH_LAUNCH_ID_IDX,
-          Indexes.TEST_ITEM_LAST_MODIFIED_IDX, Indexes.TEST_ITEM_START_TIME_IDX,
-          Indexes.TEST_ITEM_UNIQUE_ID_LAUNCH_ID_IDX, Indexes.TI_LAUNCH_IDX, Indexes.TI_PARENT_IDX,
-          Indexes.TI_RETRY_OF_IDX);
+        return Arrays.asList(Indexes.TEST_CASE_HASH_LAUNCH_ID_IDX, Indexes.TEST_ITEM_LAST_MODIFIED_IDX, Indexes.TEST_ITEM_START_TIME_IDX, Indexes.TEST_ITEM_UNIQUE_ID_LAUNCH_ID_IDX, Indexes.TI_LAUNCH_IDX, Indexes.TI_PARENT_IDX, Indexes.TI_RETRY_OF_IDX);
     }
 
     @Override
@@ -476,7 +476,7 @@ public class JTestItem extends TableImpl<JTestItemRecord> {
      */
     @Override
     public JTestItem where(Condition condition) {
-        return new JTestItem(getQualifiedName(), aliased() ? this : null, null, condition);
+        return new JTestItem(getQualifiedName(), aliased() ? this : null, null, Internal.condition(this, condition));
     }
 
     /**
@@ -543,7 +543,7 @@ public class JTestItem extends TableImpl<JTestItemRecord> {
      * Create an inline derived table from this table
      */
     @Override
-    public JTestItem whereExists(Select<?> select) {
+    public JTestItem whereExists(TableLike<?> select) {
         return where(DSL.exists(select));
     }
 
@@ -551,7 +551,7 @@ public class JTestItem extends TableImpl<JTestItemRecord> {
      * Create an inline derived table from this table
      */
     @Override
-    public JTestItem whereNotExists(Select<?> select) {
+    public JTestItem whereNotExists(TableLike<?> select) {
         return where(DSL.notExists(select));
     }
 }

@@ -51,7 +51,6 @@ import com.epam.reportportal.base.reporting.ParameterResource;
 import com.epam.reportportal.base.reporting.StartTestItemRQ;
 import com.epam.reportportal.base.reporting.UpdateItemAttributeRQ;
 import com.epam.reportportal.base.ws.BaseMvcTest;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -65,6 +64,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.event.ApplicationEvents;
 import org.springframework.test.context.jdbc.Sql;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -73,7 +73,7 @@ import org.springframework.test.context.jdbc.Sql;
 class TestItemControllerTest extends BaseMvcTest {
 
   @Autowired
-  private ObjectMapper objectMapper;
+  private JsonMapper objectMapper;
 
   @Autowired
   private TestItemRepository testItemRepository;

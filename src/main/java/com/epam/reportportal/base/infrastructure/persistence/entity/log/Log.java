@@ -16,13 +16,11 @@
 
 package com.epam.reportportal.base.infrastructure.persistence.entity.log;
 
-import com.epam.reportportal.base.infrastructure.persistence.dao.converters.JpaInstantConverter;
 import com.epam.reportportal.base.infrastructure.persistence.entity.attachment.Attachment;
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItem;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.GeneratedValue;
@@ -36,6 +34,8 @@ import jakarta.persistence.Table;
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.Objects;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
@@ -45,6 +45,8 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
  * @author Pavel Bortnik
  */
 
+@Setter
+@Getter
 @Entity
 @EntityListeners(AuditingEntityListener.class)
 @Table(name = "log", schema = "public", indexes = {
@@ -60,7 +62,6 @@ public class Log implements Serializable {
   private String uuid;
 
   @Column(name = "log_time", nullable = false)
-  @Convert(converter = JpaInstantConverter.class)
   private Instant logTime;
 
   @Column(name = "log_message", nullable = false)
@@ -68,7 +69,6 @@ public class Log implements Serializable {
 
   @LastModifiedDate
   @Column(name = "last_modified", nullable = false)
-  @Convert(converter = JpaInstantConverter.class)
   private Instant lastModified;
 
   @Column(name = "log_level", nullable = false, precision = 32)
@@ -105,94 +105,6 @@ public class Log implements Serializable {
   }
 
   public Log() {
-  }
-
-  public Long getId() {
-    return id;
-  }
-
-  public void setId(Long id) {
-    this.id = id;
-  }
-
-  public String getUuid() {
-    return uuid;
-  }
-
-  public void setUuid(String uuid) {
-    this.uuid = uuid;
-  }
-
-  public TestItem getTestItem() {
-    return testItem;
-  }
-
-  public void setTestItem(TestItem testItem) {
-    this.testItem = testItem;
-  }
-
-  public Launch getLaunch() {
-    return launch;
-  }
-
-  public void setLaunch(Launch launch) {
-    this.launch = launch;
-  }
-
-  public Instant getLogTime() {
-    return logTime;
-  }
-
-  public void setLogTime(Instant logTime) {
-    this.logTime = logTime;
-  }
-
-  public Instant getLastModified() {
-    return lastModified;
-  }
-
-  public void setLastModified(Instant lastModified) {
-    this.lastModified = lastModified;
-  }
-
-  public String getLogMessage() {
-    return logMessage;
-  }
-
-  public void setLogMessage(String logMessage) {
-    this.logMessage = logMessage;
-  }
-
-  public Integer getLogLevel() {
-    return logLevel;
-  }
-
-  public void setLogLevel(Integer logLevel) {
-    this.logLevel = logLevel;
-  }
-
-  public Attachment getAttachment() {
-    return attachment;
-  }
-
-  public void setAttachment(Attachment attachment) {
-    this.attachment = attachment;
-  }
-
-  public Long getProjectId() {
-    return projectId;
-  }
-
-  public void setProjectId(Long projectId) {
-    this.projectId = projectId;
-  }
-
-  public Long getClusterId() {
-    return clusterId;
-  }
-
-  public void setClusterId(Long clusterId) {
-    this.clusterId = clusterId;
   }
 
   @Override

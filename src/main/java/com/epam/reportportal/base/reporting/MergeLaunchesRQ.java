@@ -23,7 +23,6 @@ import com.epam.reportportal.base.reporting.databind.MultiFormatDateDeserializer
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
 import jakarta.validation.Valid;
@@ -35,6 +34,7 @@ import java.util.Set;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import tools.jackson.databind.annotation.JsonDeserialize;
 
 @JsonInclude(Include.NON_NULL)
 @Getter
@@ -51,9 +51,8 @@ public class MergeLaunchesRQ {
   private String description;
 
   @Size(max = MAX_PARAMETERS_LENGTH)
-  @Valid
   @JsonProperty("attributes")
-  private Set<AttributeResource> attributes;
+  private Set<@Valid AttributeResource> attributes;
 
   @JsonProperty(value = "startTime")
   @Schema

@@ -19,17 +19,19 @@ package com.epam.reportportal.base.infrastructure.persistence.entity.widget.cont
 import static com.epam.reportportal.base.infrastructure.persistence.dao.constant.WidgetContentRepositoryConstants.DURATION;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.constant.WidgetContentRepositoryConstants.END_TIME;
 
-import com.epam.reportportal.base.infrastructure.persistence.dao.converters.JpaInstantConverter;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import java.time.Instant;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * Launch duration widget: min/max/avg and related time fields.
  *
  * @author Ivan Budayeu
  */
+@Setter
+@Getter
 public class LaunchesDurationContent extends AbstractLaunchStatisticsContent {
 
   @JsonProperty(value = "status")
@@ -38,34 +40,10 @@ public class LaunchesDurationContent extends AbstractLaunchStatisticsContent {
 
   @Column(name = "end_time")
   @JsonProperty(value = END_TIME)
-  @Convert(converter = JpaInstantConverter.class)
   private Instant endTime;
 
   @Column(name = "duration")
   @JsonProperty(value = DURATION)
   private long duration;
 
-  public String getStatus() {
-    return status;
-  }
-
-  public void setStatus(String status) {
-    this.status = status;
-  }
-
-  public Instant getEndTime() {
-    return endTime;
-  }
-
-  public void setEndTime(Instant endTime) {
-    this.endTime = endTime;
-  }
-
-  public long getDuration() {
-    return duration;
-  }
-
-  public void setDuration(long duration) {
-    this.duration = duration;
-  }
 }

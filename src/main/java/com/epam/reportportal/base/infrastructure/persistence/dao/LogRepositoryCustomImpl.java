@@ -77,6 +77,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
+import lombok.RequiredArgsConstructor;
 import org.jooq.CommonTableExpression;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
@@ -93,7 +94,6 @@ import org.jooq.SortField;
 import org.jooq.SortOrder;
 import org.jooq.Table;
 import org.jooq.impl.DSL;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -106,6 +106,7 @@ import org.springframework.stereotype.Repository;
  * @author Pavel Bortnik
  */
 @Repository
+@RequiredArgsConstructor
 public class LogRepositoryCustomImpl implements LogRepositoryCustom {
 
   public static final String ROOT_ITEM_ID = "root_id";
@@ -113,12 +114,7 @@ public class LogRepositoryCustomImpl implements LogRepositoryCustom {
   private static final String PARENT_ITEM_TABLE = "parent";
   private static final String CHILD_ITEM_TABLE = "child";
 
-  private DSLContext dsl;
-
-  @Autowired
-  public void setDsl(DSLContext dsl) {
-    this.dsl = dsl;
-  }
+  private final DSLContext dsl;
 
   private Condition logLevelInStandardRange(int logLevel) {
     return LOG.LOG_LEVEL.greaterOrEqual(logLevel)

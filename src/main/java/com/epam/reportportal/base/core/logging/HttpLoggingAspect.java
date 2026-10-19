@@ -17,8 +17,6 @@
 package com.epam.reportportal.base.core.logging;
 
 import ch.qos.logback.classic.Logger;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
@@ -26,6 +24,7 @@ import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -41,6 +40,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.json.JsonMapper;
 
 
 /**
@@ -62,7 +63,7 @@ public class HttpLoggingAspect {
   private static final List<String> SENSITIVE_HEADERS = List.of(HttpHeaders.AUTHORIZATION);
 
   @Autowired
-  private ObjectMapper objectMapper;
+  private JsonMapper objectMapper;
 
   @Around("execution(public * *(..)) && @annotation(annotation)")
   public Object log(ProceedingJoinPoint joinPoint, HttpLogging annotation) throws Throwable {
@@ -161,7 +162,7 @@ public class HttpLoggingAspect {
       try {
         record.append(NEWLINE).append(' ').append(BODY_DENOMINATOR)
             .append(NEWLINE).append(' ').append(objectMapper.writeValueAsString(body));
-      } catch (JsonProcessingException e) {
+      } catch (JacksonException e) {
         // ignore
       }
     }
@@ -176,7 +177,7 @@ public class HttpLoggingAspect {
 
   protected String formatResponseRecord(long count, String prefix, Object response,
       HttpLogging annotation, long executionTime) throws Exception {
-    boolean binaryBody = false;
+    AtomicBoolean binaryBody = new AtomicBoolean(false);
     StringBuilder record = new StringBuilder();
 
     record.append(prefix).append(" (").append(count).append(')').append(" - Response ");
@@ -191,12 +192,12 @@ public class HttpLoggingAspect {
 
       if (annotation.logHeaders()) {
         HttpHeaders headers = responseEntity.getHeaders();
-        for (String name : headers.keySet()) {
+        headers.forEach((name, values) -> {
           record.append(NEWLINE).append(' ').append(name).append(':');
           boolean comma = false;
-          for (String value : headers.get(name)) {
+          for (String value : values) {
             if (HttpHeaders.CONTENT_TYPE.equals(name) && !readableContent(value)) {
-              binaryBody = true;
+              binaryBody.set(true);
             }
             if (comma) {
               record.append(',');
@@ -205,18 +206,18 @@ public class HttpLoggingAspect {
             }
             record.append(' ').append(value);
           }
-        }
+        });
       }
 
       if (annotation.logResponseBody()) {
         record.append(NEWLINE).append(' ').append(BODY_DENOMINATOR);
-        if (binaryBody) {
+        if (binaryBody.get()) {
           record.append(NEWLINE).append(' ').append('"').append(BODY_BINARY_MARK).append('"');
         } else {
           try {
             record.append(NEWLINE).append(' ')
                 .append(objectMapper.writeValueAsString(((ResponseEntity<?>) response).getBody()));
-          } catch (JsonProcessingException ex) {
+          } catch (JacksonException ex) {
             record.append(NEWLINE).append(' ')
                 .append(((ResponseEntity<String>) response).getBody());
           }
@@ -229,7 +230,7 @@ public class HttpLoggingAspect {
         record.append(NEWLINE).append(' ').append(BODY_DENOMINATOR);
         try {
           record.append(NEWLINE).append(' ').append(objectMapper.writeValueAsString(response));
-        } catch (JsonProcessingException ex) {
+        } catch (JacksonException ex) {
           // ignore
         }
       }

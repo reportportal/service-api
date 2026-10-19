@@ -17,7 +17,6 @@ import com.epam.reportportal.base.model.widget.ContentParameters;
 import com.epam.reportportal.base.model.widget.SortEntry;
 import com.epam.reportportal.base.model.widget.WidgetRQ;
 import com.epam.reportportal.base.ws.converter.builders.WidgetBuilder;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -27,6 +26,7 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -35,7 +35,7 @@ public class HealthCheckTableReadyContentResolverTest {
 
   private final WidgetContentRepository widgetContentRepository =
       mock(WidgetContentRepository.class);
-  private final ObjectMapper objectMapper = new ObjectMapper();
+  private final JsonMapper objectMapper = JsonMapper.builder().build();
 
   private final HealthCheckTableReadyContentLoader contentResolver =
       new HealthCheckTableReadyContentLoader(widgetContentRepository, objectMapper);

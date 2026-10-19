@@ -22,36 +22,34 @@ import com.epam.reportportal.base.reporting.AttributeResource;
 import com.epam.reportportal.base.reporting.MergeLaunchesRQ;
 import com.epam.reportportal.base.reporting.Mode;
 import com.epam.reportportal.base.ws.BaseMvcTest;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.Collections;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * @author Pavel Bortnik
  */
-public class MergeLaunchesSerializerTest extends BaseMvcTest {
+class MergeLaunchesSerializerTest extends BaseMvcTest {
 
   private static final String EXPECTED_JSON = "{\"name\":\"name\","
       + "\"description\":\"description\",\"attributes\":[{\"key\":\"key\",\"value\":\"value\"}],\"startTime\":\"1970-01-01T00:00:00Z\",\"mode\":\"DEFAULT\","
       + "\"launches\":[1],\"endTime\":\"1970-01-01T00:00:00.001Z\",\"mergeType\":\"BASIC\",\"extendSuitesDescription\":true}";
 
   @Autowired
-  private ObjectMapper objectMapper;
+  private JsonMapper objectMapper;
 
   @Test
-  public void testSerializer() throws JsonProcessingException {
+  void testSerializer() {
     MergeLaunchesRQ rq = getMergeLaunches();
     String json = objectMapper.writeValueAsString(rq);
     assertEquals(EXPECTED_JSON, json, "Incorrect serialization result");
   }
 
   @Test
-  public void testDeserializer() throws IOException {
+  void testDeserializer() {
     MergeLaunchesRQ rq =
         objectMapper.readValue(EXPECTED_JSON.getBytes(StandardCharsets.UTF_8), MergeLaunchesRQ.class);
     assertEquals(getMergeLaunches().toString(), rq.toString(), "Incorrect deserialization result");

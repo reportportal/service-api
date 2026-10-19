@@ -98,6 +98,6 @@ public class JTmsManualScenarioPreconditionsAttachmentRecord extends UpdatableRe
         setPreconditionsId(preconditionsId);
         setAttachmentId(attachmentId);
         setCreatedAt(createdAt);
-        resetChangedOnNotNull();
+        resetTouchedOnNotNull();
     }
 }

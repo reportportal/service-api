@@ -38,8 +38,6 @@ import com.epam.reportportal.base.infrastructure.rules.commons.validation.Busine
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.model.widget.SortEntry;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -55,6 +53,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Loads content for the Component Health Check Table widget when the materialized view is in a READY state.
@@ -71,11 +71,11 @@ public class HealthCheckTableReadyContentLoader implements MaterializedWidgetCon
   public static final String PASSING_RATE = "passingRate";
 
   private final WidgetContentRepository widgetContentRepository;
-  private final ObjectMapper objectMapper;
+  private final JsonMapper objectMapper;
 
   @Autowired
   public HealthCheckTableReadyContentLoader(WidgetContentRepository widgetContentRepository,
-      ObjectMapper objectMapper) {
+      JsonMapper objectMapper) {
     this.widgetContentRepository = widgetContentRepository;
     this.objectMapper = objectMapper;
   }
@@ -135,7 +135,7 @@ public class HealthCheckTableReadyContentLoader implements MaterializedWidgetCon
         return Sort.by(sortEntry.isAsc() ? Sort.Direction.ASC : Sort.Direction.DESC,
             sortEntry.getSortingColumn()
         );
-      } catch (JsonProcessingException e) {
+      } catch (JacksonException e) {
         throw new ReportPortalException(ErrorType.UNABLE_LOAD_WIDGET_CONTENT,
             "Sort format error: " + e.getMessage()
         );

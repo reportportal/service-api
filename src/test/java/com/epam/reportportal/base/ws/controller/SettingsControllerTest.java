@@ -28,12 +28,12 @@ import com.epam.reportportal.api.model.ServerSettingKey;
 import com.epam.reportportal.api.model.UpdateServerSettingsRequest;
 import com.epam.reportportal.base.core.marketplace.MarketplaceLicenceStore;
 import com.epam.reportportal.base.ws.BaseMvcTest;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.Locale;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -41,7 +41,7 @@ import org.springframework.http.MediaType;
 class SettingsControllerTest extends BaseMvcTest {
 
   @Autowired
-  private ObjectMapper objectMapper;
+  private JsonMapper objectMapper;
 
   @Autowired
   private MarketplaceLicenceStore licenceStore;
@@ -53,9 +53,9 @@ class SettingsControllerTest extends BaseMvcTest {
   }
 
   /**
-   * The licence rows are keyed outside the {@code server.} prefix precisely so this endpoint
-   * cannot render key material. Asserted here, on the consuming side: the store's own test cannot
-   * stop someone widening {@code selectServerSettings} later.
+   * The licence rows are keyed outside the {@code server.} prefix precisely so this endpoint cannot render key
+   * material. Asserted here, on the consuming side: the store's own test cannot stop someone widening
+   * {@code selectServerSettings} later.
    */
   @Test
   void serverSettingsNeverRenderTheLicenceRows() throws Exception {

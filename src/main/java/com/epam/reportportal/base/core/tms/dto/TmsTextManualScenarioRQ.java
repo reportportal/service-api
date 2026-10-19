@@ -35,6 +35,5 @@ public class TmsTextManualScenarioRQ extends TmsManualScenarioRQ {
   /**
    * Attachments for the manual scenario.
    */
-  @Valid
-  private List<TmsManualScenarioAttachmentRQ> attachments;
+  private List<@Valid TmsManualScenarioAttachmentRQ> attachments;
 }

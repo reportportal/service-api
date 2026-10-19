@@ -16,9 +16,9 @@
 
 package com.epam.reportportal.base.core.configs;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.ResourceLoader;
-import org.springframework.lang.Nullable;
 import org.springframework.scheduling.quartz.ResourceLoaderClassLoadHelper;
 import org.springframework.scheduling.quartz.SchedulerFactoryBean;
 import org.springframework.util.Assert;
@@ -30,8 +30,7 @@ import org.springframework.util.Assert;
  */
 public class ReportPortalClassLoadHelper extends ResourceLoaderClassLoadHelper {
 
-  @Nullable
-  private ResourceLoader resourceLoader;
+  private @Nullable ResourceLoader resourceLoader;
 
   public ReportPortalClassLoadHelper() {
   }

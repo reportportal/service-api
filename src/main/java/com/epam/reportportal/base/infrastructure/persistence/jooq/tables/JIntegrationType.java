@@ -30,13 +30,14 @@ import org.jooq.QueryPart;
 import org.jooq.Record;
 import org.jooq.SQL;
 import org.jooq.Schema;
-import org.jooq.Select;
 import org.jooq.Stringly;
 import org.jooq.Table;
 import org.jooq.TableField;
+import org.jooq.TableLike;
 import org.jooq.TableOptions;
 import org.jooq.UniqueKey;
 import org.jooq.impl.DSL;
+import org.jooq.impl.Internal;
 import org.jooq.impl.SQLDataType;
 import org.jooq.impl.TableImpl;
 
@@ -65,7 +66,7 @@ public class JIntegrationType extends TableImpl<JIntegrationTypeRecord> {
     /**
      * The column <code>public.integration_type.id</code>.
      */
-    public final TableField<JIntegrationTypeRecord, Integer> ID = createField(DSL.name("id"), SQLDataType.INTEGER.nullable(false).identity(true), this, "");
+    public final TableField<JIntegrationTypeRecord, Integer> ID = createField(DSL.name("id"), SQLDataType.INTEGER.nullable(false).generatedByDefaultAsIdentity(), this, "");
 
     /**
      * The column <code>public.integration_type.name</code>.
@@ -241,7 +242,7 @@ public class JIntegrationType extends TableImpl<JIntegrationTypeRecord> {
      */
     @Override
     public JIntegrationType where(Condition condition) {
-        return new JIntegrationType(getQualifiedName(), aliased() ? this : null, null, condition);
+        return new JIntegrationType(getQualifiedName(), aliased() ? this : null, null, Internal.condition(this, condition));
     }
 
     /**
@@ -308,7 +309,7 @@ public class JIntegrationType extends TableImpl<JIntegrationTypeRecord> {
      * Create an inline derived table from this table
      */
     @Override
-    public JIntegrationType whereExists(Select<?> select) {
+    public JIntegrationType whereExists(TableLike<?> select) {
         return where(DSL.exists(select));
     }
 
@@ -316,7 +317,7 @@ public class JIntegrationType extends TableImpl<JIntegrationTypeRecord> {
      * Create an inline derived table from this table
      */
     @Override
-    public JIntegrationType whereNotExists(Select<?> select) {
+    public JIntegrationType whereNotExists(TableLike<?> select) {
         return where(DSL.notExists(select));
     }
 }

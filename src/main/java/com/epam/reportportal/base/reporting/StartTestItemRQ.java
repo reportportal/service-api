@@ -25,26 +25,24 @@ import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.ObjectCodec;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonDeserializer;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 import lombok.Getter;
 import lombok.Setter;
+import tools.jackson.core.JsonGenerator;
+import tools.jackson.core.JsonParser;
+import tools.jackson.databind.DeserializationContext;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.SerializationContext;
+import tools.jackson.databind.ValueDeserializer;
+import tools.jackson.databind.ValueSerializer;
+import tools.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.annotation.JsonSerialize;
 
 @Setter
 @Getter
@@ -54,9 +52,8 @@ public class StartTestItemRQ extends StartRQ {
   @JsonProperty(value = "codeRef")
   private String codeRef;
 
-  @Valid
   @JsonProperty(value = "parameters")
-  private List<ParameterResource> parameters;
+  private List<@Valid ParameterResource> parameters;
 
   @Size(max = MAX_TEST_ITEM_UNIQUE_ID_LENGTH)
   @JsonProperty(value = "uniqueId")
@@ -97,22 +94,20 @@ public class StartTestItemRQ extends StartRQ {
     return name;
   }
 
-  private static class UpperCaseTypeDeserializer extends JsonDeserializer<String> {
+  private static class UpperCaseTypeDeserializer extends ValueDeserializer<String> {
 
     @Override
-    public String deserialize(JsonParser parser, DeserializationContext context) throws IOException {
-      ObjectCodec oc = parser.getCodec();
-      JsonNode node = oc.readTree(parser);
-      return node.asText().toUpperCase();
+    public String deserialize(JsonParser parser, DeserializationContext context) {
+      JsonNode node = context.readTree(parser);
+      return node.asString().toUpperCase();
     }
 
   }
 
-  private static class UpperCaseTypeSerializer extends JsonSerializer<String> {
+  private static class UpperCaseTypeSerializer extends ValueSerializer<String> {
 
     @Override
-    public void serialize(String type, JsonGenerator jsonGenerator, SerializerProvider serializerProvider)
-        throws IOException {
+    public void serialize(String type, JsonGenerator jsonGenerator, SerializationContext serializerProvider) {
       if (type != null) {
         jsonGenerator.writeString(type.toUpperCase());
       }

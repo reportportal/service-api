@@ -30,13 +30,14 @@ import org.jooq.QueryPart;
 import org.jooq.Record;
 import org.jooq.SQL;
 import org.jooq.Schema;
-import org.jooq.Select;
 import org.jooq.Stringly;
 import org.jooq.Table;
 import org.jooq.TableField;
+import org.jooq.TableLike;
 import org.jooq.TableOptions;
 import org.jooq.UniqueKey;
 import org.jooq.impl.DSL;
+import org.jooq.impl.Internal;
 import org.jooq.impl.SQLDataType;
 import org.jooq.impl.TableImpl;
 
@@ -65,7 +66,7 @@ public class JApiKeys extends TableImpl<JApiKeysRecord> {
     /**
      * The column <code>public.api_keys.id</code>.
      */
-    public final TableField<JApiKeysRecord, Long> ID = createField(DSL.name("id"), SQLDataType.BIGINT.nullable(false).identity(true), this, "");
+    public final TableField<JApiKeysRecord, Long> ID = createField(DSL.name("id"), SQLDataType.BIGINT.nullable(false).generatedByDefaultAsIdentity(), this, "");
 
     /**
      * The column <code>public.api_keys.name</code>.
@@ -240,7 +241,7 @@ public class JApiKeys extends TableImpl<JApiKeysRecord> {
      */
     @Override
     public JApiKeys where(Condition condition) {
-        return new JApiKeys(getQualifiedName(), aliased() ? this : null, null, condition);
+        return new JApiKeys(getQualifiedName(), aliased() ? this : null, null, Internal.condition(this, condition));
     }
 
     /**
@@ -307,7 +308,7 @@ public class JApiKeys extends TableImpl<JApiKeysRecord> {
      * Create an inline derived table from this table
      */
     @Override
-    public JApiKeys whereExists(Select<?> select) {
+    public JApiKeys whereExists(TableLike<?> select) {
         return where(DSL.exists(select));
     }
 
@@ -315,7 +316,7 @@ public class JApiKeys extends TableImpl<JApiKeysRecord> {
      * Create an inline derived table from this table
      */
     @Override
-    public JApiKeys whereNotExists(Select<?> select) {
+    public JApiKeys whereNotExists(TableLike<?> select) {
         return where(DSL.notExists(select));
     }
 }

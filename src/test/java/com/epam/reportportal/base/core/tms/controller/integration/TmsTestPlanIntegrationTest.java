@@ -26,7 +26,6 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestC
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCaseAttribute;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestPlan;
 import com.epam.reportportal.base.ws.BaseMvcTest;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import java.util.Arrays;
@@ -35,7 +34,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -43,10 +41,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MvcResult;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
- * Integration tests for TMS Test Plan Controller. Tests cover CRUD operations, batch operations,
- * and test plan duplication functionality.
+ * Integration tests for TMS Test Plan Controller. Tests cover CRUD operations, batch operations, and test plan
+ * duplication functionality.
  *
  * @author <a href="mailto:konstantin_shaplyko@epam.com">Konstantin Shaplyko</a>
  */
@@ -64,7 +63,7 @@ public class TmsTestPlanIntegrationTest extends BaseMvcTest {
   private static final Long TEST_CASE_NOT_IN_PLAN_ID = 204L;
   private static final Long NON_EXISTENT_TEST_PLAN_ID = 99999L;
   private static final Long NON_EXISTENT_TEST_CASE_ID = 99999L;
-  private final ObjectMapper objectMapper = new ObjectMapper();
+  private final JsonMapper objectMapper = JsonMapper.builder().build();
   @PersistenceContext
   private EntityManager entityManager;
   @Autowired
@@ -1553,7 +1552,7 @@ public class TmsTestPlanIntegrationTest extends BaseMvcTest {
         .andExpect(jsonPath("$.content.length()").value(1))
         .andExpect(jsonPath("$.content[0].id").value(FOLDER_303_ID));
   }
-  
+
   @Test
   void getTestPlanNamesIntegrationTest() throws Exception {
     mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-plan/name")

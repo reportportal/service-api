@@ -9,9 +9,11 @@ import com.epam.reportportal.base.infrastructure.persistence.jooq.JPublic;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.Keys;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTestItem.JTestItemPath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.records.JItemAttributeRecord;
+
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+
 import org.jooq.Condition;
 import org.jooq.Field;
 import org.jooq.ForeignKey;
@@ -25,13 +27,14 @@ import org.jooq.QueryPart;
 import org.jooq.Record;
 import org.jooq.SQL;
 import org.jooq.Schema;
-import org.jooq.Select;
 import org.jooq.Stringly;
 import org.jooq.Table;
 import org.jooq.TableField;
+import org.jooq.TableLike;
 import org.jooq.TableOptions;
 import org.jooq.UniqueKey;
 import org.jooq.impl.DSL;
+import org.jooq.impl.Internal;
 import org.jooq.impl.SQLDataType;
 import org.jooq.impl.TableImpl;
 
@@ -60,7 +63,7 @@ public class JItemAttribute extends TableImpl<JItemAttributeRecord> {
     /**
      * The column <code>public.item_attribute.id</code>.
      */
-    public final TableField<JItemAttributeRecord, Long> ID = createField(DSL.name("id"), SQLDataType.BIGINT.nullable(false).identity(true), this, "");
+    public final TableField<JItemAttributeRecord, Long> ID = createField(DSL.name("id"), SQLDataType.BIGINT.nullable(false).generatedByDefaultAsIdentity(), this, "");
 
     /**
      * The column <code>public.item_attribute.key</code>.
@@ -75,8 +78,7 @@ public class JItemAttribute extends TableImpl<JItemAttributeRecord> {
     /**
      * The column <code>public.item_attribute.item_id</code>.
      */
-    public final TableField<JItemAttributeRecord, Long> ITEM_ID = createField(DSL.name("item_id"),
-        SQLDataType.BIGINT.nullable(false), this, "");
+    public final TableField<JItemAttributeRecord, Long> ITEM_ID = createField(DSL.name("item_id"), SQLDataType.BIGINT.nullable(false), this, "");
 
     /**
      * The column <code>public.item_attribute.system</code>.
@@ -152,7 +154,7 @@ public class JItemAttribute extends TableImpl<JItemAttributeRecord> {
 
     @Override
     public List<Index> getIndexes() {
-      return Arrays.asList(Indexes.ITEM_ATTR_TI_IDX, Indexes.ITEM_ATTRIBUTE_KEY_VALUE_IDX);
+        return Arrays.asList(Indexes.ITEM_ATTR_TI_IDX, Indexes.ITEM_ATTRIBUTE_KEY_VALUE_IDX);
     }
 
     @Override
@@ -167,7 +169,7 @@ public class JItemAttribute extends TableImpl<JItemAttributeRecord> {
 
     @Override
     public List<ForeignKey<JItemAttributeRecord, ?>> getReferences() {
-      return Arrays.asList(Keys.ITEM_ATTRIBUTE__ITEM_ATTRIBUTE_ITEM_ID_FKEY);
+        return Arrays.asList(Keys.ITEM_ATTRIBUTE__ITEM_ATTRIBUTE_ITEM_ID_FKEY);
     }
 
     private transient JTestItemPath _testItem;
@@ -226,7 +228,7 @@ public class JItemAttribute extends TableImpl<JItemAttributeRecord> {
      */
     @Override
     public JItemAttribute where(Condition condition) {
-        return new JItemAttribute(getQualifiedName(), aliased() ? this : null, null, condition);
+        return new JItemAttribute(getQualifiedName(), aliased() ? this : null, null, Internal.condition(this, condition));
     }
 
     /**
@@ -293,7 +295,7 @@ public class JItemAttribute extends TableImpl<JItemAttributeRecord> {
      * Create an inline derived table from this table
      */
     @Override
-    public JItemAttribute whereExists(Select<?> select) {
+    public JItemAttribute whereExists(TableLike<?> select) {
         return where(DSL.exists(select));
     }
 
@@ -301,7 +303,7 @@ public class JItemAttribute extends TableImpl<JItemAttributeRecord> {
      * Create an inline derived table from this table
      */
     @Override
-    public JItemAttribute whereNotExists(Select<?> select) {
+    public JItemAttribute whereNotExists(TableLike<?> select) {
         return where(DSL.notExists(select));
     }
 }

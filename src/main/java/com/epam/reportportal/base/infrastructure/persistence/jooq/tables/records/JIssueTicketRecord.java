@@ -74,6 +74,6 @@ public class JIssueTicketRecord extends UpdatableRecordImpl<JIssueTicketRecord> 
 
         setIssueId(issueId);
         setTicketId(ticketId);
-        resetChangedOnNotNull();
+        resetTouchedOnNotNull();
     }
 }

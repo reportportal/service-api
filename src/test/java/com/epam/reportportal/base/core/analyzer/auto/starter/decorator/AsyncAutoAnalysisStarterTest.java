@@ -50,7 +50,7 @@ class AsyncAutoAnalysisStarterTest {
         "user"
     );
 
-    doCallRealMethod().when(taskExecutor).execute(any());
+    doCallRealMethod().when(taskExecutor).execute(any(Runnable.class));
 
     asyncAutoAnalysisStarter.start(config);
 

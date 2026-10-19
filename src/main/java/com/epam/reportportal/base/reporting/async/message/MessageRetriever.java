@@ -16,8 +16,6 @@
 
 package com.epam.reportportal.base.reporting.async.message;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Validator;
@@ -28,6 +26,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.Message;
 import org.springframework.stereotype.Component;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Deserializes raw RabbitMQ {@link org.springframework.amqp.core.Message} payloads into typed reporting request
@@ -41,10 +41,10 @@ public class MessageRetriever {
   private static final Logger LOGGER = LoggerFactory.getLogger(
       MessageRetriever.class);
 
-  private final ObjectMapper objectMapper;
+  private final JsonMapper objectMapper;
   private final Validator validator;
 
-  public MessageRetriever(ObjectMapper objectMapper, Validator validator) {
+  public MessageRetriever(JsonMapper objectMapper, Validator validator) {
     this.objectMapper = objectMapper;
     this.validator = validator;
   }
@@ -61,7 +61,7 @@ public class MessageRetriever {
     } catch (ConstraintViolationException e) {
       LOGGER.error("Incorrect incoming message. Message violations: {}",
           e.getMessage());
-    } catch (JsonProcessingException e) {
+    } catch (JacksonException e) {
       LOGGER.error("Incorrect json format of incoming message. Discarded message: {}",
           incomeMessage);
     }

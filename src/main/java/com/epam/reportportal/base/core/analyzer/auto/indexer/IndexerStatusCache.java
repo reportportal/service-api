@@ -18,7 +18,8 @@ package com.epam.reportportal.base.core.analyzer.auto.indexer;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import java.util.concurrent.TimeUnit;
+import java.time.Duration;
+import lombok.Getter;
 import org.springframework.stereotype.Service;
 
 /**
@@ -26,6 +27,7 @@ import org.springframework.stereotype.Service;
  *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
+@Getter
 @Service
 public class IndexerStatusCache {
 
@@ -38,8 +40,10 @@ public class IndexerStatusCache {
   private Cache<Long, Boolean> indexingStatus;
 
   public IndexerStatusCache() {
-    indexingStatus = CacheBuilder.newBuilder().maximumSize(MAXIMUM_SIZE)
-        .expireAfterWrite(CACHE_ITEM_LIVE, TimeUnit.MINUTES).build();
+    indexingStatus = CacheBuilder.newBuilder()
+        .maximumSize(MAXIMUM_SIZE)
+        .expireAfterWrite(Duration.ofMinutes(CACHE_ITEM_LIVE))
+        .build();
   }
 
   public void indexingStarted(Long projectId) {
@@ -50,7 +54,4 @@ public class IndexerStatusCache {
     indexingStatus.invalidate(projectId);
   }
 
-  public Cache<Long, Boolean> getIndexingStatus() {
-    return indexingStatus;
-  }
 }

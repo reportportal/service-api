@@ -106,6 +106,6 @@ public class JDashboardRecord extends UpdatableRecordImpl<JDashboardRecord> {
         setName(name);
         setDescription(description);
         setCreationDate(creationDate);
-        resetChangedOnNotNull();
+        resetTouchedOnNotNull();
     }
 }

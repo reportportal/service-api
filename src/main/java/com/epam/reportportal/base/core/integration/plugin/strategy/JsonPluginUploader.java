@@ -30,14 +30,15 @@ import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.util.JsonSchemaValidator;
 import com.epam.reportportal.base.ws.converter.builders.IntegrationTypeBuilder;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Uploads a plugin in JSON format. Validates the plugin manifest against a JSON schema and saves the integration type
@@ -49,7 +50,7 @@ import org.springframework.stereotype.Service;
 public class JsonPluginUploader implements PluginUploader {
 
   private final IntegrationTypeRepository integrationTypeRepository;
-  private final ObjectMapper objectMapper;
+  private final JsonMapper objectMapper;
   private final JsonSchemaValidator schemaValidator;
 
   /**
@@ -62,7 +63,7 @@ public class JsonPluginUploader implements PluginUploader {
   @Autowired
   public JsonPluginUploader(
       IntegrationTypeRepository integrationTypeRepository,
-      ObjectMapper objectMapper,
+      JsonMapper objectMapper,
       JsonSchemaValidator schemaValidator
   ) {
     this.integrationTypeRepository = integrationTypeRepository;
@@ -84,7 +85,7 @@ public class JsonPluginUploader implements PluginUploader {
       throw new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR, Suppliers.formattedSupplier(
           e.getCause().getMessage()
       ));
-    } catch (IOException e) {
+    } catch (IOException | JacksonException e) {
       throw new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR, Suppliers.formattedSupplier(
           "Manifest file '{}' read error: {}",
           fileName,
@@ -100,7 +101,7 @@ public class JsonPluginUploader implements PluginUploader {
     return manifest;
   }
 
-  private void validateManifest(Map<String, Object> manifest) throws IOException {
+  private void validateManifest(Map<String, Object> manifest) {
     var schemaLocation = ofNullable(manifest.get("$schema"))
         .orElseThrow(() -> new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR,
             Suppliers.formattedSupplier("Schema location is not specified in manifest"))

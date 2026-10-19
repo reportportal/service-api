@@ -90,14 +90,10 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.widget.conte
 import com.epam.reportportal.base.infrastructure.persistence.entity.widget.content.healthcheck.HealthCheckTableStatisticsContent;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.google.common.base.CaseFormat;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.sql.Timestamp;
@@ -124,6 +120,8 @@ import org.jooq.Record;
 import org.jooq.RecordMapper;
 import org.jooq.Result;
 import org.jooq.impl.DSL;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Util class for widget content repository.
@@ -132,12 +130,10 @@ import org.jooq.impl.DSL;
  */
 public class WidgetContentUtil {
 
-  private static final ObjectMapper objectMapper;
+  private static final JsonMapper objectMapper;
 
   static {
-    objectMapper = new ObjectMapper();
-    objectMapper.registerModule(new JavaTimeModule());
-    objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    objectMapper = JsonMapper.builder().build();
   }
 
   private WidgetContentUtil() {
@@ -272,7 +268,7 @@ public class WidgetContentUtil {
       try {
         ActivityDetails details = objectMapper.readValue(s, ActivityDetails.class);
         activityResource.setDetails(details);
-      } catch (IOException e) {
+      } catch (JacksonException e) {
         throw new ReportPortalException(ErrorType.OBJECT_RETRIEVAL_ERROR, "Activity details");
       }
     });

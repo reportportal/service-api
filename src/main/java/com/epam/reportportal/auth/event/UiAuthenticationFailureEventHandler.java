@@ -23,11 +23,10 @@ import com.google.common.net.HttpHeaders;
 import jakarta.inject.Inject;
 import jakarta.inject.Provider;
 import jakarta.servlet.http.HttpServletRequest;
-import java.util.concurrent.TimeUnit;
+import java.time.Duration;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.springframework.context.ApplicationListener;
 import org.springframework.security.authentication.event.AuthenticationFailureBadCredentialsEvent;
-import org.springframework.security.web.util.matcher.RequestHeaderRequestMatcher;
 import org.springframework.stereotype.Component;
 
 /**
@@ -42,9 +41,6 @@ public class UiAuthenticationFailureEventHandler implements
   private static final long MAXIMUM_SIZE = 5000;
   private static final long EXPIRATION_SECONDS = 30;
   private static final int MAX_ATTEMPTS = 3;
-  private static final RequestHeaderRequestMatcher AJAX_REQUEST_MATCHER = new RequestHeaderRequestMatcher(
-      HttpHeaders.X_REQUESTED_WITH,
-      "XMLHttpRequest");
 
   @Inject
   private Provider<HttpServletRequest> request;
@@ -54,8 +50,8 @@ public class UiAuthenticationFailureEventHandler implements
   public UiAuthenticationFailureEventHandler() {
     super();
     failures = CacheBuilder.newBuilder().maximumSize(MAXIMUM_SIZE)
-        .expireAfterWrite(EXPIRATION_SECONDS, TimeUnit.SECONDS)
-        .build(new CacheLoader<String, AtomicInteger>() {
+        .expireAfterWrite(Duration.ofSeconds(EXPIRATION_SECONDS))
+        .build(new CacheLoader<>() {
           @Override
           public AtomicInteger load(String key) {
             return new AtomicInteger(0);

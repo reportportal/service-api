@@ -30,12 +30,12 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.user.Project
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.util.SecurityContextUtils;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Handler for patch operations related to project users. Extends {@link BasePatchProjectHandler} to provide
@@ -63,7 +63,7 @@ public class PatchProjectUserHandler extends BasePatchProjectHandler {
       UserRepository userRepository,
       ProjectService projectService,
       ProjectUserRepository projectUserRepository,
-      ObjectMapper objectMapper,
+      JsonMapper objectMapper,
       OrganizationRepositoryCustom organizationRepository,
       ProjectRepository projectRepository,
       ProjectUserAssignmentHelper assignmentHelper

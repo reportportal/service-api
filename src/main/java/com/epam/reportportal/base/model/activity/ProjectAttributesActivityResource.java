@@ -17,10 +17,10 @@
 package com.epam.reportportal.base.model.activity;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import java.util.HashMap;
 import java.util.Map;
 import lombok.Data;
+import tools.jackson.databind.annotation.JsonDeserialize;
 
 /**
  * Activity details when project attributes are modified.

@@ -211,6 +211,6 @@ public class JLogRecord extends UpdatableRecordImpl<JLogRecord> {
         setAttachmentId(attachmentId);
         setProjectId(projectId);
         setClusterId(clusterId);
-        resetChangedOnNotNull();
+        resetTouchedOnNotNull();
     }
 }

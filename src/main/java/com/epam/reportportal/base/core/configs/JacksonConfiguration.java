@@ -18,18 +18,13 @@ package com.epam.reportportal.base.core.configs;
 
 import com.epam.reportportal.base.ws.resolver.JacksonViewAwareModule;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.MapperFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector;
-import com.fasterxml.jackson.databind.json.JsonMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import tools.jackson.databind.MapperFeature;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
- * ObjectMapper and Jackson modules for API and events.
+ * JsonMapper and Jackson modules for API and events.
  *
  * @author Andrei Varabyeu
  */
@@ -37,21 +32,22 @@ import org.springframework.context.annotation.Configuration;
 public class JacksonConfiguration {
 
   /**
+   * Disables {@link MapperFeature#DETECT_PARAMETER_NAMES} so Jackson 3 keeps field defaults of OpenAPI models (e.g.
+   * {@code SearchCriteriaRQ.limit = 300}) instead of overriding them with {@code null} via the all-args constructor.
+   *
    * @return Configured object mapper
    */
   @Bean(name = "objectMapper")
-  public ObjectMapper objectMapper() {
-    ObjectMapper om = JsonMapper.builder()
-        .annotationIntrospector(new JacksonAnnotationIntrospector())
-        .configure(MapperFeature.DEFAULT_VIEW_INCLUSION, true)
-        .serializationInclusion(Include.NON_NULL)
-        .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-        .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
+  public JsonMapper objectMapper() {
+    JsonMapper jsonMapper = JsonMapper.builder()
+        .disable(MapperFeature.DETECT_PARAMETER_NAMES)
+        .enable(MapperFeature.DEFAULT_VIEW_INCLUSION)
+        .changeDefaultPropertyInclusion(incl -> incl.withValueInclusion(Include.NON_NULL))
+        .disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
         .build();
 
-    om.registerModule(new JacksonViewAwareModule(om));
-    om.registerModule(new JavaTimeModule());
-
-    return om;
+    return jsonMapper.rebuild()
+        .addModule(new JacksonViewAwareModule(jsonMapper))
+        .build();
   }
 }

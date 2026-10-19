@@ -16,10 +16,10 @@
 
 package com.epam.reportportal.base.infrastructure.persistence.entity.integration;
 
-import com.epam.reportportal.base.infrastructure.persistence.commons.JsonbUserType;
 import java.io.Serializable;
 import java.util.Map;
 import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -33,13 +33,8 @@ import lombok.Setter;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class IntegrationParams extends JsonbUserType<IntegrationParams> implements Serializable {
+@EqualsAndHashCode
+public class IntegrationParams implements Serializable {
 
   private Map<String, Object> params;
-
-  @Override
-  public Class<IntegrationParams> returnedClass() {
-    return IntegrationParams.class;
-  }
-
 }

@@ -42,8 +42,6 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.enums.Status
 import com.epam.reportportal.base.reporting.ItemAttributesRQ;
 import com.epam.reportportal.base.reporting.Mode;
 import com.epam.reportportal.base.ws.BaseMvcTest;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import java.util.ArrayList;
@@ -55,6 +53,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.transaction.annotation.Transactional;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.json.JsonMapper;
 
 @Sql("/db/tms/tms-manual-launch/tms-manual-launch-fill.sql")
 @ExtendWith(MockitoExtension.class)
@@ -62,7 +62,7 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
 
   private static final String SUPERADMIN_PROJECT_KEY = "superadmin_personal";
   private static final String DEFAULT_PROJECT_KEY = "default_personal";
-  private final ObjectMapper mapper = new ObjectMapper();
+  private final JsonMapper mapper = JsonMapper.builder().build();
 
   @Autowired
   private LaunchRepository launchRepository;

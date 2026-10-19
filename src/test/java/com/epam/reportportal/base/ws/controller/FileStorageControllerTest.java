@@ -38,7 +38,6 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.jdbc.Sql;
-import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 /**
@@ -54,7 +53,7 @@ class FileStorageControllerTest extends BaseMvcTest {
 
   @Test
   void userPhoto() throws Exception {
-    final MockHttpServletRequestBuilder requestBuilder = MockMvcRequestBuilders.multipart(
+    var requestBuilder = MockMvcRequestBuilders.multipart(
             "/users/2/avatar")
         .file(new MockMultipartFile("file", "file", "image/png",
             new ClassPathResource("image/image.png").getInputStream()))
@@ -72,7 +71,7 @@ class FileStorageControllerTest extends BaseMvcTest {
 
   @Test
   void uploadLargeUserPhoto() throws Exception {
-    final MockHttpServletRequestBuilder requestBuilder = MockMvcRequestBuilders.multipart(
+    var requestBuilder = MockMvcRequestBuilders.multipart(
             "/users/2/avatar")
         .file(new MockMultipartFile("file",
             new ClassPathResource("image/large_image.png").getInputStream()))
@@ -84,7 +83,7 @@ class FileStorageControllerTest extends BaseMvcTest {
 
   @Test
   void cleanAttachmentsByCvsForbidden() throws Exception {
-    final MockHttpServletRequestBuilder requestBuilder = MockMvcRequestBuilders.multipart(
+    var requestBuilder = MockMvcRequestBuilders.multipart(
             "/v1/data/clean")
         .file(new MockMultipartFile("file",
             new ClassPathResource("attachments.csv").getInputStream()))
@@ -95,7 +94,7 @@ class FileStorageControllerTest extends BaseMvcTest {
 
   @Test
   void cleanAttachmentsByCvs() throws Exception {
-    final MockHttpServletRequestBuilder requestBuilder = MockMvcRequestBuilders.multipart(
+    var requestBuilder = MockMvcRequestBuilders.multipart(
             "/v1/data/clean")
         .file(new MockMultipartFile("file",
             new ClassPathResource("attachments.csv").getInputStream()))
@@ -106,7 +105,7 @@ class FileStorageControllerTest extends BaseMvcTest {
 
   @Test
   void uploadNotImage() throws Exception {
-    final MockHttpServletRequestBuilder requestBuilder = MockMvcRequestBuilders.multipart(
+    var requestBuilder = MockMvcRequestBuilders.multipart(
             "/users/2/avatar")
         .file(new MockMultipartFile("file", "text.txt", "text/plain",
             "test".getBytes(StandardCharsets.UTF_8)))

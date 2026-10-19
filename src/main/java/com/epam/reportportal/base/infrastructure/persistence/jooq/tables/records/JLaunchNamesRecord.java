@@ -64,6 +64,6 @@ public class JLaunchNamesRecord extends TableRecordImpl<JLaunchNamesRecord> {
 
         setSenderCaseId(senderCaseId);
         setLaunchName(launchName);
-        resetChangedOnNotNull();
+        resetTouchedOnNotNull();
     }
 }

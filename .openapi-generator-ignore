@@ -1,0 +1,3 @@
+# Hand-written: carries the Modulith @ApplicationModule (and @NullMarked) for the api package.
+# Patterns are relative to this file, not to the generator's output directory.
+build/generated/src/main/java/com/epam/reportportal/api/package-info.java

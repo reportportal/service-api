@@ -26,6 +26,7 @@ import static com.epam.reportportal.base.infrastructure.persistence.jooq.tables.
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTestItem.TEST_ITEM;
 import static java.util.Optional.ofNullable;
 import static org.jooq.impl.DSL.field;
+import static org.jooq.impl.DSL.lower;
 
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.query.JoinEntity;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.query.QuerySupplier;
@@ -63,8 +64,8 @@ import org.springframework.data.domain.Sort;
 public class QueryBuilder {
 
   /**
-   * Key word for statistics criteria. Query builder works a little bit in another way with
-   * statistics criteria. It implements kind of pivot using PostgerSQL possibilities
+   * Key word for statistics criteria. Query builder works a little bit in another way with statistics criteria. It
+   * implements kind of pivot using PostgerSQL possibilities
    */
   public final static String STATISTICS_KEY = "statistics";
   private final static Map<FilterTarget, List<JoinEntity>> STATISTICS_TARGET_MAPPING = ImmutableMap.<FilterTarget, List<JoinEntity>>builder()
@@ -267,8 +268,8 @@ public class QueryBuilder {
       }
       Field<?> sortField = field(criteria.getAggregateCriteria());
 
-      if (String.class.equals(criteria.getDataType())) {
-        sortField = sortField.lower();
+      if (String.class.equals(criteria.getDataType()) && !FilterRules.filterForArrayAggregation().test(criteria)) {
+        sortField = lower(sortField.coerce(String.class));
       }
 
       query.addOrderBy(

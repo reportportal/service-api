@@ -10,9 +10,11 @@ import com.epam.reportportal.base.infrastructure.persistence.jooq.Keys;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JProject.JProjectPath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTestCase.JTmsTestCasePath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.records.JTmsTestFolderRecord;
+
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+
 import org.jooq.Condition;
 import org.jooq.Field;
 import org.jooq.ForeignKey;
@@ -26,13 +28,14 @@ import org.jooq.QueryPart;
 import org.jooq.Record;
 import org.jooq.SQL;
 import org.jooq.Schema;
-import org.jooq.Select;
 import org.jooq.Stringly;
 import org.jooq.Table;
 import org.jooq.TableField;
+import org.jooq.TableLike;
 import org.jooq.TableOptions;
 import org.jooq.UniqueKey;
 import org.jooq.impl.DSL;
+import org.jooq.impl.Internal;
 import org.jooq.impl.SQLDataType;
 import org.jooq.impl.TableImpl;
 
@@ -61,7 +64,7 @@ public class JTmsTestFolder extends TableImpl<JTmsTestFolderRecord> {
     /**
      * The column <code>public.tms_test_folder.id</code>.
      */
-    public final TableField<JTmsTestFolderRecord, Long> ID = createField(DSL.name("id"), SQLDataType.BIGINT.nullable(false).identity(true), this, "");
+    public final TableField<JTmsTestFolderRecord, Long> ID = createField(DSL.name("id"), SQLDataType.BIGINT.nullable(false).generatedByDefaultAsIdentity(), this, "");
 
     /**
      * The column <code>public.tms_test_folder.name</code>.
@@ -72,6 +75,11 @@ public class JTmsTestFolder extends TableImpl<JTmsTestFolderRecord> {
      * The column <code>public.tms_test_folder.description</code>.
      */
     public final TableField<JTmsTestFolderRecord, String> DESCRIPTION = createField(DSL.name("description"), SQLDataType.VARCHAR(255), this, "");
+
+    /**
+     * The column <code>public.tms_test_folder.external_id</code>.
+     */
+    public final TableField<JTmsTestFolderRecord, String> EXTERNAL_ID = createField(DSL.name("external_id"), SQLDataType.VARCHAR(255), this, "");
 
     /**
      * The column <code>public.tms_test_folder.index</code>.
@@ -257,7 +265,7 @@ public class JTmsTestFolder extends TableImpl<JTmsTestFolderRecord> {
      */
     @Override
     public JTmsTestFolder where(Condition condition) {
-        return new JTmsTestFolder(getQualifiedName(), aliased() ? this : null, null, condition);
+        return new JTmsTestFolder(getQualifiedName(), aliased() ? this : null, null, Internal.condition(this, condition));
     }
 
     /**
@@ -324,7 +332,7 @@ public class JTmsTestFolder extends TableImpl<JTmsTestFolderRecord> {
      * Create an inline derived table from this table
      */
     @Override
-    public JTmsTestFolder whereExists(Select<?> select) {
+    public JTmsTestFolder whereExists(TableLike<?> select) {
         return where(DSL.exists(select));
     }
 
@@ -332,7 +340,7 @@ public class JTmsTestFolder extends TableImpl<JTmsTestFolderRecord> {
      * Create an inline derived table from this table
      */
     @Override
-    public JTmsTestFolder whereNotExists(Select<?> select) {
+    public JTmsTestFolder whereNotExists(TableLike<?> select) {
         return where(DSL.notExists(select));
     }
 }

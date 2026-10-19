@@ -105,6 +105,6 @@ public class JTmsEnvironmentDatasetRecord extends UpdatableRecordImpl<JTmsEnviro
         setEnvironmentId(environmentId);
         setDatasetId(datasetId);
         setDatasetType(datasetType);
-        resetChangedOnNotNull();
+        resetTouchedOnNotNull();
     }
 }

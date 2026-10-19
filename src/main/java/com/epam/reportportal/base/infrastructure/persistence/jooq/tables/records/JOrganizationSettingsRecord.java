@@ -104,6 +104,6 @@ public class JOrganizationSettingsRecord extends UpdatableRecordImpl<JOrganizati
         setOrganizationId(organizationId);
         setSettingKey(settingKey);
         setSettingValue(settingValue);
-        resetChangedOnNotNull();
+        resetTouchedOnNotNull();
     }
 }

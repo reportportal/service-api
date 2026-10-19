@@ -32,8 +32,6 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.organization
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.User;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -43,6 +41,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ResourceUtils;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Default {@link com.epam.reportportal.base.demodata.service.DemoDataFacade} that generates demo launches and logs
@@ -55,7 +56,7 @@ public class DefaultDemoDataFacade implements DemoDataFacade {
 
   public static final int LAUNCH_LOGS_COUNT = 10;
 
-  private final ObjectMapper objectMapper;
+  private final JsonMapper objectMapper;
 
   private final DemoDataLaunchService demoDataLaunchService;
   private final DemoLogsService demoLogsService;
@@ -72,7 +73,7 @@ public class DefaultDemoDataFacade implements DemoDataFacade {
   private String[] sources;
 
   public DefaultDemoDataFacade(DemoDataLaunchService demoDataLaunchService,
-      DemoLogsService demoLogsService, ObjectMapper objectMapper,
+      DemoLogsService demoLogsService, JsonMapper objectMapper,
       SuiteGeneratorResolver suiteGeneratorResolver, UserRepository userRepository,
       @Qualifier("demoDataTaskExecutor") TaskExecutor executor) {
     this.demoDataLaunchService = demoDataLaunchService;
@@ -89,11 +90,13 @@ public class DefaultDemoDataFacade implements DemoDataFacade {
     return CompletableFuture.supplyAsync(
         () -> Stream.of(sources).map(source -> resourceFolder + source).map(source -> {
           try {
-            final DemoLaunch demoLaunch = objectMapper.readValue(ResourceUtils.getURL(source),
-                new TypeReference<DemoLaunch>() {
-                });
+            final DemoLaunch demoLaunch;
+            try (var input = ResourceUtils.getURL(source).openStream()) {
+              demoLaunch = objectMapper.readValue(input, new TypeReference<>() {
+              });
+            }
             return generateLaunch(demoLaunch, user, membershipDetails, baseUrl);
-          } catch (IOException e) {
+          } catch (IOException | JacksonException e) {
             throw new ReportPortalException("Unable to load suites description. " + e.getMessage(),
                 e);
           }

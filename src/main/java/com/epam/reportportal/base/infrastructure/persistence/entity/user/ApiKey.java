@@ -16,9 +16,7 @@
 
 package com.epam.reportportal.base.infrastructure.persistence.entity.user;
 
-import com.epam.reportportal.base.infrastructure.persistence.dao.converters.JpaInstantConverter;
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -26,6 +24,9 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.Instant;
 import java.time.LocalDate;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
  * Representation of ApiKeys table.
@@ -34,6 +35,9 @@ import java.time.LocalDate;
  */
 @Entity
 @Table(name = "api_keys", schema = "public")
+@Setter
+@Getter
+@NoArgsConstructor
 public class ApiKey {
 
   @Id
@@ -48,7 +52,6 @@ public class ApiKey {
   private String hash;
 
   @Column(name = "created_at")
-  @Convert(converter = JpaInstantConverter.class)
   private Instant createdAt;
 
   @Column(name = "user_id")
@@ -56,55 +59,4 @@ public class ApiKey {
 
   @Column(name = "last_used_at")
   private LocalDate lastUsedAt;
-
-  public ApiKey() {
-  }
-
-  public Long getId() {
-    return id;
-  }
-
-  public void setId(Long id) {
-    this.id = id;
-  }
-
-  public String getName() {
-    return name;
-  }
-
-  public void setName(String name) {
-    this.name = name;
-  }
-
-  public String getHash() {
-    return hash;
-  }
-
-  public void setHash(String hash) {
-    this.hash = hash;
-  }
-
-  public Instant getCreatedAt() {
-    return createdAt;
-  }
-
-  public void setCreatedAt(Instant createdAt) {
-    this.createdAt = createdAt;
-  }
-
-  public Long getUserId() {
-    return userId;
-  }
-
-  public void setUserId(Long userId) {
-    this.userId = userId;
-  }
-
-  public LocalDate getLastUsedAt() {
-    return lastUsedAt;
-  }
-
-  public void setLastUsedAt(LocalDate lastUsedAt) {
-    this.lastUsedAt = lastUsedAt;
-  }
 }

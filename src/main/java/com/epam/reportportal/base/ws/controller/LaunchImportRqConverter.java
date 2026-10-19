@@ -17,8 +17,6 @@
 package com.epam.reportportal.base.ws.controller;
 
 import com.epam.reportportal.base.model.launch.LaunchImportRQ;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.Part;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
@@ -30,6 +28,8 @@ import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Converts, parses, and validates raw JSON strings into {@link LaunchImportRQ} instances for multipart import
@@ -39,7 +39,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class LaunchImportRqConverter {
 
-  private final ObjectMapper objectMapper;
+  private final JsonMapper objectMapper;
   private final Validator validator;
 
   /**
@@ -75,7 +75,7 @@ public class LaunchImportRqConverter {
         throw new ConstraintViolationException(violations);
       }
       return launchImportRq;
-    } catch (JsonProcessingException e) {
+    } catch (JacksonException e) {
       throw new IllegalArgumentException("Unable to parse launchImportRq: " + e.getOriginalMessage(), e);
     }
   }

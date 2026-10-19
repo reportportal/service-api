@@ -1,50 +1,29 @@
 package com.epam.reportportal.base.infrastructure.persistence.entity.tms.sync;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
+import static org.assertj.core.api.Assertions.assertThat;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import java.sql.PreparedStatement;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
-import org.postgresql.util.PGobject;
+import tools.jackson.databind.json.JsonMapper;
 
 class SyncCountersTest {
 
-  private final ObjectMapper objectMapper = new ObjectMapper();
+  private final JsonMapper jsonMapper = JsonMapper.builder().build();
 
   @Test
-  void shouldSerializeOnlyPublicSyncStatistics() throws Exception {
+  @DisplayName("Should serialize only public sync statistics")
+  void serializeWhenCountersProvidedShouldContainOnlyPublicStatistics() {
+    // Given
     var counters = new SyncCounters(4, 2, 1, 1);
 
-    var serializedCounters = objectMapper.readTree(objectMapper.writeValueAsString(counters));
+    // When
+    var json = jsonMapper.readTree(jsonMapper.writeValueAsString(counters));
 
-    assertTrue(serializedCounters.has("processed"));
-    assertTrue(serializedCounters.has("imported"));
-    assertTrue(serializedCounters.has("skipped"));
-    assertTrue(serializedCounters.has("failed"));
-    assertFalse(serializedCounters.has("total"));
-    assertFalse(serializedCounters.has("sqlType"));
-  }
-
-  @Test
-  void shouldNotPersistSqlTypeIntoJsonbColumn() throws Exception {
-    var counters = new SyncCounters(4, 2, 1, 1);
-    var statement = mock(PreparedStatement.class);
-
-    counters.nullSafeSet(statement, counters, 1, null);
-
-    var captor = ArgumentCaptor.forClass(Object.class);
-    verify(statement).setObject(any(Integer.class), captor.capture());
-    var json = objectMapper.readTree(((PGobject) captor.getValue()).getValue());
-    assertEquals(4, json.get("processed").asInt());
-    assertEquals(2, json.get("imported").asInt());
-    assertEquals(1, json.get("skipped").asInt());
-    assertEquals(1, json.get("failed").asInt());
-    assertFalse(json.has("sqlType"));
+    // Then
+    assertThat(json.propertyNames()).containsExactlyInAnyOrder("processed", "imported", "skipped", "failed");
+    assertThat(json.get("processed").asInt()).isEqualTo(4);
+    assertThat(json.get("imported").asInt()).isEqualTo(2);
+    assertThat(json.get("skipped").asInt()).isEqualTo(1);
+    assertThat(json.get("failed").asInt()).isEqualTo(1);
   }
 }

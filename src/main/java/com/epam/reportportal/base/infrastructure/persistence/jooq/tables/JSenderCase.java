@@ -32,13 +32,14 @@ import org.jooq.QueryPart;
 import org.jooq.Record;
 import org.jooq.SQL;
 import org.jooq.Schema;
-import org.jooq.Select;
 import org.jooq.Stringly;
 import org.jooq.Table;
 import org.jooq.TableField;
+import org.jooq.TableLike;
 import org.jooq.TableOptions;
 import org.jooq.UniqueKey;
 import org.jooq.impl.DSL;
+import org.jooq.impl.Internal;
 import org.jooq.impl.SQLDataType;
 import org.jooq.impl.TableImpl;
 
@@ -67,7 +68,7 @@ public class JSenderCase extends TableImpl<JSenderCaseRecord> {
     /**
      * The column <code>public.sender_case.id</code>.
      */
-    public final TableField<JSenderCaseRecord, Long> ID = createField(DSL.name("id"), SQLDataType.BIGINT.nullable(false).identity(true), this, "");
+    public final TableField<JSenderCaseRecord, Long> ID = createField(DSL.name("id"), SQLDataType.BIGINT.nullable(false).generatedByDefaultAsIdentity(), this, "");
 
     /**
      * The column <code>public.sender_case.send_case</code>.
@@ -77,7 +78,7 @@ public class JSenderCase extends TableImpl<JSenderCaseRecord> {
     /**
      * The column <code>public.sender_case.project_id</code>.
      */
-    public final TableField<JSenderCaseRecord, Long> PROJECT_ID = createField(DSL.name("project_id"), SQLDataType.BIGINT.nullable(false).identity(true), this, "");
+    public final TableField<JSenderCaseRecord, Long> PROJECT_ID = createField(DSL.name("project_id"), SQLDataType.BIGINT.nullable(false).generatedByDefaultAsIdentity(), this, "");
 
     /**
      * The column <code>public.sender_case.enabled</code>.
@@ -286,7 +287,7 @@ public class JSenderCase extends TableImpl<JSenderCaseRecord> {
      */
     @Override
     public JSenderCase where(Condition condition) {
-        return new JSenderCase(getQualifiedName(), aliased() ? this : null, null, condition);
+        return new JSenderCase(getQualifiedName(), aliased() ? this : null, null, Internal.condition(this, condition));
     }
 
     /**
@@ -353,7 +354,7 @@ public class JSenderCase extends TableImpl<JSenderCaseRecord> {
      * Create an inline derived table from this table
      */
     @Override
-    public JSenderCase whereExists(Select<?> select) {
+    public JSenderCase whereExists(TableLike<?> select) {
         return where(DSL.exists(select));
     }
 
@@ -361,7 +362,7 @@ public class JSenderCase extends TableImpl<JSenderCaseRecord> {
      * Create an inline derived table from this table
      */
     @Override
-    public JSenderCase whereNotExists(Select<?> select) {
+    public JSenderCase whereNotExists(TableLike<?> select) {
         return where(DSL.notExists(select));
     }
 }

@@ -184,6 +184,6 @@ public class JTmsTestCaseExecutionRecord extends UpdatableRecordImpl<JTmsTestCas
         setTestCaseVersionId(testCaseVersionId);
         setTestCaseSnapshot(testCaseSnapshot);
         setDisplayId(displayId);
-        resetChangedOnNotNull();
+        resetTouchedOnNotNull();
     }
 }

@@ -89,6 +89,6 @@ public class JTmsEnvironmentRecord extends UpdatableRecordImpl<JTmsEnvironmentRe
         setId(id);
         setName(name);
         setProjectId(projectId);
-        resetChangedOnNotNull();
+        resetTouchedOnNotNull();
     }
 }

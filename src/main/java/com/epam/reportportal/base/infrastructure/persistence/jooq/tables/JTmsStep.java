@@ -27,13 +27,14 @@ import org.jooq.QueryPart;
 import org.jooq.Record;
 import org.jooq.SQL;
 import org.jooq.Schema;
-import org.jooq.Select;
 import org.jooq.Stringly;
 import org.jooq.Table;
 import org.jooq.TableField;
+import org.jooq.TableLike;
 import org.jooq.TableOptions;
 import org.jooq.UniqueKey;
 import org.jooq.impl.DSL;
+import org.jooq.impl.Internal;
 import org.jooq.impl.SQLDataType;
 import org.jooq.impl.TableImpl;
 
@@ -62,7 +63,7 @@ public class JTmsStep extends TableImpl<JTmsStepRecord> {
     /**
      * The column <code>public.tms_step.id</code>.
      */
-    public final TableField<JTmsStepRecord, Long> ID = createField(DSL.name("id"), SQLDataType.BIGINT.nullable(false).identity(true), this, "");
+    public final TableField<JTmsStepRecord, Long> ID = createField(DSL.name("id"), SQLDataType.BIGINT.nullable(false).generatedByDefaultAsIdentity(), this, "");
 
     /**
      * The column <code>public.tms_step.instructions</code>.
@@ -244,7 +245,7 @@ public class JTmsStep extends TableImpl<JTmsStepRecord> {
      */
     @Override
     public JTmsStep where(Condition condition) {
-        return new JTmsStep(getQualifiedName(), aliased() ? this : null, null, condition);
+        return new JTmsStep(getQualifiedName(), aliased() ? this : null, null, Internal.condition(this, condition));
     }
 
     /**
@@ -311,7 +312,7 @@ public class JTmsStep extends TableImpl<JTmsStepRecord> {
      * Create an inline derived table from this table
      */
     @Override
-    public JTmsStep whereExists(Select<?> select) {
+    public JTmsStep whereExists(TableLike<?> select) {
         return where(DSL.exists(select));
     }
 
@@ -319,7 +320,7 @@ public class JTmsStep extends TableImpl<JTmsStepRecord> {
      * Create an inline derived table from this table
      */
     @Override
-    public JTmsStep whereNotExists(Select<?> select) {
+    public JTmsStep whereNotExists(TableLike<?> select) {
         return where(DSL.notExists(select));
     }
 }

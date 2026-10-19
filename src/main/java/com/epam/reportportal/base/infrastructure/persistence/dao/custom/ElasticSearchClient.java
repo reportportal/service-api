@@ -39,6 +39,10 @@ public class ElasticSearchClient {
   public static final String ELASTIC_DATETIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSSSS";
   public static final Integer MAX_RESULT_REQUEST = 5000;
   public static final String LOG_MESSAGE_FIELD_NAME = "message";
+  private static final String ITEM_ID_FIELD = "itemId";
+  private static final String LAUNCH_ID_FIELD = "launchId";
+  private static final String QUERY_FIELD = "query";
+  private static final String TERMS_FIELD = "terms";
 
   private final String host;
   private final RestClient restClient;
@@ -91,19 +95,19 @@ public class ElasticSearchClient {
   }
 
   public void deleteLogsByItemSetAndProjectId(Long projectId, Set<Long> itemIds) {
-    Map<String, Object> terms = Map.of("itemId", itemIds);
+    Map<String, Object> terms = Map.of(ITEM_ID_FIELD, itemIds);
 
     deleteLogsByTermsAndProjectId(projectId, terms);
   }
 
   public void deleteLogsByLaunchIdAndProjectId(Long projectId, Long launchId) {
-    Map<String, Object> terms = Map.of("launchId", List.of(launchId));
+    Map<String, Object> terms = Map.of(LAUNCH_ID_FIELD, List.of(launchId));
 
     deleteLogsByTermsAndProjectId(projectId, terms);
   }
 
   public void deleteLogsByLaunchListAndProjectId(Long projectId, List<Long> launches) {
-    Map<String, Object> terms = Map.of("launchId", launches);
+    Map<String, Object> terms = Map.of(LAUNCH_ID_FIELD, launches);
 
     deleteLogsByTermsAndProjectId(projectId, terms);
   }
@@ -145,7 +149,7 @@ public class ElasticSearchClient {
   public List<Long> searchTestItemIdsByLogIdsAndString(Long projectId, Collection<Long> logIds,
       String string) {
     Map<String, Object> filterTerms = Map.of("id", logIds);
-    List<String> sourceFields = List.of("itemId");
+    List<String> sourceFields = List.of(ITEM_ID_FIELD);
 
     Map<String, Object> searchJson = getSearchStringJson(string, filterTerms, sourceFields, logIds.size());
 
@@ -155,7 +159,7 @@ public class ElasticSearchClient {
   public List<Long> searchTestItemIdsByLogIdsAndRegexp(Long projectId, Collection<Long> logIds,
       String pattern) {
     Map<String, Object> filterTerms = Map.of("id", logIds);
-    List<String> sourceFields = List.of("itemId");
+    List<String> sourceFields = List.of(ITEM_ID_FIELD);
 
     Map<String, Object> searchJson = getSearchRegexpJson(pattern, filterTerms, sourceFields, logIds.size());
 
@@ -184,7 +188,7 @@ public class ElasticSearchClient {
       if (CollectionUtils.isNotEmpty(hits)) {
         for (LinkedHashMap<String, Object> hit : hits) {
           Map<String, Object> source = (Map<String, Object>) hit.get("_source");
-          Long testItemId = ((Integer) source.get("itemId")).longValue();
+          Long testItemId = ((Integer) source.get(ITEM_ID_FIELD)).longValue();
           testItemIds.add(testItemId);
         }
 
@@ -242,8 +246,8 @@ public class ElasticSearchClient {
             DateTimeFormatter.ofPattern(ELASTIC_DATETIME_FORMAT))
         .toInstant(ZoneOffset.UTC);
     return new LogMessage(((Integer) source.get("id")).longValue(), dateTime,
-        (String) source.get("message"), ((Integer) source.get("itemId")).longValue(),
-        ((Integer) source.get("launchId")).longValue(), projectId
+        (String) source.get("message"), ((Integer) source.get(ITEM_ID_FIELD)).longValue(),
+        ((Integer) source.get(LAUNCH_ID_FIELD)).longValue(), projectId
     );
   }
 
@@ -268,12 +272,12 @@ public class ElasticSearchClient {
   }
 
   private Map<String, Object> getDeleteJson(Map<String, Object> terms) {
-    return Map.of("query", Map.of("terms", terms));
+    return Map.of(QUERY_FIELD, Map.of(TERMS_FIELD, terms));
   }
 
   private Map<String, Object> getSearchJson(Map<String, Object> terms, Integer size) {
     return Map.of(
-        "query", Map.of("terms", terms),
+        QUERY_FIELD, Map.of(TERMS_FIELD, terms),
         "size", size
     );
   }
@@ -282,8 +286,8 @@ public class ElasticSearchClient {
       List<String> sourceFields, Integer size) {
     return Map.of(
         "_source", sourceFields,
-        "query", Map.of("match_phrase", Map.of(LOG_MESSAGE_FIELD_NAME, string)),
-        "post_filter", Map.of("terms", filterTerms),
+        QUERY_FIELD, Map.of("match_phrase", Map.of(LOG_MESSAGE_FIELD_NAME, string)),
+        "post_filter", Map.of(TERMS_FIELD, filterTerms),
         "size", size
     );
   }
@@ -294,8 +298,8 @@ public class ElasticSearchClient {
       List<String> sourceFields, Integer size) {
     return Map.of(
         "_source", sourceFields,
-        "query", Map.of("regexp", Map.of(LOG_MESSAGE_FIELD_NAME, pattern)),
-        "post_filter", Map.of("terms", filterTerms),
+        QUERY_FIELD, Map.of("regexp", Map.of(LOG_MESSAGE_FIELD_NAME, pattern)),
+        "post_filter", Map.of(TERMS_FIELD, filterTerms),
         "size", size
     );
   }
@@ -304,9 +308,9 @@ public class ElasticSearchClient {
     Map<String, Object> document = new LinkedHashMap<>();
     document.put("id", logMessage.getId());
     document.put("message", logMessage.getLogMessage());
-    document.put("itemId", logMessage.getItemId());
+    document.put(ITEM_ID_FIELD, logMessage.getItemId());
     document.put("@timestamp", logMessage.getLogTime());
-    document.put("launchId", logMessage.getLaunchId());
+    document.put(LAUNCH_ID_FIELD, logMessage.getLaunchId());
     return document;
   }
 

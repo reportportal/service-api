@@ -252,7 +252,7 @@ public class RecordMappers {
         try {
           Metadata metadata = objectMapper.readValue(metaDataString, Metadata.class);
           project.setMetadata(metadata);
-        } catch (JacksonException e) {
+        } catch (JacksonException _) {
           throw new ReportPortalException(ErrorType.UNCLASSIFIED_REPORT_PORTAL_ERROR,
               "Error during parsing user metadata");
         }
@@ -468,7 +468,7 @@ public class RecordMappers {
       try {
         Metadata metadata = objectMapper.readValue(metaDataString, Metadata.class);
         user.setMetadata(metadata);
-      } catch (JacksonException e) {
+      } catch (JacksonException _) {
         throw new ReportPortalException("Error during parsing user metadata");
       }
     });
@@ -579,7 +579,7 @@ public class RecordMappers {
       try {
         WidgetOptions widgetOptions = objectMapper.readValue(wo, WidgetOptions.class);
         widget.setWidgetOptions(widgetOptions);
-      } catch (JacksonException e) {
+      } catch (JacksonException _) {
         throw new ReportPortalException("Error during parsing widget options");
       }
     });
@@ -753,7 +753,7 @@ public class RecordMappers {
       try {
         IntegrationTypeDetails details = objectMapper.readValue(s, IntegrationTypeDetails.class);
         integrationType.setDetails(details);
-      } catch (JacksonException e) {
+      } catch (JacksonException _) {
         throw new ReportPortalException("Error during parsing integration type details");
       }
     });
@@ -768,7 +768,7 @@ public class RecordMappers {
         IntegrationParams params = objectMapper.readValue(s, IntegrationParams.class);
         i.setParams(params);
       } catch (JacksonException e) {
-        throw new ReportPortalException("Error during parsing integration params");
+        throw new ReportPortalException("Error during parsing integration params", e);
       }
     });
   };

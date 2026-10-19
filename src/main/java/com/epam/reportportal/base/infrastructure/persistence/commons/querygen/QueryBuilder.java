@@ -292,8 +292,8 @@ public class QueryBuilder {
    *
    * @return Query
    */
-  public SelectQuery<? extends Record> build() {
-    return query.get();
+  public SelectQuery<Record> build() {
+    return (SelectQuery<Record>) query.get();
   }
 
   /**

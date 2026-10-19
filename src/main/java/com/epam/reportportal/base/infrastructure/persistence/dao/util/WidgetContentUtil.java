@@ -268,7 +268,7 @@ public class WidgetContentUtil {
       try {
         ActivityDetails details = objectMapper.readValue(s, ActivityDetails.class);
         activityResource.setDetails(details);
-      } catch (JacksonException e) {
+      } catch (JacksonException _) {
         throw new ReportPortalException(ErrorType.OBJECT_RETRIEVAL_ERROR, "Activity details");
       }
     });
@@ -507,7 +507,7 @@ public class WidgetContentUtil {
         entry.setLaunchId(record.get(TEST_ITEM.LAUNCH_ID));
         return entry;
       })
-      .collect(Collectors.toList());
+      .toList();
 
   public static final Function<Result<? extends Record>, List<CriteriaHistoryItem>> CRITERIA_HISTORY_ITEM_FETCHER = result -> result.stream()
       .map(record -> {
@@ -522,7 +522,7 @@ public class WidgetContentUtil {
         entry.setLaunchId(record.get(TEST_ITEM.LAUNCH_ID));
         return entry;
       })
-      .collect(Collectors.toList());
+      .toList();
 
   public static final Function<Result<? extends Record>, List<ChartStatisticsContent>> LAUNCHES_STATISTICS_FETCHER = result -> new ArrayList<>(
       STATISTICS_FETCHER.apply(result).values());
@@ -626,7 +626,7 @@ public class WidgetContentUtil {
         Double passingRate = record.get(fieldName(PASSING_RATE), Double.class);
         return new ComponentHealthCheckContent(attributeValue, total, passingRate);
       })
-      .collect(Collectors.toList());
+      .toList();
 
   public static final BiFunction<Result<? extends Record>, HealthCheckTableGetParams,
       Map<String, HealthCheckTableStatisticsContent>> COMPONENT_HEALTH_CHECK_TABLE_STATS_FETCHER =

@@ -66,6 +66,8 @@ dependencies {
         implementation('com.rabbitmq:amqp-client:5.37.0')
         implementation('org.bouncycastle:bcpkix-jdk18on:1.86')
         implementation('org.bouncycastle:bcutil-jdk18on:1.86')
+        implementation('tools.jackson.core:jackson-core:3.2.3')
+        implementation('tools.jackson.core:jackson-databind:3.2.3')
     }
 
     implementation(platform(libs.zonky.postgres.bom))

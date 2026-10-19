@@ -56,7 +56,7 @@ public final class LicenceJwt {
       signature.initVerify(publicKey);
       signature.update(jwt.getSigningInput());
       return signature.verify(jwt.getSignature().decode());
-    } catch (GeneralSecurityException e) {
+    } catch (GeneralSecurityException _) {
       return false;
     }
   }

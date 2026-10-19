@@ -162,7 +162,7 @@ public class HttpLoggingAspect {
       try {
         record.append(NEWLINE).append(' ').append(BODY_DENOMINATOR)
             .append(NEWLINE).append(' ').append(objectMapper.writeValueAsString(body));
-      } catch (JacksonException e) {
+      } catch (JacksonException _) {
         // ignore
       }
     }
@@ -217,7 +217,7 @@ public class HttpLoggingAspect {
           try {
             record.append(NEWLINE).append(' ')
                 .append(objectMapper.writeValueAsString(((ResponseEntity<?>) response).getBody()));
-          } catch (JacksonException ex) {
+          } catch (JacksonException _) {
             record.append(NEWLINE).append(' ')
                 .append(((ResponseEntity<String>) response).getBody());
           }
@@ -230,7 +230,7 @@ public class HttpLoggingAspect {
         record.append(NEWLINE).append(' ').append(BODY_DENOMINATOR);
         try {
           record.append(NEWLINE).append(' ').append(objectMapper.writeValueAsString(response));
-        } catch (JacksonException ex) {
+        } catch (JacksonException _) {
           // ignore
         }
       }

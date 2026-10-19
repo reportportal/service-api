@@ -35,6 +35,7 @@ import com.epam.reportportal.base.core.item.impl.merge.strategy.LaunchMergeFacto
 import com.epam.reportportal.base.core.item.impl.merge.strategy.MergeStrategyType;
 import com.epam.reportportal.base.core.launch.MergeLaunchHandler;
 import com.epam.reportportal.base.core.statistics.StatisticsHelper;
+import com.epam.reportportal.base.infrastructure.model.project.AnalyzerConfig;
 import com.epam.reportportal.base.infrastructure.persistence.commons.Preconditions;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchRepository;
@@ -113,14 +114,17 @@ public class MergeLaunchHandlerImpl implements MergeLaunchHandler {
     MergeStrategyType type = MergeStrategyType.fromValue(rq.getMergeStrategyType());
     expect(type, notNull()).verify(UNSUPPORTED_MERGE_STRATEGY_TYPE, type);
 
+    AnalyzerConfig analyzerConfig = AnalyzerUtils.getAnalyzerConfig(project);
+
     Launch newLaunch = launchMergeFactory.getLaunchMergeStrategy(type)
         .mergeLaunches(membershipDetails, user, rq, launchesList);
     newLaunch.setStatus(StatisticsHelper.getStatusFromStatistics(newLaunch.getStatistics()));
 
-    launchesList.forEach(launch -> launch.getAttributes().clear());
-    launchRepository.deleteAll(launchesList);
+    List<Launch> mergedLaunches = launchRepository.findAllById(launchesIds);
+    mergedLaunches.forEach(launch -> launch.getAttributes().clear());
+    launchRepository.deleteAll(mergedLaunches);
 
-    logIndexer.indexLaunchLogs(newLaunch, AnalyzerUtils.getAnalyzerConfig(project));
+    logIndexer.indexLaunchLogs(newLaunch, analyzerConfig);
 
     return launchConverter.TO_RESOURCE.apply(newLaunch);
   }

@@ -52,6 +52,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
@@ -70,6 +71,9 @@ class OrganizationProjectControllerTest extends BaseMvcTest {
   ProjectService projectService;
   @Autowired
   private ProjectUserRepository projectUserRepository;
+
+  @Autowired
+  private JdbcTemplate jdbcTemplate;
 
   @Mock
   private ApplicationEventPublisher applicationEventPublisher;
@@ -200,6 +204,46 @@ class OrganizationProjectControllerTest extends BaseMvcTest {
         .andExpect(status().is4xxClientError());
   }
 
+  @Test
+  void createProjectReusingSlugOfRenamedLegacyProjectFails() throws Exception {
+    // Simulates a project created on RP 26.0.5 or earlier and migrated to 26.1: its "key"
+    // predates the "<organizationSlug>.<slug>" convention used by freshly created projects,
+    // while its "slug" was backfilled by the migration and is still subject to the
+    // (slug, organization_id) unique constraint.
+    String originalName = "slug_reuse_src";
+    String originalSlug = "slug-reuse-src";
+    String renamedName = "slug_reuse_dst";
+
+    Long projectId = jdbcTemplate.queryForObject(
+        "INSERT INTO project (name, key, slug, organization_id, created_at, updated_at) "
+            + "VALUES (?, ?, ?, 1, now(), now()) RETURNING id",
+        Long.class, originalName, originalName, originalSlug);
+
+    // Rename the project. Neither its "slug" nor its legacy-format "key" are updated,
+    // so it keeps "squatting" on the slug derived from the original name.
+    PatchOperation renameOperation = new PatchOperation()
+        .op(OperationType.REPLACE)
+        .path("/name")
+        .value(renamedName);
+
+    mockMvc.perform(patch("/organizations/1/projects/" + projectId)
+            .contentType(MediaType.APPLICATION_JSON)
+            .with(token(oAuthHelper.getSuperadminToken()))
+            .content(objectMapper.writeValueAsString(Collections.singletonList(renameOperation))))
+        .andExpect(status().isOk());
+
+    // Creating a brand-new project re-using the now "free" original name must fail
+    // gracefully with a 409 conflict, not a raw DB-constraint-triggered 500.
+    JsonObject duplicateBody = new JsonObject();
+    duplicateBody.addProperty("name", originalName);
+
+    mockMvc.perform(post("/organizations/1/projects")
+            .contentType(MediaType.APPLICATION_JSON)
+            .with(token(oAuthHelper.getSuperadminToken()))
+            .content(duplicateBody.toString()))
+        .andExpect(status().isConflict())
+        .andExpect(jsonPath("$.errorCode").value(4095));
+  }
 
   @Test
   void patchWithAllowedRoles() throws Exception {

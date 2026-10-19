@@ -52,7 +52,6 @@ import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTextManu
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCase;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCaseVersion;
 import com.epam.reportportal.base.ws.BaseMvcTest;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -60,7 +59,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -776,6 +774,37 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     assertEquals(testCaseRQ.getName(), testCase.get().getName());
     assertEquals(testCaseRQ.getDescription(), testCase.get().getDescription());
     assertEquals(testCaseRQ.getTestFolderId(), testCase.get().getTestFolder().getId());
+    // Priority must stay unchanged when it is omitted from the PATCH request
+    // (regression test for the "move resets priority to UNSPECIFIED" bug)
+    assertEquals("LOW", testCase.get().getPriority());
+  }
+
+  @Test
+  void patchTestCaseWithoutPriorityShouldNotResetExistingPriorityIntegrationTest()
+      throws Exception {
+    // Given - test case 6 has priority LOW
+    Optional<TmsTestCase> before = testCaseRepository.findById(6L);
+    assertTrue(before.isPresent());
+    assertEquals("LOW", before.get().getPriority());
+
+    TmsTestCaseRQ testCaseRQ = new TmsTestCaseRQ();
+    testCaseRQ.setTestFolderId(6L);
+    // priority is intentionally omitted, simulating e.g. a Move / drag-and-drop
+    // PATCH, or any other partial update that does not send priority
+
+    String jsonContent = mapper.writeValueAsString(testCaseRQ);
+
+    // When
+    mockMvc.perform(patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/6")
+            .contentType("application/json")
+            .content(jsonContent)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk());
+
+    // Then - priority must remain untouched
+    Optional<TmsTestCase> testCase = testCaseRepository.findById(6L);
+    assertTrue(testCase.isPresent());
+    assertEquals("LOW", testCase.get().getPriority());
   }
 
   @Test
@@ -814,6 +843,8 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
 
     assertTrue(testFolder.isPresent());
     assertEquals("Patched New Folder", testFolder.get().getName());
+    // Priority must stay unchanged when it is omitted from the PATCH request
+    assertEquals("LOW", testCase.get().getPriority());
   }
 
   @Test

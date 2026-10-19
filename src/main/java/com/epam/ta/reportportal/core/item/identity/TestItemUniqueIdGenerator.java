@@ -21,9 +21,9 @@ import com.epam.ta.reportportal.entity.item.Parameter;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.google.common.base.Strings;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Set;
 import java.util.StringJoiner;
 import java.util.stream.Collectors;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -56,23 +56,41 @@ public class TestItemUniqueIdGenerator implements UniqueIdGenerator {
     return TRAIT + DigestUtils.md5Hex(forEncoding);
   }
 
+  /**
+   * Generates unique id from already resolved values without loading test item entities
+   *
+   * @param projectId  {@link Launch#getProjectId()}
+   * @param launchName {@link Launch#getName()}
+   * @param pathNames  names of parent items ordered by their ids
+   * @param itemName   {@link TestItem#getName()}
+   * @param parameters {@link TestItem#getParameters()}
+   * @return unique id
+   */
+  public String generate(Long projectId, String launchName, List<String> pathNames,
+      String itemName, Collection<Parameter> parameters) {
+    String forEncoding = prepareForEncoding(projectId, launchName, pathNames, itemName, parameters);
+    return TRAIT + DigestUtils.md5Hex(forEncoding);
+  }
+
   @Override
   public boolean validate(String encoded) {
     return !Strings.isNullOrEmpty(encoded) && encoded.startsWith(TRAIT);
   }
 
   private String prepareForEncoding(TestItem testItem, List<Long> parentIds, Launch launch) {
-    Long projectId = launch.getProjectId();
-    String launchName = launch.getName();
-    List<String> pathNames = getPathNames(parentIds);
-    String itemName = testItem.getName();
+    return prepareForEncoding(launch.getProjectId(), launch.getName(), getPathNames(parentIds),
+        testItem.getName(), testItem.getParameters()
+    );
+  }
+
+  private String prepareForEncoding(Long projectId, String launchName, List<String> pathNames,
+      String itemName, Collection<Parameter> parameters) {
     StringJoiner joiner = new StringJoiner(";");
     joiner.add(projectId.toString()).add(launchName);
     if (!CollectionUtils.isEmpty(pathNames)) {
       joiner.add(String.join(";", pathNames));
     }
     joiner.add(itemName);
-    Set<Parameter> parameters = testItem.getParameters();
     if (!CollectionUtils.isEmpty(parameters)) {
       joiner.add(parameters.stream()
           .map(parameter ->

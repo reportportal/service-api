@@ -175,5 +175,15 @@ public interface TmsTestCaseService {
     return Map.of();
   }
 
+  /**
+   * Returns distinct ids of test folders that contain the given test cases.
+   *
+   * @param projectId   project id
+   * @param testCaseIds test case ids
+   * @return distinct test folder ids
+   */
+  @Transactional(readOnly = true)
+  List<Long> getTestFolderIdsByTestCaseIds(Long projectId, List<Long> testCaseIds);
+
   List<Long> getTestCaseIdsInTestPlan(long projectId, Long testPlanId);
 }

@@ -40,7 +40,6 @@ tika = "4.1.0"
 thumbnailator = "0.4.21"
 mapstruct = "1.6.3"
 pf4j-update = "2.3.0"
-json = "20260814"
 opendal = "0.50.7"
 caffeine = "3.3.0"
 
@@ -127,7 +126,6 @@ jakarta-validation = { group = "jakarta.validation", name = "jakarta.validation-
 apache-commons-commonscsv = { group = "org.apache.commons", name = "commons-csv", version.ref = "apache-commons-csv" }
 pf4j-update = { group = "org.pf4j", name = "pf4j-update", version.ref = "pf4j-update" }
 kotlin-stdlib = { group = "org.jetbrains.kotlin", name = "kotlin-stdlib" }
-json = { group = "org.json", name = "json", version.ref = "json" }
 flyway-core = { group = "org.flywaydb", name = "flyway-core" }
 flyway-database-postgresql = { group = "org.flywaydb", name = "flyway-database-postgresql" }
 

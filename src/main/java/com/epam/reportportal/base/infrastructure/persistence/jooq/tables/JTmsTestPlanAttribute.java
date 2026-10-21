@@ -25,13 +25,14 @@ import org.jooq.QueryPart;
 import org.jooq.Record;
 import org.jooq.SQL;
 import org.jooq.Schema;
-import org.jooq.Select;
 import org.jooq.Stringly;
 import org.jooq.Table;
 import org.jooq.TableField;
+import org.jooq.TableLike;
 import org.jooq.TableOptions;
 import org.jooq.UniqueKey;
 import org.jooq.impl.DSL;
+import org.jooq.impl.Internal;
 import org.jooq.impl.SQLDataType;
 import org.jooq.impl.TableImpl;
 
@@ -216,7 +217,7 @@ public class JTmsTestPlanAttribute extends TableImpl<JTmsTestPlanAttributeRecord
      */
     @Override
     public JTmsTestPlanAttribute where(Condition condition) {
-        return new JTmsTestPlanAttribute(getQualifiedName(), aliased() ? this : null, null, condition);
+        return new JTmsTestPlanAttribute(getQualifiedName(), aliased() ? this : null, null, Internal.condition(this, condition));
     }
 
     /**
@@ -283,7 +284,7 @@ public class JTmsTestPlanAttribute extends TableImpl<JTmsTestPlanAttributeRecord
      * Create an inline derived table from this table
      */
     @Override
-    public JTmsTestPlanAttribute whereExists(Select<?> select) {
+    public JTmsTestPlanAttribute whereExists(TableLike<?> select) {
         return where(DSL.exists(select));
     }
 
@@ -291,7 +292,7 @@ public class JTmsTestPlanAttribute extends TableImpl<JTmsTestPlanAttributeRecord
      * Create an inline derived table from this table
      */
     @Override
-    public JTmsTestPlanAttribute whereNotExists(Select<?> select) {
+    public JTmsTestPlanAttribute whereNotExists(TableLike<?> select) {
         return where(DSL.notExists(select));
     }
 }

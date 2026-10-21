@@ -61,45 +61,59 @@ public class JTmsTestFolderRecord extends UpdatableRecordImpl<JTmsTestFolderReco
     }
 
     /**
+     * Setter for <code>public.tms_test_folder.external_id</code>.
+     */
+    public void setExternalId(String value) {
+        set(3, value);
+    }
+
+    /**
+     * Getter for <code>public.tms_test_folder.external_id</code>.
+     */
+    public String getExternalId() {
+        return (String) get(3);
+    }
+
+    /**
      * Setter for <code>public.tms_test_folder.index</code>.
      */
     public void setIndex(Integer value) {
-        set(3, value);
+        set(4, value);
     }
 
     /**
      * Getter for <code>public.tms_test_folder.index</code>.
      */
     public Integer getIndex() {
-        return (Integer) get(3);
+        return (Integer) get(4);
     }
 
     /**
      * Setter for <code>public.tms_test_folder.parent_id</code>.
      */
     public void setParentId(Long value) {
-        set(4, value);
+        set(5, value);
     }
 
     /**
      * Getter for <code>public.tms_test_folder.parent_id</code>.
      */
     public Long getParentId() {
-        return (Long) get(4);
+        return (Long) get(5);
     }
 
     /**
      * Setter for <code>public.tms_test_folder.project_id</code>.
      */
     public void setProjectId(Long value) {
-        set(5, value);
+        set(6, value);
     }
 
     /**
      * Getter for <code>public.tms_test_folder.project_id</code>.
      */
     public Long getProjectId() {
-        return (Long) get(5);
+        return (Long) get(6);
     }
 
     // -------------------------------------------------------------------------
@@ -125,15 +139,16 @@ public class JTmsTestFolderRecord extends UpdatableRecordImpl<JTmsTestFolderReco
     /**
      * Create a detached, initialised JTmsTestFolderRecord
      */
-    public JTmsTestFolderRecord(Long id, String name, String description, Integer index, Long parentId, Long projectId) {
+    public JTmsTestFolderRecord(Long id, String name, String description, String externalId, Integer index, Long parentId, Long projectId) {
         super(JTmsTestFolder.TMS_TEST_FOLDER);
 
         setId(id);
         setName(name);
         setDescription(description);
+        setExternalId(externalId);
         setIndex(index);
         setParentId(parentId);
         setProjectId(projectId);
-        resetChangedOnNotNull();
+        resetTouchedOnNotNull();
     }
 }

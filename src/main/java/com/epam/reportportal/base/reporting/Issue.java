@@ -21,7 +21,6 @@ import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -33,6 +32,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import tools.jackson.databind.annotation.JsonDeserialize;
 
 /**
  * Test item issue
@@ -59,10 +59,9 @@ public class Issue {
   @JsonProperty(value = "ignoreAnalyzer")
   private boolean ignoreAnalyzer;
 
-  @Valid
   @Size(max = 300)
   @JsonProperty(value = "externalSystemIssues")
-  private Set<ExternalSystemIssue> externalSystemIssues;
+  private Set<@Valid ExternalSystemIssue> externalSystemIssues;
 
   @JsonInclude(Include.NON_NULL)
   @Getter

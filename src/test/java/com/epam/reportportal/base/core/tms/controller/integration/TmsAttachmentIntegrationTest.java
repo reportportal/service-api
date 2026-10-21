@@ -17,18 +17,18 @@ import com.epam.reportportal.base.auth.OAuthHelper;
 import com.epam.reportportal.base.core.tms.dto.UploadAttachmentRS;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsAttachmentRepository;
 import com.epam.reportportal.base.ws.BaseMvcTest;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mock.web.MockMultipartFile;
+import tools.jackson.databind.json.JsonMapper;
 
 class TmsAttachmentIntegrationTest extends BaseMvcTest {
 
   private static final String SUPERADMIN_PROJECT_KEY = "superadmin_personal";
 
-  private final ObjectMapper mapper = new ObjectMapper();
+  private final JsonMapper mapper = JsonMapper.builder().build();
 
   @Autowired
   private OAuthHelper oAuthHelper;

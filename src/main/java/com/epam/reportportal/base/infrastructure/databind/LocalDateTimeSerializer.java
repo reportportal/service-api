@@ -1,11 +1,11 @@
 /*
- * Copyright 2024 EPAM Systems
+ * Copyright 2025 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,22 +16,21 @@
 
 package com.epam.reportportal.base.infrastructure.databind;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.SerializerProvider;
-import java.io.IOException;
 import java.time.LocalDateTime;
+import tools.jackson.core.JsonGenerator;
+import tools.jackson.databind.SerializationContext;
+import tools.jackson.databind.ValueSerializer;
 
 /**
  * Serialization class for converting dates into array of integers. Required for compatibility with analyzer.
  *
  * @author Siarhei Hrabko
  */
-public class LocalDateTimeSerializer extends JsonSerializer<LocalDateTime> {
+public class LocalDateTimeSerializer extends ValueSerializer<LocalDateTime> {
 
   @Override
   public void serialize(LocalDateTime localDateTime, JsonGenerator jsonGenerator,
-      SerializerProvider serializerProvider) throws IOException {
+      SerializationContext serializerProvider) {
     int[] time = {
         localDateTime.getYear(),
         localDateTime.getMonthValue(),

@@ -38,7 +38,6 @@ import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectUserRepo
 import com.epam.reportportal.base.model.IdContainer;
 import com.epam.reportportal.base.util.SlugUtils;
 import com.epam.reportportal.base.ws.BaseMvcTest;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.JsonObject;
 import java.util.Collections;
 import java.util.List;
@@ -55,6 +54,7 @@ import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * @author Siarhei Hrabko
@@ -65,7 +65,7 @@ class OrganizationProjectControllerTest extends BaseMvcTest {
   private static final String ORG_SLUG = "my-organization";
 
   @Autowired
-  private ObjectMapper objectMapper;
+  private JsonMapper objectMapper;
 
   @Autowired
   ProjectService projectService;

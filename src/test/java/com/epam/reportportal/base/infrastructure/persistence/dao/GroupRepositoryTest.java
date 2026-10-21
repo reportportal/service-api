@@ -22,6 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.epam.reportportal.base.infrastructure.persistence.entity.group.Group;
 import com.epam.reportportal.base.ws.BaseMvcTest;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import org.hibernate.Hibernate;
 import org.hibernate.Session;
 import org.hibernate.stat.Statistics;
@@ -41,7 +42,7 @@ public class GroupRepositoryTest extends BaseMvcTest {
   @Autowired
   private GroupRepository groupRepository;
 
-  @Autowired
+  @PersistenceContext
   private EntityManager entityManager;
 
   private Statistics statistics;

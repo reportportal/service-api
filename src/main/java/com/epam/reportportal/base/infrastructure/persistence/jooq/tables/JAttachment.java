@@ -29,13 +29,14 @@ import org.jooq.QueryPart;
 import org.jooq.Record;
 import org.jooq.SQL;
 import org.jooq.Schema;
-import org.jooq.Select;
 import org.jooq.Stringly;
 import org.jooq.Table;
 import org.jooq.TableField;
+import org.jooq.TableLike;
 import org.jooq.TableOptions;
 import org.jooq.UniqueKey;
 import org.jooq.impl.DSL;
+import org.jooq.impl.Internal;
 import org.jooq.impl.SQLDataType;
 import org.jooq.impl.TableImpl;
 
@@ -64,7 +65,7 @@ public class JAttachment extends TableImpl<JAttachmentRecord> {
     /**
      * The column <code>public.attachment.id</code>.
      */
-    public final TableField<JAttachmentRecord, Long> ID = createField(DSL.name("id"), SQLDataType.BIGINT.nullable(false).identity(true), this, "");
+    public final TableField<JAttachmentRecord, Long> ID = createField(DSL.name("id"), SQLDataType.BIGINT.nullable(false).generatedByDefaultAsIdentity(), this, "");
 
     /**
      * The column <code>public.attachment.file_id</code>.
@@ -249,7 +250,7 @@ public class JAttachment extends TableImpl<JAttachmentRecord> {
      */
     @Override
     public JAttachment where(Condition condition) {
-        return new JAttachment(getQualifiedName(), aliased() ? this : null, null, condition);
+        return new JAttachment(getQualifiedName(), aliased() ? this : null, null, Internal.condition(this, condition));
     }
 
     /**
@@ -316,7 +317,7 @@ public class JAttachment extends TableImpl<JAttachmentRecord> {
      * Create an inline derived table from this table
      */
     @Override
-    public JAttachment whereExists(Select<?> select) {
+    public JAttachment whereExists(TableLike<?> select) {
         return where(DSL.exists(select));
     }
 
@@ -324,7 +325,7 @@ public class JAttachment extends TableImpl<JAttachmentRecord> {
      * Create an inline derived table from this table
      */
     @Override
-    public JAttachment whereNotExists(Select<?> select) {
+    public JAttachment whereNotExists(TableLike<?> select) {
         return where(DSL.notExists(select));
     }
 }

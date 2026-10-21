@@ -17,16 +17,15 @@
 package com.epam.reportportal.base.util;
 
 import com.epam.reportportal.base.core.configs.JsonSchemaValidatorConfig;
-import com.fasterxml.jackson.databind.JsonNode;
+import com.networknt.schema.Error;
 import com.networknt.schema.InputFormat;
-import com.networknt.schema.JsonSchema;
-import com.networknt.schema.JsonSchemaFactory;
+import com.networknt.schema.Schema;
 import com.networknt.schema.SchemaLocation;
-import com.networknt.schema.ValidationMessage;
-import java.io.IOException;
-import java.util.Set;
+import com.networknt.schema.SchemaRegistry;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import tools.jackson.databind.JsonNode;
 
 /**
  * Validates JSON documents against a JSON schema. This class uses the NetworkNT JSON Schema library to perform
@@ -37,7 +36,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class JsonSchemaValidator {
 
-  private final JsonSchemaFactory schemaFactory;
+  private final SchemaRegistry schemaRegistry;
 
   /**
    * Constructor for JsonSchemaValidator.
@@ -46,7 +45,7 @@ public class JsonSchemaValidator {
    */
   @Autowired
   public JsonSchemaValidator(JsonSchemaValidatorConfig config) {
-    this.schemaFactory = config.createSchemaFactory();
+    this.schemaRegistry = config.createSchemaRegistry();
   }
 
   /**
@@ -54,11 +53,10 @@ public class JsonSchemaValidator {
    *
    * @param location The location of the schema
    * @param input    The {@link String} JSON document to validate
-   * @return A {@link Set} of {@link ValidationMessage} indicating any validation errors
-   * @throws IOException If an error occurs while reading the schema or validating the input
+   * @return validation errors, empty when the document is valid
    */
-  public Set<ValidationMessage> validate(String location, String input) throws IOException {
-    JsonSchema schema = schemaFactory.getSchema(SchemaLocation.of(location));
+  public List<Error> validate(String location, String input) {
+    Schema schema = schemaRegistry.getSchema(SchemaLocation.of(location));
     return schema.validate(input, InputFormat.JSON);
   }
 
@@ -67,11 +65,10 @@ public class JsonSchemaValidator {
    *
    * @param location The location of the schema
    * @param input    The {@link JsonNode} document to validate
-   * @return A {@link Set} of {@link ValidationMessage} indicating any validation errors
-   * @throws IOException If an error occurs while reading the schema or validating the input
+   * @return validation errors, empty when the document is valid
    */
-  public Set<ValidationMessage> validate(String location, JsonNode input) throws IOException {
-    JsonSchema schema = schemaFactory.getSchema(SchemaLocation.of(location));
+  public List<Error> validate(String location, JsonNode input) {
+    Schema schema = schemaRegistry.getSchema(SchemaLocation.of(location));
     return schema.validate(input);
   }
 }

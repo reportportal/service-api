@@ -29,20 +29,20 @@ import com.epam.reportportal.api.model.PluginCommandContext;
 import com.epam.reportportal.api.model.PluginCommandRQ;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.ws.BaseMvcTest;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Map;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.jdbc.Sql;
+import tools.jackson.databind.json.JsonMapper;
 
 @Sql({"/db/organization/full_organization_samples.sql",
     "/db/organization/organization_integrations.sql"})
 class GeneratedPluginsControllerTest extends BaseMvcTest {
 
   @Autowired
-  private ObjectMapper objectMapper;
+  private JsonMapper objectMapper;
 
   @Test
   @DisplayName("Plugin command execution returns 200 with the handler result in the body")

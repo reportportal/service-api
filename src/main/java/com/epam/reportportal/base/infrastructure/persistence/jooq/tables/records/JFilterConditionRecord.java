@@ -135,6 +135,6 @@ public class JFilterConditionRecord extends UpdatableRecordImpl<JFilterCondition
         setValue(value);
         setSearchCriteria(searchCriteria);
         setNegative(negative);
-        resetChangedOnNotNull();
+        resetTouchedOnNotNull();
     }
 }

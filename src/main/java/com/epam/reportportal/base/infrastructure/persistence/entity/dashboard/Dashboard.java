@@ -16,11 +16,9 @@
 
 package com.epam.reportportal.base.infrastructure.persistence.entity.dashboard;
 
-import com.epam.reportportal.base.infrastructure.persistence.dao.converters.JpaInstantConverter;
 import com.epam.reportportal.base.infrastructure.persistence.entity.OwnedEntity;
 import com.google.common.collect.Sets;
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.FetchType;
@@ -54,7 +52,6 @@ public class Dashboard extends OwnedEntity implements Serializable {
 
   @CreatedDate
   @Column(name = "creation_date")
-  @Convert(converter = JpaInstantConverter.class)
   private Instant creationDate;
 
   @OneToMany(fetch = FetchType.EAGER, mappedBy = "dashboard")

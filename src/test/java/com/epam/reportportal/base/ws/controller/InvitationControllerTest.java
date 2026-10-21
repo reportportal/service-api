@@ -38,7 +38,6 @@ import com.epam.reportportal.api.model.UserProjectInfo;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectUserRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.organization.OrganizationUserRepository;
 import com.epam.reportportal.base.ws.BaseMvcTest;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -47,6 +46,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.jdbc.Sql;
+import tools.jackson.databind.json.JsonMapper;
 
 @Sql("/db/organization/full_organization_samples.sql")
 class InvitationControllerTest extends BaseMvcTest {
@@ -59,7 +59,7 @@ class InvitationControllerTest extends BaseMvcTest {
       .status(StatusEnum.ACTIVATED);
 
   @Autowired
-  private ObjectMapper objectMapper;
+  private JsonMapper objectMapper;
 
   @Autowired
   OrganizationUserRepository organizationUserRepository;

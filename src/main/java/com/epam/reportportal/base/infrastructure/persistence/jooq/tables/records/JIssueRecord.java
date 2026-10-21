@@ -119,6 +119,6 @@ public class JIssueRecord extends UpdatableRecordImpl<JIssueRecord> {
         setIssueDescription(issueDescription);
         setAutoAnalyzed(autoAnalyzed);
         setIgnoreAnalyzer(ignoreAnalyzer);
-        resetChangedOnNotNull();
+        resetTouchedOnNotNull();
     }
 }

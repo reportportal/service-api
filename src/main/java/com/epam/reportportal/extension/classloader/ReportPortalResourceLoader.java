@@ -19,7 +19,7 @@ package com.epam.reportportal.extension.classloader;
 import static java.util.Optional.ofNullable;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.web.servlet.context.AnnotationConfigServletWebServerApplicationContext;
+import org.springframework.boot.web.server.servlet.context.AnnotationConfigServletWebServerApplicationContext;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ClassUtils;
 

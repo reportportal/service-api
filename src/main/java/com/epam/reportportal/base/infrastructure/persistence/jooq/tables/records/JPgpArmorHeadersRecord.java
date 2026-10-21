@@ -64,6 +64,6 @@ public class JPgpArmorHeadersRecord extends TableRecordImpl<JPgpArmorHeadersReco
 
         setKey(key);
         setValue(value);
-        resetChangedOnNotNull();
+        resetTouchedOnNotNull();
     }
 }

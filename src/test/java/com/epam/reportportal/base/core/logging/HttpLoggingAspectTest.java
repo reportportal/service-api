@@ -23,7 +23,6 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.Appender;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.HashMap;
 import java.util.Map;
@@ -41,6 +40,7 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
+import tools.jackson.databind.json.JsonMapper;
 
 @ExtendWith(MockitoExtension.class)
 class HttpLoggingAspectTest {
@@ -70,7 +70,7 @@ class HttpLoggingAspectTest {
   @BeforeAll
   static void beforeAll() {
     aspect = new HttpLoggingAspect();
-    ReflectionTestUtils.setField(aspect, "objectMapper", new ObjectMapper());
+    ReflectionTestUtils.setField(aspect, "objectMapper", JsonMapper.builder().build());
 
     HelperController controller = new HelperController();
     AspectJProxyFactory factory = new AspectJProxyFactory(controller);

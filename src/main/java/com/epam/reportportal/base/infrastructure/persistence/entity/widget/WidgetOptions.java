@@ -16,10 +16,10 @@
 
 package com.epam.reportportal.base.infrastructure.persistence.entity.widget;
 
-import com.epam.reportportal.base.infrastructure.persistence.commons.JsonbUserType;
 import java.io.Serializable;
 import java.util.Map;
 import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -33,13 +33,8 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class WidgetOptions extends JsonbUserType<WidgetOptions> implements Serializable {
+@EqualsAndHashCode
+public class WidgetOptions implements Serializable {
 
   private Map<String, Object> options;
-
-  @Override
-  public Class<WidgetOptions> returnedClass() {
-    return WidgetOptions.class;
-  }
-
 }

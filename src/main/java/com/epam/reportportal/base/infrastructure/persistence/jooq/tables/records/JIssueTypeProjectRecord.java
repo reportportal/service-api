@@ -74,6 +74,6 @@ public class JIssueTypeProjectRecord extends UpdatableRecordImpl<JIssueTypeProje
 
         setProjectId(projectId);
         setIssueTypeId(issueTypeId);
-        resetChangedOnNotNull();
+        resetTouchedOnNotNull();
     }
 }

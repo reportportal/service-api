@@ -182,6 +182,6 @@ public class JIntegrationRecord extends UpdatableRecordImpl<JIntegrationRecord> 
         setCreator(creator);
         setCreationDate(creationDate);
         setOrganizationId(organizationId);
-        resetChangedOnNotNull();
+        resetTouchedOnNotNull();
     }
 }

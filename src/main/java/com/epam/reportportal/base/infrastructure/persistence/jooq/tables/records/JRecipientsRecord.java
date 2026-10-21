@@ -64,6 +64,6 @@ public class JRecipientsRecord extends TableRecordImpl<JRecipientsRecord> {
 
         setSenderCaseId(senderCaseId);
         setRecipient(recipient);
-        resetChangedOnNotNull();
+        resetTouchedOnNotNull();
     }
 }

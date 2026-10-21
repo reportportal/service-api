@@ -92,11 +92,11 @@ public class SecurityConfiguration {
             "/info"))
         .authorizeHttpRequests(authorize -> authorize
             .requestMatchers(
-                "/**/invitations/**",
-                "/**/user**/password/reset/*",
-                "/**/user**/password/reset**",
-                "/**/user**/password/restore**",
-                "/**/plugin/public/**",
+                "/invitations/**",
+                "/v1/users/password/reset",
+                "/v1/users/password/reset/*",
+                "/v1/users/password/restore",
+                "/v1/plugin/public/**",
                 "/v1/public/**",
                 "/v1/public/integration/grafana/**",
                 "/documentation.html",

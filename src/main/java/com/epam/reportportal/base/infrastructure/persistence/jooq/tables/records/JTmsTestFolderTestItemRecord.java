@@ -134,6 +134,6 @@ public class JTmsTestFolderTestItemRecord extends UpdatableRecordImpl<JTmsTestFo
         setTestFolderId(testFolderId);
         setLaunchId(launchId);
         setTestItemId(testItemId);
-        resetChangedOnNotNull();
+        resetTouchedOnNotNull();
     }
 }

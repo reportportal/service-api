@@ -1,5 +1,6 @@
 package com.epam.reportportal.base.core.tms.controller.unit;
 
+import static com.epam.reportportal.base.util.StandaloneMockMvcSupport.standaloneJsonSetup;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -13,7 +14,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static com.epam.reportportal.base.util.StandaloneMockMvcSupport.standaloneJsonSetup;
 
 import com.epam.reportportal.base.core.tms.controller.TmsDatasetController;
 import com.epam.reportportal.base.core.tms.dto.TmsDatasetRQ;
@@ -22,7 +22,6 @@ import com.epam.reportportal.base.core.tms.service.TmsDatasetService;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.MembershipDetails;
 import com.epam.reportportal.base.util.ProjectExtractor;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -41,6 +40,7 @@ import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
+import tools.jackson.databind.json.JsonMapper;
 
 @ExtendWith(MockitoExtension.class)
 class TmsDatasetControllerTest {
@@ -55,7 +55,7 @@ class TmsDatasetControllerTest {
   private TmsDatasetController tmsDatasetController;
 
   private MockMvc mockMvc;
-  private ObjectMapper objectMapper;
+  private JsonMapper objectMapper;
   private final long projectId = 1L;
   private final String projectKey = "test_project";
   private ReportPortalUser testUser;
@@ -81,14 +81,14 @@ class TmsDatasetControllerTest {
 
           @Override
           public Object resolveArgument(MethodParameter parameter,
-                                        ModelAndViewContainer mavContainer,
+              ModelAndViewContainer mavContainer,
               NativeWebRequest webRequest, WebDataBinderFactory binderFactory) {
             return testUser;
           }
         })
         .build();
 
-    objectMapper = new ObjectMapper();
+    objectMapper = JsonMapper.builder().build();
 
     // Setup the project extractor mock to return a MembershipDetails with the projectId
     MembershipDetails membershipDetails = MembershipDetails.builder()
@@ -102,7 +102,7 @@ class TmsDatasetControllerTest {
   @Test
   void shouldCreateDataset() throws Exception {
     var datasetRQ = TmsDatasetRQ.builder().name("Dataset1").attributes(List.of()).build();
-    var expectedResponse = TmsDatasetRS.builder().id(1L).data(List.of()).build();
+    var expectedResponse = TmsDatasetRS.builder().id(1L).name("Dataset1").data(List.of()).build();
 
     var jsonContent = objectMapper.writeValueAsString(datasetRQ);
 
@@ -165,7 +165,7 @@ class TmsDatasetControllerTest {
 
     mockMvc
         .perform(get("/v1/project/{projectKey}/tms/dataset/{datasetId}", projectKey,
-                                                                                 datasetId))
+            datasetId))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.id").value(mockResponse.getId()))
         .andExpect(jsonPath("$.name").value(mockResponse.getName()));
@@ -226,7 +226,7 @@ class TmsDatasetControllerTest {
 
     mockMvc
         .perform(
-          delete("/v1/project/{projectKey}/tms/dataset/{datasetId}", projectKey, datasetId))
+            delete("/v1/project/{projectKey}/tms/dataset/{datasetId}", projectKey, datasetId))
         .andExpect(status().isOk());
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());

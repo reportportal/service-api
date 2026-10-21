@@ -27,13 +27,14 @@ import org.jooq.QueryPart;
 import org.jooq.Record;
 import org.jooq.SQL;
 import org.jooq.Schema;
-import org.jooq.Select;
 import org.jooq.Stringly;
 import org.jooq.Table;
 import org.jooq.TableField;
+import org.jooq.TableLike;
 import org.jooq.TableOptions;
 import org.jooq.UniqueKey;
 import org.jooq.impl.DSL;
+import org.jooq.impl.Internal;
 import org.jooq.impl.SQLDataType;
 import org.jooq.impl.TableImpl;
 
@@ -62,7 +63,7 @@ public class JLaunchAttributeRules extends TableImpl<JLaunchAttributeRulesRecord
     /**
      * The column <code>public.launch_attribute_rules.id</code>.
      */
-    public final TableField<JLaunchAttributeRulesRecord, Long> ID = createField(DSL.name("id"), SQLDataType.BIGINT.nullable(false).identity(true), this, "");
+    public final TableField<JLaunchAttributeRulesRecord, Long> ID = createField(DSL.name("id"), SQLDataType.BIGINT.nullable(false).generatedByDefaultAsIdentity(), this, "");
 
     /**
      * The column <code>public.launch_attribute_rules.sender_case_id</code>.
@@ -224,7 +225,7 @@ public class JLaunchAttributeRules extends TableImpl<JLaunchAttributeRulesRecord
      */
     @Override
     public JLaunchAttributeRules where(Condition condition) {
-        return new JLaunchAttributeRules(getQualifiedName(), aliased() ? this : null, null, condition);
+        return new JLaunchAttributeRules(getQualifiedName(), aliased() ? this : null, null, Internal.condition(this, condition));
     }
 
     /**
@@ -291,7 +292,7 @@ public class JLaunchAttributeRules extends TableImpl<JLaunchAttributeRulesRecord
      * Create an inline derived table from this table
      */
     @Override
-    public JLaunchAttributeRules whereExists(Select<?> select) {
+    public JLaunchAttributeRules whereExists(TableLike<?> select) {
         return where(DSL.exists(select));
     }
 
@@ -299,7 +300,7 @@ public class JLaunchAttributeRules extends TableImpl<JLaunchAttributeRulesRecord
      * Create an inline derived table from this table
      */
     @Override
-    public JLaunchAttributeRules whereNotExists(Select<?> select) {
+    public JLaunchAttributeRules whereNotExists(TableLike<?> select) {
         return where(DSL.notExists(select));
     }
 }

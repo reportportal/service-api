@@ -107,6 +107,6 @@ public class JAnalyticsDataRecord extends UpdatableRecordImpl<JAnalyticsDataReco
         setType(type);
         setCreatedAt(createdAt);
         setMetadata(metadata);
-        resetChangedOnNotNull();
+        resetTouchedOnNotNull();
     }
 }

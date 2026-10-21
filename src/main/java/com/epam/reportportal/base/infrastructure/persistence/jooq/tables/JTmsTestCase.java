@@ -36,14 +36,15 @@ import org.jooq.QueryPart;
 import org.jooq.Record;
 import org.jooq.SQL;
 import org.jooq.Schema;
-import org.jooq.Select;
 import org.jooq.Stringly;
 import org.jooq.Table;
 import org.jooq.TableField;
+import org.jooq.TableLike;
 import org.jooq.TableOptions;
 import org.jooq.UniqueKey;
 import org.jooq.impl.DSL;
 import org.jooq.impl.DefaultDataType;
+import org.jooq.impl.Internal;
 import org.jooq.impl.SQLDataType;
 import org.jooq.impl.TableImpl;
 
@@ -72,7 +73,7 @@ public class JTmsTestCase extends TableImpl<JTmsTestCaseRecord> {
     /**
      * The column <code>public.tms_test_case.id</code>.
      */
-    public final TableField<JTmsTestCaseRecord, Long> ID = createField(DSL.name("id"), SQLDataType.BIGINT.nullable(false).identity(true), this, "");
+    public final TableField<JTmsTestCaseRecord, Long> ID = createField(DSL.name("id"), SQLDataType.BIGINT.nullable(false).generatedByDefaultAsIdentity(), this, "");
 
     /**
      * The column <code>public.tms_test_case.created_at</code>.
@@ -83,6 +84,11 @@ public class JTmsTestCase extends TableImpl<JTmsTestCaseRecord> {
      * The column <code>public.tms_test_case.updated_at</code>.
      */
     public final TableField<JTmsTestCaseRecord, Instant> UPDATED_AT = createField(DSL.name("updated_at"), SQLDataType.LOCALDATETIME(6).nullable(false).defaultValue(DSL.field(DSL.raw("now()"), SQLDataType.LOCALDATETIME)), this, "", new JooqInstantConverter());
+
+    /**
+     * The column <code>public.tms_test_case.source_updated_at</code>.
+     */
+    public final TableField<JTmsTestCaseRecord, Instant> SOURCE_UPDATED_AT = createField(DSL.name("source_updated_at"), SQLDataType.LOCALDATETIME(6), this, "", new JooqInstantConverter());
 
     /**
      * The column <code>public.tms_test_case.name</code>.
@@ -97,7 +103,7 @@ public class JTmsTestCase extends TableImpl<JTmsTestCaseRecord> {
     /**
      * The column <code>public.tms_test_case.priority</code>.
      */
-    public final TableField<JTmsTestCaseRecord, String> PRIORITY = createField(DSL.name("priority"), SQLDataType.VARCHAR(255), this, "");
+    public final TableField<JTmsTestCaseRecord, String> PRIORITY = createField(DSL.name("priority"), SQLDataType.VARCHAR(255).nullable(false).defaultValue(DSL.field(DSL.raw("'UNSPECIFIED'::character varying"), SQLDataType.VARCHAR)), this, "");
 
     /**
      * The column <code>public.tms_test_case.search_vector</code>.
@@ -198,7 +204,7 @@ public class JTmsTestCase extends TableImpl<JTmsTestCaseRecord> {
 
     @Override
     public List<Index> getIndexes() {
-        return Arrays.asList(Indexes.IDX_TMS_TEST_CASE_PROJECT_ID, Indexes.IDX_TMS_TEST_CASE_SEARCH_VECTOR, Indexes.IDX_TMS_TEST_CASE_TEST_FOLDER_ID, Indexes.UNQ_TMS_TEST_CASE_PROJECT_DISPLAY_ID);
+        return Arrays.asList(Indexes.IDX_TMS_TEST_CASE_DISPLAY_ID_TRGM, Indexes.IDX_TMS_TEST_CASE_PROJECT_ID, Indexes.IDX_TMS_TEST_CASE_SEARCH_VECTOR, Indexes.IDX_TMS_TEST_CASE_TEST_FOLDER_ID, Indexes.UNQ_TMS_TEST_CASE_PROJECT_DISPLAY_ID);
     }
 
     @Override
@@ -352,7 +358,7 @@ public class JTmsTestCase extends TableImpl<JTmsTestCaseRecord> {
      */
     @Override
     public JTmsTestCase where(Condition condition) {
-        return new JTmsTestCase(getQualifiedName(), aliased() ? this : null, null, condition);
+        return new JTmsTestCase(getQualifiedName(), aliased() ? this : null, null, Internal.condition(this, condition));
     }
 
     /**
@@ -419,7 +425,7 @@ public class JTmsTestCase extends TableImpl<JTmsTestCaseRecord> {
      * Create an inline derived table from this table
      */
     @Override
-    public JTmsTestCase whereExists(Select<?> select) {
+    public JTmsTestCase whereExists(TableLike<?> select) {
         return where(DSL.exists(select));
     }
 
@@ -427,7 +433,7 @@ public class JTmsTestCase extends TableImpl<JTmsTestCaseRecord> {
      * Create an inline derived table from this table
      */
     @Override
-    public JTmsTestCase whereNotExists(Select<?> select) {
+    public JTmsTestCase whereNotExists(TableLike<?> select) {
         return where(DSL.notExists(select));
     }
 }

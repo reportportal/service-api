@@ -18,12 +18,12 @@ package com.epam.reportportal.base.model.activity;
 
 import com.epam.reportportal.base.reporting.AttributeResource;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import lombok.Data;
+import tools.jackson.databind.annotation.JsonDeserialize;
 
 @Data
 public class NotificationRuleActivityResource {

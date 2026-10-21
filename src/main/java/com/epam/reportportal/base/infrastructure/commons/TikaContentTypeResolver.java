@@ -25,17 +25,16 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.tika.detect.Detector;
 import org.apache.tika.io.TikaInputStream;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.mime.MediaType;
 import org.apache.tika.parser.AutoDetectParser;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.tika.parser.ParseContext;
 
+@Slf4j
 public class TikaContentTypeResolver implements ContentTypeResolver {
-
-  private static final Logger LOGGER = LoggerFactory.getLogger(TikaContentTypeResolver.class);
 
   @Override
   public String detectContentType(byte[] data) {
@@ -52,7 +51,7 @@ public class TikaContentTypeResolver implements ContentTypeResolver {
     try {
       return detectContentType(TikaInputStream.get(data));
     } catch (IOException e) {
-      LOGGER.error("Cannot read data stream", e);
+      log.error("Cannot read data stream", e);
       return MediaType.OCTET_STREAM.toString();
     }
   }
@@ -61,10 +60,10 @@ public class TikaContentTypeResolver implements ContentTypeResolver {
     try {
       AutoDetectParser parser = new AutoDetectParser();
       Detector detector = parser.getDetector();
-      MediaType mediaType = detector.detect(is, new Metadata());
+      MediaType mediaType = detector.detect(is, new Metadata(), new ParseContext());
       return mediaType.toString();
     } catch (IOException e) {
-      LOGGER.error("Cannot read data stream", e);
+      log.error("Cannot read data stream", e);
       return MediaType.OCTET_STREAM.toString();
     }
   }

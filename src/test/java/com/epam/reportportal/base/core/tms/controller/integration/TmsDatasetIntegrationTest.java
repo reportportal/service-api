@@ -14,20 +14,20 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.epam.reportportal.base.core.tms.dto.TmsDatasetRQ;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsDatasetRepository;
 import com.epam.reportportal.base.ws.BaseMvcTest;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.jdbc.Sql;
+import tools.jackson.databind.json.JsonMapper;
 
 @Sql("/db/tms/dataset/tms_dataset_fill.sql")
 class TmsDatasetIntegrationTest extends BaseMvcTest {
 
   private static final String SUPERADMIN_PROJECT_KEY = "superadmin_personal";
 
-  private final ObjectMapper objectMapper = new ObjectMapper();
+  private final JsonMapper objectMapper = JsonMapper.builder().build();
   @Autowired
   private TmsDatasetRepository tmsDatasetRepository;
 

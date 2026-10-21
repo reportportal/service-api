@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 EPAM Systems
+ * Copyright 2026 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,24 +14,19 @@
  * limitations under the License.
  */
 
-package com.epam.reportportal.base.core.configs;
+package com.epam.reportportal.auth.model;
 
-import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.web.client.RestTemplate;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Shared HTTP client beans and timeouts.
+ * Response body for {@code POST /sso/oauth/token}, matching the wire contract previously produced by the OAuth2
+ * authorization server's token endpoint.
  *
- * @author <a href="mailto:siarhei_hrabko@epam.com">Siarhei Hrabko</a>
  */
-@Configuration
-public class RestTemplateConfig {
+public record AccessTokenRs(
+    @JsonProperty("access_token") String accessToken,
+    @JsonProperty("token_type") String tokenType,
+    @JsonProperty("expires_in") long expiresIn
+) {
 
-  @Bean
-  RestTemplate restTemplate() {
-    return new RestTemplateBuilder()
-        .build();
-  }
 }

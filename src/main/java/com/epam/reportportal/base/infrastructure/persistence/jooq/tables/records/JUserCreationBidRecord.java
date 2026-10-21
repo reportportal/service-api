@@ -137,6 +137,6 @@ public class JUserCreationBidRecord extends UpdatableRecordImpl<JUserCreationBid
         setInvitingUserId(invitingUserId);
         setMetadata(metadata);
         setProjectRoleBackup(projectRoleBackup);
-        resetChangedOnNotNull();
+        resetTouchedOnNotNull();
     }
 }

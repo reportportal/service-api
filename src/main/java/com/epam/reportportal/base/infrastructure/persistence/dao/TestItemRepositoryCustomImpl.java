@@ -107,6 +107,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.logging.log4j.util.Strings;
 import org.jooq.CommonTableExpression;
@@ -138,29 +139,15 @@ import org.springframework.stereotype.Repository;
  * @author Pavel Bortnik
  */
 @Repository
+@RequiredArgsConstructor
 public class TestItemRepositoryCustomImpl implements TestItemRepositoryCustom {
 
   private static final String OUTER_ITEM_TABLE = "outer_item_table";
-  private static final String INNER_ITEM_TABLE = "inner_item_table";
-  private static final String TEST_CASE_ID_TABLE = "test_case_id_table";
-  private static final String RESULT_OUTER_TABLE = "resultOuterTable";
-  private static final String LATERAL_TABLE = "lateralTable";
-  private static final String RESULT_INNER_TABLE = "resultInnerTable";
-
   private static final String CHILD_ITEM_TABLE = "child";
-
   private static final String BASELINE_TABLE = "baseline";
-
-  private static final String ITEM_START_TIME = "itemStartTime";
-  private static final String LAUNCH_START_TIME = "launchStartTime";
   private static final String ACCUMULATED_STATISTICS = "accumulated_statistics";
 
-  private DSLContext dsl;
-
-  @Autowired
-  public void setDsl(DSLContext dsl) {
-    this.dsl = dsl;
-  }
+  private final DSLContext dsl;
 
   @Override
   public Set<Statistics> accumulateStatisticsByFilter(Queryable filter) {

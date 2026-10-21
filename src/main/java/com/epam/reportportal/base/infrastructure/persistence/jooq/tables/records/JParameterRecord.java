@@ -79,6 +79,6 @@ public class JParameterRecord extends TableRecordImpl<JParameterRecord> {
         setItemId(itemId);
         setKey(key);
         setValue(value);
-        resetChangedOnNotNull();
+        resetTouchedOnNotNull();
     }
 }

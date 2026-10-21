@@ -16,8 +16,6 @@
 
 package com.epam.reportportal.auth;
 
-import com.epam.reportportal.auth.config.password.ClientToken;
-import com.epam.reportportal.auth.config.utils.ConvertToOauthToken;
 import com.epam.reportportal.auth.event.UiUserSignedInEvent;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationRepository;
 import org.springframework.context.ApplicationEventPublisher;
@@ -54,10 +52,7 @@ public abstract class EnableableAuthProvider implements AuthenticationProvider {
     if (isEnabled()) {
       Authentication auth = getDelegate().authenticate(authentication);
       eventPublisher.publishEvent(new UiUserSignedInEvent(auth));
-      ConvertToOauthToken convertToOauthToken = new ConvertToOauthToken(tokenService);
-
-      ClientToken clientToken = (ClientToken) authentication;
-      return convertToOauthToken.convert(clientToken, auth);
+      return auth;
     } else {
       return null;
     }

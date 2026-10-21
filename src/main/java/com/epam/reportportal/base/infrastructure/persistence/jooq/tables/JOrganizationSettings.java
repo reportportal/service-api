@@ -25,13 +25,14 @@ import org.jooq.QueryPart;
 import org.jooq.Record;
 import org.jooq.SQL;
 import org.jooq.Schema;
-import org.jooq.Select;
 import org.jooq.Stringly;
 import org.jooq.Table;
 import org.jooq.TableField;
+import org.jooq.TableLike;
 import org.jooq.TableOptions;
 import org.jooq.UniqueKey;
 import org.jooq.impl.DSL;
+import org.jooq.impl.Internal;
 import org.jooq.impl.SQLDataType;
 import org.jooq.impl.TableImpl;
 
@@ -60,7 +61,7 @@ public class JOrganizationSettings extends TableImpl<JOrganizationSettingsRecord
     /**
      * The column <code>public.organization_settings.id</code>.
      */
-    public final TableField<JOrganizationSettingsRecord, Long> ID = createField(DSL.name("id"), SQLDataType.BIGINT.nullable(false).identity(true), this, "");
+    public final TableField<JOrganizationSettingsRecord, Long> ID = createField(DSL.name("id"), SQLDataType.BIGINT.nullable(false).generatedByDefaultAsIdentity(), this, "");
 
     /**
      * The column <code>public.organization_settings.organization_id</code>.
@@ -222,7 +223,7 @@ public class JOrganizationSettings extends TableImpl<JOrganizationSettingsRecord
      */
     @Override
     public JOrganizationSettings where(Condition condition) {
-        return new JOrganizationSettings(getQualifiedName(), aliased() ? this : null, null, condition);
+        return new JOrganizationSettings(getQualifiedName(), aliased() ? this : null, null, Internal.condition(this, condition));
     }
 
     /**
@@ -289,7 +290,7 @@ public class JOrganizationSettings extends TableImpl<JOrganizationSettingsRecord
      * Create an inline derived table from this table
      */
     @Override
-    public JOrganizationSettings whereExists(Select<?> select) {
+    public JOrganizationSettings whereExists(TableLike<?> select) {
         return where(DSL.exists(select));
     }
 
@@ -297,7 +298,7 @@ public class JOrganizationSettings extends TableImpl<JOrganizationSettingsRecord
      * Create an inline derived table from this table
      */
     @Override
-    public JOrganizationSettings whereNotExists(Select<?> select) {
+    public JOrganizationSettings whereNotExists(TableLike<?> select) {
         return where(DSL.notExists(select));
     }
 }

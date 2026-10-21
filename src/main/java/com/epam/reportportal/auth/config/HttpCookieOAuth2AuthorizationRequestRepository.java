@@ -16,8 +16,6 @@
 
 package com.epam.reportportal.auth.config;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -36,6 +34,9 @@ import org.springframework.security.oauth2.client.web.AuthorizationRequestReposi
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 import org.springframework.util.StringUtils;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Cookie-based OAuth2AuthorizationRequestRepository for stateless deployments. Stores the authorization request in a
@@ -45,15 +46,15 @@ import org.springframework.util.StringUtils;
 public class HttpCookieOAuth2AuthorizationRequestRepository
     implements AuthorizationRequestRepository<OAuth2AuthorizationRequest> {
 
-  private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
-
   private static final String COOKIE_NAME = "oauth2_auth_request";
   private static final int COOKIE_EXPIRE_SECONDS = 180;
 
+  private final JsonMapper objectMapper;
   private final boolean enforceHttps;
   private final AtomicBoolean secureWarningLogged = new AtomicBoolean(false);
 
-  public HttpCookieOAuth2AuthorizationRequestRepository(boolean enforceHttps) {
+  public HttpCookieOAuth2AuthorizationRequestRepository(JsonMapper objectMapper, boolean enforceHttps) {
+    this.objectMapper = objectMapper;
     this.enforceHttps = enforceHttps;
   }
 
@@ -81,7 +82,7 @@ public class HttpCookieOAuth2AuthorizationRequestRepository
       cookie.setSecure(enforceHttps || request.isSecure());
       cookie.setAttribute("SameSite", "Lax");
       response.addCookie(cookie);
-    } catch (IOException _) {
+    } catch (IOException | JacksonException _) {
       log.error("Failed to save OAuth2 authorization request to cookie");
     }
   }
@@ -105,7 +106,7 @@ public class HttpCookieOAuth2AuthorizationRequestRepository
         .map(c -> {
           try {
             return deserialize(c.getValue());
-          } catch (IOException _) {
+          } catch (IOException | JacksonException _) {
             log.warn("Failed to deserialize OAuth2 authorization request from cookie");
             return null;
           }
@@ -122,7 +123,7 @@ public class HttpCookieOAuth2AuthorizationRequestRepository
     response.addCookie(deletion);
   }
 
-  private static String serialize(OAuth2AuthorizationRequest authorizationRequest) throws IOException {
+  private String serialize(OAuth2AuthorizationRequest authorizationRequest) throws IOException {
     Map<String, Object> data = new LinkedHashMap<>();
     data.put("grantType", authorizationRequest.getGrantType().getValue());
     data.put("authorizationUri", authorizationRequest.getAuthorizationUri());
@@ -132,12 +133,12 @@ public class HttpCookieOAuth2AuthorizationRequestRepository
     data.put("state", authorizationRequest.getState());
     data.put("additionalParameters", authorizationRequest.getAdditionalParameters());
     data.put("attributes", authorizationRequest.getAttributes());
-    return Base64.getUrlEncoder().encodeToString(OBJECT_MAPPER.writeValueAsBytes(data));
+    return Base64.getUrlEncoder().encodeToString(objectMapper.writeValueAsBytes(data));
   }
 
   @SuppressWarnings("unchecked")
-  private static OAuth2AuthorizationRequest deserialize(String base64) throws IOException {
-    Map<String, Object> data = OBJECT_MAPPER.readValue(
+  private OAuth2AuthorizationRequest deserialize(String base64) throws IOException {
+    Map<String, Object> data = objectMapper.readValue(
         Base64.getUrlDecoder().decode(base64),
         new TypeReference<Map<String, Object>>() {
         });

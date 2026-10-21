@@ -129,15 +129,11 @@ import com.epam.reportportal.base.infrastructure.persistence.jooq.Tables;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JLog;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import java.io.IOException;
 import java.lang.reflect.Type;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -159,6 +155,8 @@ import org.jooq.JSON;
 import org.jooq.Record;
 import org.jooq.RecordMapper;
 import org.jooq.Result;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Set of record mappers that helps to convert the result of jooq queries into Java objects
@@ -167,12 +165,10 @@ import org.jooq.Result;
  */
 public class RecordMappers {
 
-  private static final ObjectMapper objectMapper;
+  private static final JsonMapper objectMapper;
 
   static {
-    objectMapper = new ObjectMapper();
-    objectMapper.registerModule(new JavaTimeModule());
-    objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    objectMapper = JsonMapper.builder().build();
   }
 
   /**
@@ -256,7 +252,7 @@ public class RecordMappers {
         try {
           Metadata metadata = objectMapper.readValue(metaDataString, Metadata.class);
           project.setMetadata(metadata);
-        } catch (IOException e) {
+        } catch (JacksonException _) {
           throw new ReportPortalException(ErrorType.UNCLASSIFIED_REPORT_PORTAL_ERROR,
               "Error during parsing user metadata");
         }
@@ -472,7 +468,7 @@ public class RecordMappers {
       try {
         Metadata metadata = objectMapper.readValue(metaDataString, Metadata.class);
         user.setMetadata(metadata);
-      } catch (IOException e) {
+      } catch (JacksonException _) {
         throw new ReportPortalException("Error during parsing user metadata");
       }
     });
@@ -555,8 +551,8 @@ public class RecordMappers {
       try {
         ActivityDetails details = objectMapper.readValue(s, ActivityDetails.class);
         activity.setDetails(details);
-      } catch (IOException e) {
-        throw new ReportPortalException(ErrorType.UNCLASSIFIED_REPORT_PORTAL_ERROR);
+      } catch (JacksonException e) {
+        throw new ReportPortalException(ErrorType.UNCLASSIFIED_REPORT_PORTAL_ERROR, e);
       }
     });
     activity.setSubjectId(r.get(ACTIVITY.SUBJECT_ID));
@@ -583,7 +579,7 @@ public class RecordMappers {
       try {
         WidgetOptions widgetOptions = objectMapper.readValue(wo, WidgetOptions.class);
         widget.setWidgetOptions(widgetOptions);
-      } catch (IOException e) {
+      } catch (JacksonException _) {
         throw new ReportPortalException("Error during parsing widget options");
       }
     });
@@ -757,7 +753,7 @@ public class RecordMappers {
       try {
         IntegrationTypeDetails details = objectMapper.readValue(s, IntegrationTypeDetails.class);
         integrationType.setDetails(details);
-      } catch (IOException e) {
+      } catch (JacksonException _) {
         throw new ReportPortalException("Error during parsing integration type details");
       }
     });
@@ -771,8 +767,8 @@ public class RecordMappers {
       try {
         IntegrationParams params = objectMapper.readValue(s, IntegrationParams.class);
         i.setParams(params);
-      } catch (IOException e) {
-        throw new ReportPortalException("Error during parsing integration params");
+      } catch (JacksonException e) {
+        throw new ReportPortalException("Error during parsing integration params", e);
       }
     });
   };
@@ -811,22 +807,24 @@ public class RecordMappers {
     milestone.setId(r.get(TMS_MILESTONE.ID));
     milestone.setName(r.get(TMS_MILESTONE.NAME));
     milestone.setDisplayId(r.get(TMS_MILESTONE.DISPLAY_ID));
-  
-    ofNullable(r.get(TMS_MILESTONE.START_DATE)).ifPresent(d -> milestone.setStartDate(d.atZone(ZoneOffset.UTC).toLocalDateTime()));
-    ofNullable(r.get(TMS_MILESTONE.END_DATE)).ifPresent(d -> milestone.setEndDate(d.atZone(ZoneOffset.UTC).toLocalDateTime()));
-  
+
+    ofNullable(r.get(TMS_MILESTONE.START_DATE)).ifPresent(
+        d -> milestone.setStartDate(d.atZone(ZoneOffset.UTC).toLocalDateTime()));
+    ofNullable(r.get(TMS_MILESTONE.END_DATE)).ifPresent(
+        d -> milestone.setEndDate(d.atZone(ZoneOffset.UTC).toLocalDateTime()));
+
     ofNullable(r.get(TMS_MILESTONE.TYPE)).ifPresent(t -> milestone.setType(TmsMilestoneType.valueOf(t.name())));
     ofNullable(r.get(TMS_MILESTONE.STATUS)).ifPresent(s -> milestone.setStatus(TmsMilestoneStatus.valueOf(s.name())));
-  
+
     ofNullable(r.get(TMS_MILESTONE.PROJECT_ID)).ifPresent(projectId -> {
       Project project = new Project();
       project.setId(projectId);
       milestone.setProject(project);
     });
-  
+
     return milestone;
   };
-  
+
   /**
    * Maps record into {@link TmsTestCase} object
    */
@@ -922,7 +920,7 @@ public class RecordMappers {
     execution.setTestCaseSnapshot(r.get(TMS_TEST_CASE_EXECUTION.TEST_CASE_SNAPSHOT, String.class));
     ofNullable(getFieldValue(r, TMS_TEST_CASE_EXECUTION.DISPLAY_ID))
         .ifPresent(execution::setDisplayId);
-    
+
     //Create TestItem with id, if test_item_id exists
     ofNullable(r.get(TMS_TEST_CASE_EXECUTION.TEST_ITEM_ID)).ifPresent(testItemId -> {
       TestItem testItem = new TestItem();
@@ -975,10 +973,10 @@ public class RecordMappers {
     item.setLaunchId(r.get(TMS_TEST_FOLDER_TEST_ITEM.LAUNCH_ID));
 
     ofNullable(r.get(TMS_TEST_FOLDER_TEST_ITEM.TEST_ITEM_ID)).ifPresent(itemId -> {
-        TestItem testItem = new TestItem();
-        testItem.setItemId(itemId);
-        ofNullable(r.get(TEST_ITEM.PARENT_ID)).ifPresent(testItem::setParentId);
-        item.setTestItem(testItem);
+      TestItem testItem = new TestItem();
+      testItem.setItemId(itemId);
+      ofNullable(r.get(TEST_ITEM.PARENT_ID)).ifPresent(testItem::setParentId);
+      item.setTestItem(testItem);
     });
 
     return item;

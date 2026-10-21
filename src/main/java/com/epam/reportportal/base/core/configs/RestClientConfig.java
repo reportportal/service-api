@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 EPAM Systems
+ * Copyright 2026 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,21 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.reportportal.auth.model;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+package com.epam.reportportal.base.core.configs;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.client.RestClient;
 
 /**
- * OAuth2 registration resource extended with an error code field for error response scenarios.
+ * Shared HTTP client beans and timeouts.
  *
- * @author <a href="mailto:andrei_piankouski@epam.com">Andrei Piankouski</a>
- */
-@EqualsAndHashCode(callSuper = true)
-@Data
-public class ExtendedOAuthRegistrationResource extends OAuthRegistrationResource {
+ **/
+@Configuration
+public class RestClientConfig {
 
-  private int errorCode;
-
-  private String message;
+  @Bean
+  RestClient restClient(RestClient.Builder restClientBuilder) {
+    return restClientBuilder.build();
+  }
 }

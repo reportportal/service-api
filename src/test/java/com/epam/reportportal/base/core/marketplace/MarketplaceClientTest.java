@@ -50,7 +50,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.client.MockRestServiceServer;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.RestClient;
 
 /**
  * Wire-level tests of {@link MarketplaceClient} against a mocked registry.
@@ -61,18 +61,19 @@ class MarketplaceClientTest {
   // bearer credential and the client refuses to put one on a plaintext connection to a remote host
   private static final String BASE_URL = "https://registry.internal";
 
-  private RestTemplate restTemplate;
+  private RestClient restClient;
   private MockRestServiceServer server;
   private MarketplaceClient client;
 
   @BeforeEach
   void setUp() {
-    // Real bean wiring: the tolerant ObjectMapper and converters are under test too.
-    restTemplate = new MarketplaceConfig(BASE_URL, Duration.ofSeconds(3), Duration.ofSeconds(15),
+    // Real bean wiring: the tolerant JsonMapper and converters are under test too.
+    var builder = new MarketplaceConfig(BASE_URL, Duration.ofSeconds(3), Duration.ofSeconds(15),
         Duration.ofSeconds(30), false)
-        .marketplaceRestTemplate();
-    server = MockRestServiceServer.bindTo(restTemplate).build();
-    client = new MarketplaceClient(restTemplate, BASE_URL);
+        .marketplaceRestClientBuilder();
+    server = MockRestServiceServer.bindTo(builder).build();
+    restClient = builder.build();
+    client = new MarketplaceClient(restClient, BASE_URL);
   }
 
   @Test
@@ -246,7 +247,7 @@ class MarketplaceClientTest {
    */
   @Test
   void theLicenceIsNeverSentOverPlaintextToTheRemoteRegistry() {
-    var plaintext = new MarketplaceClient(restTemplate, "http://registry.internal");
+    var plaintext = new MarketplaceClient(restClient, "http://registry.internal");
 
     var refusal = assertThrows(RegistryProtocolException.class,
         () -> plaintext.resolveArtifact("premium", "2.0.0", "licence-jwt"));
@@ -260,7 +261,7 @@ class MarketplaceClientTest {
   @Test
   void anArtifactRequestCarryingNoLicenceIsUnaffectedByTheTransportRule() {
     // nothing to leak: a public plugin resolves and downloads over plain HTTP exactly as before
-    var plaintext = new MarketplaceClient(restTemplate, "http://registry.internal");
+    var plaintext = new MarketplaceClient(restClient, "http://registry.internal");
     server.expect(requestTo("http://registry.internal/api/v1/plugins/jira/versions/1.4.2/artifact"))
         .andRespond(withSuccess("{\"downloadUrl\":\"http://cdn.internal/jira-1.4.2.jar\"}",
             MediaType.APPLICATION_JSON));
@@ -580,7 +581,7 @@ class MarketplaceClientTest {
   // who or where the instance is.
   @Test
   void theInstanceIdRidesOnTheArtifactRequest() {
-    var withId = new MarketplaceClient(restTemplate, BASE_URL,
+    var withId = new MarketplaceClient(restClient, BASE_URL,
         () -> Optional.of("3f2b1a44-0000-4000-8000-000000000001"));
     server.expect(requestTo(BASE_URL + "/api/v1/plugins/jira/versions/1.4.2/artifact"))
         .andExpect(header(MarketplaceClient.INSTANCE_ID_HEADER,
@@ -596,7 +597,7 @@ class MarketplaceClientTest {
   void anOptedOutInstanceSendsNoIdAtAll() {
     // Empty is the opt-out, and it must mean "no header" rather than a header with nothing in
     // it: the registry treats a present-but-blank id as an id.
-    var optedOut = new MarketplaceClient(restTemplate, BASE_URL, Optional::empty);
+    var optedOut = new MarketplaceClient(restClient, BASE_URL, Optional::empty);
     server.expect(requestTo(BASE_URL + "/api/v1/plugins/jira/versions/1.4.2/artifact"))
         .andExpect(headerDoesNotExist(MarketplaceClient.INSTANCE_ID_HEADER))
         .andRespond(withStatus(HttpStatus.FOUND)
@@ -610,7 +611,7 @@ class MarketplaceClientTest {
   void browsingCarriesNoInstanceId() {
     // "only on that endpoint; never on browse/list/detail" — browsing is unauthenticated and
     // uncounted, and an id on it would turn reading the catalogue into a tracked event.
-    var withId = new MarketplaceClient(restTemplate, BASE_URL,
+    var withId = new MarketplaceClient(restClient, BASE_URL,
         () -> Optional.of("3f2b1a44-0000-4000-8000-000000000001"));
     server.expect(requestTo(BASE_URL + "/api/v1/plugins"))
         .andExpect(headerDoesNotExist(MarketplaceClient.INSTANCE_ID_HEADER))

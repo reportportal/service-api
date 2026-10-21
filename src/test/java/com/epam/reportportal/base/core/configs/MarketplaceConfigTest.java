@@ -44,7 +44,7 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.env.MapPropertySource;
 import org.springframework.test.util.ReflectionTestUtils;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.RestClient;
 
 /**
  * Timeout, redirect and bean-wiring behaviour of the marketplace HTTP client.
@@ -68,7 +68,7 @@ class MarketplaceConfigTest {
     try (var blackHole = new ServerSocket(0)) {
       var config = new MarketplaceConfig("http://127.0.0.1:" + blackHole.getLocalPort(),
           Duration.ofSeconds(3), Duration.ofMillis(300), Duration.ofSeconds(30), false);
-      var client = new MarketplaceClient(config.marketplaceRestTemplate(), config.registryUrl());
+      var client = new MarketplaceClient(config.marketplaceRestClient(), config.registryUrl());
 
       assertTimeoutPreemptively(Duration.ofSeconds(5), () -> {
         var ex = assertThrows(RegistryUnreachableException.class,
@@ -99,7 +99,7 @@ class MarketplaceConfigTest {
     try {
       var config = new MarketplaceConfig("http://127.0.0.1:" + server.getAddress().getPort(),
           Duration.ofSeconds(3), Duration.ofMillis(300), Duration.ofSeconds(30), false);
-      var client = new MarketplaceClient(config.marketplaceRestTemplate(), config.registryUrl());
+      var client = new MarketplaceClient(config.marketplaceRestClient(), config.registryUrl());
 
       assertTimeoutPreemptively(Duration.ofSeconds(5), () -> {
         var ex = assertThrows(RegistryUnreachableException.class,
@@ -138,7 +138,7 @@ class MarketplaceConfigTest {
     try {
       var config = new MarketplaceConfig("http://127.0.0.1:" + server.getAddress().getPort(),
           Duration.ofSeconds(3), Duration.ofSeconds(2), Duration.ofMillis(500), false);
-      var client = new MarketplaceClient(config.marketplaceRestTemplate(), config.registryUrl());
+      var client = new MarketplaceClient(config.marketplaceRestClient(), config.registryUrl());
 
       assertTimeoutPreemptively(Duration.ofSeconds(5), () -> {
         var ex = assertThrows(RegistryUnreachableException.class,
@@ -181,7 +181,7 @@ class MarketplaceConfigTest {
       try {
         var config = new MarketplaceConfig("http://127.0.0.1:" + server.getLocalPort(),
             Duration.ofSeconds(3), Duration.ofSeconds(2), Duration.ofMillis(500), false);
-        var client = new MarketplaceClient(config.marketplaceRestTemplate(), config.registryUrl());
+        var client = new MarketplaceClient(config.marketplaceRestClient(), config.registryUrl());
 
         assertTimeoutPreemptively(Duration.ofSeconds(5), () ->
             assertThrows(RegistryUnreachableException.class,
@@ -215,7 +215,7 @@ class MarketplaceConfigTest {
     try {
       var config = new MarketplaceConfig("http://127.0.0.1:" + server.getAddress().getPort(),
           Duration.ofSeconds(3), Duration.ofSeconds(2), Duration.ofMillis(700), false);
-      var client = new MarketplaceClient(config.marketplaceRestTemplate(), config.registryUrl());
+      var client = new MarketplaceClient(config.marketplaceRestClient(), config.registryUrl());
 
       assertEquals(1, client.getCatalogue(null, null).size());
       TimeUnit.MILLISECONDS.sleep(900);
@@ -249,7 +249,7 @@ class MarketplaceConfigTest {
     try {
       var config = new MarketplaceConfig("http://127.0.0.1:" + server.getAddress().getPort(),
           Duration.ofSeconds(3), Duration.ofSeconds(5), Duration.ofSeconds(30), false);
-      var client = new MarketplaceClient(config.marketplaceRestTemplate(), config.registryUrl());
+      var client = new MarketplaceClient(config.marketplaceRestClient(), config.registryUrl());
 
       var artifact = client.resolveArtifact("jira", "1.4.2", null);
 
@@ -275,10 +275,10 @@ class MarketplaceConfigTest {
     try {
       var config = new MarketplaceConfig("http://127.0.0.1:" + server.getAddress().getPort(),
           Duration.ofSeconds(3), Duration.ofSeconds(5), Duration.ofSeconds(30), false);
-      var client = new MarketplaceClient(config.marketplaceRestTemplate(), config.registryUrl());
+      var client = new MarketplaceClient(config.marketplaceRestClient(), config.registryUrl());
       assertEquals(1, client.getCatalogue(null, null).size());
-      var pool = (PoolingHttpClientConnectionManager)
-          ReflectionTestUtils.getField(config, "connectionManager");
+      var pool = (PoolingHttpClientConnectionManager) ReflectionTestUtils.getField(
+          ReflectionTestUtils.getField(config, "httpClient"), "connManager");
       // Keep-alive leaves the socket in the pool, held open until something closes it.
       assertEquals(1, pool.getTotalStats().getAvailable());
 
@@ -291,25 +291,27 @@ class MarketplaceConfigTest {
   }
 
   @Test
-  void marketplaceTemplateDoesNotHijackTheSharedRestTemplate() {
+  void marketplaceClientDoesNotHijackTheSharedRestClient() {
     try (var ctx = new AnnotationConfigApplicationContext()) {
       ctx.getBeanFactory().setConversionService(ApplicationConversionService.getSharedInstance());
       ctx.getEnvironment().getPropertySources().addFirst(new MapPropertySource("test",
           Map.of("rp.jobs.baseUrl", "http://jobs")));
-      ctx.register(PropertySourcesPlaceholderConfigurer.class, RestTemplateConfig.class,
+      ctx.register(PropertySourcesPlaceholderConfigurer.class, RestClientConfig.class,
           MarketplaceConfig.class, JobsHealthIndicator.class);
-      // This context is about which RestTemplate each bean gets, so the instance id is a stub:
-      // the real one is a @Component that needs a datasource, and none of that is under test.
+      // This context is about which RestClient each bean gets, so the builder and the instance id
+      // are stubs: Boot's builder auto-configuration, and the real id (a @Component that needs a
+      // datasource), are not under test.
+      ctx.registerBean(RestClient.Builder.class, () -> RestClient.builder());
       ctx.registerBean(MarketplaceInstanceId.class, () -> Optional::empty);
       ctx.refresh();
 
-      var shared = ctx.getBean("restTemplate", RestTemplate.class);
-      var marketplace = ctx.getBean("marketplaceRestTemplate", RestTemplate.class);
+      var shared = ctx.getBean("restClient", RestClient.class);
+      var marketplace = ctx.getBean("marketplaceRestClient", RestClient.class);
       var healthIndicator = ctx.getBean(JobsHealthIndicator.class);
 
-      assertSame(shared, ReflectionTestUtils.getField(healthIndicator, "restTemplate"));
+      assertSame(shared, ReflectionTestUtils.getField(healthIndicator, "restClient"));
       assertSame(marketplace, ReflectionTestUtils.getField(
-          ctx.getBean(MarketplaceClient.class), "restTemplate"));
+          ctx.getBean(MarketplaceClient.class), "restClient"));
     }
   }
 }

@@ -33,10 +33,9 @@ import java.util.List;
 public class DefineIssueRQ {
 
   @NotNull
-  @Valid
   @Size(max = 300)
   @JsonProperty(value = "issues", required = true)
-  private List<IssueDefinition> issues;
+  private List<@Valid IssueDefinition> issues;
 
   public List<IssueDefinition> getIssues() {
     return issues;

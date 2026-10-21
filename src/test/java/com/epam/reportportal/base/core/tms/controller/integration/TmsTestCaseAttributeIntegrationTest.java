@@ -7,12 +7,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.epam.reportportal.base.core.tms.dto.GetAttributesByTestCaseIdsRQ;
 import com.epam.reportportal.base.ws.BaseMvcTest;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Collections;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.jdbc.Sql;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Integration tests for TmsTestCaseAttributeController.
@@ -34,7 +34,7 @@ class TmsTestCaseAttributeIntegrationTest extends BaseMvcTest {
   private static final String BASE_URL =
       "/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/attribute";
 
-  private final ObjectMapper mapper = new ObjectMapper();
+  private final JsonMapper mapper = JsonMapper.builder().build();
 
   @Test
   void getAttributesByTestCaseIds_ShouldReturnUniqueAttributes() throws Exception {

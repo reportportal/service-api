@@ -20,24 +20,24 @@ import com.epam.reportportal.api.model.PatchOperation;
 import com.epam.reportportal.base.core.organization.OrganizationUserService;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
- * Abstract base class for handling patch operations on organizations.
- * Subclasses should override the adding, replace, and
- * remove methods to implement specific patch logic.
+ * Abstract base class for handling patch operations on organizations. Subclasses should override the adding, replace,
+ * and remove methods to implement specific patch logic.
  *
  * @author <a href="mailto:siarhei_hrabko@epam.com">Siarhei Hrabko</a>
  */
 @Slf4j
 @RequiredArgsConstructor
 public class BasePatchOrganizationHandler {
+
   protected final OrganizationUserService organizationUserService;
-  protected final ObjectMapper objectMapper;
+  protected final JsonMapper objectMapper;
 
   void replace(PatchOperation operation, Long orgId) {
     throw new UnsupportedOperationException("'Replace' operation is not supported");
@@ -51,13 +51,12 @@ public class BasePatchOrganizationHandler {
     throw new UnsupportedOperationException("'Remove' operation is not supported");
   }
 
-  String valueToString(Object value) throws JsonProcessingException {
-    return value instanceof String ? (String) value : objectMapper.writeValueAsString(value);
+  private String valueToString(Object value) {
+    return value instanceof String string ? string : objectMapper.writeValueAsString(value);
   }
 
   /**
-   * Reads the value from a PatchOperation and converts
-   * it to the specified type using the provided TypeReference.
+   * Reads the value from a PatchOperation and converts it to the specified type using the provided TypeReference.
    *
    * @param operation The patch operation containing the value to read.
    * @param typeRef   The TypeReference indicating the desired type for conversion.
@@ -67,7 +66,7 @@ public class BasePatchOrganizationHandler {
   protected <T> T readOperationValue(PatchOperation operation, TypeReference<T> typeRef) {
     try {
       return objectMapper.readValue(valueToString(operation.getValue()), typeRef);
-    } catch (JsonProcessingException e) {
+    } catch (JacksonException e) {
       log.error(e.getMessage());
       throw new ReportPortalException(ErrorType.INCORRECT_REQUEST,
           "Invalid field 'value': " + (e.getCause() != null ? e.getCause().getMessage() : e.getOriginalMessage()));

@@ -18,9 +18,9 @@ package com.epam.reportportal.base.util;
 
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import org.jspecify.annotations.NonNull;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.lang.NonNull;
 
 
 @ToString
@@ -75,14 +75,12 @@ public class OffsetRequest implements Pageable {
   }
 
   @Override
-  @NonNull
-  public Sort getSort() {
+  public @NonNull Sort getSort() {
     return sort;
   }
 
   @Override
-  @NonNull
-  public Pageable next() {
+  public @NonNull Pageable next() {
     return new OffsetRequest(getOffset() + getPageSize(), getPageSize(), getSort());
   }
 
@@ -92,20 +90,17 @@ public class OffsetRequest implements Pageable {
   }
 
   @Override
-  @NonNull
-  public Pageable previousOrFirst() {
+  public @NonNull Pageable previousOrFirst() {
     return hasPrevious() ? previous() : first();
   }
 
   @Override
-  @NonNull
-  public Pageable first() {
+  public @NonNull Pageable first() {
     return new OffsetRequest(0, getPageSize(), getSort());
   }
 
   @Override
-  @NonNull
-  public Pageable withPage(int pageNumber) {
+  public @NonNull Pageable withPage(int pageNumber) {
     return new OffsetRequest((long) pageNumber * getPageSize(), getPageSize(), getSort());
   }
 

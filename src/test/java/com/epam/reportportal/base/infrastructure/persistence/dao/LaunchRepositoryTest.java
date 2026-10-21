@@ -25,6 +25,7 @@ import static com.epam.reportportal.base.infrastructure.persistence.commons.quer
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.LaunchCriteriaConstant.CRITERIA_LAUNCH_MODE;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.LaunchCriteriaConstant.CRITERIA_LAUNCH_UUID;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.UserCriteriaConstant.CRITERIA_USER;
+import static com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JLaunch.LAUNCH;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -49,6 +50,8 @@ import com.epam.reportportal.base.infrastructure.persistence.jooq.enums.JTestIte
 import com.epam.reportportal.base.ws.BaseMvcTest;
 import com.fasterxml.jackson.annotation.JsonCreator.Mode;
 import com.google.common.collect.Comparators;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -62,6 +65,7 @@ import java.util.stream.Stream;
 import org.apache.commons.collections4.CollectionUtils;
 import org.assertj.core.util.Lists;
 import org.hamcrest.Matchers;
+import org.jooq.DSLContext;
 import org.jooq.Operator;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -78,6 +82,31 @@ class LaunchRepositoryTest extends BaseMvcTest {
 
   @Autowired
   private LaunchRepository launchRepository;
+
+  @Autowired
+  private DSLContext dslContext;
+
+  @PersistenceContext
+  private EntityManager entityManager;
+
+  @Test
+  void launchStartTimeRoundTripsThroughHibernateAndJooqAsUtc() {
+    Launch launch = launchRepository.findById(1L).orElseThrow();
+    Instant expected = Instant.parse("2024-06-01T12:34:56.123456Z");
+    launch.setStartTime(expected);
+    launchRepository.save(launch);
+    entityManager.flush();
+    entityManager.clear();
+
+    Instant fromJpa = launchRepository.findById(1L).orElseThrow().getStartTime();
+    Instant fromJooq = dslContext.select(LAUNCH.START_TIME)
+        .from(LAUNCH)
+        .where(LAUNCH.ID.eq(1L))
+        .fetchOne(LAUNCH.START_TIME);
+
+    assertEquals(expected.truncatedTo(ChronoUnit.MICROS), fromJpa.truncatedTo(ChronoUnit.MICROS));
+    assertEquals(expected.truncatedTo(ChronoUnit.MICROS), fromJooq.truncatedTo(ChronoUnit.MICROS));
+  }
 
   @Test
   void updateRetentionPolicy() {

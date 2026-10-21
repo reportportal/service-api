@@ -30,10 +30,9 @@ import java.util.Map;
  */
 public class BulkRQ<K, T> {
 
-  @Valid
   @NotNull
   @JsonProperty(value = "entities", required = true)
-  private Map<K, T> entities;
+  private Map<K, @Valid T> entities;
 
   public Map<K, T> getEntities() {
     return entities;

@@ -19,16 +19,17 @@ package com.epam.reportportal.base.infrastructure.persistence.entity.item.issue;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.TestItemIssueGroup;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.io.Serializable;
 import java.util.Objects;
-import org.hibernate.annotations.JdbcType;
-import org.hibernate.dialect.PostgreSQLEnumJdbcType;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 /**
  * Groups built-in and custom issue types (e.g. to investigate vs product bug).
@@ -37,6 +38,9 @@ import org.hibernate.dialect.PostgreSQLEnumJdbcType;
  */
 @Entity
 @Table(name = "issue_group", schema = "public")
+@Setter
+@Getter
+@NoArgsConstructor
 public class IssueGroup implements Serializable {
 
   @Id
@@ -45,30 +49,10 @@ public class IssueGroup implements Serializable {
   private Integer id;
 
   @Column(name = "issue_group")
-  @Enumerated(EnumType.STRING)
-  @JdbcType(PostgreSQLEnumJdbcType.class)
+  @JdbcTypeCode(SqlTypes.NAMED_ENUM)
   private TestItemIssueGroup testItemIssueGroup;
 
-  public IssueGroup() {
-  }
-
   public IssueGroup(TestItemIssueGroup testItemIssueGroup) {
-    this.testItemIssueGroup = testItemIssueGroup;
-  }
-
-  public Integer getId() {
-    return id;
-  }
-
-  public void setId(Integer id) {
-    this.id = id;
-  }
-
-  public TestItemIssueGroup getTestItemIssueGroup() {
-    return testItemIssueGroup;
-  }
-
-  public void setTestItemIssueGroup(TestItemIssueGroup testItemIssueGroup) {
     this.testItemIssueGroup = testItemIssueGroup;
   }
 

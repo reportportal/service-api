@@ -16,10 +16,8 @@
 
 package com.epam.reportportal.base.infrastructure.persistence.entity.user;
 
-import com.epam.reportportal.base.infrastructure.persistence.dao.converters.JpaInstantConverter;
 import com.epam.reportportal.base.infrastructure.persistence.entity.Modifiable;
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.Id;
@@ -54,7 +52,6 @@ public class RestorePasswordBid implements Serializable, Modifiable {
 
   @LastModifiedDate
   @Column(name = LAST_MODIFIED)
-  @Convert(converter = JpaInstantConverter.class)
   private Instant lastModifiedDate;
 
   @Column(name = "email")

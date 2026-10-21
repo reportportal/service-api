@@ -5,6 +5,7 @@ package com.epam.reportportal.base.infrastructure.persistence.jooq.tables.record
 
 
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JItemAttribute;
+
 import org.jooq.Record1;
 import org.jooq.impl.UpdatableRecordImpl;
 
@@ -77,14 +78,14 @@ public class JItemAttributeRecord extends UpdatableRecordImpl<JItemAttributeReco
      * Setter for <code>public.item_attribute.system</code>.
      */
     public void setSystem(Boolean value) {
-      set(4, value);
+        set(4, value);
     }
 
     /**
      * Getter for <code>public.item_attribute.system</code>.
      */
     public Boolean getSystem() {
-      return (Boolean) get(4);
+        return (Boolean) get(4);
     }
 
     // -------------------------------------------------------------------------
@@ -118,6 +119,6 @@ public class JItemAttributeRecord extends UpdatableRecordImpl<JItemAttributeReco
         setValue(value);
         setItemId(itemId);
         setSystem(system);
-        resetChangedOnNotNull();
+        resetTouchedOnNotNull();
     }
 }

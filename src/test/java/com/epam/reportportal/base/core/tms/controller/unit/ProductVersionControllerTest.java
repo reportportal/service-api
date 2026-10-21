@@ -1,6 +1,6 @@
 package com.epam.reportportal.base.core.tms.controller.unit;
 
-import static org.mockito.ArgumentMatchers.any;
+import static com.epam.reportportal.base.util.StandaloneMockMvcSupport.standaloneJsonSetup;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
@@ -12,7 +12,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static com.epam.reportportal.base.util.StandaloneMockMvcSupport.standaloneJsonSetup;
 
 import com.epam.reportportal.base.core.tms.controller.ProductVersionController;
 import com.epam.reportportal.base.core.tms.dto.ProductVersionRQ;
@@ -21,7 +20,6 @@ import com.epam.reportportal.base.core.tms.service.ProductVersionService;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.MembershipDetails;
 import com.epam.reportportal.base.util.ProjectExtractor;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Collections;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -37,6 +35,7 @@ import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
+import tools.jackson.databind.json.JsonMapper;
 
 class ProductVersionControllerTest {
 
@@ -77,7 +76,7 @@ class ProductVersionControllerTest {
 
           @Override
           public Object resolveArgument(MethodParameter parameter,
-                                        ModelAndViewContainer mavContainer,
+              ModelAndViewContainer mavContainer,
               NativeWebRequest webRequest, WebDataBinderFactory binderFactory) {
             return testUser;
           }
@@ -121,7 +120,7 @@ class ProductVersionControllerTest {
     expectedResponse.setDocumentation("doc");
     expectedResponse.setProjectId(1L);
 
-    ObjectMapper mapper = new ObjectMapper();
+    JsonMapper mapper = JsonMapper.builder().build();
     String jsonContent = mapper.writeValueAsString(request);
 
     given(productVersionService.create(projectId, request)).willReturn(expectedResponse);
@@ -144,7 +143,7 @@ class ProductVersionControllerTest {
     expectedResponse.setDocumentation("doc");
     expectedResponse.setProjectId(1L);
 
-    ObjectMapper mapper = new ObjectMapper();
+    JsonMapper mapper = JsonMapper.builder().build();
     String jsonContent = mapper.writeValueAsString(request);
 
     given(productVersionService.update(projectId, productVersionId, request))

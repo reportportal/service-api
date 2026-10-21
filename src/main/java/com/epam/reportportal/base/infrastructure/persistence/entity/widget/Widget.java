@@ -33,9 +33,12 @@ import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
 import java.io.Serializable;
 import java.util.Set;
+import lombok.Getter;
+import lombok.Setter;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
-import org.hibernate.annotations.Type;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 
 /**
@@ -45,6 +48,8 @@ import org.hibernate.annotations.Type;
  */
 @Entity
 @Table(name = "widget")
+@Setter
+@Getter
 public class Widget extends OwnedEntity implements Serializable {
 
   @Column(name = "name")
@@ -69,7 +74,7 @@ public class Widget extends OwnedEntity implements Serializable {
   @OrderBy(value = "id")
   private Set<String> contentFields = Sets.newLinkedHashSet();
 
-  @Type(WidgetOptions.class)
+  @JdbcTypeCode(SqlTypes.JSON)
   @Column(name = "widget_options")
   private WidgetOptions widgetOptions;
 
@@ -77,67 +82,4 @@ public class Widget extends OwnedEntity implements Serializable {
   @Fetch(value = FetchMode.JOIN)
   private Set<DashboardWidget> dashboardWidgets = Sets.newHashSet();
 
-  public String getName() {
-    return name;
-  }
-
-  public void setName(String name) {
-    this.name = name;
-  }
-
-  public String getDescription() {
-    return description;
-  }
-
-  public void setDescription(String description) {
-    this.description = description;
-  }
-
-  public String getWidgetType() {
-    return widgetType;
-  }
-
-  public void setWidgetType(String widgetType) {
-    this.widgetType = widgetType;
-  }
-
-  public int getItemsCount() {
-    return itemsCount;
-  }
-
-  public void setItemsCount(int itemsCount) {
-    this.itemsCount = itemsCount;
-  }
-
-  public Set<String> getContentFields() {
-    return contentFields;
-  }
-
-  public void setContentFields(Set<String> contentFields) {
-    this.contentFields = contentFields;
-  }
-
-  public WidgetOptions getWidgetOptions() {
-    return widgetOptions;
-  }
-
-  public void setWidgetOptions(WidgetOptions widgetOptions) {
-    this.widgetOptions = widgetOptions;
-  }
-
-  public Set<DashboardWidget> getDashboardWidgets() {
-    return dashboardWidgets;
-  }
-
-  public void setDashboardWidgets(Set<DashboardWidget> dashboardWidgets) {
-    this.dashboardWidgets = dashboardWidgets;
-  }
-
-  public Set<UserFilter> getFilters() {
-    return filters;
-  }
-
-  public void setFilters(Set<UserFilter> filters) {
-    this.filters = filters;
-  }
 }

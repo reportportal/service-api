@@ -13,17 +13,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.epam.reportportal.base.core.tms.dto.TmsAttributeRQ;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsAttributeRepository;
-import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsAttribute;
 import com.epam.reportportal.base.ws.BaseMvcTest;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.jdbc.Sql;
+import tools.jackson.databind.json.JsonMapper;
 
 @Sql("/db/tms/tms-attribute/tms-attribute-fill.sql")
 @ExtendWith(MockitoExtension.class)
@@ -44,7 +42,7 @@ class TmsAttributeIntegrationTest extends BaseMvcTest {
     var request = TmsAttributeRQ.builder()
         .key("new_test_key")
         .build();
-    var mapper = new ObjectMapper();
+    var mapper = JsonMapper.builder().build();
     var jsonContent = mapper.writeValueAsString(request);
 
     // When/Then
@@ -77,7 +75,7 @@ class TmsAttributeIntegrationTest extends BaseMvcTest {
         .key("status")
         .value("active")
         .build();
-    var mapper = new ObjectMapper();
+    var mapper = JsonMapper.builder().build();
     var jsonContent = mapper.writeValueAsString(request);
 
     // When/Then
@@ -110,7 +108,7 @@ class TmsAttributeIntegrationTest extends BaseMvcTest {
         .key("priority")
         .value("critical")
         .build();
-    var mapper = new ObjectMapper();
+    var mapper = JsonMapper.builder().build();
     var jsonContent = mapper.writeValueAsString(request);
 
     // When/Then
@@ -141,7 +139,7 @@ class TmsAttributeIntegrationTest extends BaseMvcTest {
         .key("priority")
         .value("high")
         .build();
-    var mapper = new ObjectMapper();
+    var mapper = JsonMapper.builder().build();
     var jsonContent = mapper.writeValueAsString(request);
 
     // When/Then - should fail because same key+value combination exists
@@ -158,7 +156,7 @@ class TmsAttributeIntegrationTest extends BaseMvcTest {
     var request = TmsAttributeRQ.builder()
         .key("test_key_1")
         .build();
-    var mapper = new ObjectMapper();
+    var mapper = JsonMapper.builder().build();
     var jsonContent = mapper.writeValueAsString(request);
 
     // When/Then - should fail because same key with NULL value exists
@@ -175,7 +173,7 @@ class TmsAttributeIntegrationTest extends BaseMvcTest {
     var request = TmsAttributeRQ.builder()
         .key("priority")
         .build();
-    var mapper = new ObjectMapper();
+    var mapper = JsonMapper.builder().build();
     var jsonContent = mapper.writeValueAsString(request);
 
     // When/Then - should succeed because value is different (NULL vs "high")
@@ -204,7 +202,7 @@ class TmsAttributeIntegrationTest extends BaseMvcTest {
     var request = TmsAttributeRQ.builder()
         .key(null)
         .build();
-    var mapper = new ObjectMapper();
+    var mapper = JsonMapper.builder().build();
     var jsonContent = mapper.writeValueAsString(request);
 
     // When/Then
@@ -221,7 +219,7 @@ class TmsAttributeIntegrationTest extends BaseMvcTest {
     var request = TmsAttributeRQ.builder()
         .key("")
         .build();
-    var mapper = new ObjectMapper();
+    var mapper = JsonMapper.builder().build();
     var jsonContent = mapper.writeValueAsString(request);
 
     // When/Then
@@ -239,7 +237,7 @@ class TmsAttributeIntegrationTest extends BaseMvcTest {
         .key("test-key_with.special@chars")
         .value("test-value")
         .build();
-    var mapper = new ObjectMapper();
+    var mapper = JsonMapper.builder().build();
     var jsonContent = mapper.writeValueAsString(request);
 
     // When/Then
@@ -274,7 +272,7 @@ class TmsAttributeIntegrationTest extends BaseMvcTest {
     var request = TmsAttributeRQ.builder()
         .key("updated_test_key_2")
         .build();
-    var mapper = new ObjectMapper();
+    var mapper = JsonMapper.builder().build();
     var jsonContent = mapper.writeValueAsString(request);
 
     // When/Then
@@ -309,7 +307,7 @@ class TmsAttributeIntegrationTest extends BaseMvcTest {
         .key("severity")
         .value("critical")
         .build();
-    var mapper = new ObjectMapper();
+    var mapper = JsonMapper.builder().build();
     var jsonContent = mapper.writeValueAsString(request);
 
     // When/Then
@@ -343,7 +341,7 @@ class TmsAttributeIntegrationTest extends BaseMvcTest {
         .key("priority") // Keep same key
         .value("updated_medium") // Change value
         .build();
-    var mapper = new ObjectMapper();
+    var mapper = JsonMapper.builder().build();
     var jsonContent = mapper.writeValueAsString(request);
 
     // When/Then
@@ -372,7 +370,7 @@ class TmsAttributeIntegrationTest extends BaseMvcTest {
         .key("priority")
         .value("high")
         .build();
-    var mapper = new ObjectMapper();
+    var mapper = JsonMapper.builder().build();
     var jsonContent = mapper.writeValueAsString(request);
 
     // When/Then
@@ -397,7 +395,7 @@ class TmsAttributeIntegrationTest extends BaseMvcTest {
     var request = TmsAttributeRQ.builder()
         .key("non_existent_key")
         .build();
-    var mapper = new ObjectMapper();
+    var mapper = JsonMapper.builder().build();
     var jsonContent = mapper.writeValueAsString(request);
 
     // When/Then
@@ -558,7 +556,7 @@ class TmsAttributeIntegrationTest extends BaseMvcTest {
           .key(newKey)
           .value(newValue)
           .build();
-      var mapper = new ObjectMapper();
+      var mapper = JsonMapper.builder().build();
       var jsonContent = mapper.writeValueAsString(request);
 
       mockMvc.perform(patch("/v1/project/{projectKey}/tms/attribute/{attributeId}",
@@ -604,7 +602,7 @@ class TmsAttributeIntegrationTest extends BaseMvcTest {
         .key(longKey)
         .value(longValue)
         .build();
-    var mapper = new ObjectMapper();
+    var mapper = JsonMapper.builder().build();
     var jsonContent = mapper.writeValueAsString(request);
 
     mockMvc.perform(post("/v1/project/{projectKey}/tms/attribute", SUPERADMIN_PROJECT_KEY)

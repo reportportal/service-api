@@ -37,12 +37,12 @@ import com.epam.reportportal.api.model.UpdateOrgIntegrationRequest;
 import com.epam.reportportal.base.ws.BaseMvcTest;
 import com.epam.reportportal.extension.ReportPortalExtensionPoint;
 import com.epam.reportportal.extension.command.ExtensionCommand;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.jdbc.Sql;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * @author <a href="mailto:siarhei_hrabko@epam.com">Siarhei Hrabko</a>
@@ -52,7 +52,7 @@ import org.springframework.test.context.jdbc.Sql;
 class OrganizationIntegrationsControllerTest extends BaseMvcTest {
 
   @Autowired
-  private ObjectMapper objectMapper;
+  private JsonMapper objectMapper;
 
   // ── GET /organizations/{org_id}/integrations ──────────────────────────────
 

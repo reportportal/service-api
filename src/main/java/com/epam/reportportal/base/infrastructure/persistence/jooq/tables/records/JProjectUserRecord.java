@@ -105,6 +105,6 @@ public class JProjectUserRecord extends UpdatableRecordImpl<JProjectUserRecord> 
         setProjectId(projectId);
         setProjectRole(projectRole);
         setProjectRoleBackup(projectRoleBackup);
-        resetChangedOnNotNull();
+        resetTouchedOnNotNull();
     }
 }

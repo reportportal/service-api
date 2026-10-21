@@ -105,6 +105,6 @@ public class JFilterSortRecord extends UpdatableRecordImpl<JFilterSortRecord> {
         setFilterId(filterId);
         setField(field);
         setDirection(direction);
-        resetChangedOnNotNull();
+        resetTouchedOnNotNull();
     }
 }

@@ -134,6 +134,6 @@ public class JPatternTemplateRecord extends UpdatableRecordImpl<JPatternTemplate
         setType(type);
         setEnabled(enabled);
         setProjectId(projectId);
-        resetChangedOnNotNull();
+        resetTouchedOnNotNull();
     }
 }

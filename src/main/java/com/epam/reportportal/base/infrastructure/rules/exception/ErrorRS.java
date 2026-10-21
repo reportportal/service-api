@@ -20,21 +20,19 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.ObjectCodec;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonDeserializer;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import java.io.IOException;
 import java.io.Serializable;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
+import tools.jackson.core.JsonGenerator;
+import tools.jackson.core.JsonParser;
+import tools.jackson.databind.DeserializationContext;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.SerializationContext;
+import tools.jackson.databind.ValueDeserializer;
+import tools.jackson.databind.ValueSerializer;
+import tools.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.annotation.JsonSerialize;
 
 /**
  * Base Error response body for all Report Portal exceptions
@@ -50,7 +48,7 @@ import lombok.Setter;
 public class ErrorRS implements Serializable {
 
   /**
-   * Generated SVUID
+   * Generated SVUID.
    */
   private static final long serialVersionUID = -3717290684860161862L;
 
@@ -66,23 +64,20 @@ public class ErrorRS implements Serializable {
   private String message;
 
 
-  private static class ErrorTypeDeserializer extends JsonDeserializer<ErrorType> {
+  private static class ErrorTypeDeserializer extends ValueDeserializer<ErrorType> {
 
     @Override
-    public ErrorType deserialize(JsonParser parser, DeserializationContext context) throws IOException {
-      ObjectCodec oc = parser.getCodec();
-      JsonNode node = oc.readTree(parser);
-      return ErrorType.getByCode(node.asInt());
-
+    public ErrorType deserialize(JsonParser parser, DeserializationContext context) {
+      JsonNode node = context.readTree(parser);
+      return ErrorType.getByCode(node.intValue());
     }
 
   }
 
-  private static class ErrorTypeSerializer extends JsonSerializer<ErrorType> {
+  private static class ErrorTypeSerializer extends ValueSerializer<ErrorType> {
 
     @Override
-    public void serialize(ErrorType error, JsonGenerator jsonGenerator, SerializerProvider serializerProvider)
-        throws IOException {
+    public void serialize(ErrorType error, JsonGenerator jsonGenerator, SerializationContext context) {
       jsonGenerator.writeNumber(error.getCode());
     }
 

@@ -107,6 +107,6 @@ public class JTmsManualScenarioRecord extends UpdatableRecordImpl<JTmsManualScen
         setExecutionEstimationTime(executionEstimationTime);
         setTestCaseVersionId(testCaseVersionId);
         setType(type);
-        resetChangedOnNotNull();
+        resetTouchedOnNotNull();
     }
 }

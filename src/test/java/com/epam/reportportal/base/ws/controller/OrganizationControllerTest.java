@@ -36,7 +36,6 @@ import com.epam.reportportal.api.model.UserOrgInfo;
 import com.epam.reportportal.base.infrastructure.persistence.dao.organization.OrganizationUserRepository;
 import com.epam.reportportal.base.model.IdContainer;
 import com.epam.reportportal.base.ws.BaseMvcTest;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Collections;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -47,6 +46,7 @@ import org.springframework.data.domain.Sort.Direction;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * @author Andrei Piankouski
@@ -55,7 +55,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 class OrganizationControllerTest extends BaseMvcTest {
 
   @Autowired
-  private ObjectMapper objectMapper;
+  private JsonMapper objectMapper;
 
   @Autowired
   private OrganizationUserRepository organizationUserRepository;

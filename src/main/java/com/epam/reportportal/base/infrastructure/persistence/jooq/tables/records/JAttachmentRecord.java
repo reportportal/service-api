@@ -196,6 +196,6 @@ public class JAttachmentRecord extends UpdatableRecordImpl<JAttachmentRecord> {
         setFileSize(fileSize);
         setCreationDate(creationDate);
         setFileName(fileName);
-        resetChangedOnNotNull();
+        resetTouchedOnNotNull();
     }
 }

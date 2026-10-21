@@ -37,9 +37,6 @@ import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalExc
 import com.epam.reportportal.base.reporting.SaveLogRQ;
 import com.epam.reportportal.base.reporting.async.config.MessageHeaders;
 import com.epam.reportportal.base.ws.converter.builders.LogFullBuilder;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.Map;
@@ -51,6 +48,9 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.amqp.core.Message;
 import org.springframework.stereotype.Service;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JavaType;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Handles RabbitMQ messages for saving log entries associated with test items.
@@ -68,7 +68,7 @@ public class LogMessageHandler implements ReportingMessageHandler {
   private final TestItemService testItemService;
   private final AttachmentBinaryDataService attachmentBinaryDataService;
   private final LogService logService;
-  private final ObjectMapper objectMapper;
+  private final JsonMapper objectMapper;
   private final LogTypeResolver logTypeResolver;
 
   @Override
@@ -93,7 +93,7 @@ public class LogMessageHandler implements ReportingMessageHandler {
     try {
       return Optional.of(objectMapper.readValue(
           message, javaType));
-    } catch (JsonProcessingException e) {
+    } catch (JacksonException e) {
       LOGGER.error("Incorrect json format of incoming message. Discarded message: {}",
           message);
     }

@@ -106,6 +106,6 @@ public class JShedlockRecord extends UpdatableRecordImpl<JShedlockRecord> {
         setLockUntil(lockUntil);
         setLockedAt(lockedAt);
         setLockedBy(lockedBy);
-        resetChangedOnNotNull();
+        resetTouchedOnNotNull();
     }
 }

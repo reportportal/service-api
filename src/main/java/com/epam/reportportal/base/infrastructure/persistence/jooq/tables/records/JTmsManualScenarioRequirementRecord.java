@@ -106,6 +106,6 @@ public class JTmsManualScenarioRequirementRecord extends UpdatableRecordImpl<JTm
         setValue(value);
         setManualScenarioId(manualScenarioId);
         setNumber(number);
-        resetChangedOnNotNull();
+        resetTouchedOnNotNull();
     }
 }

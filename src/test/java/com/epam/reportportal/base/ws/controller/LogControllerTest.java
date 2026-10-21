@@ -27,13 +27,13 @@ import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalExc
 import com.epam.reportportal.base.model.log.SearchLogRq;
 import com.epam.reportportal.base.reporting.SaveLogRQ;
 import com.epam.reportportal.base.ws.BaseMvcTest;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Instant;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.jdbc.Sql;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -42,7 +42,7 @@ import org.springframework.test.context.jdbc.Sql;
 class LogControllerTest extends BaseMvcTest {
 
   @Autowired
-  private ObjectMapper objectMapper;
+  private JsonMapper objectMapper;
 
   @Test
   void createLogPositive() throws Exception {

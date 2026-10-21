@@ -1,5 +1,6 @@
 package com.epam.reportportal.base.core.tms.controller.unit;
 
+import static com.epam.reportportal.base.util.StandaloneMockMvcSupport.standaloneJsonSetup;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -15,13 +16,12 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static com.epam.reportportal.base.util.StandaloneMockMvcSupport.standaloneJsonSetup;
 
 import com.epam.reportportal.base.core.tms.controller.TmsTestFolderController;
 import com.epam.reportportal.base.core.tms.dto.DuplicateTmsTestFolderRS;
+import com.epam.reportportal.base.core.tms.dto.NewTestFolderRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestFolderExportFileType;
 import com.epam.reportportal.base.core.tms.dto.TmsTestFolderRQ;
-import com.epam.reportportal.base.core.tms.dto.NewTestFolderRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestFolderRS;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchFolderOperationError;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchFolderOperationResultRS;
@@ -36,7 +36,6 @@ import com.epam.reportportal.base.util.OffsetRequest;
 import com.epam.reportportal.base.util.ProjectExtractor;
 import com.epam.reportportal.base.ws.resolver.FilterCriteriaResolver;
 import com.epam.reportportal.base.ws.resolver.OffsetArgumentResolver;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.Arrays;
 import java.util.Collections;
@@ -55,10 +54,11 @@ import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
- * Unit tests for TmsTestFolderController.
- * Tests CRUD operations, filtering, sorting, duplication, and export functionality for test folders.
+ * Unit tests for TmsTestFolderController. Tests CRUD operations, filtering, sorting, duplication, and export
+ * functionality for test folders.
  */
 public class TmsTestFolderControllerTest {
 
@@ -75,12 +75,12 @@ public class TmsTestFolderControllerTest {
   private MockMvc mockMvc;
   private ReportPortalUser testUser;
   private MembershipDetails membershipDetails;
-  private ObjectMapper objectMapper;
+  private JsonMapper objectMapper;
 
   @BeforeEach
   public void setup() {
     MockitoAnnotations.openMocks(this);
-    objectMapper = new ObjectMapper();
+    objectMapper = JsonMapper.builder().build();
 
     // Create a test user
     testUser = ReportPortalUser.userBuilder()

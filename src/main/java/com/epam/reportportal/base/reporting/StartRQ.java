@@ -23,7 +23,6 @@ import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
 import jakarta.validation.Valid;
@@ -33,6 +32,7 @@ import java.time.Instant;
 import java.util.Set;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import tools.jackson.databind.annotation.JsonDeserialize;
 
 /**
  * Base entity for start requests
@@ -51,10 +51,9 @@ public class StartRQ {
   private String description;
 
   @Size(max = MAX_PARAMETERS_LENGTH)
-  @Valid
   @JsonProperty("attributes")
   @JsonAlias({"attributes", "tags"})
-  private Set<ItemAttributesRQ> attributes;
+  private Set<@Valid ItemAttributesRQ> attributes;
 
   @NotNull
   @JsonProperty(required = true)

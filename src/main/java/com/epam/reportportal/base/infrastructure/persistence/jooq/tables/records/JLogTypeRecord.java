@@ -226,6 +226,6 @@ public class JLogTypeRecord extends UpdatableRecordImpl<JLogTypeRecord> {
         setIsSystem(isSystem);
         setCreatedAt(createdAt);
         setUpdatedAt(updatedAt);
-        resetChangedOnNotNull();
+        resetTouchedOnNotNull();
     }
 }

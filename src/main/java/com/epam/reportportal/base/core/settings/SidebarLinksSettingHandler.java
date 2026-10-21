@@ -19,12 +19,12 @@ package com.epam.reportportal.base.core.settings;
 import com.epam.reportportal.api.model.ServerSettingKey;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Validates the {@code server.sidebar.links} setting to prevent stored XSS via malicious URL schemes. Only
@@ -38,7 +38,7 @@ public class SidebarLinksSettingHandler implements ServerSettingHandler {
   private static final String URL_FIELD = "url";
   private static final Set<String> ALLOWED_SCHEMES = Set.of("https://", "http://", "mailto:");
 
-  private final ObjectMapper objectMapper;
+  private final JsonMapper objectMapper;
 
   @Override
   public String getKey() {
@@ -57,7 +57,7 @@ public class SidebarLinksSettingHandler implements ServerSettingHandler {
     root.forEach(link -> {
       JsonNode urlNode = link.get(URL_FIELD);
       if (urlNode != null && urlNode.isTextual()) {
-        validateUrl(urlNode.asText());
+        validateUrl(urlNode.asString());
       }
     });
   }
@@ -65,7 +65,7 @@ public class SidebarLinksSettingHandler implements ServerSettingHandler {
   private JsonNode parseJson(String value) {
     try {
       return objectMapper.readTree(value);
-    } catch (JsonProcessingException _) {
+    } catch (JacksonException _) {
       throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
           "Invalid JSON format for '%s'.".formatted(SETTING_KEY));
     }

@@ -6,14 +6,14 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.epam.reportportal.api.model.ServerSettingKey;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import tools.jackson.databind.json.JsonMapper;
 
 class SidebarLinksSettingHandlerTest {
 
-  private final SidebarLinksSettingHandler handler = new SidebarLinksSettingHandler(new ObjectMapper());
+  private final SidebarLinksSettingHandler handler = new SidebarLinksSettingHandler(JsonMapper.builder().build());
 
   @ParameterizedTest
   @ValueSource(strings = {

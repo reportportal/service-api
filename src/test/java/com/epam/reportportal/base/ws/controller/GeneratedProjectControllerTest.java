@@ -28,16 +28,16 @@ import com.epam.reportportal.api.model.LogTypeRequest;
 import com.epam.reportportal.api.model.LogTypeStyle;
 import com.epam.reportportal.api.model.LogTypeStyle.TextStyleEnum;
 import com.epam.reportportal.base.ws.BaseMvcTest;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.jdbc.Sql;
+import tools.jackson.databind.json.JsonMapper;
 
 class GeneratedProjectControllerTest extends BaseMvcTest {
 
   @Autowired
-  private ObjectMapper objectMapper;
+  private JsonMapper objectMapper;
 
   @Test
   void getLogTypesPositive() throws Exception {
@@ -195,7 +195,7 @@ class GeneratedProjectControllerTest extends BaseMvcTest {
         .getContentAsString();
 
     long systemLogTypeId = objectMapper.readTree(result)
-        .get("items").elements().next().get("id").asLong();
+        .get("items").values().iterator().next().get("id").longValue();
 
     mockMvc.perform(delete("/projects/default_personal/log-types/" + systemLogTypeId)
             .with(token(oAuthHelper.getDefaultToken())))

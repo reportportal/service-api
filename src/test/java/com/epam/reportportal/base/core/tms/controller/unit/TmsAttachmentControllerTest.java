@@ -1,5 +1,6 @@
 package com.epam.reportportal.base.core.tms.controller.unit;
 
+import static com.epam.reportportal.base.util.StandaloneMockMvcSupport.standaloneJsonSetup;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -14,7 +15,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static com.epam.reportportal.base.util.StandaloneMockMvcSupport.standaloneJsonSetup;
 
 import com.epam.reportportal.base.core.tms.controller.TmsAttachmentController;
 import com.epam.reportportal.base.core.tms.dto.UploadAttachmentRS;
@@ -26,7 +26,6 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsAttac
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.util.ProjectExtractor;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.ServletException;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;

@@ -16,9 +16,10 @@
 
 package com.epam.reportportal.base.ws;
 
+import com.epam.reportportal.auth.basic.LoginService;
+import com.epam.reportportal.auth.integration.handler.CreateAuthIntegrationHandler;
 import com.epam.reportportal.base.TestConfig;
 import com.epam.reportportal.base.auth.OAuthHelper;
-import com.epam.reportportal.auth.integration.handler.CreateAuthIntegrationHandler;
 import com.epam.reportportal.base.core.events.MessageBus;
 import com.epam.reportportal.base.core.integration.ExecuteIntegrationHandler;
 import com.epam.reportportal.base.core.integration.plugin.binary.PluginFilesProvider;
@@ -32,19 +33,29 @@ import com.epam.reportportal.base.util.email.MailServiceFactory;
 import com.epam.reportportal.extension.ReportPortalExtensionPoint;
 import com.epam.reportportal.extension.builtin.BuiltinCommandResolver;
 import com.epam.reportportal.extension.builtin.email.EmailExtension;
+import com.rabbitmq.http.client.Client;
 import lombok.extern.slf4j.Slf4j;
 import org.flywaydb.test.FlywayTestExecutionListener;
 import org.flywaydb.test.annotation.FlywayTest;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
+import org.springframework.amqp.core.AmqpAdmin;
+import org.springframework.amqp.rabbit.connection.ConnectionFactory;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.rabbitmq.autoconfigure.SimpleRabbitListenerContainerFactoryConfigurer;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.modulith.test.ApplicationModuleTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestExecutionListeners;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.event.RecordApplicationEvents;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
@@ -62,6 +73,8 @@ import org.springframework.transaction.annotation.Transactional;
     FlywayTestExecutionListener.class}, mergeMode = TestExecutionListeners.MergeMode.MERGE_WITH_DEFAULTS)
 @Transactional
 @RecordApplicationEvents
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public abstract class BaseMvcTest {
 
   protected static final String DEFAULT_PROJECT_BASE_URL = "/v1/default_personal";
@@ -80,43 +93,67 @@ public abstract class BaseMvcTest {
   @Autowired
   protected MockMvc mockMvc;
 
-  @MockBean
+  @MockitoBean
   protected MessageBus messageBus;
 
-  @MockBean
+  @MockitoBean
   protected MailServiceFactory mailServiceFactory;
 
-  @MockBean
+  @MockitoBean
   protected Pf4jPluginBox pluginBox;
 
-  @MockBean(name = "pluginFilesProvider")
+  @MockitoBean(name = "pluginFilesProvider")
   protected PluginFilesProvider pluginFilesProvider;
 
-  @MockBean(name = "pluginPublicFilesProvider")
+  @MockitoBean(name = "pluginPublicFilesProvider")
   protected PluginFilesProvider pluginPublicFilesProvider;
 
-  @MockBean
+  @MockitoBean
   protected BinaryDataResponseWriter binaryDataResponseWriter;
 
-  @MockBean
+  @MockitoBean
   protected BuiltinCommandResolver builtinCommandResolver;
 
-  @MockBean
+  @MockitoBean
   protected ExecuteIntegrationHandler executeIntegrationHandler;
 
-  @MockBean
+  @MockitoBean
   protected EmailExtension emailExtension;
 
-  @MockBean
+  @MockitoBean
   protected CreateAuthIntegrationHandler createAuthIntegrationHandler;
+
+  @MockitoBean
+  protected LoginService loginService;
+
+  @MockitoBean(name = "rabbitClient")
+  protected Client rabbitClient;
+
+  @MockitoBean(name = "analyzerRabbitTemplate")
+  protected RabbitTemplate analyzerRabbitTemplate;
+
+  @MockitoBean(name = "rabbitTemplate")
+  protected RabbitTemplate rabbitTemplate;
+
+  @MockitoBean(name = "connectionFactory")
+  protected ConnectionFactory connectionFactory;
+
+  @MockitoBean(name = "simpleRabbitListenerContainerFactoryConfigurer")
+  protected SimpleRabbitListenerContainerFactoryConfigurer simpleRabbitListenerContainerFactoryConfigurer;
+
+  @MockitoBean(name = "amqpAdmin")
+  protected AmqpAdmin amqpAdmin;
+
+  @MockitoBean
+  protected MessageConverter messageConverter;
 
   // Declared here, not in MarketplaceControllerTest: the @MockBean set is part of the context
   // cache key, so a subclass that adds its own forks the cache and starts a second
   // EmbeddedPostgres, which fails on the port the first one already holds.
-  @MockBean
+  @MockitoBean
   protected MarketplaceClient marketplaceClient;
 
-  @MockBean
+  @MockitoBean
   protected InstallMarketplacePluginHandler installMarketplacePluginHandler;
 
   @Mock

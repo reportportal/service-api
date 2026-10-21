@@ -1,11 +1,8 @@
 package com.epam.reportportal.base.infrastructure.persistence.entity.tms;
 
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.enums.TmsManualScenarioType;
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -24,8 +21,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
-import org.hibernate.annotations.JdbcType;
-import org.hibernate.dialect.PostgreSQLEnumJdbcType;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Entity
 @Table(name = "tms_manual_scenario", schema = "public")
@@ -52,9 +49,8 @@ public class TmsManualScenario {
   @OneToOne(mappedBy = "manualScenario")
   private TmsManualScenarioPreconditions preconditions;
 
-  @Enumerated(EnumType.STRING)
   @Column(name = "type")
-  @JdbcType(PostgreSQLEnumJdbcType.class)
+  @JdbcTypeCode(SqlTypes.NAMED_ENUM)
   private TmsManualScenarioType type;
 
   @OneToOne(fetch = FetchType.LAZY)

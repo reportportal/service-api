@@ -29,6 +29,7 @@ import static com.epam.ta.reportportal.commons.Predicates.notNull;
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.IN_PROGRESS;
 import static com.epam.ta.reportportal.entity.user.UserRole.ADMINISTRATOR;
 
+import com.epam.reportportal.model.project.AnalyzerConfig;
 import com.epam.reportportal.rules.commons.validation.Suppliers;
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
@@ -110,14 +111,17 @@ public class MergeLaunchHandlerImpl implements MergeLaunchHandler {
     MergeStrategyType type = MergeStrategyType.fromValue(rq.getMergeStrategyType());
     expect(type, notNull()).verify(UNSUPPORTED_MERGE_STRATEGY_TYPE, type);
 
+    AnalyzerConfig analyzerConfig = AnalyzerUtils.getAnalyzerConfig(project);
+
     Launch newLaunch = launchMergeFactory.getLaunchMergeStrategy(type)
         .mergeLaunches(projectDetails, user, rq, launchesList);
     newLaunch.setStatus(StatisticsHelper.getStatusFromStatistics(newLaunch.getStatistics()));
 
-    launchesList.forEach(launch -> launch.getAttributes().clear());
-    launchRepository.deleteAll(launchesList);
+    List<Launch> mergedLaunches = launchRepository.findAllById(launchesIds);
+    mergedLaunches.forEach(launch -> launch.getAttributes().clear());
+    launchRepository.deleteAll(mergedLaunches);
 
-    logIndexer.indexLaunchLogs(newLaunch, AnalyzerUtils.getAnalyzerConfig(project));
+    logIndexer.indexLaunchLogs(newLaunch, analyzerConfig);
 
     return launchConverter.TO_RESOURCE.apply(newLaunch);
   }

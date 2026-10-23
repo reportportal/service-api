@@ -149,6 +149,9 @@ class TmsTestCaseServiceImplTest {
   private TmsTestCaseQualityService tmsTestCaseQualityService;
 
   @Mock
+  private TmsTestCaseReadyEligibilityService tmsTestCaseReadyEligibilityService;
+
+  @Mock
   private HttpServletResponse response;
 
   @InjectMocks
@@ -189,6 +192,8 @@ class TmsTestCaseServiceImplTest {
 
   @BeforeEach
   void setUp() {
+    // nothing blocks a case from becoming Ready unless a test says so
+    lenient().when(tmsTestCaseReadyEligibilityService.canBecomeReady(any())).thenReturn(true);
     projectId = 1L;
     testCaseId = 2L;
     testFolderId = 4L;

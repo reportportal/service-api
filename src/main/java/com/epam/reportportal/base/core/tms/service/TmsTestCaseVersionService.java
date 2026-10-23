@@ -50,6 +50,22 @@ public interface TmsTestCaseVersionService {
       @Valid TmsManualScenarioRQ tmsManualScenarioRQ);
 
   /**
+   * Makes a NEW version the default one of the test case, with the given content; the previous default version
+   * stays as history (with its own scores and cost), so what changed can be shown side by side.
+   * <p>
+   * Example: a fix round of the agent replaces the steps of TC103: version 2 becomes the default, version 1 stays,
+   * and executions made before keep pointing at version 1.
+   *
+   * @param projectId           project id
+   * @param tmsTestCase         test case entity
+   * @param tmsManualScenarioRQ the full content of the new version
+   * @param pipelineIterationId the pipeline iteration that produced the version, or null
+   * @return the new default version
+   */
+  TmsTestCaseVersion createNewDefaultVersion(long projectId, TmsTestCase tmsTestCase,
+      @Valid TmsManualScenarioRQ tmsManualScenarioRQ, Long pipelineIterationId);
+
+  /**
    * Patches default test case version.
    *
    * @param projectId

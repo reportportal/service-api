@@ -362,6 +362,11 @@ public enum ErrorType {
   IDEMPOTENCY_KEY_CONFLICT(40914, "Idempotency key conflict. {}"),
 
   /**
+   * The test case is in a state that does not allow the requested review step (e.g. the agent is already fixing it)
+   */
+  TEST_CASE_REVIEW_CONFLICT(40915, "Test case review conflict. {}"),
+
+  /**
    * Unable remove resource from favorites
    */
   UNABLE_REMOVE_FROM_FAVORITE(4100, "Unable remove resource from favorites. {}"),

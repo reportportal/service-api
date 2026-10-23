@@ -27,6 +27,7 @@ public class GitHubActionsCiConnector extends AbstractCiTriggerConnector {
   private static final String REPO_PARAM = "repo";
   private static final String DEFAULT_GIT_REF = "main";
   private static final String WORKFLOW_PARAM = "workflowRef";
+  private static final String FIX_WORKFLOW_PARAM = "fixWorkflowRef";
 
   private final CiHttpClient ciHttpClient;
   private final ObjectMapper objectMapper;
@@ -77,5 +78,39 @@ public class GitHubActionsCiConnector extends AbstractCiTriggerConnector {
     ), body.toString());
 
     return "https://github.com/" + repo + "/actions/workflows/" + workflowFile;
+  }
+
+  @Override
+  public String triggerRun(Integration integration, CiRunRequest request) {
+    var token = requiredParam(integration, TOKEN_PARAM);
+    // same rule as for a rerun: the repo named by a caller never steers where the token of the integration is used
+    var configuredRepo = requiredParam(integration, REPO_PARAM);
+    if (request.repo() == null || !configuredRepo.equals(request.repo())) {
+      throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
+          "CI repo '" + request.repo() + "' does not match the repo configured for this project's GitHub Actions integration");
+    }
+    var configuredWorkflow = stringParam(integration, FIX_WORKFLOW_PARAM);
+    var workflowRef = configuredWorkflow == null || configuredWorkflow.isBlank() ? request.workflowRef() : configuredWorkflow;
+    if (workflowRef == null || workflowRef.isBlank()) {
+      throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
+          "No workflow to start: set '" + FIX_WORKFLOW_PARAM + "' on the GitHub Actions integration");
+    }
+    var gitRef = stringParam(integration, GIT_REF_PARAM);
+
+    var workflowFile = UriUtils.encodePathSegment(workflowRef, StandardCharsets.UTF_8);
+    var url = "https://api.github.com/repos/" + configuredRepo + "/actions/workflows/" + workflowFile + "/dispatches";
+
+    ObjectNode body = objectMapper.createObjectNode();
+    body.put("ref", gitRef == null || gitRef.isBlank() ? DEFAULT_GIT_REF : gitRef);
+    ObjectNode inputs = body.putObject("inputs");
+    request.inputs().forEach(inputs::put);
+
+    ciHttpClient.postForStatus(url, Map.of(
+        "Authorization", "Bearer " + token,
+        "Accept", "application/vnd.github+json",
+        "X-GitHub-Api-Version", "2022-11-28"
+    ), body.toString());
+
+    return "https://github.com/" + configuredRepo + "/actions/workflows/" + workflowFile;
   }
 }

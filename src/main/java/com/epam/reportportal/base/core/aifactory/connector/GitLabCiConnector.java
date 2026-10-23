@@ -79,6 +79,32 @@ public class GitLabCiConnector extends AbstractCiTriggerConnector {
     return extractPipelineUrl(responseBody, fallbackUrl);
   }
 
+  @Override
+  public String triggerRun(Integration integration, CiRunRequest request) {
+    var token = requiredParam(integration, TOKEN_PARAM);
+    var configuredProjectId = requiredParam(integration, PROJECT_ID_PARAM);
+    if (request.repo() == null || !configuredProjectId.equals(request.repo())) {
+      throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
+          "CI project '" + request.repo() + "' does not match the project configured for this project's GitLab CI integration");
+    }
+    if (request.workflowRef() == null || request.workflowRef().isBlank()) {
+      throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "No git ref to run the pipeline on");
+    }
+    var baseUrl = stringParam(integration, BASE_URL_PARAM);
+    var effectiveBaseUrl = baseUrl == null || baseUrl.isBlank() ? DEFAULT_BASE_URL : baseUrl;
+    var projectId = UriUtils.encodePathSegment(configuredProjectId, StandardCharsets.UTF_8);
+    var url = effectiveBaseUrl + "/api/v4/projects/" + projectId + "/trigger/pipeline";
+
+    ObjectNode body = objectMapper.createObjectNode();
+    body.put("token", token);
+    body.put("ref", request.workflowRef());
+    ObjectNode variables = body.putObject("variables");
+    request.inputs().forEach((name, value) -> variables.put(name.toUpperCase(), value));
+
+    var responseBody = ciHttpClient.postForStatus(url, Collections.emptyMap(), body.toString());
+    return extractPipelineUrl(responseBody, effectiveBaseUrl + "/api/v4/projects/" + projectId + "/pipelines");
+  }
+
   /**
    * GitLab's trigger-pipeline response body carries the created pipeline's own
    * {@code web_url} — prefer that (a page a human can open) over the raw REST

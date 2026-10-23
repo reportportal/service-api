@@ -58,6 +58,8 @@ public class TmsTestCaseQualityServiceImpl implements TmsTestCaseQualityService 
           score.setCriterion(criterion);
           score.setScore(rq.getScore());
           score.setEvaluatedAt(now);
+          // the score points at the iteration that produced the version it grades, when there is one
+          score.setPipelineIterationId(version.getPipelineIterationId());
           return score;
         })
         .collect(Collectors.toList());

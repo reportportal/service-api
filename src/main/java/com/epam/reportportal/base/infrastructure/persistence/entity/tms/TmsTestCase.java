@@ -76,6 +76,12 @@ public class TmsTestCase implements Serializable {
   @Column(name = "status", nullable = false)
   private TmsTestCaseStatus status = TmsTestCaseStatus.READY;
 
+  /**
+   * Set once a fix round of the agent has changed the case ("Modified by agent").
+   */
+  @Column(name = "modified_by_agent", nullable = false)
+  private boolean modifiedByAgent;
+
   @ManyToOne
   @JoinColumn(name = "project_id", nullable = false)
   private Project project;

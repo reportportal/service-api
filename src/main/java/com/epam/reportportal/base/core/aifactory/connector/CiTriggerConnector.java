@@ -35,4 +35,18 @@ public interface CiTriggerConnector {
    * @return the URL of the newly triggered run
    */
   String triggerStageRerun(Integration integration, PipelineStage stage);
+
+  /**
+   * Starts a new run, not tied to any stage, e.g. the job that fixes a test case after a review.
+   * <p>
+   * Example: the fix job of GitHub Actions is the workflow {@code fix-test-case.yml} started with the inputs
+   * {@code test_case_id} and {@code push_id}. An integration may name that workflow itself in its parameter
+   * {@code fixWorkflowRef}, which then wins over the one in the request.
+   *
+   * @param integration credentials/config for the system (token, base URL)
+   * @param request     where and with what to start the run
+   * @return the URL where the started run can be followed (a workflow dispatch does not return the run itself,
+   *         so this can be the page of the workflow)
+   */
+  String triggerRun(Integration integration, CiRunRequest request);
 }

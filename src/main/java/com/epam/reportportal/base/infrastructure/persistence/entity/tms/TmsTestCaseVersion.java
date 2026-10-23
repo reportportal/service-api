@@ -48,6 +48,13 @@ public class TmsTestCaseVersion implements Serializable {
   @OneToOne(mappedBy = "testCaseVersion")
   private TmsManualScenario manualScenario;
 
+  /**
+   * The pipeline iteration that produced this version: the one that uploaded the case, or the one of a fix
+   * round. Plain id, the Pipeline domain stays independent of TMS.
+   */
+  @Column(name = "pipeline_iteration_id")
+  private Long pipelineIterationId;
+
   @Column(name = "updated_at", nullable = false)
   @Convert(converter = JpaInstantConverter.class)
   private Instant updatedAt;

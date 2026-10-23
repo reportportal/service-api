@@ -117,6 +117,28 @@ public class TmsTestCaseVersionServiceImpl implements TmsTestCaseVersionService 
 
   @Override
   @Transactional
+  public TmsTestCaseVersion createNewDefaultVersion(long projectId, TmsTestCase tmsTestCase,
+      @Valid TmsManualScenarioRQ tmsManualScenarioRQ, Long pipelineIterationId) {
+    var previousDefaultVersion = getDefaultVersion(tmsTestCase.getId());
+    // only one version per test case may be the default one, so the old one is released first
+    previousDefaultVersion.setDefault(false);
+    tmsTestCaseVersionRepository.saveAndFlush(previousDefaultVersion);
+
+    var newDefaultVersion = tmsTestCaseVersionMapper.createDefaultTestCaseVersion();
+    newDefaultVersion.setName(previousDefaultVersion.getName());
+    newDefaultVersion.setTestCase(tmsTestCase);
+    newDefaultVersion.setPipelineIterationId(pipelineIterationId);
+    newDefaultVersion = tmsTestCaseVersionRepository.save(newDefaultVersion);
+
+    var manualScenario = tmsManualScenarioService
+        .createTmsManualScenario(projectId, newDefaultVersion, tmsManualScenarioRQ);
+    newDefaultVersion.setManualScenario(manualScenario);
+    manualScenario.setTestCaseVersion(newDefaultVersion);
+    return newDefaultVersion;
+  }
+
+  @Override
+  @Transactional
   public TmsTestCaseVersion patchDefaultTestCaseVersion(long projectId, TmsTestCase tmsTestCase,
       @Valid TmsManualScenarioRQ tmsManualScenarioRQ) {
     var existingDefaultVersion = getDefaultVersion(tmsTestCase.getId());

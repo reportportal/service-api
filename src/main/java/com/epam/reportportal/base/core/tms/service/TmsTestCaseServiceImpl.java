@@ -100,6 +100,7 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
   private final ApplicationEventPublisher eventPublisher;
   private final TmsTestCaseActivityResourceMapper tmsTestCaseActivityResourceMapper;
   private final TmsTestCaseQualityService tmsTestCaseQualityService;
+  private final TmsTestCaseReadyEligibilityService tmsTestCaseReadyEligibilityService;
 
   private TmsTestFolderService tmsTestFolderService;
   private TmsTestCaseExecutionService tmsTestCaseExecutionService;
@@ -199,7 +200,7 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
   @Transactional
   public void applyAutoReady(Long projectId, Long testCaseId, int threshold) {
     var testCase = tmsTestCaseRepository.findByProjectIdAndId(projectId, testCaseId).orElse(null);
-    if (testCase == null || !isAutoReadyCandidate(testCase)) {
+    if (testCase == null || !isAutoReadyCandidate(testCase) || !tmsTestCaseReadyEligibilityService.canBecomeReady(testCaseId)) {
       return;
     }
     var defaultVersion = tmsTestCaseVersionService.getDefaultVersion(testCaseId);
@@ -224,7 +225,12 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
   @Override
   @Transactional
   public int applyAutoReadyBatch(Long projectId, Collection<TmsTestCase> testCases, int threshold) {
-    var candidates = testCases.stream().filter(this::isAutoReadyCandidate).toList();
+    var blockedByReview = tmsTestCaseReadyEligibilityService.findCasesThatCannotBecomeReady(
+        testCases.stream().map(TmsTestCase::getId).toList());
+    var candidates = testCases.stream()
+        .filter(this::isAutoReadyCandidate)
+        .filter(testCase -> !blockedByReview.contains(testCase.getId()))
+        .toList();
     if (candidates.isEmpty()) {
       return 0;
     }
@@ -349,6 +355,11 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
     return tmsTestCaseRepository
         .findByProjectIdAndId(projectId, testCaseId)
         .map((var existingTestCase) -> {
+          if (tmsTestCaseRQ.getStatus() == com.epam.reportportal.base.core.tms.dto.TmsTestCaseStatus.READY
+              && existingTestCase.getStatus() == TmsTestCaseStatus.DRAFT) {
+            // Approve: a Draft case with unsent review comments or a running fix round cannot be approved
+            tmsTestCaseReadyEligibilityService.assertCanBecomeReady(existingTestCase.getId());
+          }
           var beforeVersion = tmsTestCaseVersionService.getDefaultVersion(existingTestCase.getId());
           var before = tmsTestCaseActivityResourceMapper.buildActivityResource(existingTestCase,
               beforeVersion);

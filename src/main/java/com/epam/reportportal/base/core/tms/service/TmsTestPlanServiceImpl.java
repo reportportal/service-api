@@ -9,6 +9,7 @@ import com.epam.reportportal.base.core.tms.dto.TmsTestFolderRS;
 import com.epam.reportportal.base.core.tms.dto.TmsTestPlanRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestPlanRS;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchTestCaseOperationError;
+import com.epam.reportportal.base.core.tms.dto.batch.BatchTestCaseOperationErrorReason;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchTestCaseOperationResultRS;
 import com.epam.reportportal.base.core.tms.mapper.TmsTestPlanMapper;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
@@ -183,6 +184,8 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
         tmsTestCaseService.getExistingTestCaseIds(projectId, testCaseIds)
     );
 
+    var readyTestCaseIds = new HashSet<>(tmsTestCaseService.getReadyTestCaseIds(projectId, testCaseIds));
+
     // Get test case IDs already added to the plan
     var testCaseIdsAreInTestPlan = new HashSet<>(
         tmsTestPlanTestCaseRepository.findTestCaseIdsByTestPlanId(testPlanId)
@@ -193,7 +196,8 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
         // Check if a test case exists
         if (!existingTestCaseIds.contains(testCaseId)) {
           errors.add(new BatchTestCaseOperationError(testCaseId,
-              String.format("Test case with id %s not found", testCaseId)));
+              String.format("Test case with id %s not found", testCaseId),
+              BatchTestCaseOperationErrorReason.NOT_FOUND));
           continue;
         }
 
@@ -201,8 +205,17 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
         if (testCaseIdsAreInTestPlan.contains(testCaseId)) {
           errors.add(new BatchTestCaseOperationError(
               testCaseId,
-              String.format("Test case with id %s already exists in test plan", testCaseId)
+              String.format("Test case with id %s already exists in test plan", testCaseId),
+              BatchTestCaseOperationErrorReason.ALREADY_EXISTS
           ));
+          continue;
+        }
+
+        // Only Ready test cases can be planned, same rule as adding to a launch
+        if (!readyTestCaseIds.contains(testCaseId)) {
+          errors.add(new BatchTestCaseOperationError(testCaseId,
+              "Test case is not Ready and cannot be added to a test plan",
+              BatchTestCaseOperationErrorReason.NOT_READY));
           continue;
         }
 

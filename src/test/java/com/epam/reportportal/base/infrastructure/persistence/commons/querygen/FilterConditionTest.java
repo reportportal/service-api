@@ -2,6 +2,8 @@ package com.epam.reportportal.base.infrastructure.persistence.commons.querygen;
 
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.TestItemCriteriaConstant.CRITERIA_TEST_CASE_ID;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseCriteriaConstant.CRITERIA_TMS_TEST_CASE_DISPLAY_ID;
+import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseCriteriaConstant.CRITERIA_TMS_TEST_CASE_ORIGIN;
+import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseCriteriaConstant.CRITERIA_TMS_TEST_CASE_STATUS;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.TMS_TEST_CASE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -52,6 +54,28 @@ class FilterConditionTest {
     assertEquals(CRITERIA_TMS_TEST_CASE_DISPLAY_ID, criteriaHolder.getFilterCriteria());
     assertEquals(String.class, criteriaHolder.getDataType());
     assertEquals(TMS_TEST_CASE.DISPLAY_ID.getQualifiedName().toString(), criteriaHolder.getQueryCriteria());
+  }
+
+  @Test
+  void tmsTestCaseStatusIsSupported() {
+    CriteriaHolder criteriaHolder = FilterTarget.TMS_TEST_CASE_TARGET
+        .getCriteriaByFilter(CRITERIA_TMS_TEST_CASE_STATUS)
+        .orElseThrow();
+
+    assertEquals(CRITERIA_TMS_TEST_CASE_STATUS, criteriaHolder.getFilterCriteria());
+    assertEquals(String.class, criteriaHolder.getDataType());
+    assertEquals(TMS_TEST_CASE.STATUS.getQualifiedName().toString(), criteriaHolder.getQueryCriteria());
+  }
+
+  @Test
+  void tmsTestCaseOriginIsSupported() {
+    CriteriaHolder criteriaHolder = FilterTarget.TMS_TEST_CASE_TARGET
+        .getCriteriaByFilter(CRITERIA_TMS_TEST_CASE_ORIGIN)
+        .orElseThrow();
+
+    assertEquals(CRITERIA_TMS_TEST_CASE_ORIGIN, criteriaHolder.getFilterCriteria());
+    assertEquals(String.class, criteriaHolder.getDataType());
+    assertEquals(TMS_TEST_CASE.ORIGIN.getQualifiedName().toString(), criteriaHolder.getQueryCriteria());
   }
 
   @Test

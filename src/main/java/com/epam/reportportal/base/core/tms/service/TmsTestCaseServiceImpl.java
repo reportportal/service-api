@@ -9,9 +9,12 @@ import com.epam.reportportal.base.core.tms.TmsTestCasePriority;
 import com.epam.reportportal.base.core.tms.dto.NewTestFolderRQ;
 import com.epam.reportportal.base.core.tms.dto.PreparedTestCase;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseAttributeImportRQ;
+import com.epam.reportportal.base.core.tms.dto.TmsTestCaseAttributeRQ;
+import com.epam.reportportal.base.core.tms.dto.TmsTestCaseGenerationRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseImportParseResult;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseImportRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseInTestPlanRS;
+import com.epam.reportportal.base.core.tms.dto.TmsTestCaseMetricsRS;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCasePreparationForImportResult;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseRS;
@@ -25,6 +28,7 @@ import com.epam.reportportal.base.core.tms.dto.batch.BatchPatchTestCasesRS;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchTestCaseOperationError;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchTestCaseOperationResultRS;
 import com.epam.reportportal.base.core.tms.mapper.TmsTestCaseActivityResourceMapper;
+import com.epam.reportportal.base.core.tms.event.TmsTestCasesLifecycleChangedEvent;
 import com.epam.reportportal.base.core.tms.mapper.TmsTestCaseMapper;
 import com.epam.reportportal.base.core.tms.mapper.factory.TmsTestCaseExporterFactory;
 import com.epam.reportportal.base.core.tms.mapper.factory.TmsTestCaseImporterFactory;
@@ -40,6 +44,8 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestC
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCaseExecution;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCaseVersion;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestFolder;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.enums.TmsTestCaseOrigin;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.enums.TmsTestCaseStatus;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.model.Page;
@@ -49,6 +55,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -92,6 +99,8 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
   private final TmsTestPlanTestCaseRepository tmsTestPlanTestCaseRepository;
   private final ApplicationEventPublisher eventPublisher;
   private final TmsTestCaseActivityResourceMapper tmsTestCaseActivityResourceMapper;
+  private final TmsTestCaseQualityService tmsTestCaseQualityService;
+  private final TmsTestCaseReadyEligibilityService tmsTestCaseReadyEligibilityService;
 
   private TmsTestFolderService tmsTestFolderService;
   private TmsTestCaseExecutionService tmsTestCaseExecutionService;
@@ -147,12 +156,110 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
         );
     var defaultVersion = tmsTestCaseVersionService.getDefaultVersion(testCaseId);
     if (!includeLastExecution) {
-      return tmsTestCaseMapper.convert(testCase, defaultVersion);
+      return tmsTestCaseMapper.convert(testCase, defaultVersion,
+          tmsTestCaseQualityService.buildMetrics(defaultVersion));
     }
     return tmsTestCaseMapper.convert(
         testCase,
         defaultVersion,
-        tmsTestCaseExecutionService.getLastTestCaseExecution(testCaseId));
+        tmsTestCaseExecutionService.getLastTestCaseExecution(testCaseId),
+        tmsTestCaseQualityService.buildMetrics(defaultVersion));
+  }
+
+  @Override
+  @Transactional
+  public TmsTestCaseRS applyGeneration(Long projectId, Long testCaseId, TmsTestCaseGenerationRQ rq) {
+    var testCase = tmsTestCaseRepository
+        .findByProjectIdAndId(projectId, testCaseId)
+        .orElseThrow(() -> new ReportPortalException(
+            NOT_FOUND, TEST_CASE_NOT_FOUND_BY_ID.formatted(testCaseId, projectId)));
+    // Resolved inside the same transaction as the writes below, so a concurrent content edit
+    // can't create a newer default version between this lookup and the writes that follow.
+    var defaultVersion = tmsTestCaseVersionService.getDefaultVersion(testCaseId);
+
+    tmsTestCaseQualityService.applyQualityScores(projectId, defaultVersion, rq.getQualityScores());
+    tmsTestCaseQualityService.applyGenerationMetadata(defaultVersion, rq.getGeneration());
+
+    // origin only ratchets MANUAL -> AI, never back; this endpoint IS the AI signal, so there's
+    // no "explicit status override" input here (unlike create/patch) - it always defaults DRAFT.
+    if (testCase.getOrigin() == TmsTestCaseOrigin.MANUAL
+        && tmsTestCaseQualityService.hasAiSignal(rq.getQualityScores(), rq.getGeneration())) {
+      testCase.setOrigin(TmsTestCaseOrigin.AI);
+      testCase.setStatus(TmsTestCaseStatus.DRAFT);
+      tmsTestCaseRepository.save(testCase);
+      publishLifecycleChanged(List.of(testCase.getId()));
+    }
+
+    return tmsTestCaseMapper.convert(
+        testCase, defaultVersion,
+        tmsTestCaseExecutionService.getLastTestCaseExecution(testCaseId),
+        tmsTestCaseQualityService.buildMetrics(defaultVersion));
+  }
+
+  @Override
+  @Transactional
+  public void applyAutoReady(Long projectId, Long testCaseId, int threshold) {
+    var testCase = tmsTestCaseRepository.findByProjectIdAndId(projectId, testCaseId).orElse(null);
+    if (testCase == null || !isAutoReadyCandidate(testCase) || !tmsTestCaseReadyEligibilityService.canBecomeReady(testCaseId)) {
+      return;
+    }
+    var defaultVersion = tmsTestCaseVersionService.getDefaultVersion(testCaseId);
+    var metrics = tmsTestCaseQualityService.buildMetrics(defaultVersion);
+    if (metrics == null || metrics.getOverallScore() == null || metrics.isObsolete()
+        || metrics.getOverallScore() < threshold) {
+      return;
+    }
+    testCase.setStatus(TmsTestCaseStatus.READY);
+    tmsTestCaseRepository.save(testCase);
+    publishLifecycleChanged(List.of(testCaseId));
+  }
+
+  /**
+   * Auto-Ready only promotes: an AI-generated case still waiting for review. Manual cases and
+   * cases that are already Ready (e.g. approved by a human) are never touched.
+   */
+  private boolean isAutoReadyCandidate(TmsTestCase testCase) {
+    return testCase.getOrigin() == TmsTestCaseOrigin.AI && testCase.getStatus() == TmsTestCaseStatus.DRAFT;
+  }
+
+  @Override
+  @Transactional
+  public int applyAutoReadyBatch(Long projectId, Collection<TmsTestCase> testCases, int threshold) {
+    var blockedByReview = tmsTestCaseReadyEligibilityService.findCasesThatCannotBecomeReady(
+        testCases.stream().map(TmsTestCase::getId).toList());
+    var candidates = testCases.stream()
+        .filter(this::isAutoReadyCandidate)
+        .filter(testCase -> !blockedByReview.contains(testCase.getId()))
+        .toList();
+    if (candidates.isEmpty()) {
+      return 0;
+    }
+    var testCaseIds = candidates.stream().map(TmsTestCase::getId).toList();
+    var defaultVersionsByTestCaseId = tmsTestCaseVersionService.getDefaultVersions(testCaseIds);
+    var metricsByVersionId = tmsTestCaseQualityService.buildMetricsBatch(defaultVersionsByTestCaseId.values());
+
+    var toSave = new ArrayList<TmsTestCase>();
+    for (var testCase : candidates) {
+      var defaultVersion = defaultVersionsByTestCaseId.get(testCase.getId());
+      var metrics = defaultVersion == null ? null : metricsByVersionId.get(defaultVersion.getId());
+      if (metrics == null || metrics.getOverallScore() == null || metrics.isObsolete()
+          || metrics.getOverallScore() < threshold) {
+        continue;
+      }
+      testCase.setStatus(TmsTestCaseStatus.READY);
+      toSave.add(testCase);
+    }
+    if (!toSave.isEmpty()) {
+      tmsTestCaseRepository.saveAll(toSave);
+      publishLifecycleChanged(toSave.stream().map(TmsTestCase::getId).toList());
+    }
+    return toSave.size();
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<TmsTestCase> getEntitiesByDisplayIds(Long projectId, Collection<String> displayIds) {
+    return tmsTestCaseRepository.findByProjectIdAndDisplayIdIn(projectId, displayIds);
   }
 
   @Override
@@ -168,6 +275,11 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
             tmsTestCaseRQ.getTestFolder()
         )
     );
+    // A manual create always starts READY; an explicit status still overrides that default.
+    // origin/status for AI-authored cases is set separately via POST .../generation.
+    if (tmsTestCaseRQ.getStatus() != null) {
+      tmsTestCase.setStatus(TmsTestCaseStatus.valueOf(tmsTestCaseRQ.getStatus().name()));
+    }
 
     tmsTestCaseRepository.save(tmsTestCase);
 
@@ -182,7 +294,7 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
 
     publishTestCaseCreatedEvent(membershipDetails, user, tmsTestCase, defaultVersion);
 
-    return tmsTestCaseMapper.convert(tmsTestCase, defaultVersion);
+    return tmsTestCaseMapper.convert(tmsTestCase, defaultVersion, tmsTestCaseQualityService.buildMetrics(defaultVersion));
   }
 
   @Override
@@ -217,7 +329,7 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
 
           var after = tmsTestCaseActivityResourceMapper.buildActivityResource(existingTestCase,
               defaultVersion);
-          
+
           tmsTestCaseActivityResourceMapper
               .buildTestCaseFieldChangedEvents(
                   membershipDetails,
@@ -225,9 +337,11 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
                   before,
                   after)
               .forEach(eventPublisher::publishEvent);
-          
+          publishLifecycleChanged(List.of(existingTestCase.getId()));
+
           return tmsTestCaseMapper.convert(
-              existingTestCase, defaultVersion, lastTestCaseExecution
+              existingTestCase, defaultVersion, lastTestCaseExecution,
+              tmsTestCaseQualityService.buildMetrics(defaultVersion)
           );
         })
         .orElseGet(() -> create(membershipDetails, user, tmsTestCaseRQ));
@@ -241,6 +355,11 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
     return tmsTestCaseRepository
         .findByProjectIdAndId(projectId, testCaseId)
         .map((var existingTestCase) -> {
+          if (tmsTestCaseRQ.getStatus() == com.epam.reportportal.base.core.tms.dto.TmsTestCaseStatus.READY
+              && existingTestCase.getStatus() == TmsTestCaseStatus.DRAFT) {
+            // Approve: a Draft case with unsent review comments or a running fix round cannot be approved
+            tmsTestCaseReadyEligibilityService.assertCanBecomeReady(existingTestCase.getId());
+          }
           var beforeVersion = tmsTestCaseVersionService.getDefaultVersion(existingTestCase.getId());
           var before = tmsTestCaseActivityResourceMapper.buildActivityResource(existingTestCase,
               beforeVersion);
@@ -272,9 +391,11 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
                   before,
                   after)
               .forEach(eventPublisher::publishEvent);
-          
+          publishLifecycleChanged(List.of(existingTestCase.getId()));
+
           return tmsTestCaseMapper.convert(
-              existingTestCase, defaultVersion, lastTestCaseExecution
+              existingTestCase, defaultVersion, lastTestCaseExecution,
+              tmsTestCaseQualityService.buildMetrics(defaultVersion)
           );
         })
         .orElseThrow(() -> new ReportPortalException(
@@ -285,6 +406,7 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
   @Override
   @Transactional
   public void delete(MembershipDetails membershipDetails, ReportPortalUser user, Long testCaseId) {
+    publishLifecycleChanged(List.of(testCaseId));
     tmsTestCaseAttributeService.deleteAllByTestCaseId(testCaseId);
     tmsTestCaseVersionService.deleteAllByTestCaseId(testCaseId);
     tmsTestPlanTestCaseRepository.deleteAllByTestCaseId(testCaseId);
@@ -303,6 +425,7 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
     var testCaseIds = Optional
         .ofNullable(tmsTestCaseRepository.findIdsByProjectIdAndTestFolderId(projectId, folderId))
         .orElseGet(ArrayList::new);
+    publishLifecycleChanged(testCaseIds);
     tmsTestCaseAttributeService.deleteAllByTestFolderId(projectId, folderId);
     tmsTestCaseVersionService.deleteAllByTestFolderId(projectId, folderId);
     tmsTestPlanTestCaseRepository.deleteAllByTestFolderId(projectId, folderId);
@@ -319,6 +442,7 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
     var testCaseIds = Optional
         .ofNullable(tmsTestCaseRepository.findIdsByProjectId(membershipDetails.getProjectId()))
         .orElseGet(ArrayList::new);
+    publishLifecycleChanged(deleteRequest.getTestCaseIds());
     tmsTestCaseAttributeService.deleteAllByTestCaseIds(deleteRequest.getTestCaseIds());
     tmsTestCaseVersionService.deleteAllByTestCaseIds(deleteRequest.getTestCaseIds());
     tmsTestPlanTestCaseRepository.deleteAllByTestCaseIds(deleteRequest.getTestCaseIds());
@@ -631,11 +755,13 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
       var lastTestCasesExecutions = tmsTestCaseExecutionService.getLastTestCasesExecutionsByTestCaseIds(
           testCaseIds.getContent()
       );
+      var metricsByVersionId = tmsTestCaseQualityService.buildMetricsBatch(testCaseDefaultVersions.values());
 
       var page = tmsTestCaseMapper.convert(
           orderedTestTestCases,
           testCaseDefaultVersions,
           lastTestCasesExecutions,
+          metricsByVersionId,
           pageable,
           testCaseIds.getTotalElements()
       );
@@ -806,7 +932,8 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
         ? tmsTestFolderService.getEntityById(projectId, targetFolderId)
         : null;
     var duplicated = duplicateTestCaseInternal(membershipDetails, user, projectId, testCaseId, targetFolder);
-    return tmsTestCaseMapper.convert(duplicated.testCase(), duplicated.defaultVersion());
+    return tmsTestCaseMapper.convert(duplicated.testCase(), duplicated.defaultVersion(),
+        tmsTestCaseQualityService.buildMetrics(duplicated.defaultVersion()));
   }
 
   private record DuplicatedTestCase(TmsTestCase testCase, TmsTestCaseVersion defaultVersion) {}
@@ -863,6 +990,15 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
       return List.of();
     }
     return tmsTestCaseRepository.findExistingTestCaseIds(projectId, testCaseIds);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<Long> getReadyTestCaseIds(Long projectId, List<Long> testCaseIds) {
+    if (testCaseIds == null || testCaseIds.isEmpty()) {
+      return List.of();
+    }
+    return tmsTestCaseRepository.findIdsByProjectIdAndIdsAndStatus(projectId, testCaseIds, TmsTestCaseStatus.READY);
   }
 
   @Override
@@ -1005,10 +1141,11 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
     var lastExecutions = includeLastExecution
         ? tmsTestCaseExecutionService.getLastTestCasesExecutionsByTestCaseIds(testCaseIds)
         : Collections.<Long, TmsTestCaseExecution>emptyMap();
+    var metricsByVersionId = tmsTestCaseQualityService.buildMetricsBatch(defaultVersions.values());
 
     return testCases.stream().collect(Collectors.toMap(
         TmsTestCase::getId,
-        testCase -> toTestCaseResource(testCase, defaultVersions, lastExecutions,
+        testCase -> toTestCaseResource(testCase, defaultVersions, lastExecutions, metricsByVersionId,
             includeLastExecution),
         (first, ignored) -> first
     ));
@@ -1090,10 +1227,16 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
       TmsTestCase testCase,
       Map<Long, TmsTestCaseVersion> defaultVersions,
       Map<Long, TmsTestCaseExecution> lastExecutions,
+      Map<Long, TmsTestCaseMetricsRS> metricsByVersionId,
       boolean includeLastExecution) {
     var defaultVersion = defaultVersions.get(testCase.getId());
+    var metrics = defaultVersion == null ? null : metricsByVersionId.get(defaultVersion.getId());
     return includeLastExecution
-        ? tmsTestCaseMapper.convert(testCase, defaultVersion, lastExecutions.get(testCase.getId()))
-        : tmsTestCaseMapper.convert(testCase, defaultVersion);
+        ? tmsTestCaseMapper.convert(testCase, defaultVersion, lastExecutions.get(testCase.getId()), metrics)
+        : tmsTestCaseMapper.convert(testCase, defaultVersion, metrics);
+  }
+
+  private void publishLifecycleChanged(Collection<Long> testCaseIds) {
+    eventPublisher.publishEvent(new TmsTestCasesLifecycleChangedEvent(testCaseIds));
   }
 }

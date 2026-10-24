@@ -276,6 +276,26 @@ public class TmsTestPlanIntegrationTest extends BaseMvcTest {
   }
 
   @Test
+  void addTestCasesToPlan_WhenTestCaseIsNotReady_ShouldReportNotReadyAndOnlyAddReadyOnes() throws Exception {
+    var draft = testCaseRepository.findById(8L).orElseThrow();
+    draft.setStatus(com.epam.reportportal.base.infrastructure.persistence.entity.tms.enums.TmsTestCaseStatus.DRAFT);
+    testCaseRepository.saveAndFlush(draft);
+    var addRequest = BatchAddTestCasesToPlanRQ.builder().testCaseIds(List.of(7L, 8L)).build();
+
+    mockMvc
+        .perform(
+            post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-plan/4/test-case/batch")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(addRequest))
+                .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.successCount").value(1))
+        .andExpect(jsonPath("$.failureCount").value(1))
+        .andExpect(jsonPath("$.errors[0].testCaseId").value(8))
+        .andExpect(jsonPath("$.errors[0].reason").value("NOT_READY"));
+  }
+
+  @Test
   void addSingleTestCaseToPlanIntegrationTest() throws Exception {
     // Given
     List<Long> testCaseIds = List.of(10L);

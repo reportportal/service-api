@@ -6,6 +6,8 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -21,6 +23,7 @@ import com.epam.reportportal.base.core.tms.dto.TmsTestCaseExecutionRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseExecutionRS;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseRS;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseTestFolderRS;
+import com.epam.reportportal.base.core.tms.dto.TmsTestCaseStatus;
 import com.epam.reportportal.base.core.tms.mapper.NestedStepItemBuilder;
 import com.epam.reportportal.base.core.tms.mapper.TestCaseItemBuilder;
 import com.epam.reportportal.base.core.tms.mapper.TmsManualScenarioMapper;
@@ -614,12 +617,14 @@ class TmsTestCaseExecutionServiceImplTest {
         .id(testCaseId1)
         .name("TC 1")
         .testFolder(TmsTestCaseTestFolderRS.builder().id(100L).build())
+        .status(TmsTestCaseStatus.READY)
         .defaultVersionId(1L)
         .build();
     var testCaseRS2 = TmsTestCaseRS.builder()
         .id(testCaseId2)
         .name("TC 2")
         .testFolder(TmsTestCaseTestFolderRS.builder().id(100L).build())
+        .status(TmsTestCaseStatus.READY)
         .defaultVersionId(2L)
         .build();
 
@@ -655,6 +660,7 @@ class TmsTestCaseExecutionServiceImplTest {
         .id(testCaseId1)
         .name("TC 1")
         .testFolder(TmsTestCaseTestFolderRS.builder().id(100L).build())
+        .status(TmsTestCaseStatus.READY)
         .build();
     var suiteItem = new TestItem();
     suiteItem.setItemId(50L);
@@ -672,6 +678,152 @@ class TmsTestCaseExecutionServiceImplTest {
 
     assertThrows(DataIntegrityViolationException.class,
         () -> sut.addTestCasesToLaunch(projectId, launch, List.of(testCaseId1)));
+  }
+
+  private TmsTestCaseRS readyTestCase(Long testCaseId) {
+    return TmsTestCaseRS.builder()
+        .id(testCaseId)
+        .name("Test Case " + testCaseId)
+        .status(TmsTestCaseStatus.READY)
+        .testFolder(TmsTestCaseTestFolderRS.builder().id(7L).build())
+        .build();
+  }
+
+  private void stubSuccessfulExecutionCreation(Launch launch, TmsTestCaseRS testCase) {
+    var suiteItem = new TestItem();
+    suiteItem.setItemId(500L);
+    var createdItem = new TestItem();
+    createdItem.setItemId(501L);
+    var execution = TmsTestCaseExecution.builder().id(900L).testCaseId(testCase.getId()).build();
+
+    when(testFolderItemService.findTestFolderItem(eq(1L), eq(7L), eq(launch), any())).thenReturn(suiteItem);
+    when(testCaseItemService.createTestCaseItem(eq(testCase), eq(suiteItem), eq(launch), any())).thenReturn(createdItem);
+    when(tmsTestCaseVersionService.findDefaultVersionIdByTestCaseId(testCase.getId())).thenReturn(Optional.empty());
+    when(tmsTestCaseExecutionMapper.createTestCaseExecution(testCase, launch, createdItem, null)).thenReturn(execution);
+    when(tmsTestCaseExecutionRepository.save(execution)).thenReturn(execution);
+  }
+
+  @Test
+  void addTestCasesToLaunch_WhenTestCaseIsReadyAndNotYetInLaunch_ShouldCreateExecutionAndReportSuccess() {
+    var launch = new Launch();
+    launch.setId(10L);
+    var testCase = readyTestCase(testCaseId1);
+
+    when(tmsTestCaseService.getExistingTestCaseIds(1L, List.of(testCaseId1))).thenReturn(List.of(testCaseId1));
+    when(tmsTestCaseExecutionRepository.findTestCaseIdsByLaunchId(10L)).thenReturn(Set.of());
+    when(tmsTestCaseService.getByIdsMap(1L, List.of(testCaseId1), false)).thenReturn(Map.of(testCaseId1, testCase));
+    stubSuccessfulExecutionCreation(launch, testCase);
+
+    var result = sut.addTestCasesToLaunch(1L, launch, List.of(testCaseId1));
+
+    assertEquals(1, result.getTotalCount());
+    assertEquals(1, result.getSuccessCount());
+    assertEquals(0, result.getFailureCount());
+    assertEquals(List.of(testCaseId1), result.getSuccessTestCaseIds());
+    assertTrue(result.getErrors().isEmpty());
+  }
+
+  @Test
+  void addTestCasesToLaunch_WhenTestCaseDoesNotExistInProject_ShouldRecordErrorWithoutCallingGetById() {
+    var launch = new Launch();
+    launch.setId(10L);
+
+    when(tmsTestCaseService.getExistingTestCaseIds(1L, List.of(testCaseId1))).thenReturn(List.of());
+
+    var result = sut.addTestCasesToLaunch(1L, launch, List.of(testCaseId1));
+
+    assertEquals(1, result.getFailureCount());
+    assertEquals("Test case does not exist in the project", result.getErrors().get(0).getErrorMessage());
+    verify(tmsTestCaseService, never()).getByIdsMap(anyLong(), any(), anyBoolean());
+  }
+
+  @Test
+  void addTestCasesToLaunch_WhenExecutionAlreadyExistsInLaunch_ShouldRecordErrorWithoutCallingGetById() {
+    var launch = new Launch();
+    launch.setId(10L);
+
+    when(tmsTestCaseService.getExistingTestCaseIds(1L, List.of(testCaseId1))).thenReturn(List.of(testCaseId1));
+    when(tmsTestCaseExecutionRepository.findTestCaseIdsByLaunchId(10L)).thenReturn(Set.of(testCaseId1));
+
+    var result = sut.addTestCasesToLaunch(1L, launch, List.of(testCaseId1));
+
+    assertEquals(1, result.getFailureCount());
+    assertEquals("Test case execution already exists in launch", result.getErrors().get(0).getErrorMessage());
+    verify(tmsTestCaseService, never()).getByIdsMap(anyLong(), any(), anyBoolean());
+  }
+
+  @Test
+  void addTestCasesToLaunch_WhenTestCaseIsNotReady_ShouldRecordErrorWithoutCreatingExecution() {
+    var launch = new Launch();
+    launch.setId(10L);
+    var draftTestCase = TmsTestCaseRS.builder().id(testCaseId1).status(TmsTestCaseStatus.DRAFT).build();
+
+    when(tmsTestCaseService.getExistingTestCaseIds(1L, List.of(testCaseId1))).thenReturn(List.of(testCaseId1));
+    when(tmsTestCaseExecutionRepository.findTestCaseIdsByLaunchId(10L)).thenReturn(Set.of());
+    when(tmsTestCaseService.getByIdsMap(1L, List.of(testCaseId1), false)).thenReturn(Map.of(testCaseId1, draftTestCase));
+
+    var result = sut.addTestCasesToLaunch(1L, launch, List.of(testCaseId1));
+
+    assertEquals(1, result.getFailureCount());
+    assertEquals("Test case is not Ready and cannot be added to a launch", result.getErrors().get(0).getErrorMessage());
+    assertEquals(com.epam.reportportal.base.core.tms.dto.batch.BatchTestCaseOperationErrorReason.NOT_READY,
+        result.getErrors().get(0).getReason());
+    verifyNoInteractions(testFolderItemService, testCaseItemService);
+  }
+
+  @Test
+  void addTestCasesToLaunch_WithMixOfReadyAndNotReadyTestCases_ShouldReportPartialSuccess() {
+    var launch = new Launch();
+    launch.setId(10L);
+    var readyTestCase = readyTestCase(testCaseId1);
+    var draftTestCase = TmsTestCaseRS.builder().id(testCaseId2).status(TmsTestCaseStatus.DRAFT).build();
+
+    when(tmsTestCaseService.getExistingTestCaseIds(1L, List.of(testCaseId1, testCaseId2)))
+        .thenReturn(List.of(testCaseId1, testCaseId2));
+    when(tmsTestCaseExecutionRepository.findTestCaseIdsByLaunchId(10L)).thenReturn(Set.of());
+    when(tmsTestCaseService.getByIdsMap(1L, List.of(testCaseId1, testCaseId2), false))
+        .thenReturn(Map.of(testCaseId1, readyTestCase, testCaseId2, draftTestCase));
+    stubSuccessfulExecutionCreation(launch, readyTestCase);
+
+    var result = sut.addTestCasesToLaunch(1L, launch, List.of(testCaseId1, testCaseId2));
+
+    assertEquals(2, result.getTotalCount());
+    assertEquals(1, result.getSuccessCount());
+    assertEquals(1, result.getFailureCount());
+    assertEquals(List.of(testCaseId1), result.getSuccessTestCaseIds());
+    assertEquals(testCaseId2, result.getErrors().get(0).getTestCaseId());
+  }
+
+  // ==================== addTestCaseToLaunch ====================
+
+  @Test
+  void addTestCaseToLaunch_WhenReady_ShouldCreateExecution() {
+    var launch = new Launch();
+    launch.setId(10L);
+    var testCase = readyTestCase(testCaseId1);
+
+    when(tmsTestCaseService.getById(1L, testCaseId1, false)).thenReturn(testCase);
+    when(tmsTestCaseExecutionRepository.existsByTestCaseIdAndLaunchId(testCaseId1, 10L)).thenReturn(false);
+    stubSuccessfulExecutionCreation(launch, testCase);
+
+    sut.addTestCaseToLaunch(1L, launch, testCaseId1);
+
+    verify(tmsTestCaseExecutionRepository).save(any(TmsTestCaseExecution.class));
+  }
+
+  @Test
+  void addTestCaseToLaunch_WhenNotReady_ShouldThrowBadRequestWithoutCreatingExecution() {
+    var launch = new Launch();
+    launch.setId(10L);
+    var draftTestCase = TmsTestCaseRS.builder().id(testCaseId1).status(TmsTestCaseStatus.DRAFT).build();
+
+    when(tmsTestCaseService.getById(1L, testCaseId1, false)).thenReturn(draftTestCase);
+
+    var exception = assertThrows(ReportPortalException.class,
+        () -> sut.addTestCaseToLaunch(1L, launch, testCaseId1));
+
+    assertTrue(exception.getMessage().contains("is not Ready"));
+    verifyNoInteractions(testFolderItemService, testCaseItemService);
   }
 
   // ==================== isTestCaseInLaunch ====================

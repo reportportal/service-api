@@ -42,7 +42,7 @@ public class TmsReviewCommentRS {
   private String agentReason;
 
   /**
-   * The push that carried the comment to the agent; the agent reads the comments of its job by it.
+   * The fix round that carried the comment to the agent; the agent reads the comments of its job by it.
    */
-  private Long fixPushId;
+  private Long fixRoundId;
 }

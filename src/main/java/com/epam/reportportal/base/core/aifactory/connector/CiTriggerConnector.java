@@ -40,7 +40,7 @@ public interface CiTriggerConnector {
    * Starts a new run, not tied to any stage, e.g. the job that fixes a test case after a review.
    * <p>
    * Example: the fix job of GitHub Actions is the workflow {@code fix-test-case.yml} started with the inputs
-   * {@code test_case_id} and {@code push_id}. An integration may name that workflow itself in its parameter
+   * {@code test_case_id} and {@code fix_round_id}. An integration may name that workflow itself in its parameter
    * {@code fixWorkflowRef}, which then wins over the one in the request.
    *
    * @param integration credentials/config for the system (token, base URL)

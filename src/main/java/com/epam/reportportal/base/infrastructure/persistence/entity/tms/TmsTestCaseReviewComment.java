@@ -68,10 +68,10 @@ public class TmsTestCaseReviewComment implements Serializable {
   private TmsReviewCommentState state = TmsReviewCommentState.NOT_SENT;
 
   /**
-   * The push that carried the comment to the agent.
+   * The fix round that carried the comment to the agent.
    */
-  @Column(name = "fix_push_id")
-  private Long fixPushId;
+  @Column(name = "fix_round_id")
+  private Long fixRoundId;
 
   @Column(name = "round_number")
   private Integer roundNumber;

@@ -17,7 +17,7 @@ public interface TmsTestCaseReviewCommentRepository extends JpaRepository<TmsTes
 
   List<TmsTestCaseReviewComment> findByTestCaseIdAndState(Long testCaseId, TmsReviewCommentState state);
 
-  List<TmsTestCaseReviewComment> findByFixPushId(Long fixPushId);
+  List<TmsTestCaseReviewComment> findByFixRoundId(Long fixRoundId);
 
   long countByTestCaseIdAndState(Long testCaseId, TmsReviewCommentState state);
 

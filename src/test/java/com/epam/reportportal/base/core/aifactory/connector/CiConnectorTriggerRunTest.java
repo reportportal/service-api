@@ -37,7 +37,7 @@ class CiConnectorTriggerRunTest {
   private CiRunRequest fixRunRequest(String repo, String workflowRef) {
     var inputs = new LinkedHashMap<String, String>();
     inputs.put("test_case_id", "103");
-    inputs.put("push_id", "7");
+    inputs.put("fix_round_id", "7");
     return new CiRunRequest(repo, workflowRef, inputs);
   }
 
@@ -58,7 +58,7 @@ class CiConnectorTriggerRunTest {
     assertEquals("Bearer gh-token", headersCaptor.getValue().get("Authorization"));
     assertTrue(bodyCaptor.getValue().contains("\"ref\":\"main\""));
     assertTrue(bodyCaptor.getValue().contains("\"test_case_id\":\"103\""));
-    assertTrue(bodyCaptor.getValue().contains("\"push_id\":\"7\""));
+    assertTrue(bodyCaptor.getValue().contains("\"fix_round_id\":\"7\""));
   }
 
   @Test
@@ -106,7 +106,7 @@ class CiConnectorTriggerRunTest {
     assertEquals("https://gitlab.com/api/v4/projects/42/trigger/pipeline", urlCaptor.getValue());
     assertTrue(bodyCaptor.getValue().contains("\"ref\":\"main\""));
     assertTrue(bodyCaptor.getValue().contains("\"TEST_CASE_ID\":\"103\""));
-    assertTrue(bodyCaptor.getValue().contains("\"PUSH_ID\":\"7\""));
+    assertTrue(bodyCaptor.getValue().contains("\"FIX_ROUND_ID\":\"7\""));
   }
 
   @Test

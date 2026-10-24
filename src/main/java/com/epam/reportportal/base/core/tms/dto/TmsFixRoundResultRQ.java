@@ -11,10 +11,10 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * What the agent sends when it has fixed a test case in a fix round: the fixed content, its fresh grade and the
+ * The result of a fix round, sent by the agent when it has fixed the test case: the fixed content, its fresh grade and the
  * answer to each comment, in one call, so the case, its scores and its comments never disagree.
  * <p>
- * Example: {@code {"fixPushId": 7, "pipelineIterationId": 52, "manualScenario": {...the fixed steps...},
+ * Example: {@code {"pipelineIterationId": 52, "manualScenario": {...the fixed steps...},
  * "qualityScores": [{"criterionKey": "atomicity", "score": 15}], "generation": {"costUsd": 0.22},
  * "commentResults": [{"commentId": 11, "addressed": true}, {"commentId": 12, "addressed": false,
  * "reason": "Needs a new case; a fix round cannot create cases"}]}}. Without {@code qualityScores} the case is
@@ -24,12 +24,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class TmsTestCaseFixedVersionRQ {
-
-  @NotNull
-  @Schema(requiredMode = Schema.RequiredMode.REQUIRED,
-      description = "The push (fix round) this answers; the job received it as an input")
-  private Long fixPushId;
+public class TmsFixRoundResultRQ {
 
   @Schema(description = "The iteration the agent reported for this round (a re-run of the one that produced the case)")
   private Long pipelineIterationId;

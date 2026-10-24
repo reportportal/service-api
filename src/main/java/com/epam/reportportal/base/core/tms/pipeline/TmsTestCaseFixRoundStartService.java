@@ -7,22 +7,22 @@ import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorTyp
 import com.epam.reportportal.base.core.aifactory.connector.CiRunRequest;
 import com.epam.reportportal.base.core.aifactory.connector.CiTriggerConnector;
 import com.epam.reportportal.base.core.aifactory.model.PipelineExecution;
-import com.epam.reportportal.base.core.tms.dto.TmsFixPushRS;
+import com.epam.reportportal.base.core.tms.dto.TmsFixRoundRS;
 import com.epam.reportportal.base.core.tms.mapper.TmsReviewCommentMapper;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.aifactory.PipelineIterationRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.aifactory.PipelineStageRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.PipelineStageTestCaseRepository;
-import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestCaseFixPushRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestCaseFixRoundRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestCaseRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestCaseReviewCommentRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.IntegrationGroupEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.Integration;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCase;
-import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCaseFixPush;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCaseFixRound;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCaseReviewComment;
-import com.epam.reportportal.base.infrastructure.persistence.entity.tms.enums.TmsFixPushStatus;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.enums.TmsFixRoundStatus;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.enums.TmsReviewCommentState;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.enums.TmsTestCaseOrigin;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
@@ -42,26 +42,26 @@ import org.springframework.transaction.support.TransactionTemplate;
 /**
  * "Push to agent": sends the unsent review comments of an AI test case to the factory by starting its fix job.
  * <p>
- * Example: TC103 came out of iteration #4 and has two unsent comments. The push records round 1 as pending,
+ * Example: TC103 came out of iteration #4 and has two unsent comments. The call records round 1 as pending,
  * marks the comments as sent and starts the fix workflow of the repository of iteration #4 with the inputs
- * {@code test_case_id=103}, {@code push_id=7} and {@code previous_iteration_id=41}. The agent reads the comments
- * of push 7 from ReportPortal, fixes the case and reports its work as a new iteration, a re-run of #4. If the job
+ * {@code test_case_id=103}, {@code fix_round_id=7} and {@code previous_iteration_id=41}. The agent reads the comments
+ * of round 7 from ReportPortal, fixes the case and reports its work as a new iteration, a re-run of #4. If the job
  * cannot be started, nothing is recorded and the comments stay "not sent".
  * <p>
  * Deliberately not one transaction: the CI call in the middle must not run inside a database transaction. The
- * round is recorded first (so a second push sees it in flight), then the job is started, and the record is
+ * round is recorded first (so a second "Push to agent" sees it in flight), then the job is started, and the record is
  * undone if starting fails.
  */
 @Service
-public class TmsTestCasePushToAgentService {
+public class TmsTestCaseFixRoundStartService {
 
   static final String INPUT_TEST_CASE_ID = "test_case_id";
-  static final String INPUT_PUSH_ID = "push_id";
+  static final String INPUT_FIX_ROUND_ID = "fix_round_id";
   static final String INPUT_PREVIOUS_ITERATION_ID = "previous_iteration_id";
 
   private final TmsTestCaseRepository testCaseRepository;
   private final TmsTestCaseReviewCommentRepository commentRepository;
-  private final TmsTestCaseFixPushRepository fixPushRepository;
+  private final TmsTestCaseFixRoundRepository fixRoundRepository;
   private final PipelineStageTestCaseRepository stageTestCaseRepository;
   private final PipelineIterationRepository iterationRepository;
   private final PipelineStageRepository stageRepository;
@@ -69,9 +69,9 @@ public class TmsTestCasePushToAgentService {
   private final Map<String, CiTriggerConnector> connectorsByType;
   private final TransactionTemplate transactionTemplate;
 
-  public TmsTestCasePushToAgentService(TmsTestCaseRepository testCaseRepository,
+  public TmsTestCaseFixRoundStartService(TmsTestCaseRepository testCaseRepository,
       TmsTestCaseReviewCommentRepository commentRepository,
-      TmsTestCaseFixPushRepository fixPushRepository,
+      TmsTestCaseFixRoundRepository fixRoundRepository,
       PipelineStageTestCaseRepository stageTestCaseRepository,
       PipelineIterationRepository iterationRepository,
       PipelineStageRepository stageRepository,
@@ -80,7 +80,7 @@ public class TmsTestCasePushToAgentService {
       PlatformTransactionManager transactionManager) {
     this.testCaseRepository = testCaseRepository;
     this.commentRepository = commentRepository;
-    this.fixPushRepository = fixPushRepository;
+    this.fixRoundRepository = fixRoundRepository;
     this.stageTestCaseRepository = stageTestCaseRepository;
     this.iterationRepository = iterationRepository;
     this.stageRepository = stageRepository;
@@ -96,33 +96,33 @@ public class TmsTestCasePushToAgentService {
    *
    * @return the round that was started
    */
-  public TmsFixPushRS push(long projectId, Long testCaseId, Long userId) {
+  public TmsFixRoundRS start(long projectId, Long testCaseId, Long userId) {
     var claimed = transactionTemplate.execute(status -> claim(projectId, testCaseId, userId));
 
     String workflowUrl;
     try {
       workflowUrl = claimed.connector().triggerRun(claimed.integration(), claimed.runRequest());
     } catch (RuntimeException e) {
-      transactionTemplate.executeWithoutResult(status -> release(claimed.pushId()));
+      transactionTemplate.executeWithoutResult(status -> release(claimed.roundId()));
       throw e;
     }
-    return transactionTemplate.execute(status -> recordStarted(claimed.pushId(), workflowUrl));
+    return transactionTemplate.execute(status -> recordStarted(claimed.roundId(), workflowUrl));
   }
 
   /**
    * The round and the comments it carries; this is what the fix job reads.
    */
-  public TmsFixPushRS getPush(long projectId, Long testCaseId, Long pushId) {
-    var push = fixPushRepository.findById(pushId)
+  public TmsFixRoundRS getRound(long projectId, Long testCaseId, Long roundId) {
+    var round = fixRoundRepository.findById(roundId)
         .filter(found -> found.getProjectId().equals(projectId) && found.getTestCaseId().equals(testCaseId))
-        .orElseThrow(() -> new ReportPortalException(NOT_FOUND, "Fix round '" + pushId + "'"));
-    return toRS(push, commentRepository.findByFixPushId(pushId));
+        .orElseThrow(() -> new ReportPortalException(NOT_FOUND, "Fix round '" + roundId + "'"));
+    return toRS(round, commentRepository.findByFixRoundId(roundId));
   }
 
   private Claimed claim(long projectId, Long testCaseId, Long userId) {
     var testCase = testCaseRepository.findByProjectIdAndId(projectId, testCaseId)
         .orElseThrow(() -> new ReportPortalException(NOT_FOUND, "Test Case '" + testCaseId + "'"));
-    assertCanBePushed(testCase);
+    assertCanStartRound(testCase);
     var unsent = commentRepository.findByTestCaseIdAndState(testCaseId, TmsReviewCommentState.NOT_SENT);
     if (unsent.isEmpty()) {
       throw new ReportPortalException(BAD_REQUEST_ERROR, "Add at least one review comment before pushing to the agent");
@@ -134,39 +134,39 @@ public class TmsTestCasePushToAgentService {
     var project = iterationRepository.findById(previousIterationId).orElseThrow().getPipeline().getProject();
     var integration = resolveIntegration(project, connector);
 
-    var push = new TmsTestCaseFixPush();
-    push.setTestCaseId(testCaseId);
-    push.setProjectId(projectId);
-    push.setRoundNumber(fixPushRepository.findLastRoundNumber(testCaseId) + 1);
-    push.setStatus(TmsFixPushStatus.PENDING);
-    push.setPreviousIterationId(previousIterationId);
-    push.setRequestedBy(userId);
-    push.setRequestedAt(Instant.now());
+    var round = new TmsTestCaseFixRound();
+    round.setTestCaseId(testCaseId);
+    round.setProjectId(projectId);
+    round.setRoundNumber(fixRoundRepository.findLastRoundNumber(testCaseId) + 1);
+    round.setStatus(TmsFixRoundStatus.PENDING);
+    round.setPreviousIterationId(previousIterationId);
+    round.setRequestedBy(userId);
+    round.setRequestedAt(Instant.now());
     try {
-      push = fixPushRepository.saveAndFlush(push);
+      round = fixRoundRepository.saveAndFlush(round);
     } catch (DataIntegrityViolationException e) {
       throw new ReportPortalException(TEST_CASE_REVIEW_CONFLICT, "The agent is already fixing this Test Case");
     }
     for (var comment : unsent) {
       comment.setState(TmsReviewCommentState.SENT);
-      comment.setFixPushId(push.getId());
+      comment.setFixRoundId(round.getId());
       commentRepository.save(comment);
     }
 
     var inputs = new LinkedHashMap<String, String>();
     inputs.put(INPUT_TEST_CASE_ID, String.valueOf(testCaseId));
-    inputs.put(INPUT_PUSH_ID, String.valueOf(push.getId()));
+    inputs.put(INPUT_FIX_ROUND_ID, String.valueOf(round.getId()));
     inputs.put(INPUT_PREVIOUS_ITERATION_ID, String.valueOf(previousIterationId));
     var parameters = execution.getRetryParameters();
     var runRequest = new CiRunRequest(parameters.get("repo"), parameters.get("workflowRef"), inputs);
-    return new Claimed(push.getId(), connector, integration, runRequest);
+    return new Claimed(round.getId(), connector, integration, runRequest);
   }
 
-  private void assertCanBePushed(TmsTestCase testCase) {
+  private void assertCanStartRound(TmsTestCase testCase) {
     if (testCase.getOrigin() != TmsTestCaseOrigin.AI) {
       throw new ReportPortalException(BAD_REQUEST_ERROR, "Only AI test cases can be pushed to the agent");
     }
-    if (fixPushRepository.existsByTestCaseIdAndStatus(testCase.getId(), TmsFixPushStatus.PENDING)) {
+    if (fixRoundRepository.existsByTestCaseIdAndStatus(testCase.getId(), TmsFixRoundStatus.PENDING)) {
       throw new ReportPortalException(TEST_CASE_REVIEW_CONFLICT, "The agent is already fixing this Test Case");
     }
   }
@@ -179,7 +179,7 @@ public class TmsTestCasePushToAgentService {
     var iterationIds = stageTestCaseRepository.findIterationIdsByTestCaseIdIn(List.of(testCaseId));
     if (iterationIds.isEmpty()) {
       throw new ReportPortalException(BAD_REQUEST_ERROR,
-          "This Test Case was not produced by a pipeline iteration, so there is no agent to push it to");
+          "This Test Case was not produced by a pipeline iteration, so there is no agent to round it to");
     }
     return Collections.max(iterationIds);
   }
@@ -210,38 +210,38 @@ public class TmsTestCasePushToAgentService {
   /**
    * The job could not be started: the round never existed, and the comments are still "not sent".
    */
-  private void release(Long pushId) {
-    for (TmsTestCaseReviewComment comment : commentRepository.findByFixPushId(pushId)) {
+  private void release(Long roundId) {
+    for (TmsTestCaseReviewComment comment : commentRepository.findByFixRoundId(roundId)) {
       comment.setState(TmsReviewCommentState.NOT_SENT);
-      comment.setFixPushId(null);
+      comment.setFixRoundId(null);
       commentRepository.save(comment);
     }
-    fixPushRepository.deleteById(pushId);
+    fixRoundRepository.deleteById(roundId);
   }
 
-  private TmsFixPushRS recordStarted(Long pushId, String workflowUrl) {
-    var push = fixPushRepository.findById(pushId).orElseThrow();
-    push.setWorkflowUrl(workflowUrl);
-    fixPushRepository.save(push);
-    return toRS(push, commentRepository.findByFixPushId(pushId));
+  private TmsFixRoundRS recordStarted(Long roundId, String workflowUrl) {
+    var round = fixRoundRepository.findById(roundId).orElseThrow();
+    round.setWorkflowUrl(workflowUrl);
+    fixRoundRepository.save(round);
+    return toRS(round, commentRepository.findByFixRoundId(roundId));
   }
 
-  private TmsFixPushRS toRS(TmsTestCaseFixPush push, List<TmsTestCaseReviewComment> comments) {
-    return TmsFixPushRS.builder()
-        .id(push.getId())
-        .testCaseId(push.getTestCaseId())
-        .roundNumber(push.getRoundNumber())
-        .status(push.getStatus())
-        .previousIterationId(push.getPreviousIterationId())
-        .resultIterationId(push.getResultIterationId())
-        .requestedAt(push.getRequestedAt())
-        .finishedAt(push.getFinishedAt())
-        .workflowUrl(push.getWorkflowUrl())
-        .failureReason(push.getFailureReason())
+  private TmsFixRoundRS toRS(TmsTestCaseFixRound round, List<TmsTestCaseReviewComment> comments) {
+    return TmsFixRoundRS.builder()
+        .id(round.getId())
+        .testCaseId(round.getTestCaseId())
+        .roundNumber(round.getRoundNumber())
+        .status(round.getStatus())
+        .previousIterationId(round.getPreviousIterationId())
+        .resultIterationId(round.getResultIterationId())
+        .requestedAt(round.getRequestedAt())
+        .finishedAt(round.getFinishedAt())
+        .workflowUrl(round.getWorkflowUrl())
+        .failureReason(round.getFailureReason())
         .comments(comments.stream().map(TmsReviewCommentMapper::toRS).toList())
         .build();
   }
 
-  private record Claimed(Long pushId, CiTriggerConnector connector, Integration integration, CiRunRequest runRequest) {
+  private record Claimed(Long roundId, CiTriggerConnector connector, Integration integration, CiRunRequest runRequest) {
   }
 }

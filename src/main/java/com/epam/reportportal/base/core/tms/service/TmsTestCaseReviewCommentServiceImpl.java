@@ -9,12 +9,12 @@ import com.epam.reportportal.base.core.tms.dto.TmsReviewCommentRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsReviewCommentRS;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseReviewRS;
 import com.epam.reportportal.base.core.tms.mapper.TmsReviewCommentMapper;
-import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestCaseFixPushRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestCaseFixRoundRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestCaseRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestCaseReviewCommentRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCase;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCaseReviewComment;
-import com.epam.reportportal.base.infrastructure.persistence.entity.tms.enums.TmsFixPushStatus;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.enums.TmsFixRoundStatus;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.enums.TmsReviewCommentState;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.enums.TmsReviewCommentTarget;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.enums.TmsTestCaseOrigin;
@@ -32,7 +32,7 @@ public class TmsTestCaseReviewCommentServiceImpl implements TmsTestCaseReviewCom
 
   private final TmsTestCaseRepository testCaseRepository;
   private final TmsTestCaseReviewCommentRepository commentRepository;
-  private final TmsTestCaseFixPushRepository fixPushRepository;
+  private final TmsTestCaseFixRoundRepository fixRoundRepository;
 
   @Override
   @Transactional(readOnly = true)
@@ -42,12 +42,12 @@ public class TmsTestCaseReviewCommentServiceImpl implements TmsTestCaseReviewCom
         .map(TmsReviewCommentMapper::toRS)
         .toList();
     var unsent = comments.stream().filter(comment -> comment.getState() == TmsReviewCommentState.NOT_SENT).count();
-    var pendingPush = fixPushRepository.findByTestCaseIdAndStatus(testCaseId, TmsFixPushStatus.PENDING);
+    var pendingRound = fixRoundRepository.findByTestCaseIdAndStatus(testCaseId, TmsFixRoundStatus.PENDING);
     return TmsTestCaseReviewRS.builder()
         .comments(comments)
         .unsentCount((int) unsent)
-        .fixInProgress(pendingPush.isPresent())
-        .fixRound(pendingPush.map(push -> push.getRoundNumber()).orElse(null))
+        .fixInProgress(pendingRound.isPresent())
+        .fixRound(pendingRound.map(round -> round.getRoundNumber()).orElse(null))
         .build();
   }
 
@@ -107,7 +107,7 @@ public class TmsTestCaseReviewCommentServiceImpl implements TmsTestCaseReviewCom
   }
 
   private void assertNotBeingFixed(Long testCaseId) {
-    if (fixPushRepository.existsByTestCaseIdAndStatus(testCaseId, TmsFixPushStatus.PENDING)) {
+    if (fixRoundRepository.existsByTestCaseIdAndStatus(testCaseId, TmsFixRoundStatus.PENDING)) {
       throw new ReportPortalException(TEST_CASE_REVIEW_CONFLICT,
           "The agent is fixing this Test Case; its comments are read-only until the fix round ends");
     }

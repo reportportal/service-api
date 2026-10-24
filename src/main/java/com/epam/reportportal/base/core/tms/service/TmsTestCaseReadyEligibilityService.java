@@ -1,8 +1,8 @@
 package com.epam.reportportal.base.core.tms.service;
 
-import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestCaseFixPushRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestCaseFixRoundRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestCaseReviewCommentRepository;
-import com.epam.reportportal.base.infrastructure.persistence.entity.tms.enums.TmsFixPushStatus;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.enums.TmsFixRoundStatus;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.enums.TmsReviewCommentState;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
@@ -25,7 +25,7 @@ import org.springframework.stereotype.Service;
 public class TmsTestCaseReadyEligibilityService {
 
   private final TmsTestCaseReviewCommentRepository commentRepository;
-  private final TmsTestCaseFixPushRepository fixPushRepository;
+  private final TmsTestCaseFixRoundRepository fixRoundRepository;
 
   /**
    * Which of the given test cases must not become Ready now: the ones with unsent review comments and the ones
@@ -36,7 +36,7 @@ public class TmsTestCaseReadyEligibilityService {
       return Set.of();
     }
     var blocked = new HashSet<Long>(commentRepository.findTestCaseIdsWithState(testCaseIds, TmsReviewCommentState.NOT_SENT));
-    blocked.addAll(fixPushRepository.findTestCaseIdsWithStatus(testCaseIds, TmsFixPushStatus.PENDING));
+    blocked.addAll(fixRoundRepository.findTestCaseIdsWithStatus(testCaseIds, TmsFixRoundStatus.PENDING));
     return blocked;
   }
 
@@ -48,7 +48,7 @@ public class TmsTestCaseReadyEligibilityService {
    * Rejects making the test case Ready when it has unsent comments or is being fixed.
    */
   public void assertCanBecomeReady(Long testCaseId) {
-    if (fixPushRepository.existsByTestCaseIdAndStatus(testCaseId, TmsFixPushStatus.PENDING)) {
+    if (fixRoundRepository.existsByTestCaseIdAndStatus(testCaseId, TmsFixRoundStatus.PENDING)) {
       throw new ReportPortalException(ErrorType.TEST_CASE_REVIEW_CONFLICT,
           "The agent is fixing Test Case '" + testCaseId + "'; wait for the fix round to end");
     }

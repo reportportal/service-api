@@ -14,7 +14,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.epam.reportportal.base.core.tms.dto.TmsManualScenarioRQ;
-import com.epam.reportportal.base.core.tms.dto.TmsTestCaseFixedVersionRQ;
+import com.epam.reportportal.base.core.tms.dto.TmsFixRoundResultRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseQualityScoreRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseRS;
 import com.epam.reportportal.base.core.tms.event.TmsTestCasesLifecycleChangedEvent;
@@ -22,17 +22,17 @@ import com.epam.reportportal.base.core.tms.service.TmsTestCaseQualityService;
 import com.epam.reportportal.base.core.tms.service.TmsTestCaseService;
 import com.epam.reportportal.base.core.tms.service.TmsTestCaseVersionService;
 import com.epam.reportportal.base.infrastructure.persistence.dao.aifactory.PipelineIterationRepository;
-import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestCaseFixPushRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestCaseFixRoundRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestCaseRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestCaseReviewCommentRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.aifactory.Pipeline;
 import com.epam.reportportal.base.infrastructure.persistence.entity.aifactory.PipelineIteration;
 import com.epam.reportportal.base.infrastructure.persistence.entity.aifactory.PipelineSettings;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCase;
-import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCaseFixPush;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCaseFixRound;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCaseReviewComment;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCaseVersion;
-import com.epam.reportportal.base.infrastructure.persistence.entity.tms.enums.TmsFixPushStatus;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.enums.TmsFixRoundStatus;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.enums.TmsReviewCommentState;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.enums.TmsTestCaseStatus;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
@@ -54,13 +54,13 @@ class TmsTestCaseFixRoundServiceTest {
 
   private static final long PROJECT_ID = 1L;
   private static final Long TEST_CASE_ID = 103L;
-  private static final Long PUSH_ID = 7L;
+  private static final Long FIX_ROUND_ID = 7L;
   private static final Long PREVIOUS_ITERATION_ID = 41L;
 
   @Mock
   private TmsTestCaseRepository testCaseRepository;
   @Mock
-  private TmsTestCaseFixPushRepository fixPushRepository;
+  private TmsTestCaseFixRoundRepository fixRoundRepository;
   @Mock
   private TmsTestCaseReviewCommentRepository commentRepository;
   @Mock
@@ -78,7 +78,7 @@ class TmsTestCaseFixRoundServiceTest {
   private TmsTestCaseFixRoundService sut;
 
   private TmsTestCase testCase;
-  private TmsTestCaseFixPush push;
+  private TmsTestCaseFixRound round;
   private TmsTestCaseVersion newVersion;
   private TmsTestCaseReviewComment applied;
   private TmsTestCaseReviewComment notApplied;
@@ -91,13 +91,13 @@ class TmsTestCaseFixRoundServiceTest {
     testCase.setName("Old title");
     testCase.setStatus(TmsTestCaseStatus.READY);
 
-    push = new TmsTestCaseFixPush();
-    push.setId(PUSH_ID);
-    push.setProjectId(PROJECT_ID);
-    push.setTestCaseId(TEST_CASE_ID);
-    push.setRoundNumber(1);
-    push.setStatus(TmsFixPushStatus.PENDING);
-    push.setPreviousIterationId(PREVIOUS_ITERATION_ID);
+    round = new TmsTestCaseFixRound();
+    round.setId(FIX_ROUND_ID);
+    round.setProjectId(PROJECT_ID);
+    round.setTestCaseId(TEST_CASE_ID);
+    round.setRoundNumber(1);
+    round.setStatus(TmsFixRoundStatus.PENDING);
+    round.setPreviousIterationId(PREVIOUS_ITERATION_ID);
 
     newVersion = new TmsTestCaseVersion();
     applied = sentComment(11L);
@@ -110,17 +110,16 @@ class TmsTestCaseFixRoundServiceTest {
     comment.setId(id);
     comment.setTestCaseId(TEST_CASE_ID);
     comment.setState(TmsReviewCommentState.SENT);
-    comment.setFixPushId(PUSH_ID);
+    comment.setFixRoundId(FIX_ROUND_ID);
     return comment;
   }
 
-  private TmsTestCaseFixedVersionRQ.CommentResult result(Long commentId, boolean addressed, String reason) {
-    return TmsTestCaseFixedVersionRQ.CommentResult.builder().commentId(commentId).addressed(addressed).reason(reason).build();
+  private TmsFixRoundResultRQ.CommentResult result(Long commentId, boolean addressed, String reason) {
+    return TmsFixRoundResultRQ.CommentResult.builder().commentId(commentId).addressed(addressed).reason(reason).build();
   }
 
-  private TmsTestCaseFixedVersionRQ fixedVersion(List<TmsTestCaseQualityScoreRQ> scores) {
-    return TmsTestCaseFixedVersionRQ.builder()
-        .fixPushId(PUSH_ID)
+  private TmsFixRoundResultRQ resultOf(List<TmsTestCaseQualityScoreRQ> scores) {
+    return TmsFixRoundResultRQ.builder()
         .pipelineIterationId(52L)
         .manualScenario(org.mockito.Mockito.mock(TmsManualScenarioRQ.class))
         .name("New title")
@@ -130,10 +129,10 @@ class TmsTestCaseFixRoundServiceTest {
   }
 
   private void givenAPendingRoundOfAnExistingCase() {
-    when(fixPushRepository.findByIdForUpdate(PUSH_ID)).thenReturn(Optional.of(push));
+    when(fixRoundRepository.findByIdForUpdate(FIX_ROUND_ID)).thenReturn(Optional.of(round));
     when(testCaseRepository.findByProjectIdAndId(PROJECT_ID, TEST_CASE_ID)).thenReturn(Optional.of(testCase));
     when(versionService.createNewDefaultVersion(eq(PROJECT_ID), eq(testCase), any(), eq(52L))).thenReturn(newVersion);
-    when(commentRepository.findByFixPushId(PUSH_ID)).thenReturn(List.of(applied, notApplied, unanswered));
+    when(commentRepository.findByFixRoundId(FIX_ROUND_ID)).thenReturn(List.of(applied, notApplied, unanswered));
     when(testCaseService.getById(PROJECT_ID, TEST_CASE_ID)).thenReturn(new TmsTestCaseRS());
   }
 
@@ -146,12 +145,12 @@ class TmsTestCaseFixRoundServiceTest {
   }
 
   @Test
-  void applyFixedVersion_ShouldCreateTheNewVersionGradeItAndSendTheCaseBackToDraft() {
+  void applyResult_ShouldCreateTheNewVersionGradeItAndSendTheCaseBackToDraft() {
     givenAPendingRoundOfAnExistingCase();
     var scores = List.of(TmsTestCaseQualityScoreRQ.builder().criterionKey("atomicity").score(15).build());
-    var rq = fixedVersion(scores);
+    var rq = resultOf(scores);
 
-    sut.applyFixedVersion(PROJECT_ID, TEST_CASE_ID, rq);
+    sut.applyResult(PROJECT_ID, TEST_CASE_ID, FIX_ROUND_ID, rq);
 
     verify(versionService).createNewDefaultVersion(PROJECT_ID, testCase, rq.getManualScenario(), 52L);
     verify(qualityService).applyQualityScores(PROJECT_ID, newVersion, scores);
@@ -159,17 +158,17 @@ class TmsTestCaseFixRoundServiceTest {
     assertEquals(TmsTestCaseStatus.DRAFT, testCase.getStatus());
     assertTrue(testCase.isModifiedByAgent());
     assertEquals("New title", testCase.getName());
-    assertEquals(TmsFixPushStatus.FIXED, push.getStatus());
-    assertEquals(52L, push.getResultIterationId());
-    assertNotNull(push.getFinishedAt());
+    assertEquals(TmsFixRoundStatus.FIXED, round.getStatus());
+    assertEquals(52L, round.getResultIterationId());
+    assertNotNull(round.getFinishedAt());
   }
 
   @Test
-  void applyFixedVersion_ShouldMarkEachCommentWithItsAnswerAndTheRound() {
+  void applyResult_ShouldMarkEachCommentWithItsAnswerAndTheRound() {
     givenAPendingRoundOfAnExistingCase();
 
-    sut.applyFixedVersion(PROJECT_ID, TEST_CASE_ID,
-        fixedVersion(List.of(TmsTestCaseQualityScoreRQ.builder().criterionKey("atomicity").score(15).build())));
+    sut.applyResult(PROJECT_ID, TEST_CASE_ID, FIX_ROUND_ID,
+        resultOf(List.of(TmsTestCaseQualityScoreRQ.builder().criterionKey("atomicity").score(15).build())));
 
     assertEquals(TmsReviewCommentState.ADDRESSED, applied.getState());
     assertEquals(1, applied.getRoundNumber());
@@ -181,32 +180,32 @@ class TmsTestCaseFixRoundServiceTest {
   }
 
   @Test
-  void applyFixedVersion_WithAGrade_ShouldRunAutoReadyWithTheThresholdOfThePipeline() {
+  void applyResult_WithAGrade_ShouldRunAutoReadyWithTheThresholdOfThePipeline() {
     givenAPendingRoundOfAnExistingCase();
     givenAutoReady(90);
 
-    sut.applyFixedVersion(PROJECT_ID, TEST_CASE_ID,
-        fixedVersion(List.of(TmsTestCaseQualityScoreRQ.builder().criterionKey("atomicity").score(15).build())));
+    sut.applyResult(PROJECT_ID, TEST_CASE_ID, FIX_ROUND_ID,
+        resultOf(List.of(TmsTestCaseQualityScoreRQ.builder().criterionKey("atomicity").score(15).build())));
 
     verify(testCaseService).applyAutoReady(PROJECT_ID, TEST_CASE_ID, 90);
   }
 
   @Test
-  void applyFixedVersion_WithoutAGrade_ShouldEndAsFixedGradeFailedAndNotRunAutoReady() {
+  void applyResult_WithoutAGrade_ShouldEndAsFixedGradeFailedAndNotRunAutoReady() {
     givenAPendingRoundOfAnExistingCase();
 
-    sut.applyFixedVersion(PROJECT_ID, TEST_CASE_ID, fixedVersion(null));
+    sut.applyResult(PROJECT_ID, TEST_CASE_ID, FIX_ROUND_ID, resultOf(null));
 
-    assertEquals(TmsFixPushStatus.FIXED_GRADE_FAILED, push.getStatus());
+    assertEquals(TmsFixRoundStatus.FIXED_GRADE_FAILED, round.getStatus());
     assertEquals(TmsTestCaseStatus.DRAFT, testCase.getStatus());
     verify(testCaseService, never()).applyAutoReady(anyLong(), anyLong(), anyInt());
   }
 
   @Test
-  void applyFixedVersion_ShouldTellTheReviewOfTheIterationsThatTheLifecycleChanged() {
+  void applyResult_ShouldTellTheReviewOfTheIterationsThatTheLifecycleChanged() {
     givenAPendingRoundOfAnExistingCase();
 
-    sut.applyFixedVersion(PROJECT_ID, TEST_CASE_ID, fixedVersion(null));
+    sut.applyResult(PROJECT_ID, TEST_CASE_ID, FIX_ROUND_ID, resultOf(null));
 
     var event = ArgumentCaptor.forClass(Object.class);
     verify(eventPublisher).publishEvent(event.capture());
@@ -214,51 +213,51 @@ class TmsTestCaseFixRoundServiceTest {
   }
 
   @Test
-  void applyFixedVersion_WhenTheRoundHasAlreadyEnded_ShouldBeAConflictAndChangeNothing() {
-    push.setStatus(TmsFixPushStatus.FAILED);
-    when(fixPushRepository.findByIdForUpdate(PUSH_ID)).thenReturn(Optional.of(push));
+  void applyResult_WhenTheRoundHasAlreadyEnded_ShouldBeAConflictAndChangeNothing() {
+    round.setStatus(TmsFixRoundStatus.FAILED);
+    when(fixRoundRepository.findByIdForUpdate(FIX_ROUND_ID)).thenReturn(Optional.of(round));
 
     var ex = assertThrows(ReportPortalException.class,
-        () -> sut.applyFixedVersion(PROJECT_ID, TEST_CASE_ID, fixedVersion(null)));
+        () -> sut.applyResult(PROJECT_ID, TEST_CASE_ID, FIX_ROUND_ID, resultOf(null)));
 
     assertEquals(ErrorType.TEST_CASE_REVIEW_CONFLICT.getCode(), ex.getErrorType().getCode());
     verify(versionService, never()).createNewDefaultVersion(anyLong(), any(), any(), any());
   }
 
   @Test
-  void applyFixedVersion_ForARoundOfAnotherTestCase_ShouldBeNotFound() {
-    push.setTestCaseId(999L);
-    when(fixPushRepository.findByIdForUpdate(PUSH_ID)).thenReturn(Optional.of(push));
+  void applyResult_ForARoundOfAnotherTestCase_ShouldBeNotFound() {
+    round.setTestCaseId(999L);
+    when(fixRoundRepository.findByIdForUpdate(FIX_ROUND_ID)).thenReturn(Optional.of(round));
 
     var ex = assertThrows(ReportPortalException.class,
-        () -> sut.applyFixedVersion(PROJECT_ID, TEST_CASE_ID, fixedVersion(null)));
+        () -> sut.applyResult(PROJECT_ID, TEST_CASE_ID, FIX_ROUND_ID, resultOf(null)));
 
     assertEquals(ErrorType.NOT_FOUND.getCode(), ex.getErrorType().getCode());
   }
 
   @Test
   void failRound_ShouldReturnTheCommentsToNotSentAndEndTheRoundAsFailed() {
-    when(fixPushRepository.findByIdForUpdate(PUSH_ID)).thenReturn(Optional.of(push));
-    when(commentRepository.findByFixPushId(PUSH_ID)).thenReturn(List.of(applied, notApplied));
+    when(fixRoundRepository.findByIdForUpdate(FIX_ROUND_ID)).thenReturn(Optional.of(round));
+    when(commentRepository.findByFixRoundId(FIX_ROUND_ID)).thenReturn(List.of(applied, notApplied));
 
-    sut.failRound(PUSH_ID, "Stage 'Fix' failed");
+    sut.failRound(FIX_ROUND_ID, "Stage 'Fix' failed");
 
-    assertEquals(TmsFixPushStatus.FAILED, push.getStatus());
-    assertEquals("Stage 'Fix' failed", push.getFailureReason());
-    assertNotNull(push.getFinishedAt());
+    assertEquals(TmsFixRoundStatus.FAILED, round.getStatus());
+    assertEquals("Stage 'Fix' failed", round.getFailureReason());
+    assertNotNull(round.getFinishedAt());
     assertEquals(TmsReviewCommentState.NOT_SENT, applied.getState());
-    assertNull(applied.getFixPushId());
+    assertNull(applied.getFixRoundId());
     assertEquals(TmsReviewCommentState.NOT_SENT, notApplied.getState());
   }
 
   @Test
   void failRound_WhenTheRoundAlreadyEnded_ShouldDoNothing() {
-    push.setStatus(TmsFixPushStatus.FIXED);
-    when(fixPushRepository.findByIdForUpdate(PUSH_ID)).thenReturn(Optional.of(push));
+    round.setStatus(TmsFixRoundStatus.FIXED);
+    when(fixRoundRepository.findByIdForUpdate(FIX_ROUND_ID)).thenReturn(Optional.of(round));
 
-    sut.failRound(PUSH_ID, "late");
+    sut.failRound(FIX_ROUND_ID, "late");
 
-    assertEquals(TmsFixPushStatus.FIXED, push.getStatus());
+    assertEquals(TmsFixRoundStatus.FIXED, round.getStatus());
     verify(commentRepository, never()).save(any());
   }
 }

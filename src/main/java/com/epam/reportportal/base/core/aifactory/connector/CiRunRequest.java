@@ -6,7 +6,7 @@ import java.util.Map;
  * What it takes to start a brand-new run in a CI system, as opposed to running a stage again.
  * <p>
  * Example: {@code new CiRunRequest("org/repo", "fix-test-case.yml", Map.of("test_case_id", "103",
- * "push_id", "7"))} starts the workflow {@code fix-test-case.yml} of the repository {@code org/repo} with
+ * "fix_round_id", "7"))} starts the workflow {@code fix-test-case.yml} of the repository {@code org/repo} with
  * the two inputs. For GitLab CI {@code repo} is the project id, {@code workflowRef} the git ref, and the inputs
  * become pipeline variables.
  *

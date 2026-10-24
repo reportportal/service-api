@@ -4,7 +4,7 @@ import com.epam.reportportal.base.core.aifactory.enums.AttributeType;
 import com.epam.reportportal.base.core.aifactory.enums.AttributeValueType;
 import com.epam.reportportal.base.core.aifactory.model.PipelineAttribute;
 import com.epam.reportportal.base.core.aifactory.service.PipelineStageContributor;
-import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestCaseFixPushRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestCaseFixRoundRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestCaseRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.aifactory.Pipeline;
 import com.epam.reportportal.base.infrastructure.persistence.entity.aifactory.PipelineIteration;
@@ -17,7 +17,7 @@ import org.springframework.stereotype.Component;
 /**
  * Labels the iteration of a fix round, so that it is not taken for a plain re-run in the list.
  * <p>
- * Example: iteration #5 is the answer to round 1 of TC103 (it carries {@code fixPushId = 7}). This contributor
+ * Example: iteration #5 is the answer to round 1 of TC103 (it carries {@code fixRoundId = 7}). This contributor
  * owns no stage; it adds the iteration attribute {@code fixRound = "TC103 · round 1"} that the list shows next to
  * the other facts of the iteration, and a Compare against #4 can tell the two apart.
  */
@@ -27,7 +27,7 @@ public class FixRoundIterationContributor implements PipelineStageContributor {
 
   static final String FIX_ROUND_ATTRIBUTE_KEY = "fixRound";
 
-  private final TmsTestCaseFixPushRepository fixPushRepository;
+  private final TmsTestCaseFixRoundRepository fixRoundRepository;
   private final TmsTestCaseRepository testCaseRepository;
 
   @Override
@@ -42,14 +42,14 @@ public class FixRoundIterationContributor implements PipelineStageContributor {
 
   @Override
   public List<PipelineAttribute> iterationAttributes(PipelineIteration iteration, List<PipelineStage> stages) {
-    return FixRoundIterationSupport.fixPushId(iteration)
-        .flatMap(fixPushRepository::findById)
-        .map(push -> {
-          var testCaseName = testCaseRepository.findById(push.getTestCaseId())
+    return FixRoundIterationSupport.fixRoundId(iteration)
+        .flatMap(fixRoundRepository::findById)
+        .map(round -> {
+          var testCaseName = testCaseRepository.findById(round.getTestCaseId())
               .map(TmsTestCase::getDisplayId)
-              .orElse("Test Case " + push.getTestCaseId());
+              .orElse("Test Case " + round.getTestCaseId());
           return List.of(PipelineAttribute.builder().key(FIX_ROUND_ATTRIBUTE_KEY).label("Fix round")
-              .value(testCaseName + " · round " + push.getRoundNumber())
+              .value(testCaseName + " · round " + round.getRoundNumber())
               .type(AttributeType.META).valueType(AttributeValueType.TEXT).build());
         })
         .orElse(List.of());

@@ -95,10 +95,10 @@ class TestCaseFixRoundE2eIntegrationTest extends BaseMvcTest {
   void fullScenario_FromTheFirstCommentToTheFixedCaseAndAFailedRound() throws Exception {
     step1_aGenerationIterationProducedAnAiDraftCase();
     step2_editorCommentsAndCannotApproveWhileCommentsAreUnsent();
-    step3_pushToAgentStartsTheFixJobWithIdsOnly();
+    step3_startingTheRoundStartsTheFixJobWithIdsOnly();
     step4_whileTheAgentIsFixingTheCaseIsLocked();
-    step5_theJobReadsItsCommentsAndReportsItsIteration();
-    step6_theFixedVersionArrivesAndAutoReadyPromotesTheCase();
+    step5_theJobReadsItsRoundAndReportsItsIteration();
+    step6_theResultArrivesAndAutoReadyPromotesTheCase();
     step7_theFixedCaseKeepsItsHistoryAndTheCommentsAreAnswered();
     step8_theIterationsKnowTheRound();
     step9_commentsNeverChangeTheLifecycleAndAFailedRoundGivesTheCommentsBack();
@@ -162,10 +162,10 @@ class TestCaseFixRoundE2eIntegrationTest extends BaseMvcTest {
 
   // ------------------------------------------------------------------ step 3
 
-  private void step3_pushToAgentStartsTheFixJobWithIdsOnly() throws Exception {
+  private void step3_startingTheRoundStartsTheFixJobWithIdsOnly() throws Exception {
     when(ciHttpClient.postForStatus(anyString(), anyMap(), anyString())).thenReturn("");
 
-    var round = send(post(reviewUrl("/push")), null, HttpStatus.OK);
+    var round = send(post(reviewUrl("/fix-round")), null, HttpStatus.OK);
 
     assertEquals(1, round.get("roundNumber").asInt());
     assertEquals("PENDING", round.get("status").asText());
@@ -180,7 +180,7 @@ class TestCaseFixRoundE2eIntegrationTest extends BaseMvcTest {
     assertEquals("https://api.github.com/repos/org/repo/actions/workflows/fix-test-case.yml/dispatches", url.getValue());
     var inputs = mapper.readTree(body.getValue()).get("inputs");
     assertEquals(String.valueOf(testCaseId), inputs.get("test_case_id").asText());
-    assertEquals(round.get("id").asText(), inputs.get("push_id").asText());
+    assertEquals(round.get("id").asText(), inputs.get("fix_round_id").asText());
     assertEquals(String.valueOf(firstIterationId), inputs.get("previous_iteration_id").asText());
     assertEquals(3, inputs.size(), "the comments themselves never travel through the workflow inputs");
   }
@@ -195,39 +195,39 @@ class TestCaseFixRoundE2eIntegrationTest extends BaseMvcTest {
 
     send(post(reviewUrl("/comment")), "{\"targetType\": \"PRECONDITION\", \"text\": \"one more\"}", HttpStatus.CONFLICT);
     send(delete(reviewUrl("/comment")), null, HttpStatus.CONFLICT);
-    send(post(reviewUrl("/push")), null, HttpStatus.CONFLICT);
+    send(post(reviewUrl("/fix-round")), null, HttpStatus.CONFLICT);
     send(patch(TEST_CASES + "/" + testCaseId), "{\"status\": \"READY\"}", HttpStatus.CONFLICT);
   }
 
   // ------------------------------------------------------------------ step 5
 
-  private long pushId;
+  private long roundId;
   private long secondIterationId;
-  private JsonNode pushedComments;
+  private JsonNode roundComments;
 
-  private void step5_theJobReadsItsCommentsAndReportsItsIteration() throws Exception {
-    pushId = send(get(reviewUrl("")), null, HttpStatus.OK).get("comments").get(0).get("fixPushId").asLong();
-    var round = send(get(reviewUrl("/push/" + pushId)), null, HttpStatus.OK);
-    pushedComments = round.get("comments");
-    assertEquals(2, pushedComments.size());
-    assertEquals("Name the exact toast text", pushedComments.get(0).get("text").asText());
+  private void step5_theJobReadsItsRoundAndReportsItsIteration() throws Exception {
+    roundId = send(get(reviewUrl("")), null, HttpStatus.OK).get("comments").get(0).get("fixRoundId").asLong();
+    var round = send(get(reviewUrl("/fix-round/" + roundId)), null, HttpStatus.OK);
+    roundComments = round.get("comments");
+    assertEquals(2, roundComments.size());
+    assertEquals("Name the exact toast text", roundComments.get(0).get("text").asText());
 
     var iteration = send(post(PIPELINES + "/iteration").header("Idempotency-Key", "fix-round-fix-1"), """
         {"name": "Test case generation", "type": "TEST_CASE_GENERATION",
          "iteration": {"startedAt": "2026-10-20T11:00:00Z", "rerunOfIterationId": %d,
            "attributes": [{"key": "requirement", "label": "Requirement", "value": "US-TMS-BLK-001", "type": "META"},
-                          {"key": "fixPushId", "label": "Fix round", "value": "%d", "type": "NONE"}],
+                          {"key": "fixRoundId", "label": "Fix round", "value": "%d", "type": "NONE"}],
            "stages": [{"stageKey": "fix", "name": "Fix", "sequence": 1, "status": "Running", "execution": %s}]}}
-        """.formatted(firstIterationId, pushId, execution("201")), HttpStatus.CREATED);
+        """.formatted(firstIterationId, roundId, execution("201")), HttpStatus.CREATED);
     secondIterationId = iteration.get("id").asLong();
     assertEquals(firstIterationId, iteration.get("rerunOf").get("id").asLong());
   }
 
   // ------------------------------------------------------------------ step 6
 
-  private void step6_theFixedVersionArrivesAndAutoReadyPromotesTheCase() throws Exception {
-    var fixed = send(post(TEST_CASES + "/" + testCaseId + "/fixed-version"), """
-        {"fixPushId": %d, "pipelineIterationId": %d, "name": "Test Case Library. Bulk selection. 'Add to Test Plan' is disabled with no selection",
+  private void step6_theResultArrivesAndAutoReadyPromotesTheCase() throws Exception {
+    var fixed = send(put(reviewUrl("/fix-round/" + roundId + "/result")), """
+        {"pipelineIterationId": %d, "name": "Test Case Library. Bulk selection. 'Add to Test Plan' is disabled with no selection",
          "manualScenario": {"manualScenarioType": "STEPS",
            "steps": [{"instructions": "Open the Library and select no Test Case", "expectedResult": "The bulk panel is hidden"},
                      {"instructions": "Look at the toast", "expectedResult": "The toast says 'Select at least one Test Case'"}]},
@@ -235,15 +235,15 @@ class TestCaseFixRoundE2eIntegrationTest extends BaseMvcTest {
          "generation": {"model": "auto (default)", "costUsd": 0.22},
          "commentResults": [{"commentId": %d, "addressed": true},
                             {"commentId": %d, "addressed": false, "reason": "Needs a new case; a fix round cannot create cases"}]}
-        """.formatted(pushId, secondIterationId, scores(new int[] {15, 20, 18, 18, 14, 9}),
-        pushedComments.get(0).get("id").asLong(), pushedComments.get(1).get("id").asLong()), HttpStatus.OK);
+        """.formatted(secondIterationId, scores(new int[] {15, 20, 18, 18, 14, 9}),
+        roundComments.get(0).get("id").asLong(), roundComments.get(1).get("id").asLong()), HttpStatus.OK);
 
     assertEquals(94, fixed.get("metrics").get("overallScore").asInt());
     assertEquals("READY", fixed.get("status").asText(), "94 >= 90: promoted by Auto-Ready after the update");
     assertNotEquals(firstVersionId, fixed.get("defaultVersionId").asLong(), "the fix is a new default version");
     assertEquals(2, fixed.get("manualScenario").get("steps").size());
-    send(post(TEST_CASES + "/" + testCaseId + "/fixed-version"), "{\"fixPushId\": " + pushId + ", \"manualScenario\": "
-        + "{\"manualScenarioType\": \"STEPS\", \"steps\": []}}", HttpStatus.CONFLICT);
+    send(put(reviewUrl("/fix-round/" + roundId + "/result")),
+        "{\"manualScenario\": {\"manualScenarioType\": \"STEPS\", \"steps\": []}}", HttpStatus.CONFLICT);
   }
 
   // ------------------------------------------------------------------ step 7
@@ -298,31 +298,31 @@ class TestCaseFixRoundE2eIntegrationTest extends BaseMvcTest {
     reset(ciHttpClient);
     when(ciHttpClient.postForStatus(anyString(), anyMap(), anyString())).thenReturn("");
 
-    var round = send(post(reviewUrl("/push")), null, HttpStatus.OK);
+    var round = send(post(reviewUrl("/fix-round")), null, HttpStatus.OK);
     assertEquals(2, round.get("roundNumber").asInt());
     assertEquals(secondIterationId, round.get("previousIterationId").asLong(),
         "round 2 follows the iteration that last fixed the case");
-    var secondPushId = round.get("id").asLong();
+    var secondRoundId = round.get("id").asLong();
 
     var third = send(post(PIPELINES + "/iteration").header("Idempotency-Key", "fix-round-fix-2"), """
         {"name": "Test case generation", "type": "TEST_CASE_GENERATION",
          "iteration": {"startedAt": "2026-10-20T12:00:00Z", "rerunOfIterationId": %d,
-           "attributes": [{"key": "fixPushId", "value": "%d", "type": "NONE"}],
+           "attributes": [{"key": "fixRoundId", "value": "%d", "type": "NONE"}],
            "stages": [{"stageKey": "fix", "name": "Fix", "sequence": 1, "status": "Failed",
                        "message": "The agent could not apply the comment"}]}}
-        """.formatted(secondIterationId, secondPushId), HttpStatus.CREATED);
+        """.formatted(secondIterationId, secondRoundId), HttpStatus.CREATED);
     assertEquals("FAILED", third.get("statusCategory").asText());
 
     var review = send(get(reviewUrl("")), null, HttpStatus.OK);
     assertFalse(review.get("fixInProgress").asBoolean());
     assertEquals(1, review.get("unsentCount").asInt(), "the comment of the failed round is not sent again");
     assertEquals("READY", libraryCase().get("status").asText(), "a failed round leaves the case as it was");
-    assertEquals("FAILED", jdbcTemplate.queryForObject("select status from tms_test_case_fix_push where id = ?",
-        String.class, secondPushId));
+    assertEquals("FAILED", jdbcTemplate.queryForObject("select status from tms_test_case_fix_round where id = ?",
+        String.class, secondRoundId));
     assertEquals(2, count("select count(*) from tms_test_case_version where test_case_id = ?", testCaseId),
         "a failed round creates no version");
 
-    send(post(reviewUrl("/push")), null, HttpStatus.OK);
+    send(post(reviewUrl("/fix-round")), null, HttpStatus.OK);
     send(delete(reviewUrl("/comment")), null, HttpStatus.CONFLICT);
   }
 

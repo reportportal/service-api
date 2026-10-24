@@ -11,13 +11,13 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.epam.reportportal.base.core.tms.dto.TmsReviewCommentRQ;
-import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestCaseFixPushRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestCaseFixRoundRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestCaseRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestCaseReviewCommentRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCase;
-import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCaseFixPush;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCaseFixRound;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCaseReviewComment;
-import com.epam.reportportal.base.infrastructure.persistence.entity.tms.enums.TmsFixPushStatus;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.enums.TmsFixRoundStatus;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.enums.TmsReviewCommentState;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.enums.TmsReviewCommentTarget;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.enums.TmsTestCaseOrigin;
@@ -46,7 +46,7 @@ class TmsTestCaseReviewCommentServiceImplTest {
   @Mock
   private TmsTestCaseReviewCommentRepository commentRepository;
   @Mock
-  private TmsTestCaseFixPushRepository fixPushRepository;
+  private TmsTestCaseFixRoundRepository fixRoundRepository;
 
   @InjectMocks
   private TmsTestCaseReviewCommentServiceImpl sut;
@@ -114,7 +114,7 @@ class TmsTestCaseReviewCommentServiceImplTest {
 
   @Test
   void addComment_WhileTheAgentIsFixingTheCase_ShouldBeRejectedAsAConflict() {
-    when(fixPushRepository.existsByTestCaseIdAndStatus(TEST_CASE_ID, TmsFixPushStatus.PENDING)).thenReturn(true);
+    when(fixRoundRepository.existsByTestCaseIdAndStatus(TEST_CASE_ID, TmsFixRoundStatus.PENDING)).thenReturn(true);
 
     var ex = assertThrows(ReportPortalException.class,
         () -> sut.addComment(PROJECT_ID, TEST_CASE_ID, USER_ID, stepComment(1, "text")));
@@ -144,9 +144,9 @@ class TmsTestCaseReviewCommentServiceImplTest {
         comment(1L, USER_ID, TmsReviewCommentState.NOT_SENT),
         comment(2L, USER_ID, TmsReviewCommentState.NOT_SENT),
         comment(3L, USER_ID, TmsReviewCommentState.ADDRESSED)));
-    var push = new TmsTestCaseFixPush();
+    var push = new TmsTestCaseFixRound();
     push.setRoundNumber(2);
-    when(fixPushRepository.findByTestCaseIdAndStatus(TEST_CASE_ID, TmsFixPushStatus.PENDING))
+    when(fixRoundRepository.findByTestCaseIdAndStatus(TEST_CASE_ID, TmsFixRoundStatus.PENDING))
         .thenReturn(Optional.of(push));
 
     var review = sut.getReview(PROJECT_ID, TEST_CASE_ID);
@@ -160,7 +160,7 @@ class TmsTestCaseReviewCommentServiceImplTest {
   @Test
   void getReview_WhenNothingIsRunning_ShouldNotReportAFixRound() {
     when(commentRepository.findByTestCaseIdOrderByCreatedAtAscIdAsc(TEST_CASE_ID)).thenReturn(List.of());
-    when(fixPushRepository.findByTestCaseIdAndStatus(TEST_CASE_ID, TmsFixPushStatus.PENDING)).thenReturn(Optional.empty());
+    when(fixRoundRepository.findByTestCaseIdAndStatus(TEST_CASE_ID, TmsFixRoundStatus.PENDING)).thenReturn(Optional.empty());
 
     var review = sut.getReview(PROJECT_ID, TEST_CASE_ID);
 
@@ -223,7 +223,7 @@ class TmsTestCaseReviewCommentServiceImplTest {
 
   @Test
   void discardUnsentComments_WhileTheAgentIsFixingTheCase_ShouldBeRejected() {
-    when(fixPushRepository.existsByTestCaseIdAndStatus(TEST_CASE_ID, TmsFixPushStatus.PENDING)).thenReturn(true);
+    when(fixRoundRepository.existsByTestCaseIdAndStatus(TEST_CASE_ID, TmsFixRoundStatus.PENDING)).thenReturn(true);
 
     assertThrows(ReportPortalException.class, () -> sut.discardUnsentComments(PROJECT_ID, TEST_CASE_ID));
 

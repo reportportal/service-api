@@ -25,7 +25,7 @@ public final class TmsReviewCommentMapper {
         .state(comment.getState())
         .roundNumber(comment.getRoundNumber())
         .agentReason(comment.getAgentReason())
-        .fixPushId(comment.getFixPushId())
+        .fixRoundId(comment.getFixRoundId())
         .build();
   }
 }

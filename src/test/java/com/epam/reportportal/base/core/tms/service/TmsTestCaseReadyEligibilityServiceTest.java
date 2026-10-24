@@ -8,9 +8,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
-import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestCaseFixPushRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestCaseFixRoundRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestCaseReviewCommentRepository;
-import com.epam.reportportal.base.infrastructure.persistence.entity.tms.enums.TmsFixPushStatus;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.enums.TmsFixRoundStatus;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.enums.TmsReviewCommentState;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
@@ -28,7 +28,7 @@ class TmsTestCaseReadyEligibilityServiceTest {
   @Mock
   private TmsTestCaseReviewCommentRepository commentRepository;
   @Mock
-  private TmsTestCaseFixPushRepository fixPushRepository;
+  private TmsTestCaseFixRoundRepository fixRoundRepository;
 
   @InjectMocks
   private TmsTestCaseReadyEligibilityService sut;
@@ -37,7 +37,7 @@ class TmsTestCaseReadyEligibilityServiceTest {
   void findCasesThatCannotBecomeReady_ShouldContainCasesWithUnsentCommentsAndCasesTheAgentIsFixing() {
     var ids = List.of(1L, 2L, 3L);
     when(commentRepository.findTestCaseIdsWithState(ids, TmsReviewCommentState.NOT_SENT)).thenReturn(List.of(1L));
-    when(fixPushRepository.findTestCaseIdsWithStatus(ids, TmsFixPushStatus.PENDING)).thenReturn(List.of(2L));
+    when(fixRoundRepository.findTestCaseIdsWithStatus(ids, TmsFixRoundStatus.PENDING)).thenReturn(List.of(2L));
 
     assertEquals(Set.of(1L, 2L), sut.findCasesThatCannotBecomeReady(ids));
   }
@@ -51,7 +51,7 @@ class TmsTestCaseReadyEligibilityServiceTest {
   void canBecomeReady_WhenNothingBlocksTheCase_ShouldBeTrue() {
     lenient().when(commentRepository.findTestCaseIdsWithState(List.of(1L), TmsReviewCommentState.NOT_SENT))
         .thenReturn(List.of());
-    lenient().when(fixPushRepository.findTestCaseIdsWithStatus(List.of(1L), TmsFixPushStatus.PENDING))
+    lenient().when(fixRoundRepository.findTestCaseIdsWithStatus(List.of(1L), TmsFixRoundStatus.PENDING))
         .thenReturn(List.of());
 
     assertTrue(sut.canBecomeReady(1L));
@@ -59,7 +59,7 @@ class TmsTestCaseReadyEligibilityServiceTest {
 
   @Test
   void assertCanBecomeReady_WhileTheAgentIsFixing_ShouldBeAConflict() {
-    when(fixPushRepository.existsByTestCaseIdAndStatus(1L, TmsFixPushStatus.PENDING)).thenReturn(true);
+    when(fixRoundRepository.existsByTestCaseIdAndStatus(1L, TmsFixRoundStatus.PENDING)).thenReturn(true);
 
     var ex = assertThrows(ReportPortalException.class, () -> sut.assertCanBecomeReady(1L));
 

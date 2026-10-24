@@ -3,19 +3,19 @@ package com.epam.reportportal.base.core.tms.pipeline;
 import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.NOT_FOUND;
 import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.TEST_CASE_REVIEW_CONFLICT;
 
-import com.epam.reportportal.base.core.tms.dto.TmsTestCaseFixedVersionRQ;
+import com.epam.reportportal.base.core.tms.dto.TmsFixRoundResultRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseRS;
 import com.epam.reportportal.base.core.tms.event.TmsTestCasesLifecycleChangedEvent;
 import com.epam.reportportal.base.core.tms.service.TmsTestCaseQualityService;
 import com.epam.reportportal.base.core.tms.service.TmsTestCaseService;
 import com.epam.reportportal.base.core.tms.service.TmsTestCaseVersionService;
 import com.epam.reportportal.base.infrastructure.persistence.dao.aifactory.PipelineIterationRepository;
-import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestCaseFixPushRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestCaseFixRoundRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestCaseRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestCaseReviewCommentRepository;
-import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCaseFixPush;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCaseFixRound;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCaseReviewComment;
-import com.epam.reportportal.base.infrastructure.persistence.entity.tms.enums.TmsFixPushStatus;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.enums.TmsFixRoundStatus;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.enums.TmsReviewCommentState;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.enums.TmsTestCaseStatus;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
@@ -31,9 +31,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Ends a fix round of a test case: either with the fixed version the agent sends, or as failed.
+ * Ends a fix round of a test case: either with the result the agent sends, or as failed.
  * <p>
- * Example: TC103 was pushed (round 1) with two comments. The agent sends the fixed steps, a new grade of 88 and
+ * Example: TC103 was pushed to the agent (round 1) with two comments. The agent sends the fixed steps, a new grade of 88 and
  * the answers: the case gets a new default version, becomes Draft ("Modified by agent") with the evaluation 88,
  * the applied comment is Addressed (round 1) and the other is Not addressed with the reason of the agent. Then
  * Auto-Ready may promote the case. If instead the job fails or never answers, {@link #failRound} returns the
@@ -46,7 +46,7 @@ public class TmsTestCaseFixRoundService {
   static final String UNANSWERED_REASON = "The agent did not answer this comment";
 
   private final TmsTestCaseRepository testCaseRepository;
-  private final TmsTestCaseFixPushRepository fixPushRepository;
+  private final TmsTestCaseFixRoundRepository fixRoundRepository;
   private final TmsTestCaseReviewCommentRepository commentRepository;
   private final PipelineIterationRepository iterationRepository;
   private final TmsTestCaseVersionService versionService;
@@ -55,19 +55,19 @@ public class TmsTestCaseFixRoundService {
   private final ApplicationEventPublisher eventPublisher;
 
   /**
-   * Replaces the content of the pushed test case with the version fixed by the agent and records the outcome of
-   * the round, all in one transaction.
+   * Ends the round with the result of the agent: replaces the content of the test case with the version fixed by
+   * the agent and records the outcome of the round, all in one transaction.
    *
    * @return the test case as it is after the fix
    */
   @Transactional
-  public TmsTestCaseRS applyFixedVersion(long projectId, Long testCaseId, TmsTestCaseFixedVersionRQ rq) {
-    var push = fixPushRepository.findByIdForUpdate(rq.getFixPushId())
+  public TmsTestCaseRS applyResult(long projectId, Long testCaseId, Long fixRoundId, TmsFixRoundResultRQ rq) {
+    var round = fixRoundRepository.findByIdForUpdate(fixRoundId)
         .filter(found -> found.getProjectId().equals(projectId) && found.getTestCaseId().equals(testCaseId))
-        .orElseThrow(() -> new ReportPortalException(NOT_FOUND, "Fix round '" + rq.getFixPushId() + "'"));
-    if (push.getStatus() != TmsFixPushStatus.PENDING) {
+        .orElseThrow(() -> new ReportPortalException(NOT_FOUND, "Fix round '" + fixRoundId + "'"));
+    if (round.getStatus() != TmsFixRoundStatus.PENDING) {
       throw new ReportPortalException(TEST_CASE_REVIEW_CONFLICT,
-          "Fix round '" + push.getId() + "' has already ended as " + push.getStatus());
+          "Fix round '" + round.getId() + "' has already ended as " + round.getStatus());
     }
     var testCase = testCaseRepository.findByProjectIdAndId(projectId, testCaseId)
         .orElseThrow(() -> new ReportPortalException(NOT_FOUND, "Test Case '" + testCaseId + "'"));
@@ -86,15 +86,15 @@ public class TmsTestCaseFixRoundService {
     testCase.setModifiedByAgent(true);
     testCaseRepository.save(testCase);
 
-    markCommentsAnswered(push, rq.getCommentResults());
+    markCommentsAnswered(round, rq.getCommentResults());
 
-    push.setStatus(graded ? TmsFixPushStatus.FIXED : TmsFixPushStatus.FIXED_GRADE_FAILED);
-    push.setResultIterationId(rq.getPipelineIterationId());
-    push.setFinishedAt(Instant.now());
-    fixPushRepository.save(push);
+    round.setStatus(graded ? TmsFixRoundStatus.FIXED : TmsFixRoundStatus.FIXED_GRADE_FAILED);
+    round.setResultIterationId(rq.getPipelineIterationId());
+    round.setFinishedAt(Instant.now());
+    fixRoundRepository.save(round);
 
     if (graded) {
-      promoteWhenAutoReadyAllows(projectId, testCaseId, push);
+      promoteWhenAutoReadyAllows(projectId, testCaseId, round);
     }
     eventPublisher.publishEvent(new TmsTestCasesLifecycleChangedEvent(List.of(testCaseId)));
     return testCaseService.getById(projectId, testCaseId);
@@ -105,33 +105,33 @@ public class TmsTestCaseFixRoundService {
    * the editor can push again or discard them. Does nothing when the round has already ended.
    */
   @Transactional
-  public void failRound(Long fixPushId, String reason) {
-    var push = fixPushRepository.findByIdForUpdate(fixPushId).orElse(null);
-    if (push == null || push.getStatus() != TmsFixPushStatus.PENDING) {
+  public void failRound(Long fixRoundId, String reason) {
+    var round = fixRoundRepository.findByIdForUpdate(fixRoundId).orElse(null);
+    if (round == null || round.getStatus() != TmsFixRoundStatus.PENDING) {
       return;
     }
-    for (var comment : commentRepository.findByFixPushId(push.getId())) {
+    for (var comment : commentRepository.findByFixRoundId(round.getId())) {
       comment.setState(TmsReviewCommentState.NOT_SENT);
-      comment.setFixPushId(null);
+      comment.setFixRoundId(null);
       comment.setRoundNumber(null);
       commentRepository.save(comment);
     }
-    push.setStatus(TmsFixPushStatus.FAILED);
-    push.setFailureReason(reason);
-    push.setFinishedAt(Instant.now());
-    fixPushRepository.save(push);
-    eventPublisher.publishEvent(new TmsTestCasesLifecycleChangedEvent(List.of(push.getTestCaseId())));
+    round.setStatus(TmsFixRoundStatus.FAILED);
+    round.setFailureReason(reason);
+    round.setFinishedAt(Instant.now());
+    fixRoundRepository.save(round);
+    eventPublisher.publishEvent(new TmsTestCasesLifecycleChangedEvent(List.of(round.getTestCaseId())));
   }
 
-  private void markCommentsAnswered(TmsTestCaseFixPush push, List<TmsTestCaseFixedVersionRQ.CommentResult> results) {
-    Map<Long, TmsTestCaseFixedVersionRQ.CommentResult> resultsByCommentId = results == null ? Map.of()
-        : results.stream().collect(Collectors.toMap(TmsTestCaseFixedVersionRQ.CommentResult::getCommentId,
+  private void markCommentsAnswered(TmsTestCaseFixRound round, List<TmsFixRoundResultRQ.CommentResult> results) {
+    Map<Long, TmsFixRoundResultRQ.CommentResult> resultsByCommentId = results == null ? Map.of()
+        : results.stream().collect(Collectors.toMap(TmsFixRoundResultRQ.CommentResult::getCommentId,
             Function.identity(), (first, second) -> second));
-    for (TmsTestCaseReviewComment comment : commentRepository.findByFixPushId(push.getId())) {
+    for (TmsTestCaseReviewComment comment : commentRepository.findByFixRoundId(round.getId())) {
       var result = resultsByCommentId.get(comment.getId());
       var addressed = result != null && result.isAddressed();
       comment.setState(addressed ? TmsReviewCommentState.ADDRESSED : TmsReviewCommentState.NOT_ADDRESSED);
-      comment.setRoundNumber(push.getRoundNumber());
+      comment.setRoundNumber(round.getRoundNumber());
       comment.setAgentReason(addressed ? null : (result != null && result.getReason() != null
           ? result.getReason() : UNANSWERED_REASON));
       commentRepository.save(comment);
@@ -141,8 +141,8 @@ public class TmsTestCaseFixRoundService {
   /**
    * After the update Auto-Ready runs with the settings of the pipeline that produced the case.
    */
-  private void promoteWhenAutoReadyAllows(long projectId, Long testCaseId, TmsTestCaseFixPush push) {
-    iterationRepository.findById(push.getPreviousIterationId())
+  private void promoteWhenAutoReadyAllows(long projectId, Long testCaseId, TmsTestCaseFixRound round) {
+    iterationRepository.findById(round.getPreviousIterationId())
         .flatMap(iteration -> AutoReadySettings.of(iteration.getPipeline()))
         .filter(AutoReadySettings::active)
         .ifPresent(settings -> testCaseService.applyAutoReady(projectId, testCaseId, settings.threshold()));

@@ -1,7 +1,7 @@
 package com.epam.reportportal.base.infrastructure.persistence.entity.tms;
 
 import com.epam.reportportal.base.infrastructure.persistence.dao.converters.JpaInstantConverter;
-import com.epam.reportportal.base.infrastructure.persistence.entity.tms.enums.TmsFixPushStatus;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.enums.TmsFixRoundStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
@@ -27,12 +27,12 @@ import lombok.Setter;
  * has at most one {@code PENDING} round.
  */
 @Entity
-@Table(name = "tms_test_case_fix_push", schema = "public")
+@Table(name = "tms_test_case_fix_round", schema = "public")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class TmsTestCaseFixPush implements Serializable {
+public class TmsTestCaseFixRound implements Serializable {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -50,7 +50,7 @@ public class TmsTestCaseFixPush implements Serializable {
 
   @Enumerated(EnumType.STRING)
   @Column(name = "status", nullable = false)
-  private TmsFixPushStatus status;
+  private TmsFixRoundStatus status;
 
   /**
    * The iteration that produced the case; the agent reports its fix as a re-run of it.

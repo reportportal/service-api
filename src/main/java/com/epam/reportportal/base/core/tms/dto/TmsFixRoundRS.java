@@ -1,6 +1,6 @@
 package com.epam.reportportal.base.core.tms.dto;
 
-import com.epam.reportportal.base.infrastructure.persistence.entity.tms.enums.TmsFixPushStatus;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.enums.TmsFixRoundStatus;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import java.time.Instant;
 import java.util.List;
@@ -22,7 +22,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class TmsFixPushRS {
+public class TmsFixRoundRS {
 
   private Long id;
 
@@ -30,7 +30,7 @@ public class TmsFixPushRS {
 
   private Integer roundNumber;
 
-  private TmsFixPushStatus status;
+  private TmsFixRoundStatus status;
 
   private Long previousIterationId;
 

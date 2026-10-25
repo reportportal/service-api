@@ -165,7 +165,7 @@ class PipelineServiceImplTest {
         .thenReturn(List.of(iterationCount(pipelineId, 3L)));
     when(pipelineMapper.toPipelineRS(pipeline, 3L)).thenReturn(expectedRS);
 
-    var result = sut.getPipelines(projectId, null, offsetRequest);
+    var result = sut.getPipelines(projectId, null, null, offsetRequest);
 
     assertEquals(List.of(expectedRS), result.getContent());
     verify(pipelineIterationRepository, never()).countByPipelineId(any());
@@ -180,9 +180,29 @@ class PipelineServiceImplTest {
     when(pipelineIterationRepository.countByPipelineIdIn(List.of(pipelineId))).thenReturn(List.of());
     when(pipelineMapper.toPipelineRS(pipeline, 0L)).thenReturn(expectedRS);
 
-    var result = sut.getPipelines(projectId, null, new OffsetRequest(0, 50));
+    var result = sut.getPipelines(projectId, null, null, new OffsetRequest(0, 50));
 
     assertEquals(List.of(expectedRS), result.getContent());
+  }
+
+  @Test
+  void getPipeline_ShouldReturnThePipelineWithItsIterationsCount() {
+    var expectedRS = PipelineRS.builder().id(pipelineId).build();
+    when(pipelineRepository.findById(pipelineId)).thenReturn(Optional.of(pipeline));
+    when(pipelineIterationRepository.countByPipelineId(pipelineId)).thenReturn(2L);
+    when(pipelineMapper.toPipelineRS(pipeline, 2L)).thenReturn(expectedRS);
+
+    var result = sut.getPipeline(projectId, pipelineId);
+
+    assertEquals(expectedRS, result);
+    verify(pipelineRepository, never()).save(any());
+  }
+
+  @Test
+  void getPipeline_OfAnotherProject_ShouldBeNotFound() {
+    when(pipelineRepository.findById(pipelineId)).thenReturn(Optional.of(pipeline));
+
+    assertThrows(ReportPortalException.class, () -> sut.getPipeline(projectId + 1, pipelineId));
   }
 
   private PipelineIterationRepository.PipelineIterationCount iterationCount(Long pipelineId, Long count) {

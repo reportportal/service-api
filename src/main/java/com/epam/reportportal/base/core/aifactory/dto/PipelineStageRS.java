@@ -23,6 +23,10 @@ import lombok.NoArgsConstructor;
 public class PipelineStageRS {
   @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
   private Long id;
+  @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "Key the pipeline reported the stage under, e.g. "
+      + "\"create\", \"grade\" or \"upload\"; unlike the name and the sequence it is what identifies the same stage in "
+      + "every iteration, so the UI picks a specialized panel by it")
+  private String stageKey;
   @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
   private String name;
   @Schema(requiredMode = Schema.RequiredMode.REQUIRED)

@@ -29,22 +29,30 @@ public final class PipelineSpecifications {
   }
 
   /**
-   * Pipelines of a project that match {@code search}: by name, or because one of their iterations
-   * matches (see {@link #iterationMatches}). A blank search matches every pipeline.
+   * Pipelines of a project that match both given criteria; a blank criterion matches every pipeline.
+   * <ul>
+   *   <li>{@code search}: by name, or because one of their iterations matches (see {@link #iterationMatches});</li>
+   *   <li>{@code name}: by name only, as a case-insensitive substring. Example: {@code "gener"} finds
+   *   "Test case generation" and not a pipeline whose iteration only mentions "generated".</li>
+   * </ul>
    */
-  public static Specification<Pipeline> pipelinesOfProject(Long projectId, String search) {
+  public static Specification<Pipeline> pipelinesOfProject(Long projectId, String search, String name) {
     return (root, query, cb) -> {
-      var inProject = cb.equal(root.get("project").get("id"), projectId);
-      var term = normalize(search);
-      if (term == null) {
-        return inProject;
+      List<Predicate> predicates = new ArrayList<>();
+      predicates.add(cb.equal(root.get("project").get("id"), projectId));
+      var nameTerm = normalize(name);
+      if (nameTerm != null) {
+        predicates.add(contains(cb, root.get("name"), nameTerm));
       }
-      var byName = contains(cb, root.get("name"), term);
-      var iterations = query.subquery(Long.class);
-      var iteration = iterations.from(PipelineIteration.class);
-      iterations.select(iteration.get("id"))
-          .where(cb.equal(iteration.get("pipeline"), root), iterationMatches(iteration, cb, term));
-      return cb.and(inProject, cb.or(byName, cb.exists(iterations)));
+      var term = normalize(search);
+      if (term != null) {
+        var iterations = query.subquery(Long.class);
+        var iteration = iterations.from(PipelineIteration.class);
+        iterations.select(iteration.get("id"))
+            .where(cb.equal(iteration.get("pipeline"), root), iterationMatches(iteration, cb, term));
+        predicates.add(cb.or(contains(cb, root.get("name"), term), cb.exists(iterations)));
+      }
+      return cb.and(predicates.toArray(Predicate[]::new));
     };
   }
 

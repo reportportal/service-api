@@ -108,6 +108,7 @@ public class PipelineMapper {
   public PipelineStageSummaryRS toStageSummaryRS(PipelineStage stage) {
     return PipelineStageSummaryRS.builder()
         .id(stage.getId())
+        .stageKey(stage.getStageKey())
         .name(stage.getName())
         .sequence(stage.getSequence())
         .attempt(stage.getAttempt())
@@ -128,6 +129,7 @@ public class PipelineMapper {
   public PipelineStageRS toStageRS(PipelineStage stage) {
     return PipelineStageRS.builder()
         .id(stage.getId())
+        .stageKey(stage.getStageKey())
         .name(stage.getName())
         .sequence(stage.getSequence())
         .attempt(stage.getAttempt())

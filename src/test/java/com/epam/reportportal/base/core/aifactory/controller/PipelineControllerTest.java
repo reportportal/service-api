@@ -121,7 +121,7 @@ class PipelineControllerTest {
   @Test
   void getPipelines_ShouldDelegateToServiceAndReturnPagedContent() throws Exception {
     Page<PipelineRS> page = new PageImpl<>(List.of(PipelineRS.builder().id(2L).name("factory-tc-gen").build()));
-    given(pipelineService.getPipelines(eq(projectId), isNull(), any(OffsetRequest.class))).willReturn(page);
+    given(pipelineService.getPipelines(eq(projectId), isNull(), isNull(), any(OffsetRequest.class))).willReturn(page);
 
     mockMvc.perform(get("/v1/project/{projectKey}/pipeline", projectKey))
         .andExpect(status().isOk())
@@ -129,7 +129,33 @@ class PipelineControllerTest {
         .andExpect(jsonPath("$.content[0].name").value("factory-tc-gen"));
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
-    verify(pipelineService).getPipelines(eq(projectId), isNull(), any(OffsetRequest.class));
+    verify(pipelineService).getPipelines(eq(projectId), isNull(), isNull(), any(OffsetRequest.class));
+  }
+
+  @Test
+  void getPipelines_WithNameParameter_ShouldPassItToTheServiceApartFromSearch() throws Exception {
+    given(pipelineService.getPipelines(eq(projectId), eq("EXP-002"), eq("gener"), any(OffsetRequest.class)))
+        .willReturn(new PageImpl<PipelineRS>(List.of()));
+
+    mockMvc.perform(get("/v1/project/{projectKey}/pipeline", projectKey)
+            .param("search", "EXP-002")
+            .param("name", "gener"))
+        .andExpect(status().isOk());
+
+    verify(pipelineService).getPipelines(eq(projectId), eq("EXP-002"), eq("gener"), any(OffsetRequest.class));
+  }
+
+  @Test
+  void getPipeline_ShouldDelegateToServiceAndReturnTheSettings() throws Exception {
+    given(pipelineService.getPipeline(projectId, 2L)).willReturn(PipelineRS.builder().id(2L).name("factory-tc-gen")
+        .settings(java.util.Map.of("autoReady", java.util.Map.of("enabled", true, "threshold", 90))).build());
+
+    mockMvc.perform(get("/v1/project/{projectKey}/pipeline/{pipelineId}", projectKey, 2L))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id").value(2))
+        .andExpect(jsonPath("$.settings.autoReady.threshold").value(90));
+
+    verify(pipelineService).getPipeline(projectId, 2L);
   }
 
   @Test

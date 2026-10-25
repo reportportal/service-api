@@ -77,17 +77,36 @@ public class PipelineController {
           + "name matches, or that have an iteration matching, are returned.")
   @Parameter(name = "search", in = ParameterIn.QUERY, description = "Case-insensitive substring over the pipeline "
       + "name and the values of its iterations' attributes; or an exact iteration number")
+  @Parameter(name = "name", in = ParameterIn.QUERY, description = "Case-insensitive substring over the pipeline name "
+      + "only (the iterations are not looked at). Applied before paging, so totals and pages are exact; combined "
+      + "with search, both must match. Example: name=gener finds \"Test case generation\"")
   @Parameter(name = "offset", in = ParameterIn.QUERY, description = "Number of items to skip (default 0)")
   @Parameter(name = "limit", in = ParameterIn.QUERY, description = "Page size (default 100, max 200)")
   public Page<PipelineRS> getPipelines(
       @PathVariable String projectKey,
       @RequestParam(required = false) String search,
+      @RequestParam(required = false) String name,
       @PagingOffset OffsetRequest offsetRequest,
       @AuthenticationPrincipal ReportPortalUser user) {
 
     var projectId = projectExtractor.extractMembershipDetails(user, EntityUtils.normalizeId(projectKey)).getProjectId();
-    var page = pipelineService.getPipelines(projectId, search, offsetRequest);
+    var page = pipelineService.getPipelines(projectId, search, name, offsetRequest);
     return PagedResourcesAssembler.<PipelineRS>pageConverter().apply(page);
+  }
+
+  @GetMapping("/{pipelineId}")
+  @ResponseStatus(HttpStatus.OK)
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
+  @Operation(summary = "Get one pipeline definition with its settings",
+      description = "The same object as an item of the list, e.g. to read the current Auto-Ready settings of the "
+          + "pipeline of an iteration opened by a direct link. 404 when the pipeline is not in the project.")
+  public PipelineRS getPipeline(
+      @PathVariable String projectKey,
+      @PathVariable Long pipelineId,
+      @AuthenticationPrincipal ReportPortalUser user) {
+
+    var projectId = projectExtractor.extractMembershipDetails(user, EntityUtils.normalizeId(projectKey)).getProjectId();
+    return pipelineService.getPipeline(projectId, pipelineId);
   }
 
   @PatchMapping("/{pipelineId}")

@@ -153,6 +153,7 @@ class PipelineMapperTest {
   void toStageSummaryRS_ShouldMapStatusAsReportedAndAttributesButNotHeavyDetails() {
     var stage = new PipelineStage();
     stage.setId(50L);
+    stage.setStageKey("grade");
     stage.setName("Grade");
     stage.setSequence(2);
     stage.setParentStageId(40L);
@@ -166,6 +167,7 @@ class PipelineMapperTest {
     var result = mapper.toStageSummaryRS(stage);
 
     assertEquals(50L, result.getId());
+    assertEquals("grade", result.getStageKey());
     assertEquals("Grade", result.getName());
     assertEquals(2, result.getSequence());
     assertEquals(40L, result.getParentStageId());
@@ -301,6 +303,7 @@ class PipelineMapperTest {
     var result = mapper.toStageRS(stage);
 
     assertEquals(50L, result.getId());
+    assertEquals("stage-gen-tc", result.getStageKey());
     assertEquals("In progress", result.getStatus());
     assertEquals(StatusCategory.WAITING, result.getStatusCategory());
     assertEquals(StageOwner.REPORTPORTAL, result.getOwnedBy());

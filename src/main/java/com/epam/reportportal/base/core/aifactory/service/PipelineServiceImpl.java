@@ -34,8 +34,8 @@ public class PipelineServiceImpl implements PipelineService {
 
   @Override
   @Transactional(readOnly = true)
-  public Page<PipelineRS> getPipelines(Long projectId, String search, OffsetRequest offsetRequest) {
-    var page = pipelineRepository.findAll(PipelineSpecifications.pipelinesOfProject(projectId, search),
+  public Page<PipelineRS> getPipelines(Long projectId, String search, String name, OffsetRequest offsetRequest) {
+    var page = pipelineRepository.findAll(PipelineSpecifications.pipelinesOfProject(projectId, search, name),
         PipelinePaging.capLimit(offsetRequest, Sort.by("name", "id")));
     var pipelineIds = page
         .getContent()
@@ -58,13 +58,14 @@ public class PipelineServiceImpl implements PipelineService {
   }
 
   @Override
+  public PipelineRS getPipeline(Long projectId, Long pipelineId) {
+    return toPipelineRS(findPipelineOrThrow(projectId, pipelineId));
+  }
+
+  @Override
   @Transactional
   public PipelineRS patchPipelineSettings(Long projectId, Long pipelineId, PipelineSettingsRQ rq) {
-    var pipeline = pipelineRepository
-        .findById(pipelineId)
-        .filter(p -> p.getProject().getId().equals(projectId))
-        .orElseThrow(
-            () -> new ReportPortalException(ErrorType.NOT_FOUND, "Pipeline '" + pipelineId + "'"));
+    var pipeline = findPipelineOrThrow(projectId, pipelineId);
 
     var settings = new LinkedHashMap<String, Object>(
         pipeline.getSettings() == null ? Map.of() : pipeline.getSettings().getValues());
@@ -79,6 +80,14 @@ public class PipelineServiceImpl implements PipelineService {
 
     pipeline.setSettings(settings.isEmpty() ? null : new PipelineSettings(settings));
     return toPipelineRS(pipelineRepository.save(pipeline));
+  }
+
+  private Pipeline findPipelineOrThrow(Long projectId, Long pipelineId) {
+    return pipelineRepository
+        .findById(pipelineId)
+        .filter(p -> p.getProject().getId().equals(projectId))
+        .orElseThrow(
+            () -> new ReportPortalException(ErrorType.NOT_FOUND, "Pipeline '" + pipelineId + "'"));
   }
 
   private PipelineRS toPipelineRS(Pipeline pipeline) {

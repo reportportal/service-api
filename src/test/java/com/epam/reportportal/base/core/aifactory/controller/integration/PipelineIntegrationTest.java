@@ -211,6 +211,39 @@ class PipelineIntegrationTest extends BaseMvcTest {
         .andExpect(jsonPath("$.content.length()").value(0));
   }
 
+  @Test
+  void getPipelines_WithName_ShouldMatchThePipelineNameOnlyAndKeepTheTotalsExact() throws Exception {
+    mockMvc.perform(get(BASE).param("name", "TC-gen").with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content.length()").value(1))
+        .andExpect(jsonPath("$.content[0].name").value("factory-tc-gen"))
+        .andExpect(jsonPath("$.page.totalElements").value(1));
+    // an iteration of the pipeline carries EXP-002, but the name does not: only the broad search finds it
+    mockMvc.perform(get(BASE).param("name", "EXP-002").with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(jsonPath("$.content.length()").value(0))
+        .andExpect(jsonPath("$.page.totalElements").value(0));
+    // both given: both must hold
+    mockMvc.perform(get(BASE).param("name", "tc-gen").param("search", "no-such-thing")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(jsonPath("$.page.totalElements").value(0));
+    // a blank name is no filter; % is a character, not a wildcard
+    mockMvc.perform(get(BASE).param("name", " ").with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(jsonPath("$.content.length()").value(2));
+    mockMvc.perform(get(BASE).param("name", "%").with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(jsonPath("$.page.totalElements").value(0));
+  }
+
+  @Test
+  void getPipeline_ShouldReturnOneOfTheProjectsPipelinesAndNotFoundForAnotherProjects() throws Exception {
+    mockMvc.perform(get(BASE + "/900").with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id").value(900))
+        .andExpect(jsonPath("$.name").value("factory-tc-gen"))
+        .andExpect(jsonPath("$.iterationsCount").value(2));
+    mockMvc.perform(get(BASE + "/901").with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isNotFound());
+  }
+
   // ------------------------------------------------------------------ reporting
 
   @Test
@@ -500,6 +533,7 @@ class PipelineIntegrationTest extends BaseMvcTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.id").value(900))
         .andExpect(jsonPath("$.pipelineType").value("TEST_CASE_GENERATION"))
+        .andExpect(jsonPath("$.stages[0].stageKey").value("stage-gen-tc"))
         .andExpect(jsonPath("$.stages[0].name").value("MD -> Test cases"))
         .andExpect(jsonPath("$.stages[0].status").value("Passed"))
         .andExpect(jsonPath("$.stages[0].sections[0].key").value("grades"))

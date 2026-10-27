@@ -137,6 +137,6 @@ public class JApiKeysRecord extends UpdatableRecordImpl<JApiKeysRecord> {
         setCreatedAt(createdAt);
         setUserId(userId);
         setLastUsedAt(lastUsedAt);
-        resetChangedOnNotNull();
+        resetTouchedOnNotNull();
     }
 }

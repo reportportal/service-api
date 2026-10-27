@@ -33,13 +33,14 @@ import org.jooq.QueryPart;
 import org.jooq.Record;
 import org.jooq.SQL;
 import org.jooq.Schema;
-import org.jooq.Select;
 import org.jooq.Stringly;
 import org.jooq.Table;
 import org.jooq.TableField;
+import org.jooq.TableLike;
 import org.jooq.TableOptions;
 import org.jooq.UniqueKey;
 import org.jooq.impl.DSL;
+import org.jooq.impl.Internal;
 import org.jooq.impl.SQLDataType;
 import org.jooq.impl.TableImpl;
 
@@ -68,17 +69,17 @@ public class JTmsAttribute extends TableImpl<JTmsAttributeRecord> {
     /**
      * The column <code>public.tms_attribute.id</code>.
      */
-    public final TableField<JTmsAttributeRecord, Long> ID = createField(DSL.name("id"), SQLDataType.BIGINT.nullable(false).identity(true), this, "");
+    public final TableField<JTmsAttributeRecord, Long> ID = createField(DSL.name("id"), SQLDataType.BIGINT.nullable(false).generatedByDefaultAsIdentity(), this, "");
 
     /**
      * The column <code>public.tms_attribute.key</code>.
      */
-    public final TableField<JTmsAttributeRecord, String> KEY = createField(DSL.name("key"), SQLDataType.VARCHAR(255).nullable(false), this, "");
+    public final TableField<JTmsAttributeRecord, String> KEY = createField(DSL.name("key"), SQLDataType.VARCHAR(512).nullable(false), this, "");
 
     /**
      * The column <code>public.tms_attribute.value</code>.
      */
-    public final TableField<JTmsAttributeRecord, String> VALUE = createField(DSL.name("value"), SQLDataType.VARCHAR(255), this, "");
+    public final TableField<JTmsAttributeRecord, String> VALUE = createField(DSL.name("value"), SQLDataType.VARCHAR(512), this, "");
 
     /**
      * The column <code>public.tms_attribute.project_id</code>.
@@ -296,7 +297,7 @@ public class JTmsAttribute extends TableImpl<JTmsAttributeRecord> {
      */
     @Override
     public JTmsAttribute where(Condition condition) {
-        return new JTmsAttribute(getQualifiedName(), aliased() ? this : null, null, condition);
+        return new JTmsAttribute(getQualifiedName(), aliased() ? this : null, null, Internal.condition(this, condition));
     }
 
     /**
@@ -363,7 +364,7 @@ public class JTmsAttribute extends TableImpl<JTmsAttributeRecord> {
      * Create an inline derived table from this table
      */
     @Override
-    public JTmsAttribute whereExists(Select<?> select) {
+    public JTmsAttribute whereExists(TableLike<?> select) {
         return where(DSL.exists(select));
     }
 
@@ -371,7 +372,7 @@ public class JTmsAttribute extends TableImpl<JTmsAttributeRecord> {
      * Create an inline derived table from this table
      */
     @Override
-    public JTmsAttribute whereNotExists(Select<?> select) {
+    public JTmsAttribute whereNotExists(TableLike<?> select) {
         return where(DSL.notExists(select));
     }
 }

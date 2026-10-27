@@ -12,19 +12,17 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
-import org.jooq.tools.json.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.http.HttpEntity;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.http.client.support.BasicAuthenticationInterceptor;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.RestClient;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Simple client to work with Elasticsearch.
@@ -33,6 +31,7 @@ import org.springframework.web.client.RestTemplate;
  */
 @Service
 @ConditionalOnProperty(prefix = "rp.searchengine", name = "host")
+@Slf4j
 public class ElasticSearchClient {
 
   public static final String INDEX_PREFIX = "logs-reportportal-";
@@ -40,21 +39,30 @@ public class ElasticSearchClient {
   public static final String ELASTIC_DATETIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSSSS";
   public static final Integer MAX_RESULT_REQUEST = 5000;
   public static final String LOG_MESSAGE_FIELD_NAME = "message";
-  protected final Logger LOGGER = LoggerFactory.getLogger(ElasticSearchClient.class);
+  private static final String ITEM_ID_FIELD = "itemId";
+  private static final String LAUNCH_ID_FIELD = "launchId";
+  private static final String QUERY_FIELD = "query";
+  private static final String TERMS_FIELD = "terms";
+  private static final String SOURCE_FIELD = "_source";
 
   private final String host;
-  private final RestTemplate restTemplate;
+  private final RestClient restClient;
+  private final JsonMapper jsonMapper;
 
   public ElasticSearchClient(@Value("${rp.searchengine.host}") String host,
       @Value("${rp.searchengine.username:}") String username,
-      @Value("${rp.searchengine.password:}") String password) {
-    restTemplate = new RestTemplate();
+      @Value("${rp.searchengine.password:}") String password, JsonMapper jsonMapper) {
+    RestClient.Builder clientBuilder = RestClient.builder()
+        .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
 
     if (!username.isEmpty() && !password.isEmpty()) {
-      restTemplate.getInterceptors().add(new BasicAuthenticationInterceptor(username, password));
+      clientBuilder
+          .defaultHeaders(headers -> headers.setBasicAuth(username, password));
     }
 
+    this.restClient = clientBuilder.build();
     this.host = host;
+    this.jsonMapper = jsonMapper;
   }
 
   public void save(List<LogMessage> logMessageList) {
@@ -65,7 +73,7 @@ public class ElasticSearchClient {
 
     logMessageList.forEach(logMessage -> {
       String indexName = getIndexName(logMessage.getProjectId());
-      String logCreateBody = CREATE_COMMAND + convertToJson(logMessage) + "\n";
+      String logCreateBody = CREATE_COMMAND + toJson(convertToDocument(logMessage)) + "\n";
 
       if (logsByIndex.containsKey(indexName)) {
         logsByIndex.put(indexName, logsByIndex.get(indexName) + logCreateBody);
@@ -74,35 +82,33 @@ public class ElasticSearchClient {
       }
     });
 
-    logsByIndex.forEach((indexName, body) -> {
-      restTemplate.put(host + "/" + indexName + "/_bulk?refresh", getStringHttpEntity(body));
-    });
+    logsByIndex.forEach((indexName, body) -> restClient.put()
+        .uri(host + "/" + indexName + "/_bulk?refresh")
+        .body(body)
+        .retrieve()
+        .toBodilessEntity());
   }
 
   public void deleteLogsByLogIdAndProjectId(Long projectId, Long logId) {
-    JSONObject terms = new JSONObject();
-    terms.put("id", List.of(logId));
+    Map<String, Object> terms = Map.of("id", List.of(logId));
 
     deleteLogsByTermsAndProjectId(projectId, terms);
   }
 
   public void deleteLogsByItemSetAndProjectId(Long projectId, Set<Long> itemIds) {
-    JSONObject terms = new JSONObject();
-    terms.put("itemId", itemIds);
+    Map<String, Object> terms = Map.of(ITEM_ID_FIELD, itemIds);
 
     deleteLogsByTermsAndProjectId(projectId, terms);
   }
 
   public void deleteLogsByLaunchIdAndProjectId(Long projectId, Long launchId) {
-    JSONObject terms = new JSONObject();
-    terms.put("launchId", List.of(launchId));
+    Map<String, Object> terms = Map.of(LAUNCH_ID_FIELD, List.of(launchId));
 
     deleteLogsByTermsAndProjectId(projectId, terms);
   }
 
   public void deleteLogsByLaunchListAndProjectId(Long projectId, List<Long> launches) {
-    JSONObject terms = new JSONObject();
-    terms.put("launchId", launches);
+    Map<String, Object> terms = Map.of(LAUNCH_ID_FIELD, launches);
 
     deleteLogsByTermsAndProjectId(projectId, terms);
   }
@@ -110,11 +116,13 @@ public class ElasticSearchClient {
   public void deleteLogsByProjectId(Long projectId) {
     String indexName = getIndexName(projectId);
     try {
-      restTemplate.delete(host + "/_data_stream/" + indexName);
+      restClient.delete()
+          .uri(host + "/_data_stream/" + indexName)
+          .retrieve()
+          .toBodilessEntity();
     } catch (Exception exception) {
       // to avoid checking of exists stream or not
-      LOGGER.error("DELETE stream from ES " + indexName + " Project: " + projectId + " Message: "
-          + exception.getMessage());
+      log.error("DELETE stream from ES {} Project: {} Message: {}", indexName, projectId, exception.getMessage());
     }
   }
 
@@ -141,22 +149,20 @@ public class ElasticSearchClient {
 
   public List<Long> searchTestItemIdsByLogIdsAndString(Long projectId, Collection<Long> logIds,
       String string) {
-    JSONObject filterTerms = new JSONObject();
-    filterTerms.put("id", logIds);
-    List<String> sourceFields = List.of("itemId");
+    Map<String, Object> filterTerms = Map.of("id", logIds);
+    List<String> sourceFields = List.of(ITEM_ID_FIELD);
 
-    JSONObject searchJson = getSearchStringJson(string, filterTerms, sourceFields, logIds.size());
+    Map<String, Object> searchJson = getSearchStringJson(string, filterTerms, sourceFields, logIds.size());
 
     return searchTestItemIdsByConditions(projectId, searchJson);
   }
 
   public List<Long> searchTestItemIdsByLogIdsAndRegexp(Long projectId, Collection<Long> logIds,
       String pattern) {
-    JSONObject filterTerms = new JSONObject();
-    filterTerms.put("id", logIds);
-    List<String> sourceFields = List.of("itemId");
+    Map<String, Object> filterTerms = Map.of("id", logIds);
+    List<String> sourceFields = List.of(ITEM_ID_FIELD);
 
-    JSONObject searchJson = getSearchRegexpJson(pattern, filterTerms, sourceFields, logIds.size());
+    Map<String, Object> searchJson = getSearchRegexpJson(pattern, filterTerms, sourceFields, logIds.size());
 
     return searchTestItemIdsByConditions(projectId, searchJson);
   }
@@ -168,64 +174,52 @@ public class ElasticSearchClient {
    * @param searchJson
    * @return
    */
-  private List<Long> searchTestItemIdsByConditions(Long projectId, JSONObject searchJson) {
+  private List<Long> searchTestItemIdsByConditions(Long projectId, Map<String, Object> searchJson) {
     String indexName = getIndexName(projectId);
 
     Set<Long> testItemIds = new HashSet<>();
 
     try {
-      HttpEntity<String> searchRequest = getStringHttpEntity(searchJson.toString());
-
-      LinkedHashMap<String, Object> result =
-          restTemplate.postForObject(host + "/" + indexName + "/_search", searchRequest,
-              LinkedHashMap.class
-          );
+      LinkedHashMap<String, Object> result = search(indexName, searchJson);
 
       List<LinkedHashMap<String, Object>> hits =
           (List<LinkedHashMap<String, Object>>) ((LinkedHashMap<String, Object>) result.get(
               "hits")).get("hits");
 
-      if (org.apache.commons.collections.CollectionUtils.isNotEmpty(hits)) {
+      if (CollectionUtils.isNotEmpty(hits)) {
         for (LinkedHashMap<String, Object> hit : hits) {
-          Map<String, Object> source = (Map<String, Object>) hit.get("_source");
-          Long testItemId = ((Integer) source.get("itemId")).longValue();
+          Map<String, Object> source = (Map<String, Object>) hit.get(SOURCE_FIELD);
+          Long testItemId = ((Integer) source.get(ITEM_ID_FIELD)).longValue();
           testItemIds.add(testItemId);
         }
 
       }
 
     } catch (Exception exception) {
-      LOGGER.error("Search error " + indexName + " SearchJson: " + searchJson + " Message: "
-          + exception.getMessage());
+      log.error("Search error {} SearchJson: {} Message: {}", indexName, searchJson, exception.getMessage());
     }
 
     return new ArrayList<>(testItemIds);
   }
 
-  private Map<Long, LogMessage> getLogMessageMapBatch(Long projectId, List<Long> logIds,
-      Integer size) {
+  private Map<Long, LogMessage> getLogMessageMapBatch(Long projectId, List<Long> logIds, Integer size) {
     String indexName = getIndexName(projectId);
 
-    JSONObject terms = new JSONObject();
-    terms.put("id", logIds);
+    Map<String, Object> terms = Map.of("id", logIds);
     Map<Long, LogMessage> logMessageMap = new HashMap<>();
 
     try {
-      JSONObject searchJson = getSearchJson(terms, size);
-      HttpEntity<String> searchRequest = getStringHttpEntity(searchJson.toString());
+      Map<String, Object> searchJson = getSearchJson(terms, size);
 
-      LinkedHashMap<String, Object> result =
-          restTemplate.postForObject(host + "/" + indexName + "/_search", searchRequest,
-              LinkedHashMap.class
-          );
+      LinkedHashMap<String, Object> result = search(indexName, searchJson);
 
       List<LinkedHashMap<String, Object>> hits =
           (List<LinkedHashMap<String, Object>>) ((LinkedHashMap<String, Object>) result.get(
               "hits")).get("hits");
 
-      if (org.apache.commons.collections.CollectionUtils.isNotEmpty(hits)) {
+      if (CollectionUtils.isNotEmpty(hits)) {
         for (LinkedHashMap<String, Object> hit : hits) {
-          Map<String, Object> source = (Map<String, Object>) hit.get("_source");
+          Map<String, Object> source = (Map<String, Object>) hit.get(SOURCE_FIELD);
           LogMessage logMessage = convertElasticDataToLogMessage(projectId, source);
           logMessageMap.put(logMessage.getId(), logMessage);
         }
@@ -233,8 +227,7 @@ public class ElasticSearchClient {
       }
 
     } catch (Exception exception) {
-      LOGGER.error(
-          "Search error " + indexName + " Terms: " + terms + " Message: " + exception.getMessage());
+      log.error("Search error {} Terms: {} Message: {}", indexName, terms, exception.getMessage());
     }
 
     return logMessageMap;
@@ -254,25 +247,24 @@ public class ElasticSearchClient {
             DateTimeFormatter.ofPattern(ELASTIC_DATETIME_FORMAT))
         .toInstant(ZoneOffset.UTC);
     return new LogMessage(((Integer) source.get("id")).longValue(), dateTime,
-        (String) source.get("message"), ((Integer) source.get("itemId")).longValue(),
-        ((Integer) source.get("launchId")).longValue(), projectId
+        (String) source.get(LOG_MESSAGE_FIELD_NAME), ((Integer) source.get(ITEM_ID_FIELD)).longValue(),
+        ((Integer) source.get(LAUNCH_ID_FIELD)).longValue(), projectId
     );
   }
 
-  private void deleteLogsByTermsAndProjectId(Long projectId, JSONObject terms) {
+  private void deleteLogsByTermsAndProjectId(Long projectId, Map<String, Object> terms) {
     String indexName = getIndexName(projectId);
     try {
-      JSONObject deleteByLaunch = getDeleteJson(terms);
-      HttpEntity<String> deleteRequest = getStringHttpEntity(deleteByLaunch.toString());
+      Map<String, Object> deleteByLaunch = getDeleteJson(terms);
 
-      restTemplate.postForObject(host + "/" + indexName + "/_delete_by_query", deleteRequest,
-          JSONObject.class
-      );
+      restClient.post()
+          .uri(host + "/" + indexName + "/_delete_by_query")
+          .body(toJson(deleteByLaunch))
+          .retrieve()
+          .toBodilessEntity();
     } catch (Exception exception) {
       // to avoid checking of exists stream or not
-      LOGGER.error(
-          "DELETE logs from stream ES error " + indexName + " Terms: " + terms + " Message: "
-              + exception.getMessage());
+      log.error("DELETE logs from stream ES error {} Terms: {} Message: {}", indexName, terms, exception.getMessage());
     }
   }
 
@@ -280,85 +272,60 @@ public class ElasticSearchClient {
     return INDEX_PREFIX + projectId;
   }
 
-  private JSONObject getDeleteJson(JSONObject terms) {
-    JSONObject query = new JSONObject();
-    query.put("terms", terms);
-
-    JSONObject deleteByLaunch = new JSONObject();
-    deleteByLaunch.put("query", query);
-
-    return deleteByLaunch;
+  private Map<String, Object> getDeleteJson(Map<String, Object> terms) {
+    return Map.of(QUERY_FIELD, Map.of(TERMS_FIELD, terms));
   }
 
-  private JSONObject getSearchJson(JSONObject terms, Integer size) {
-    JSONObject query = new JSONObject();
-    query.put("terms", terms);
-
-    JSONObject searchJson = new JSONObject();
-    searchJson.put("query", query);
-    searchJson.put("size", size);
-
-    return searchJson;
+  private Map<String, Object> getSearchJson(Map<String, Object> terms, Integer size) {
+    return Map.of(
+        QUERY_FIELD, Map.of(TERMS_FIELD, terms),
+        "size", size
+    );
   }
 
-  private JSONObject getSearchStringJson(String string, JSONObject filterTerms,
+  private Map<String, Object> getSearchStringJson(String string, Map<String, Object> filterTerms,
       List<String> sourceFields, Integer size) {
-    JSONObject postFilter = new JSONObject();
-    postFilter.put("terms", filterTerms);
-
-    JSONObject matchPhrase = new JSONObject();
-    matchPhrase.put(LOG_MESSAGE_FIELD_NAME, string);
-
-    JSONObject query = new JSONObject();
-    query.put("match_phrase", matchPhrase);
-
-    JSONObject searchJson = new JSONObject();
-    searchJson.put("_source", sourceFields);
-    searchJson.put("query", query);
-    searchJson.put("post_filter", postFilter);
-    searchJson.put("size", size);
-
-    return searchJson;
+    return Map.of(
+        SOURCE_FIELD, sourceFields,
+        QUERY_FIELD, Map.of("match_phrase", Map.of(LOG_MESSAGE_FIELD_NAME, string)),
+        "post_filter", Map.of(TERMS_FIELD, filterTerms),
+        "size", size
+    );
   }
 
   // Separated from getSearchStringJson, because possibly will be added some
   // specific configuration for regexp optimization.
-  private JSONObject getSearchRegexpJson(String pattern, JSONObject filterTerms,
+  private Map<String, Object> getSearchRegexpJson(String pattern, Map<String, Object> filterTerms,
       List<String> sourceFields, Integer size) {
-    JSONObject postFilter = new JSONObject();
-    postFilter.put("terms", filterTerms);
-
-    JSONObject regexp = new JSONObject();
-    regexp.put(LOG_MESSAGE_FIELD_NAME, pattern);
-
-    JSONObject query = new JSONObject();
-    query.put("regexp", regexp);
-
-    JSONObject searchJson = new JSONObject();
-    searchJson.put("_source", sourceFields);
-    searchJson.put("query", query);
-    searchJson.put("post_filter", postFilter);
-    searchJson.put("size", size);
-
-    return searchJson;
+    return Map.of(
+        SOURCE_FIELD, sourceFields,
+        QUERY_FIELD, Map.of("regexp", Map.of(LOG_MESSAGE_FIELD_NAME, pattern)),
+        "post_filter", Map.of(TERMS_FIELD, filterTerms),
+        "size", size
+    );
   }
 
-  private JSONObject convertToJson(LogMessage logMessage) {
-    JSONObject personJsonObject = new JSONObject();
-    personJsonObject.put("id", logMessage.getId());
-    personJsonObject.put("message", logMessage.getLogMessage());
-    personJsonObject.put("itemId", logMessage.getItemId());
-    personJsonObject.put("@timestamp", logMessage.getLogTime());
-    personJsonObject.put("launchId", logMessage.getLaunchId());
-
-    return personJsonObject;
+  private Map<String, Object> convertToDocument(LogMessage logMessage) {
+    Map<String, Object> document = new LinkedHashMap<>();
+    document.put("id", logMessage.getId());
+    document.put(LOG_MESSAGE_FIELD_NAME, logMessage.getLogMessage());
+    document.put(ITEM_ID_FIELD, logMessage.getItemId());
+    document.put("@timestamp", logMessage.getLogTime());
+    document.put(LAUNCH_ID_FIELD, logMessage.getLaunchId());
+    return document;
   }
 
-  private HttpEntity<String> getStringHttpEntity(String body) {
-    HttpHeaders headers = new HttpHeaders();
-    headers.setContentType(MediaType.APPLICATION_JSON);
+  private String toJson(Map<String, Object> document) {
+    return jsonMapper.writeValueAsString(document);
+  }
 
-    return new HttpEntity<>(body, headers);
+  private LinkedHashMap<String, Object> search(String indexName, Map<String, Object> searchJson) {
+    return restClient.post()
+        .uri(host + "/" + indexName + "/_search")
+        .body(toJson(searchJson))
+        .retrieve()
+        .body(new ParameterizedTypeReference<>() {
+        });
   }
 
 }

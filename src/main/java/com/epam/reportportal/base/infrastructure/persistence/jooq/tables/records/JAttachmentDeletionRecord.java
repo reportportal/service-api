@@ -123,6 +123,6 @@ public class JAttachmentDeletionRecord extends UpdatableRecordImpl<JAttachmentDe
         setThumbnailId(thumbnailId);
         setCreationAttachmentDate(creationAttachmentDate);
         setDeletionDate(deletionDate);
-        resetChangedOnNotNull();
+        resetTouchedOnNotNull();
     }
 }

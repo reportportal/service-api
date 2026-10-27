@@ -104,6 +104,6 @@ public class JFilterRecord extends UpdatableRecordImpl<JFilterRecord> {
         setName(name);
         setTarget(target);
         setDescription(description);
-        resetChangedOnNotNull();
+        resetTouchedOnNotNull();
     }
 }

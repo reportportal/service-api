@@ -32,8 +32,6 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.user.User;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.model.IdContainer;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -45,6 +43,8 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Handler for patch operations related to organization users. Supports bulk assign/unassign operations with
@@ -67,7 +67,7 @@ public class PatchOrganizationUsersHandler extends BasePatchOrganizationHandler 
    */
   protected PatchOrganizationUsersHandler(
       OrganizationUserService organizationUserService,
-      ObjectMapper objectMapper,
+      JsonMapper objectMapper,
       UserRepository userRepository,
       OrganizationRepositoryCustom organizationRepository,
       OrganizationUserRepository organizationUserRepository,

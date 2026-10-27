@@ -16,7 +16,7 @@
 
 package com.epam.reportportal.base.infrastructure.persistence.commons.querygen;
 
-import static org.postgresql.shaded.com.ongres.scram.common.util.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkArgument;
 
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.query.QuerySupplier;
 import java.util.Arrays;

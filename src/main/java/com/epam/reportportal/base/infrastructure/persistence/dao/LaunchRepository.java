@@ -16,7 +16,7 @@
 
 package com.epam.reportportal.base.infrastructure.persistence.dao;
 
-import static org.hibernate.jpa.QueryHints.HINT_FETCH_SIZE;
+import static org.hibernate.jpa.AvailableHints.HINT_FETCH_SIZE;
 
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.LaunchModeEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.LaunchTypeEnum;

@@ -17,16 +17,18 @@
 package com.epam.reportportal.base.auth;
 
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRole;
-import io.jsonwebtoken.Jwts;
+import com.nimbusds.jose.jwk.source.ImmutableSecret;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
-import java.util.Date;
-import java.util.stream.Collectors;
-import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
+import org.springframework.security.oauth2.jwt.JwsHeader;
+import org.springframework.security.oauth2.jwt.JwtClaimsSet;
+import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
+import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.stereotype.Component;
 
 /**
@@ -68,21 +70,24 @@ public class OAuthHelper {
   public String createAccessToken(String username, String password, UserRole... roles) {
     var authorities = Arrays.stream(roles)
         .map(role -> "ROLE_" + role)
-        .collect(Collectors.toList());
-
-    return Jwts.builder()
+        .toList();
+    var issuedAt = Instant.now();
+    var claims = JwtClaimsSet.builder()
         .subject(username)
         .issuer(issuerUri)
         .claim("user_name", username)
         .claim("scope", "ui")
         .claim("authorities", authorities)
-        .issuedAt(new Date())
-        .expiration(new Date(Instant.now().plus(1, ChronoUnit.DAYS).toEpochMilli()))
-        .signWith(getSecretKey(signingKey))
-        .compact();
+        .issuedAt(issuedAt)
+        .expiresAt(issuedAt.plus(1, ChronoUnit.DAYS))
+        .build();
+    var header = JwsHeader.with(MacAlgorithm.HS256).type("JWT").build();
+
+    return getJwtEncoder().encode(JwtEncoderParameters.from(header, claims)).getTokenValue();
   }
 
-  private SecretKey getSecretKey(String signingKey) {
-    return new SecretKeySpec(signingKey.getBytes(StandardCharsets.UTF_8), "HmacSHA256");
+  private NimbusJwtEncoder getJwtEncoder() {
+    var secretKey = new SecretKeySpec(signingKey.getBytes(StandardCharsets.UTF_8), "HmacSHA256");
+    return new NimbusJwtEncoder(new ImmutableSecret<>(secretKey));
   }
 }

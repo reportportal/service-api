@@ -21,9 +21,9 @@ import static java.util.Optional.ofNullable;
 import com.epam.reportportal.base.infrastructure.rules.commons.validation.Suppliers;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Map;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Converts raw plugin command parameter maps into typed request entity objects using Jackson.
@@ -32,9 +32,9 @@ import java.util.Map;
  */
 public class RequestEntityConverter {
 
-  private final ObjectMapper objectMapper;
+  private final JsonMapper objectMapper;
 
-  public RequestEntityConverter(ObjectMapper objectMapper) {
+  public RequestEntityConverter(JsonMapper objectMapper) {
     this.objectMapper = objectMapper;
   }
 
@@ -42,7 +42,7 @@ public class RequestEntityConverter {
     return ofNullable(params.get(key)).map(entity -> {
           try {
             return objectMapper.readValue(objectMapper.writeValueAsString(entity), clazz);
-          } catch (JsonProcessingException e) {
+          } catch (JacksonException e) {
             throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, e.getMessage());
           }
         })

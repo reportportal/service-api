@@ -18,8 +18,6 @@ import com.epam.reportportal.base.core.tms.dto.TmsMilestoneType;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsMilestoneRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestPlanRepository;
 import com.epam.reportportal.base.ws.BaseMvcTest;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import java.time.LocalDateTime;
@@ -31,6 +29,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MvcResult;
+import tools.jackson.databind.json.JsonMapper;
 
 @Sql("/db/tms/tms-milestone/tms-milestone-fill.sql")
 @ExtendWith(MockitoExtension.class)
@@ -46,8 +45,7 @@ public class TmsMilestoneIntegrationTest extends BaseMvcTest {
   private static final Long NON_EXISTENT_MILESTONE_ID = 99999L;
   private static final Long TEST_PLAN_IN_MILESTONE_ID = 400L;
 
-  private final ObjectMapper objectMapper = new ObjectMapper()
-      .registerModule(new JavaTimeModule());
+  private final JsonMapper objectMapper = JsonMapper.builder().build();
 
   @PersistenceContext
   private EntityManager entityManager;
@@ -561,9 +559,9 @@ public class TmsMilestoneIntegrationTest extends BaseMvcTest {
 
   private long countManualScenarios() {
     var result = (Number) entityManager.createNativeQuery("""
-            SELECT COUNT(ms.id)
-            FROM tms_manual_scenario ms
-            """).getSingleResult();
+        SELECT COUNT(ms.id)
+        FROM tms_manual_scenario ms
+        """).getSingleResult();
     return result.longValue();
   }
 

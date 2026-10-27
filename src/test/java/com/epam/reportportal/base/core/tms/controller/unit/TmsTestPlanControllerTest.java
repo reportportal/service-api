@@ -1,5 +1,6 @@
 package com.epam.reportportal.base.core.tms.controller.unit;
 
+import static com.epam.reportportal.base.util.StandaloneMockMvcSupport.standaloneJsonSetup;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -12,7 +13,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static com.epam.reportportal.base.util.StandaloneMockMvcSupport.standaloneJsonSetup;
 
 import com.epam.reportportal.base.core.tms.controller.TmsTestPlanController;
 import com.epam.reportportal.base.core.tms.dto.DuplicateTmsTestPlanRS;
@@ -32,7 +32,6 @@ import com.epam.reportportal.base.util.OffsetRequest;
 import com.epam.reportportal.base.util.ProjectExtractor;
 import com.epam.reportportal.base.ws.resolver.FilterCriteriaResolver;
 import com.epam.reportportal.base.ws.resolver.OffsetArgumentResolver;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -50,6 +49,7 @@ import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
+import tools.jackson.databind.json.JsonMapper;
 
 public class TmsTestPlanControllerTest {
 
@@ -67,12 +67,12 @@ public class TmsTestPlanControllerTest {
   private MockMvc mockMvc;
   private ReportPortalUser testUser;
   private MembershipDetails membershipDetails;
-  private ObjectMapper objectMapper;
+  private JsonMapper objectMapper;
 
   @BeforeEach
   public void setup() {
     MockitoAnnotations.openMocks(this);
-    objectMapper = new ObjectMapper();
+    objectMapper = JsonMapper.builder().build();
 
     // Create a test user
     testUser = ReportPortalUser.userBuilder()
@@ -796,9 +796,10 @@ public class TmsTestPlanControllerTest {
         .willReturn(page);
 
     // When/Then
-    mockMvc.perform(get("/v1/project/{projectKey}/tms/test-plan/{testPlanId}/test-case?filter.eq.testFolderId={testFolderId}",
-            projectKey, testPlanId, testFolderId)
-            .contentType(MediaType.APPLICATION_JSON))
+    mockMvc.perform(
+            get("/v1/project/{projectKey}/tms/test-plan/{testPlanId}/test-case?filter.eq.testFolderId={testFolderId}",
+                projectKey, testPlanId, testFolderId)
+                .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.content").isArray())
         .andExpect(jsonPath("$.content.length()").value(1))
@@ -832,11 +833,12 @@ public class TmsTestPlanControllerTest {
         .willReturn(page);
 
     // When/Then
-    mockMvc.perform(get("/v1/project/{projectKey}/tms/test-plan/{testPlanId}/test-case?filter.eq.testFolderId={testFolderId}",
-            projectKey, testPlanId, testFolderId)
-            .param("offset", "20")
-            .param("limit", "20")
-            .contentType(MediaType.APPLICATION_JSON))
+    mockMvc.perform(
+            get("/v1/project/{projectKey}/tms/test-plan/{testPlanId}/test-case?filter.eq.testFolderId={testFolderId}",
+                projectKey, testPlanId, testFolderId)
+                .param("offset", "20")
+                .param("limit", "20")
+                .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.content").isArray())
         .andExpect(jsonPath("$.content.length()").value(1))
@@ -887,9 +889,10 @@ public class TmsTestPlanControllerTest {
         .willReturn(emptyPage);
 
     // When/Then
-    mockMvc.perform(get("/v1/project/{projectKey}/tms/test-plan/{testPlanId}/test-case?filter.eq.testFolderId={testFolderId}",
-            projectKey, testPlanId, testFolderId)
-            .contentType(MediaType.APPLICATION_JSON))
+    mockMvc.perform(
+            get("/v1/project/{projectKey}/tms/test-plan/{testPlanId}/test-case?filter.eq.testFolderId={testFolderId}",
+                projectKey, testPlanId, testFolderId)
+                .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.content").isArray())
         .andExpect(jsonPath("$.content.length()").value(0))
@@ -1042,7 +1045,7 @@ public class TmsTestPlanControllerTest {
             .param("sort", "name,asc")
             .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.content" ).isArray())
+        .andExpect(jsonPath("$.content").isArray())
         .andExpect(jsonPath("$.content.length()").value(2))
         .andExpect(jsonPath("$.content[0].name").value("A Folder"))
         .andExpect(jsonPath("$.content[1].name").value("B Folder"));

@@ -53,14 +53,14 @@ import java.util.function.Predicate;
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.tika.io.TikaInputStream;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.mime.MediaType;
 import org.apache.tika.parser.AutoDetectParser;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.apache.tika.parser.ParseContext;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -72,42 +72,16 @@ import org.springframework.web.multipart.MultipartFile;
  * @author Andrei_Ramanchuk
  */
 @Service
+@Slf4j
+@RequiredArgsConstructor
 public class EditUserHandlerImpl implements EditUserHandler {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(EditUserHandlerImpl.class);
-
   private final UserRepository userRepository;
-
   private final UserBinaryDataService userBinaryDataService;
-
   private final PasswordEncoder passwordEncoder;
-
   private final AutoDetectParser autoDetectParser;
-
   private final MailServiceFactory emailServiceFactory;
-
   private final UserMutationService userMutationService;
-
-  /**
-   * Constructor.
-   *
-   * @param passwordEncoder       Password encoder
-   * @param userRepository        User repository
-   * @param userBinaryDataService User binary data service
-   * @param autoDetectParser      Auto detect parser
-   * @param emailServiceFactory   Email service factory
-   */
-  @Autowired
-  public EditUserHandlerImpl(PasswordEncoder passwordEncoder, UserRepository userRepository,
-      UserBinaryDataService userBinaryDataService, AutoDetectParser autoDetectParser,
-      MailServiceFactory emailServiceFactory, UserMutationService userMutationService) {
-    this.passwordEncoder = passwordEncoder;
-    this.userRepository = userRepository;
-    this.userBinaryDataService = userBinaryDataService;
-    this.autoDetectParser = autoDetectParser;
-    this.emailServiceFactory = emailServiceFactory;
-    this.userMutationService = userMutationService;
-  }
 
   @Override
   public OperationCompletionRS editUser(String username, EditUserRQ editUserRq,
@@ -207,7 +181,7 @@ public class EditUserHandlerImpl implements EditUserHandler {
               loggedInUser.getUsername()
           );
     } catch (Exception e) {
-      LOGGER.warn("Unable to send email.", e);
+      log.warn("Unable to send email.", e);
     }
 
     return new OperationCompletionRS("Password has been changed successfully");
@@ -257,7 +231,7 @@ public class EditUserHandlerImpl implements EditUserHandler {
         .orElseGet(() -> {
           try (final TikaInputStream tikaInputStream = TikaInputStream.get(file.getInputStream())) {
             MediaType mediaType = autoDetectParser.getDetector()
-                .detect(tikaInputStream, new Metadata());
+                .detect(tikaInputStream, new Metadata(), new ParseContext());
             expect(ImageFormat.fromValue(mediaType.getSubtype()), Optional::isPresent).verify(
                 BINARY_DATA_CANNOT_BE_SAVED,
                 "Image format should be " + ImageFormat.getValues()

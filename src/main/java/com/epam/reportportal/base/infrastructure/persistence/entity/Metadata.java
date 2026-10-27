@@ -16,17 +16,20 @@
 
 package com.epam.reportportal.base.infrastructure.persistence.entity;
 
-import com.epam.reportportal.base.infrastructure.persistence.commons.JsonbUserType;
 import java.io.Serializable;
 import java.util.Map;
 import java.util.Objects;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * Free-form key/value store on entities, persisted as jsonb.
  *
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
-public class Metadata extends JsonbUserType<Metadata> implements Serializable {
+@Setter
+@Getter
+public class Metadata implements Serializable {
 
   private Map<String, Object> metadata;
 
@@ -34,24 +37,6 @@ public class Metadata extends JsonbUserType<Metadata> implements Serializable {
   }
 
   public Metadata(Map<String, Object> metadata) {
-    this.metadata = metadata;
-  }
-
-  @Override
-  public int getSqlType() {
-    return 0;
-  }
-
-  @Override
-  public Class<Metadata> returnedClass() {
-    return Metadata.class;
-  }
-
-  public Map<String, Object> getMetadata() {
-    return metadata;
-  }
-
-  public void setMetadata(Map<String, Object> metadata) {
     this.metadata = metadata;
   }
 

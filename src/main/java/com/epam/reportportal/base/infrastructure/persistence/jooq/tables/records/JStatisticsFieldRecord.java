@@ -74,6 +74,6 @@ public class JStatisticsFieldRecord extends UpdatableRecordImpl<JStatisticsField
 
         setSfId(sfId);
         setName(name);
-        resetChangedOnNotNull();
+        resetTouchedOnNotNull();
     }
 }

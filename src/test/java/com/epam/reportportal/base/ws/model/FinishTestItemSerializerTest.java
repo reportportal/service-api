@@ -20,53 +20,53 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.epam.reportportal.base.reporting.FinishTestItemRQ;
 import com.epam.reportportal.base.reporting.Issue;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.MapperFeature;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.SerializationFeature;
 
 /**
  * @author Pavel Bortnik
  */
 public class FinishTestItemSerializerTest {
 
-  private final ObjectMapper om = getObjectMapper();
+  private final JsonMapper om = getObjectMapper();
 
   private static final String FINISH_TEST_ITEM_RQ =
       "{\"attributes\":[],\"status\":\"PASSED\",\"description\":\"description\","
           + "\"issue\":{\"autoAnalyzed\":false,\"ignoreAnalyzer\":false},\"retry\":false}";
 
   @Test
-  public void testSerializer() throws JsonProcessingException {
+  public void testSerializer() {
     String json = om.writeValueAsString(getFinishTestItem());
     assertEquals(FINISH_TEST_ITEM_RQ, json, "Incorrect serialization result");
   }
 
   @Test
-  public void testDeserializer() throws IOException {
+  public void testDeserializer() {
     FinishTestItemRQ rq = om.readValue(FINISH_TEST_ITEM_RQ.getBytes(StandardCharsets.UTF_8),
         FinishTestItemRQ.class);
-    assertEquals(rq.getStatus(), "PASSED", "Incorrect deserialization result");
+    assertEquals("PASSED", rq.getStatus(), "Incorrect deserialization result");
   }
 
   private FinishTestItemRQ getFinishTestItem() {
-    FinishTestItemRQ finishTestItemRQ = new FinishTestItemRQ();
-    finishTestItemRQ.setStatus("PASSED");
-    finishTestItemRQ.setRetry(false);
-    finishTestItemRQ.setDescription("description");
-    finishTestItemRQ.setIssue(new Issue());
-    finishTestItemRQ.setAttributes(Collections.emptySet());
+    FinishTestItemRQ finishTestItemRq = new FinishTestItemRQ();
+    finishTestItemRq.setStatus("PASSED");
+    finishTestItemRq.setRetry(false);
+    finishTestItemRq.setDescription("description");
+    finishTestItemRq.setIssue(new Issue());
+    finishTestItemRq.setAttributes(Collections.emptySet());
 
-    return finishTestItemRQ;
+    return finishTestItemRq;
   }
 
-  private ObjectMapper getObjectMapper() {
-    ObjectMapper om = new ObjectMapper();
-    om.configure(SerializationFeature.INDENT_OUTPUT, false);
-    return om;
+  private JsonMapper getObjectMapper() {
+    return JsonMapper.builder()
+        .disable(SerializationFeature.INDENT_OUTPUT)
+        .disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
+        .build();
   }
 
 }

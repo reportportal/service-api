@@ -11,10 +11,12 @@ import com.epam.reportportal.base.infrastructure.persistence.jooq.Keys;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JOrganization.JOrganizationPath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JProject.JProjectPath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.records.JActivityRecord;
+
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+
 import org.jooq.Condition;
 import org.jooq.Field;
 import org.jooq.ForeignKey;
@@ -29,13 +31,14 @@ import org.jooq.QueryPart;
 import org.jooq.Record;
 import org.jooq.SQL;
 import org.jooq.Schema;
-import org.jooq.Select;
 import org.jooq.Stringly;
 import org.jooq.Table;
 import org.jooq.TableField;
+import org.jooq.TableLike;
 import org.jooq.TableOptions;
 import org.jooq.UniqueKey;
 import org.jooq.impl.DSL;
+import org.jooq.impl.Internal;
 import org.jooq.impl.SQLDataType;
 import org.jooq.impl.TableImpl;
 
@@ -64,7 +67,7 @@ public class JActivity extends TableImpl<JActivityRecord> {
     /**
      * The column <code>public.activity.id</code>.
      */
-    public final TableField<JActivityRecord, Long> ID = createField(DSL.name("id"), SQLDataType.BIGINT.nullable(false).identity(true), this, "");
+    public final TableField<JActivityRecord, Long> ID = createField(DSL.name("id"), SQLDataType.BIGINT.nullable(false).generatedByDefaultAsIdentity(), this, "");
 
     /**
      * The column <code>public.activity.created_at</code>.
@@ -79,8 +82,7 @@ public class JActivity extends TableImpl<JActivityRecord> {
     /**
      * The column <code>public.activity.event_name</code>.
      */
-    public final TableField<JActivityRecord, String> EVENT_NAME = createField(
-        DSL.name("event_name"), SQLDataType.VARCHAR(64).nullable(false), this, "");
+    public final TableField<JActivityRecord, String> EVENT_NAME = createField(DSL.name("event_name"), SQLDataType.VARCHAR(64).nullable(false), this, "");
 
     /**
      * The column <code>public.activity.priority</code>.
@@ -287,7 +289,7 @@ public class JActivity extends TableImpl<JActivityRecord> {
      */
     @Override
     public JActivity where(Condition condition) {
-        return new JActivity(getQualifiedName(), aliased() ? this : null, null, condition);
+        return new JActivity(getQualifiedName(), aliased() ? this : null, null, Internal.condition(this, condition));
     }
 
     /**
@@ -354,7 +356,7 @@ public class JActivity extends TableImpl<JActivityRecord> {
      * Create an inline derived table from this table
      */
     @Override
-    public JActivity whereExists(Select<?> select) {
+    public JActivity whereExists(TableLike<?> select) {
         return where(DSL.exists(select));
     }
 
@@ -362,7 +364,7 @@ public class JActivity extends TableImpl<JActivityRecord> {
      * Create an inline derived table from this table
      */
     @Override
-    public JActivity whereNotExists(Select<?> select) {
+    public JActivity whereNotExists(TableLike<?> select) {
         return where(DSL.notExists(select));
     }
 }

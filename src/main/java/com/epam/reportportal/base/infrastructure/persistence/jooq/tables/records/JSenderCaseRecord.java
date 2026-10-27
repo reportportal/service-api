@@ -166,6 +166,6 @@ public class JSenderCaseRecord extends UpdatableRecordImpl<JSenderCaseRecord> {
         setRuleName(ruleName);
         setRuleType(ruleType);
         setRuleDetails(ruleDetails);
-        resetChangedOnNotNull();
+        resetTouchedOnNotNull();
     }
 }

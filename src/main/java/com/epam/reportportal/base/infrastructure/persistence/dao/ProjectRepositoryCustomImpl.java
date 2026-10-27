@@ -34,9 +34,9 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.project.Proj
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectInfo;
 import java.util.List;
 import java.util.Optional;
+import lombok.RequiredArgsConstructor;
 import org.jooq.DSLContext;
 import org.jooq.impl.DSL;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -44,15 +44,13 @@ import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.stereotype.Repository;
 
 @Repository
+@RequiredArgsConstructor
 public class ProjectRepositoryCustomImpl implements ProjectRepositoryCustom {
 
   private static final String FILTERED_PROJECT = "filtered_project";
 
-  @Autowired
-  private DSLContext dsl;
-
-  @Autowired
-  private ProjectInfoCteQueryBuilder cteQueryBuilder;
+  private final DSLContext dsl;
+  private final ProjectInfoCteQueryBuilder cteQueryBuilder;
 
   @Value("${rp.feature.project-info-use-cte-query:false}")
   private boolean useCteQuery;

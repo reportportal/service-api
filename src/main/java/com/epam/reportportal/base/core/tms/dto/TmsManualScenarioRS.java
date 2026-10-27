@@ -25,6 +25,7 @@ import lombok.experimental.SuperBuilder;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonTypeInfo(
     use = JsonTypeInfo.Id.NAME,
+    include = JsonTypeInfo.As.EXISTING_PROPERTY,
     property = "manualScenarioType",
     visible = true
 )
@@ -44,8 +45,7 @@ public abstract class TmsManualScenarioRS {
 
   protected TmsManualScenarioPreconditionsRS preconditions;
 
-  @Valid
-  protected Set<TmsManualScenarioAttributeRS> attributes;
+  protected Set<@Valid TmsManualScenarioAttributeRS> attributes;
 
   /**
    * Type of manual scenario (STEPS or TEXT). Required for proper JSON deserialization.

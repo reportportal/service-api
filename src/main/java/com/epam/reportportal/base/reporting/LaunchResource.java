@@ -20,7 +20,6 @@ import com.epam.reportportal.base.reporting.databind.MultiFormatDateDeserializer
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -32,6 +31,7 @@ import java.util.Set;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import tools.jackson.databind.annotation.JsonDeserialize;
 
 /**
  * JSON Representation of Report Portal's Launch domain object

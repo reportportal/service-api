@@ -133,17 +133,31 @@ public class JTmsAttachmentRecord extends UpdatableRecordImpl<JTmsAttachmentReco
     }
 
     /**
+     * Setter for <code>public.tms_attachment.project_id</code>.
+     */
+    public void setProjectId(Long value) {
+        set(8, value);
+    }
+
+    /**
+     * Getter for <code>public.tms_attachment.project_id</code>.
+     */
+    public Long getProjectId() {
+        return (Long) get(8);
+    }
+
+    /**
      * Setter for <code>public.tms_attachment.environment_id</code>.
      */
     public void setEnvironmentId(Long value) {
-        set(8, value);
+        set(9, value);
     }
 
     /**
      * Getter for <code>public.tms_attachment.environment_id</code>.
      */
     public Long getEnvironmentId() {
-        return (Long) get(8);
+        return (Long) get(9);
     }
 
     // -------------------------------------------------------------------------
@@ -169,7 +183,7 @@ public class JTmsAttachmentRecord extends UpdatableRecordImpl<JTmsAttachmentReco
     /**
      * Create a detached, initialised JTmsAttachmentRecord
      */
-    public JTmsAttachmentRecord(Long id, String fileName, String fileType, Long fileSize, String pathToFile, String thumbnailPath, Instant createdAt, Instant expiresAt, Long environmentId) {
+    public JTmsAttachmentRecord(Long id, String fileName, String fileType, Long fileSize, String pathToFile, String thumbnailPath, Instant createdAt, Instant expiresAt, Long projectId, Long environmentId) {
         super(JTmsAttachment.TMS_ATTACHMENT);
 
         setId(id);
@@ -180,7 +194,8 @@ public class JTmsAttachmentRecord extends UpdatableRecordImpl<JTmsAttachmentReco
         setThumbnailPath(thumbnailPath);
         setCreatedAt(createdAt);
         setExpiresAt(expiresAt);
+        setProjectId(projectId);
         setEnvironmentId(environmentId);
-        resetChangedOnNotNull();
+        resetTouchedOnNotNull();
     }
 }

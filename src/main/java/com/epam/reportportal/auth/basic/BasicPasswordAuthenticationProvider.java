@@ -16,22 +16,20 @@
 
 package com.epam.reportportal.auth.basic;
 
-import com.epam.reportportal.auth.TokenServicesFacade;
-import com.epam.reportportal.auth.config.password.ClientToken;
-import com.epam.reportportal.auth.config.utils.ConvertToOauthToken;
 import com.epam.reportportal.auth.event.UiAuthenticationFailureEventHandler;
 import com.epam.reportportal.auth.event.UiUserSignedInEvent;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import jakarta.inject.Provider;
 import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 /**
  * Checks whether client have more auth errors than defined and throws exception if so.
@@ -40,34 +38,33 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
  */
 public class BasicPasswordAuthenticationProvider extends DaoAuthenticationProvider {
 
-  @Autowired
-  private ApplicationEventPublisher eventPublisher;
+  private final ApplicationEventPublisher eventPublisher;
 
-  @Autowired
-  private UiAuthenticationFailureEventHandler failureEventHandler;
+  private final UiAuthenticationFailureEventHandler failureEventHandler;
 
-  @Autowired
-  private Provider<HttpServletRequest> request;
+  private final Provider<HttpServletRequest> request;
 
-  @Autowired
-  private TokenServicesFacade tokenService;
+  public BasicPasswordAuthenticationProvider(UserDetailsService userDetailsService, PasswordEncoder passwordEncoder,
+      ApplicationEventPublisher eventPublisher, UiAuthenticationFailureEventHandler failureEventHandler,
+      Provider<HttpServletRequest> request) {
+    super(userDetailsService);
+    setPasswordEncoder(passwordEncoder);
+    this.eventPublisher = eventPublisher;
+    this.failureEventHandler = failureEventHandler;
+    this.request = request;
+  }
 
   @Override
   public Authentication authenticate(Authentication authentication) throws AuthenticationException {
-    boolean accountNonLocked = !failureEventHandler.isBlocked(request.get());
-    if (!accountNonLocked) {
+    if (failureEventHandler.isBlocked(request.get())) {
       throw new ReportPortalException(ErrorType.ADDRESS_LOCKED);
     }
 
     try {
       Authentication auth = super.authenticate(authentication);
       eventPublisher.publishEvent(new UiUserSignedInEvent(auth));
-
-      ConvertToOauthToken convertToOauthToken = new ConvertToOauthToken(tokenService);
-
-      ClientToken clientToken = (ClientToken) authentication;
-      return convertToOauthToken.convert(clientToken, auth);
-    } catch (UsernameNotFoundException e) {
+      return auth;
+    } catch (UsernameNotFoundException _) {
       throw new BadCredentialsException("Bad credentials");
     }
   }

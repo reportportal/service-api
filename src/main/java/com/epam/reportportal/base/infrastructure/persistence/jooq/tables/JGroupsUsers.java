@@ -27,13 +27,14 @@ import org.jooq.QueryPart;
 import org.jooq.Record;
 import org.jooq.SQL;
 import org.jooq.Schema;
-import org.jooq.Select;
 import org.jooq.Stringly;
 import org.jooq.Table;
 import org.jooq.TableField;
+import org.jooq.TableLike;
 import org.jooq.TableOptions;
 import org.jooq.UniqueKey;
 import org.jooq.impl.DSL;
+import org.jooq.impl.Internal;
 import org.jooq.impl.SQLDataType;
 import org.jooq.impl.TableImpl;
 
@@ -224,7 +225,7 @@ public class JGroupsUsers extends TableImpl<JGroupsUsersRecord> {
      */
     @Override
     public JGroupsUsers where(Condition condition) {
-        return new JGroupsUsers(getQualifiedName(), aliased() ? this : null, null, condition);
+        return new JGroupsUsers(getQualifiedName(), aliased() ? this : null, null, Internal.condition(this, condition));
     }
 
     /**
@@ -291,7 +292,7 @@ public class JGroupsUsers extends TableImpl<JGroupsUsersRecord> {
      * Create an inline derived table from this table
      */
     @Override
-    public JGroupsUsers whereExists(Select<?> select) {
+    public JGroupsUsers whereExists(TableLike<?> select) {
         return where(DSL.exists(select));
     }
 
@@ -299,7 +300,7 @@ public class JGroupsUsers extends TableImpl<JGroupsUsersRecord> {
      * Create an inline derived table from this table
      */
     @Override
-    public JGroupsUsers whereNotExists(Select<?> select) {
+    public JGroupsUsers whereNotExists(TableLike<?> select) {
         return where(DSL.notExists(select));
     }
 }

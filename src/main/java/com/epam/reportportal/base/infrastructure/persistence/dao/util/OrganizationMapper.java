@@ -24,15 +24,14 @@ import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.ORGANIZATION_USER;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JUsers.USERS;
 
+import com.epam.reportportal.base.infrastructure.persistence.entity.Metadata;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.Organization;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationProfile;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationRole;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationUserAccount;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRole;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserType;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.epam.reportportal.base.util.MetadataUtils;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -42,8 +41,6 @@ import java.util.function.Function;
 import org.jooq.Record;
 import org.jooq.RecordMapper;
 import org.jooq.Result;
-import org.json.JSONObject;
-
 /**
  * Set of record mappers that helps to convert the result of jooq queries into Java objects
  *
@@ -51,19 +48,11 @@ import org.json.JSONObject;
  */
 public class OrganizationMapper {
 
-  private static final ObjectMapper objectMapper;
-
-  static {
-    objectMapper = new ObjectMapper();
-    objectMapper.registerModule(new JavaTimeModule());
-    objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-  }
-
   private OrganizationMapper() {
   }
 
   /**
-   * Maps record into {@link Organization} object
+   * Maps record into {@link Organization} object.
    */
   public static final RecordMapper<? super Record, OrganizationProfile> ORGANIZATION_MAPPER = row -> {
     OrganizationProfile organization = row.into(OrganizationProfile.class);
@@ -117,13 +106,8 @@ public class OrganizationMapper {
       organizationUserProfile.setAuthProvider(UserType.valueOf(row.get(USERS.TYPE)));
       organizationUserProfile.setEmail(row.get(USERS.EMAIL));
 
-      Optional.ofNullable(row.get(USERS.METADATA))
-          .ifPresent(meta -> {
-            // TODO: refactor after switching to jooq 3.19 with jsonb processing support
-            JSONObject json = new JSONObject(row.get(USERS.METADATA).data());
-            Long millis = json.optJSONObject("metadata", new JSONObject()).optLong("last_login");
-            organizationUserProfile.setLastLoginAt(Instant.ofEpochMilli(millis));
-          });
+      organizationUserProfile.setLastLoginAt(
+          MetadataUtils.getLastLogin(row.get(USERS.METADATA, Metadata.class)));
 
       Optional.ofNullable(row.get(USERS.EXTERNAL_ID))
           .ifPresent(

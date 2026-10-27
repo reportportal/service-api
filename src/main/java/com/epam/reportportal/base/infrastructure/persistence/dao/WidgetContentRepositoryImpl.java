@@ -192,6 +192,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Field;
@@ -348,7 +349,7 @@ public class WidgetContentRepositoryImpl implements WidgetContentRepository {
 
   private SelectOnConditionStep<Record2<Long, BigDecimal>> getCommonMostFailedQuery(String criteria,
       Table<? extends Record> launchesTable) {
-    if (StringUtils.endsWithAny(criteria,
+    if (Strings.CS.endsWithAny(criteria,
         StatusEnum.FAILED.getExecutionCounterField(),
         StatusEnum.SKIPPED.getExecutionCounterField()
     )) {

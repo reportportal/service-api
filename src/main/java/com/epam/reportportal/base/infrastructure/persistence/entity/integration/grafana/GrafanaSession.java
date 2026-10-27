@@ -16,9 +16,7 @@
 
 package com.epam.reportportal.base.infrastructure.persistence.entity.integration.grafana;
 
-import com.epam.reportportal.base.infrastructure.persistence.dao.converters.JpaInstantConverter;
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
@@ -51,6 +49,5 @@ public class GrafanaSession {
   private String subject;
 
   @Column(name = "expires_at", nullable = false)
-  @Convert(converter = JpaInstantConverter.class)
   private Instant expiresAt;
 }

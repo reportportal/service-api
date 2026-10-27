@@ -63,129 +63,143 @@ public class JTmsTestCaseRecord extends UpdatableRecordImpl<JTmsTestCaseRecord> 
     }
 
     /**
+     * Setter for <code>public.tms_test_case.source_updated_at</code>.
+     */
+    public void setSourceUpdatedAt(Instant value) {
+        set(3, value);
+    }
+
+    /**
+     * Getter for <code>public.tms_test_case.source_updated_at</code>.
+     */
+    public Instant getSourceUpdatedAt() {
+        return (Instant) get(3);
+    }
+
+    /**
      * Setter for <code>public.tms_test_case.name</code>.
      */
     public void setName(String value) {
-        set(3, value);
+        set(4, value);
     }
 
     /**
      * Getter for <code>public.tms_test_case.name</code>.
      */
     public String getName() {
-        return (String) get(3);
+        return (String) get(4);
     }
 
     /**
      * Setter for <code>public.tms_test_case.description</code>.
      */
     public void setDescription(String value) {
-        set(4, value);
+        set(5, value);
     }
 
     /**
      * Getter for <code>public.tms_test_case.description</code>.
      */
     public String getDescription() {
-        return (String) get(4);
+        return (String) get(5);
     }
 
     /**
      * Setter for <code>public.tms_test_case.priority</code>.
      */
     public void setPriority(String value) {
-        set(5, value);
+        set(6, value);
     }
 
     /**
      * Getter for <code>public.tms_test_case.priority</code>.
      */
     public String getPriority() {
-        return (String) get(5);
+        return (String) get(6);
     }
 
     /**
      * Setter for <code>public.tms_test_case.search_vector</code>.
      */
     public void setSearchVector(Object value) {
-        set(6, value);
+        set(7, value);
     }
 
     /**
      * Getter for <code>public.tms_test_case.search_vector</code>.
      */
     public Object getSearchVector() {
-        return get(6);
+        return get(7);
     }
 
     /**
      * Setter for <code>public.tms_test_case.external_id</code>.
      */
     public void setExternalId(String value) {
-        set(7, value);
+        set(8, value);
     }
 
     /**
      * Getter for <code>public.tms_test_case.external_id</code>.
      */
     public String getExternalId() {
-        return (String) get(7);
+        return (String) get(8);
     }
 
     /**
      * Setter for <code>public.tms_test_case.display_id</code>.
      */
     public void setDisplayId(String value) {
-        set(8, value);
+        set(9, value);
     }
 
     /**
      * Getter for <code>public.tms_test_case.display_id</code>.
      */
     public String getDisplayId() {
-        return (String) get(8);
+        return (String) get(9);
     }
 
     /**
      * Setter for <code>public.tms_test_case.project_id</code>.
      */
     public void setProjectId(Long value) {
-        set(9, value);
+        set(10, value);
     }
 
     /**
      * Getter for <code>public.tms_test_case.project_id</code>.
      */
     public Long getProjectId() {
-        return (Long) get(9);
+        return (Long) get(10);
     }
 
     /**
      * Setter for <code>public.tms_test_case.test_folder_id</code>.
      */
     public void setTestFolderId(Long value) {
-        set(10, value);
+        set(11, value);
     }
 
     /**
      * Getter for <code>public.tms_test_case.test_folder_id</code>.
      */
     public Long getTestFolderId() {
-        return (Long) get(10);
+        return (Long) get(11);
     }
 
     /**
      * Setter for <code>public.tms_test_case.dataset_id</code>.
      */
     public void setDatasetId(Long value) {
-        set(11, value);
+        set(12, value);
     }
 
     /**
      * Getter for <code>public.tms_test_case.dataset_id</code>.
      */
     public Long getDatasetId() {
-        return (Long) get(11);
+        return (Long) get(12);
     }
 
     // -------------------------------------------------------------------------
@@ -211,12 +225,13 @@ public class JTmsTestCaseRecord extends UpdatableRecordImpl<JTmsTestCaseRecord> 
     /**
      * Create a detached, initialised JTmsTestCaseRecord
      */
-    public JTmsTestCaseRecord(Long id, Instant createdAt, Instant updatedAt, String name, String description, String priority, Object searchVector, String externalId, String displayId, Long projectId, Long testFolderId, Long datasetId) {
+    public JTmsTestCaseRecord(Long id, Instant createdAt, Instant updatedAt, Instant sourceUpdatedAt, String name, String description, String priority, Object searchVector, String externalId, String displayId, Long projectId, Long testFolderId, Long datasetId) {
         super(JTmsTestCase.TMS_TEST_CASE);
 
         setId(id);
         setCreatedAt(createdAt);
         setUpdatedAt(updatedAt);
+        setSourceUpdatedAt(sourceUpdatedAt);
         setName(name);
         setDescription(description);
         setPriority(priority);
@@ -226,6 +241,6 @@ public class JTmsTestCaseRecord extends UpdatableRecordImpl<JTmsTestCaseRecord> 
         setProjectId(projectId);
         setTestFolderId(testFolderId);
         setDatasetId(datasetId);
-        resetChangedOnNotNull();
+        resetTouchedOnNotNull();
     }
 }

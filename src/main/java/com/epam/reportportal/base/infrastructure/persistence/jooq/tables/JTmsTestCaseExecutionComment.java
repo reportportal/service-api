@@ -29,13 +29,14 @@ import org.jooq.QueryPart;
 import org.jooq.Record;
 import org.jooq.SQL;
 import org.jooq.Schema;
-import org.jooq.Select;
 import org.jooq.Stringly;
 import org.jooq.Table;
 import org.jooq.TableField;
+import org.jooq.TableLike;
 import org.jooq.TableOptions;
 import org.jooq.UniqueKey;
 import org.jooq.impl.DSL;
+import org.jooq.impl.Internal;
 import org.jooq.impl.SQLDataType;
 import org.jooq.impl.TableImpl;
 
@@ -65,7 +66,7 @@ public class JTmsTestCaseExecutionComment extends TableImpl<JTmsTestCaseExecutio
     /**
      * The column <code>public.tms_test_case_execution_comment.id</code>.
      */
-    public final TableField<JTmsTestCaseExecutionCommentRecord, Long> ID = createField(DSL.name("id"), SQLDataType.BIGINT.nullable(false).identity(true), this, "");
+    public final TableField<JTmsTestCaseExecutionCommentRecord, Long> ID = createField(DSL.name("id"), SQLDataType.BIGINT.nullable(false).generatedByDefaultAsIdentity(), this, "");
 
     /**
      * The column
@@ -76,7 +77,7 @@ public class JTmsTestCaseExecutionComment extends TableImpl<JTmsTestCaseExecutio
     /**
      * The column <code>public.tms_test_case_execution_comment.comment</code>.
      */
-    public final TableField<JTmsTestCaseExecutionCommentRecord, String> COMMENT = createField(DSL.name("comment"), SQLDataType.CLOB, this, "");
+    public final TableField<JTmsTestCaseExecutionCommentRecord, String> COMMENT = createField(DSL.name("comment"), SQLDataType.VARCHAR(1000), this, "");
 
     private JTmsTestCaseExecutionComment(Name alias, Table<JTmsTestCaseExecutionCommentRecord> aliased) {
         this(alias, aliased, (Field<?>[]) null, null);
@@ -251,7 +252,7 @@ public class JTmsTestCaseExecutionComment extends TableImpl<JTmsTestCaseExecutio
      */
     @Override
     public JTmsTestCaseExecutionComment where(Condition condition) {
-        return new JTmsTestCaseExecutionComment(getQualifiedName(), aliased() ? this : null, null, condition);
+        return new JTmsTestCaseExecutionComment(getQualifiedName(), aliased() ? this : null, null, Internal.condition(this, condition));
     }
 
     /**
@@ -318,7 +319,7 @@ public class JTmsTestCaseExecutionComment extends TableImpl<JTmsTestCaseExecutio
      * Create an inline derived table from this table
      */
     @Override
-    public JTmsTestCaseExecutionComment whereExists(Select<?> select) {
+    public JTmsTestCaseExecutionComment whereExists(TableLike<?> select) {
         return where(DSL.exists(select));
     }
 
@@ -326,7 +327,7 @@ public class JTmsTestCaseExecutionComment extends TableImpl<JTmsTestCaseExecutio
      * Create an inline derived table from this table
      */
     @Override
-    public JTmsTestCaseExecutionComment whereNotExists(Select<?> select) {
+    public JTmsTestCaseExecutionComment whereNotExists(TableLike<?> select) {
         return where(DSL.notExists(select));
     }
 }

@@ -27,13 +27,14 @@ import org.jooq.QueryPart;
 import org.jooq.Record;
 import org.jooq.SQL;
 import org.jooq.Schema;
-import org.jooq.Select;
 import org.jooq.Stringly;
 import org.jooq.Table;
 import org.jooq.TableField;
+import org.jooq.TableLike;
 import org.jooq.TableOptions;
 import org.jooq.UniqueKey;
 import org.jooq.impl.DSL;
+import org.jooq.impl.Internal;
 import org.jooq.impl.SQLDataType;
 import org.jooq.impl.TableImpl;
 
@@ -62,7 +63,7 @@ public class JTmsEnvironmentDataset extends TableImpl<JTmsEnvironmentDatasetReco
     /**
      * The column <code>public.tms_environment_dataset.id</code>.
      */
-    public final TableField<JTmsEnvironmentDatasetRecord, Long> ID = createField(DSL.name("id"), SQLDataType.BIGINT.nullable(false).identity(true), this, "");
+    public final TableField<JTmsEnvironmentDatasetRecord, Long> ID = createField(DSL.name("id"), SQLDataType.BIGINT.nullable(false).generatedByDefaultAsIdentity(), this, "");
 
     /**
      * The column <code>public.tms_environment_dataset.environment_id</code>.
@@ -237,7 +238,7 @@ public class JTmsEnvironmentDataset extends TableImpl<JTmsEnvironmentDatasetReco
      */
     @Override
     public JTmsEnvironmentDataset where(Condition condition) {
-        return new JTmsEnvironmentDataset(getQualifiedName(), aliased() ? this : null, null, condition);
+        return new JTmsEnvironmentDataset(getQualifiedName(), aliased() ? this : null, null, Internal.condition(this, condition));
     }
 
     /**
@@ -304,7 +305,7 @@ public class JTmsEnvironmentDataset extends TableImpl<JTmsEnvironmentDatasetReco
      * Create an inline derived table from this table
      */
     @Override
-    public JTmsEnvironmentDataset whereExists(Select<?> select) {
+    public JTmsEnvironmentDataset whereExists(TableLike<?> select) {
         return where(DSL.exists(select));
     }
 
@@ -312,7 +313,7 @@ public class JTmsEnvironmentDataset extends TableImpl<JTmsEnvironmentDatasetReco
      * Create an inline derived table from this table
      */
     @Override
-    public JTmsEnvironmentDataset whereNotExists(Select<?> select) {
+    public JTmsEnvironmentDataset whereNotExists(TableLike<?> select) {
         return where(DSL.notExists(select));
     }
 }

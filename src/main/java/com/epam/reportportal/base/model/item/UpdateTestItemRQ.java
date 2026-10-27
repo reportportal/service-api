@@ -42,9 +42,8 @@ import lombok.NoArgsConstructor;
 public class UpdateTestItemRQ {
 
   @Size(max = MAX_PARAMETERS_LENGTH)
-  @Valid
   @JsonProperty(value = "attributes")
-  private Set<AttributeResource> attributes;
+  private Set<@Valid AttributeResource> attributes;
 
   @JsonProperty(value = "description")
   private String description;

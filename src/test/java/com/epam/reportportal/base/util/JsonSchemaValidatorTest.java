@@ -20,9 +20,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.epam.reportportal.base.core.configs.JsonSchemaValidatorConfig;
-import com.networknt.schema.ValidationMessage;
-import java.io.IOException;
-import java.util.Set;
+import com.networknt.schema.Error;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -44,20 +43,20 @@ public class JsonSchemaValidatorTest {
   private Environment environment;
 
   @Test
-  public void testValidateValidJson() throws IOException {
+  public void testValidateValidJson() {
     String schemaLocation = environment.getProperty("rp.schema.source") + "test-schema.json";
     String validJson = "{ \"name\": \"John\", \"age\": 30 }";
 
-    Set<ValidationMessage> messages = jsonSchemaValidator.validate(schemaLocation, validJson);
+    List<Error> messages = jsonSchemaValidator.validate(schemaLocation, validJson);
     assertTrue(messages.isEmpty(), "Validation should pass for valid JSON");
   }
 
   @Test
-  public void testValidateInvalidJson() throws IOException {
+  public void testValidateInvalidJson() {
     String schemaLocation = environment.getProperty("rp.schema.source") + "test-schema.json";
     String invalidJson = "{ \"name\": \"John\", \"age\": \"thirty\" }";
 
-    Set<ValidationMessage> messages = jsonSchemaValidator.validate(schemaLocation, invalidJson);
-    assertFalse(messages.isEmpty(), "Validation should pass for valid JSON");
+    List<Error> messages = jsonSchemaValidator.validate(schemaLocation, invalidJson);
+    assertFalse(messages.isEmpty(), "Validation should fail for invalid JSON");
   }
 }

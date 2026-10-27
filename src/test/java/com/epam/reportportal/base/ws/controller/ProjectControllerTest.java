@@ -30,7 +30,6 @@ import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -48,7 +47,6 @@ import com.epam.reportportal.base.model.project.email.ProjectNotificationConfigD
 import com.epam.reportportal.base.model.project.email.SenderCaseDTO;
 import com.epam.reportportal.base.reporting.AttributeResource;
 import com.epam.reportportal.base.ws.BaseMvcTest;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
 import com.rabbitmq.http.client.Client;
 import com.rabbitmq.http.client.domain.ExchangeInfo;
@@ -72,6 +70,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.test.context.event.ApplicationEvents;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -81,7 +80,7 @@ import org.springframework.test.web.servlet.ResultActions;
 class ProjectControllerTest extends BaseMvcTest {
 
   @Autowired
-  private ObjectMapper objectMapper;
+  private JsonMapper objectMapper;
 
   @Autowired
   private ProjectRepository projectRepository;

@@ -5,6 +5,7 @@ package com.epam.reportportal.base.infrastructure.persistence.jooq.tables.record
 
 
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JStatistics;
+
 import org.jooq.Record1;
 import org.jooq.impl.UpdatableRecordImpl;
 
@@ -49,28 +50,28 @@ public class JStatisticsRecord extends UpdatableRecordImpl<JStatisticsRecord> {
      * Setter for <code>public.statistics.item_id</code>.
      */
     public void setItemId(Long value) {
-      set(2, value);
+        set(2, value);
     }
 
     /**
      * Getter for <code>public.statistics.item_id</code>.
      */
     public Long getItemId() {
-      return (Long) get(2);
+        return (Long) get(2);
     }
 
     /**
      * Setter for <code>public.statistics.statistics_field_id</code>.
      */
     public void setStatisticsFieldId(Long value) {
-      set(3, value);
+        set(3, value);
     }
 
     /**
      * Getter for <code>public.statistics.statistics_field_id</code>.
      */
     public Long getStatisticsFieldId() {
-      return (Long) get(3);
+        return (Long) get(3);
     }
 
     // -------------------------------------------------------------------------
@@ -103,6 +104,6 @@ public class JStatisticsRecord extends UpdatableRecordImpl<JStatisticsRecord> {
         setSCounter(sCounter);
         setItemId(itemId);
         setStatisticsFieldId(statisticsFieldId);
-        resetChangedOnNotNull();
+        resetTouchedOnNotNull();
     }
 }

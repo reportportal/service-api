@@ -12,6 +12,7 @@ import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JCluste
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JContentField;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JFilterCondition;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JFilterSort;
+import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JGrafanaSession;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JIntegration;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JIssue;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JIssueType;
@@ -45,6 +46,7 @@ import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsMan
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsMilestone;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsStepAttachment;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsStepExecution;
+import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsSyncJob;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTestCase;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTestCaseExecution;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTestCaseExecutionComment;
@@ -55,6 +57,7 @@ import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTes
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTestPlan;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTestPlanTestCase;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTextManualScenarioAttachment;
+
 import org.jooq.Index;
 import org.jooq.OrderField;
 import org.jooq.impl.DSL;
@@ -87,26 +90,21 @@ public class Indexes {
     public static final Index CONTENT_FIELD_WIDGET_IDX = Internal.createIndex(DSL.name("content_field_widget_idx"), JContentField.CONTENT_FIELD, new OrderField[] { JContentField.CONTENT_FIELD.ID }, false);
     public static final Index FILTER_COND_FILTER_IDX = Internal.createIndex(DSL.name("filter_cond_filter_idx"), JFilterCondition.FILTER_CONDITION, new OrderField[] { JFilterCondition.FILTER_CONDITION.FILTER_ID }, false);
     public static final Index FILTER_SORT_FILTER_IDX = Internal.createIndex(DSL.name("filter_sort_filter_idx"), JFilterSort.FILTER_SORT, new OrderField[] { JFilterSort.FILTER_SORT.FILTER_ID }, false);
+    public static final Index GRAFANA_SESSION_EXPIRES_AT_IDX = Internal.createIndex(DSL.name("grafana_session_expires_at_idx"), JGrafanaSession.GRAFANA_SESSION, new OrderField[] { JGrafanaSession.GRAFANA_SESSION.EXPIRES_AT }, false);
+    public static final Index GRAFANA_SESSION_SUBJECT_IDX = Internal.createIndex(DSL.name("grafana_session_subject_idx"), JGrafanaSession.GRAFANA_SESSION, new OrderField[] { JGrafanaSession.GRAFANA_SESSION.SUBJECT }, false);
     public static final Index HASH_API_KEYS_IDX = Internal.createIndex(DSL.name("hash_api_keys_idx"), JApiKeys.API_KEYS, new OrderField[] { JApiKeys.API_KEYS.HASH }, false);
-  public static final Index IDX_INTEGRATION_ORGANIZATION_ID = Internal.createIndex(
-      DSL.name("idx_integration_organization_id"), JIntegration.INTEGRATION,
-      new OrderField[]{JIntegration.INTEGRATION.ORGANIZATION_ID}, false);
-  public static final Index IDX_LAUNCHES_MODIFIED_CREATED_AT = Internal.createIndex(
-      DSL.name("idx_launches_modified_created_at"), JLaunchesModified.LAUNCHES_MODIFIED,
-      new OrderField[]{JLaunchesModified.LAUNCHES_MODIFIED.CREATED_AT}, false);
+    public static final Index IDX_INTEGRATION_ORGANIZATION_ID = Internal.createIndex(DSL.name("idx_integration_organization_id"), JIntegration.INTEGRATION, new OrderField[] { JIntegration.INTEGRATION.ORGANIZATION_ID }, false);
+    public static final Index IDX_LAUNCH_TEST_PLAN_ID = Internal.createIndex(DSL.name("idx_launch_test_plan_id"), JLaunch.LAUNCH, new OrderField[] { JLaunch.LAUNCH.TEST_PLAN_ID }, false);
+    public static final Index IDX_LAUNCHES_MODIFIED_CREATED_AT = Internal.createIndex(DSL.name("idx_launches_modified_created_at"), JLaunchesModified.LAUNCHES_MODIFIED, new OrderField[] { JLaunchesModified.LAUNCHES_MODIFIED.CREATED_AT }, false);
     public static final Index IDX_LOG_PROJECT_LEVEL = Internal.createIndex(DSL.name("idx_log_project_level"), JLog.LOG, new OrderField[] { JLog.LOG.PROJECT_ID, JLog.LOG.LOG_LEVEL }, false);
     public static final Index IDX_PRECONDITIONS_ATTACHMENT_ATTACHMENT_ID = Internal.createIndex(DSL.name("idx_preconditions_attachment_attachment_id"), JTmsManualScenarioPreconditionsAttachment.TMS_MANUAL_SCENARIO_PRECONDITIONS_ATTACHMENT, new OrderField[] { JTmsManualScenarioPreconditionsAttachment.TMS_MANUAL_SCENARIO_PRECONDITIONS_ATTACHMENT.ATTACHMENT_ID }, false);
     public static final Index IDX_PRECONDITIONS_ATTACHMENT_PRECONDITIONS_ID = Internal.createIndex(DSL.name("idx_preconditions_attachment_preconditions_id"), JTmsManualScenarioPreconditionsAttachment.TMS_MANUAL_SCENARIO_PRECONDITIONS_ATTACHMENT, new OrderField[] { JTmsManualScenarioPreconditionsAttachment.TMS_MANUAL_SCENARIO_PRECONDITIONS_ATTACHMENT.PRECONDITIONS_ID }, false);
-  public static final Index IDX_REVOKED_TOKEN_JTI = Internal.createIndex(
-      DSL.name("idx_revoked_token_jti"), JRevokedToken.REVOKED_TOKEN,
-      new OrderField[]{JRevokedToken.REVOKED_TOKEN.JTI}, true);
-  public static final Index IDX_REVOKED_TOKEN_SUBJECT_REVOKED_AT = Internal.createIndex(
-      DSL.name("idx_revoked_token_subject_revoked_at"), JRevokedToken.REVOKED_TOKEN,
-      new OrderField[]{JRevokedToken.REVOKED_TOKEN.SUBJECT, JRevokedToken.REVOKED_TOKEN.REVOKED_AT},
-      false);
+    public static final Index IDX_REVOKED_TOKEN_JTI = Internal.createIndex(DSL.name("idx_revoked_token_jti"), JRevokedToken.REVOKED_TOKEN, new OrderField[] { JRevokedToken.REVOKED_TOKEN.JTI }, true);
+    public static final Index IDX_REVOKED_TOKEN_SUBJECT_REVOKED_AT = Internal.createIndex(DSL.name("idx_revoked_token_subject_revoked_at"), JRevokedToken.REVOKED_TOKEN, new OrderField[] { JRevokedToken.REVOKED_TOKEN.SUBJECT, JRevokedToken.REVOKED_TOKEN.REVOKED_AT }, false);
     public static final Index IDX_TEST_ITEM_DELETED_DELETED_AT = Internal.createIndex(DSL.name("idx_test_item_deleted_deleted_at"), JTestItemDeleted.TEST_ITEM_DELETED, new OrderField[] { JTestItemDeleted.TEST_ITEM_DELETED.DELETED_AT }, false);
     public static final Index IDX_TMS_ATTACHMENT_EXPIRES_AT = Internal.createIndex(DSL.name("idx_tms_attachment_expires_at"), JTmsAttachment.TMS_ATTACHMENT, new OrderField[] { JTmsAttachment.TMS_ATTACHMENT.EXPIRES_AT }, false);
     public static final Index IDX_TMS_ATTACHMENT_PATH = Internal.createIndex(DSL.name("idx_tms_attachment_path"), JTmsAttachment.TMS_ATTACHMENT, new OrderField[] { JTmsAttachment.TMS_ATTACHMENT.PATH_TO_FILE }, false);
+    public static final Index IDX_TMS_ATTACHMENT_PROJECT_ID = Internal.createIndex(DSL.name("idx_tms_attachment_project_id"), JTmsAttachment.TMS_ATTACHMENT, new OrderField[] { JTmsAttachment.TMS_ATTACHMENT.PROJECT_ID, JTmsAttachment.TMS_ATTACHMENT.ID }, false);
     public static final Index IDX_TMS_ATTRIBUTE_KEY_TRGM = Internal.createIndex(DSL.name("idx_tms_attribute_key_trgm"), JTmsAttribute.TMS_ATTRIBUTE, new OrderField[] { JTmsAttribute.TMS_ATTRIBUTE.KEY }, false);
     public static final Index IDX_TMS_ATTRIBUTE_PROJECT_ID = Internal.createIndex(DSL.name("idx_tms_attribute_project_id"), JTmsAttribute.TMS_ATTRIBUTE, new OrderField[] { JTmsAttribute.TMS_ATTRIBUTE.PROJECT_ID }, false);
     public static final Index IDX_TMS_ATTRIBUTE_PROJECT_KEY = Internal.createIndex(DSL.name("idx_tms_attribute_project_key"), JTmsAttribute.TMS_ATTRIBUTE, new OrderField[] { JTmsAttribute.TMS_ATTRIBUTE.PROJECT_ID, JTmsAttribute.TMS_ATTRIBUTE.KEY }, false);
@@ -125,6 +123,9 @@ public class Indexes {
     public static final Index IDX_TMS_STEP_EXECUTION_TEST_CASE = Internal.createIndex(DSL.name("idx_tms_step_execution_test_case"), JTmsStepExecution.TMS_STEP_EXECUTION, new OrderField[] { JTmsStepExecution.TMS_STEP_EXECUTION.TEST_CASE_EXECUTION_ID }, false);
     public static final Index IDX_TMS_STEP_EXECUTION_TEST_ITEM = Internal.createIndex(DSL.name("idx_tms_step_execution_test_item"), JTmsStepExecution.TMS_STEP_EXECUTION, new OrderField[] { JTmsStepExecution.TMS_STEP_EXECUTION.TEST_ITEM_ID }, false);
     public static final Index IDX_TMS_STEP_EXECUTION_TMS_STEP = Internal.createIndex(DSL.name("idx_tms_step_execution_tms_step"), JTmsStepExecution.TMS_STEP_EXECUTION, new OrderField[] { JTmsStepExecution.TMS_STEP_EXECUTION.TMS_STEP_ID }, false);
+    public static final Index IDX_TMS_SYNC_JOB_PROJECT_ID = Internal.createIndex(DSL.name("idx_tms_sync_job_project_id"), JTmsSyncJob.TMS_SYNC_JOB, new OrderField[] { JTmsSyncJob.TMS_SYNC_JOB.PROJECT_ID }, false);
+    public static final Index IDX_TMS_SYNC_JOB_STATUS = Internal.createIndex(DSL.name("idx_tms_sync_job_status"), JTmsSyncJob.TMS_SYNC_JOB, new OrderField[] { JTmsSyncJob.TMS_SYNC_JOB.STATUS }, false);
+    public static final Index IDX_TMS_TEST_CASE_DISPLAY_ID_TRGM = Internal.createIndex(DSL.name("idx_tms_test_case_display_id_trgm"), JTmsTestCase.TMS_TEST_CASE, new OrderField[] { JTmsTestCase.TMS_TEST_CASE.DISPLAY_ID }, false);
     public static final Index IDX_TMS_TEST_CASE_EXECUTION_COMMENT_EXECUTION_ID = Internal.createIndex(DSL.name("idx_tms_test_case_execution_comment_execution_id"), JTmsTestCaseExecutionComment.TMS_TEST_CASE_EXECUTION_COMMENT, new OrderField[] { JTmsTestCaseExecutionComment.TMS_TEST_CASE_EXECUTION_COMMENT.EXECUTION_ID }, false);
     public static final Index IDX_TMS_TEST_CASE_EXECUTION_LAUNCH_CASE = Internal.createIndex(DSL.name("idx_tms_test_case_execution_launch_case"), JTmsTestCaseExecution.TMS_TEST_CASE_EXECUTION, new OrderField[] { JTmsTestCaseExecution.TMS_TEST_CASE_EXECUTION.LAUNCH_ID, JTmsTestCaseExecution.TMS_TEST_CASE_EXECUTION.TEST_CASE_ID }, false);
     public static final Index IDX_TMS_TEST_CASE_EXECUTION_LAUNCH_ID = Internal.createIndex(DSL.name("idx_tms_test_case_execution_launch_id"), JTmsTestCaseExecution.TMS_TEST_CASE_EXECUTION, new OrderField[] { JTmsTestCaseExecution.TMS_TEST_CASE_EXECUTION.LAUNCH_ID }, false);
@@ -141,6 +142,7 @@ public class Indexes {
     public static final Index IDX_TMS_TEST_FOLDER_PROJECT_ID = Internal.createIndex(DSL.name("idx_tms_test_folder_project_id"), JTmsTestFolder.TMS_TEST_FOLDER, new OrderField[] { JTmsTestFolder.TMS_TEST_FOLDER.PROJECT_ID, JTmsTestFolder.TMS_TEST_FOLDER.ID }, false);
     public static final Index IDX_TMS_TEST_FOLDER_PROJECT_NAME = Internal.createIndex(DSL.name("idx_tms_test_folder_project_name"), JTmsTestFolder.TMS_TEST_FOLDER, new OrderField[] { JTmsTestFolder.TMS_TEST_FOLDER.PROJECT_ID, JTmsTestFolder.TMS_TEST_FOLDER.NAME }, false);
     public static final Index IDX_TMS_TEST_FOLDER_PROJECT_PARENT = Internal.createIndex(DSL.name("idx_tms_test_folder_project_parent"), JTmsTestFolder.TMS_TEST_FOLDER, new OrderField[] { JTmsTestFolder.TMS_TEST_FOLDER.PROJECT_ID, JTmsTestFolder.TMS_TEST_FOLDER.PARENT_ID }, false);
+    public static final Index IDX_TMS_TEST_FOLDER_TEST_ITEM_LAUNCH_FOLDER = Internal.createIndex(DSL.name("idx_tms_test_folder_test_item_launch_folder"), JTmsTestFolderTestItem.TMS_TEST_FOLDER_TEST_ITEM, new OrderField[] { JTmsTestFolderTestItem.TMS_TEST_FOLDER_TEST_ITEM.LAUNCH_ID, JTmsTestFolderTestItem.TMS_TEST_FOLDER_TEST_ITEM.TEST_FOLDER_ID }, false);
     public static final Index IDX_TMS_TEST_FOLDER_TEST_ITEM_TEST_FOLDER_ID = Internal.createIndex(DSL.name("idx_tms_test_folder_test_item_test_folder_id"), JTmsTestFolderTestItem.TMS_TEST_FOLDER_TEST_ITEM, new OrderField[] { JTmsTestFolderTestItem.TMS_TEST_FOLDER_TEST_ITEM.TEST_FOLDER_ID }, false);
     public static final Index IDX_TMS_TEST_FOLDER_TEST_ITEM_TEST_ITEM_ID = Internal.createIndex(DSL.name("idx_tms_test_folder_test_item_test_item_id"), JTmsTestFolderTestItem.TMS_TEST_FOLDER_TEST_ITEM, new OrderField[] { JTmsTestFolderTestItem.TMS_TEST_FOLDER_TEST_ITEM.TEST_ITEM_ID }, false);
     public static final Index IDX_TMS_TEST_PLAN_MILESTONE_ID = Internal.createIndex(DSL.name("idx_tms_test_plan_milestone_id"), JTmsTestPlan.TMS_TEST_PLAN, new OrderField[] { JTmsTestPlan.TMS_TEST_PLAN.MILESTONE_ID }, false);
@@ -156,21 +158,15 @@ public class Indexes {
     public static final Index ITEM_ATTR_TI_IDX = Internal.createIndex(DSL.name("item_attr_ti_idx"), JItemAttribute.ITEM_ATTRIBUTE, new OrderField[] { JItemAttribute.ITEM_ATTRIBUTE.ITEM_ID }, false);
     public static final Index ITEM_ATTRIBUTE_KEY_VALUE_IDX = Internal.createIndex(DSL.name("item_attribute_key_value_idx"), JItemAttribute.ITEM_ATTRIBUTE, new OrderField[] { JItemAttribute.ITEM_ATTRIBUTE.KEY, JItemAttribute.ITEM_ATTRIBUTE.VALUE }, false);
     public static final Index L_ATTR_RL_SEND_CASE_IDX = Internal.createIndex(DSL.name("l_attr_rl_send_case_idx"), JLaunchAttributeRules.LAUNCH_ATTRIBUTE_RULES, new OrderField[] { JLaunchAttributeRules.LAUNCH_ATTRIBUTE_RULES.SENDER_CASE_ID }, false);
-  public static final Index LAUNCH_ATTR_LAUNCH_IDX = Internal.createIndex(
-      DSL.name("launch_attr_launch_idx"), JLaunchAttribute.LAUNCH_ATTRIBUTE,
-      new OrderField[]{JLaunchAttribute.LAUNCH_ATTRIBUTE.LAUNCH_ID}, false);
-  public static final Index LAUNCH_ATTRIBUTE_KEY_VALUE_IDX = Internal.createIndex(
-      DSL.name("launch_attribute_key_value_idx"), JLaunchAttribute.LAUNCH_ATTRIBUTE,
-      new OrderField[]{JLaunchAttribute.LAUNCH_ATTRIBUTE.KEY,
-          JLaunchAttribute.LAUNCH_ATTRIBUTE.VALUE}, false);
+    public static final Index LAUNCH_ATTR_LAUNCH_IDX = Internal.createIndex(DSL.name("launch_attr_launch_idx"), JLaunchAttribute.LAUNCH_ATTRIBUTE, new OrderField[] { JLaunchAttribute.LAUNCH_ATTRIBUTE.LAUNCH_ID }, false);
+    public static final Index LAUNCH_ATTRIBUTE_KEY_VALUE_IDX = Internal.createIndex(DSL.name("launch_attribute_key_value_idx"), JLaunchAttribute.LAUNCH_ATTRIBUTE, new OrderField[] { JLaunchAttribute.LAUNCH_ATTRIBUTE.KEY, JLaunchAttribute.LAUNCH_ATTRIBUTE.VALUE }, false);
     public static final Index LAUNCH_PROJECT_START_TIME_IDX = Internal.createIndex(DSL.name("launch_project_start_time_idx"), JLaunch.LAUNCH, new OrderField[] { JLaunch.LAUNCH.PROJECT_ID, JLaunch.LAUNCH.START_TIME }, false);
-  public static final Index LAUNCH_STATISTICS_LAUNCH_IDX = Internal.createIndex(
-      DSL.name("launch_statistics_launch_idx"), JLaunchStatistics.LAUNCH_STATISTICS,
-      new OrderField[]{JLaunchStatistics.LAUNCH_STATISTICS.LAUNCH_ID}, false);
+    public static final Index LAUNCH_STATISTICS_LAUNCH_IDX = Internal.createIndex(DSL.name("launch_statistics_launch_idx"), JLaunchStatistics.LAUNCH_STATISTICS, new OrderField[] { JLaunchStatistics.LAUNCH_STATISTICS.LAUNCH_ID }, false);
     public static final Index LAUNCH_USER_IDX = Internal.createIndex(DSL.name("launch_user_idx"), JLaunch.LAUNCH, new OrderField[] { JLaunch.LAUNCH.USER_ID }, false);
     public static final Index LN_SEND_CASE_IDX = Internal.createIndex(DSL.name("ln_send_case_idx"), JLaunchNames.LAUNCH_NAMES, new OrderField[] { JLaunchNames.LAUNCH_NAMES.SENDER_CASE_ID }, false);
     public static final Index LOG_ATTACH_ID_IDX = Internal.createIndex(DSL.name("log_attach_id_idx"), JLog.LOG, new OrderField[] { JLog.LOG.ATTACHMENT_ID }, false);
     public static final Index LOG_CLUSTER_IDX = Internal.createIndex(DSL.name("log_cluster_idx"), JLog.LOG, new OrderField[] { JLog.LOG.CLUSTER_ID }, false);
+    public static final Index LOG_ITEM_LEVEL_IDX = Internal.createIndex(DSL.name("log_item_level_idx"), JLog.LOG, new OrderField[] { JLog.LOG.ITEM_ID, JLog.LOG.LOG_LEVEL }, false);
     public static final Index LOG_LAUNCH_ID_IDX = Internal.createIndex(DSL.name("log_launch_id_idx"), JLog.LOG, new OrderField[] { JLog.LOG.LAUNCH_ID }, false);
     public static final Index LOG_PROJECT_ID_LOG_TIME_IDX = Internal.createIndex(DSL.name("log_project_id_log_time_idx"), JLog.LOG, new OrderField[] { JLog.LOG.PROJECT_ID, JLog.LOG.LOG_TIME }, false);
     public static final Index LOG_PROJECT_IDX = Internal.createIndex(DSL.name("log_project_idx"), JLog.LOG, new OrderField[] { JLog.LOG.PROJECT_ID }, false);
@@ -197,10 +193,7 @@ public class Indexes {
     public static final Index TICKET_ID_IDX = Internal.createIndex(DSL.name("ticket_id_idx"), JTicket.TICKET, new OrderField[] { JTicket.TICKET.TICKET_ID }, false);
     public static final Index TICKET_SUBMITTER_IDX = Internal.createIndex(DSL.name("ticket_submitter_idx"), JTicket.TICKET, new OrderField[] { JTicket.TICKET.SUBMITTER }, false);
     public static final Index UNIQUE_GLOBAL_INTEGRATION_NAME = Internal.createIndex(DSL.name("unique_global_integration_name"), JIntegration.INTEGRATION, new OrderField[] { JIntegration.INTEGRATION.NAME, JIntegration.INTEGRATION.TYPE }, true);
-  public static final Index UNIQUE_ORGANIZATION_INTEGRATION_NAME = Internal.createIndex(
-      DSL.name("unique_organization_integration_name"), JIntegration.INTEGRATION,
-      new OrderField[]{JIntegration.INTEGRATION.NAME, JIntegration.INTEGRATION.TYPE,
-          JIntegration.INTEGRATION.ORGANIZATION_ID}, true);
+    public static final Index UNIQUE_ORGANIZATION_INTEGRATION_NAME = Internal.createIndex(DSL.name("unique_organization_integration_name"), JIntegration.INTEGRATION, new OrderField[] { JIntegration.INTEGRATION.NAME, JIntegration.INTEGRATION.TYPE, JIntegration.INTEGRATION.ORGANIZATION_ID }, true);
     public static final Index UNIQUE_PROJECT_INTEGRATION_NAME = Internal.createIndex(DSL.name("unique_project_integration_name"), JIntegration.INTEGRATION, new OrderField[] { JIntegration.INTEGRATION.NAME, JIntegration.INTEGRATION.TYPE, JIntegration.INTEGRATION.PROJECT_ID }, true);
     public static final Index UNIQUE_RULE_NAME_PER_PROJECT_RULE_TYPE = Internal.createIndex(DSL.name("unique_rule_name_per_project_rule_type"), JSenderCase.SENDER_CASE, new OrderField[] { JSenderCase.SENDER_CASE.RULE_NAME, JSenderCase.SENDER_CASE.PROJECT_ID, JSenderCase.SENDER_CASE.RULE_TYPE }, true);
     public static final Index UNQ_LAUNCH_PROJECT_DISPLAY_ID = Internal.createIndex(DSL.name("unq_launch_project_display_id"), JLaunch.LAUNCH, new OrderField[] { JLaunch.LAUNCH.PROJECT_ID, JLaunch.LAUNCH.DISPLAY_ID }, true);

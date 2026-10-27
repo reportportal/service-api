@@ -16,13 +16,13 @@
 
 package com.epam.reportportal.base.core.configs;
 
-import com.networknt.schema.JsonSchemaFactory;
-import com.networknt.schema.SpecVersion.VersionFlag;
+import com.networknt.schema.SchemaRegistry;
+import com.networknt.schema.SpecificationVersion;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * Configuration class for JSON schema validation. This class provides a method to create a {@link JsonSchemaFactory}
+ * Configuration class for JSON schema validation. This class provides a method to create a {@link SchemaRegistry}
  * instance
  *
  * @author <a href="mailto:reingold_shekhtel@epam.com">Reingold Shekhtel</a>
@@ -40,17 +40,12 @@ public class JsonSchemaValidatorConfig {
   private String schemaLocation;
 
   /**
-   * Creates a {@link JsonSchemaFactory} instance with the specified schema version and schema mappers.
+   * Creates a {@link SchemaRegistry} instance with the specified schema version and schema mappers.
    *
-   * @return a {@link JsonSchemaFactory} instance
+   * @return a {@link SchemaRegistry} instance
    */
-  public JsonSchemaFactory createSchemaFactory() {
-    return JsonSchemaFactory.getInstance(
-        VersionFlag.valueOf(schemaVersion),
-        builder -> builder.schemaMappers(schemaMappers -> schemaMappers.mapPrefix(
-            schemaSource,
-            schemaLocation
-        ))
-    );
+  public SchemaRegistry createSchemaRegistry() {
+    return SchemaRegistry.withDefaultDialect(SpecificationVersion.valueOf(schemaVersion),
+        builder -> builder.schemaIdResolvers(resolvers -> resolvers.mapPrefix(schemaSource, schemaLocation)));
   }
 }

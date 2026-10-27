@@ -38,8 +38,6 @@ import com.epam.reportportal.base.model.marketplace.detail.MarketplaceChangelogR
 import com.epam.reportportal.base.model.marketplace.detail.MarketplacePluginDetailResource;
 import com.epam.reportportal.base.model.marketplace.detail.MarketplacePluginResource;
 import com.epam.reportportal.base.model.marketplace.detail.MarketplaceVersionResource;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import jakarta.validation.constraints.Size;
@@ -61,6 +59,8 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.function.Function;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * The names service-api actually puts on the wire for the plugins page, pinned — and published, so
@@ -91,7 +91,7 @@ import org.junit.jupiter.api.Test;
  */
 class MarketplaceWireContractTest {
 
-  private final ObjectMapper objectMapper = new JacksonConfiguration().objectMapper();
+  private final JsonMapper objectMapper = new JacksonConfiguration().objectMapper();
 
   /** The bean validation the controller's {@code @Valid} runs, so the facts are the real ones. */
   private final Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
@@ -760,16 +760,16 @@ class MarketplaceWireContractTest {
   @Test
   void theOfflineEnvelopesCarryTheStatusAndTheHostAndNothingRegistryDerived() {
     var page = objectMapper.valueToTree(offlinePluginDetail());
-    assertEquals("OFFLINE", page.path("registry").path("status").asText());
-    assertEquals(HOST, page.path("registry").path("host").asText());
+    assertEquals("OFFLINE", page.path("registry").path("status").asString());
+    assertEquals(HOST, page.path("registry").path("host").asString());
     assertEquals(new TreeSet<>(List.of("locked", "registry", "screenshots", "versions")),
         new TreeSet<>(names(page)));
     assertTrue(page.path("versions").isEmpty());
     assertTrue(page.path("screenshots").isEmpty());
 
     var list = objectMapper.valueToTree(offlineCatalogue());
-    assertEquals("OFFLINE", list.path("registry").path("status").asText());
-    assertEquals(HOST, list.path("registry").path("host").asText());
+    assertEquals("OFFLINE", list.path("registry").path("status").asString());
+    assertEquals(HOST, list.path("registry").path("host").asString());
     assertTrue(list.path("available").isEmpty());
     assertEquals(List.of(), pathsEndingIn(list, "marketplace"),
         "an offline catalogue can vouch for nothing, so no row carries a marketplace block");
@@ -911,7 +911,7 @@ class MarketplaceWireContractTest {
 
   private static List<String> names(JsonNode node) {
     var names = new ArrayList<String>();
-    node.fieldNames().forEachRemaining(names::add);
+    names.addAll(node.propertyNames());
     return names;
   }
 }

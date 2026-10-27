@@ -30,13 +30,14 @@ import org.jooq.QueryPart;
 import org.jooq.Record;
 import org.jooq.SQL;
 import org.jooq.Schema;
-import org.jooq.Select;
 import org.jooq.Stringly;
 import org.jooq.Table;
 import org.jooq.TableField;
+import org.jooq.TableLike;
 import org.jooq.TableOptions;
 import org.jooq.UniqueKey;
 import org.jooq.impl.DSL;
+import org.jooq.impl.Internal;
 import org.jooq.impl.SQLDataType;
 import org.jooq.impl.TableImpl;
 
@@ -65,7 +66,7 @@ public class JIssueType extends TableImpl<JIssueTypeRecord> {
     /**
      * The column <code>public.issue_type.id</code>.
      */
-    public final TableField<JIssueTypeRecord, Long> ID = createField(DSL.name("id"), SQLDataType.BIGINT.nullable(false).identity(true), this, "");
+    public final TableField<JIssueTypeRecord, Long> ID = createField(DSL.name("id"), SQLDataType.BIGINT.nullable(false).generatedByDefaultAsIdentity(), this, "");
 
     /**
      * The column <code>public.issue_type.issue_group_id</code>.
@@ -273,7 +274,7 @@ public class JIssueType extends TableImpl<JIssueTypeRecord> {
      */
     @Override
     public JIssueType where(Condition condition) {
-        return new JIssueType(getQualifiedName(), aliased() ? this : null, null, condition);
+        return new JIssueType(getQualifiedName(), aliased() ? this : null, null, Internal.condition(this, condition));
     }
 
     /**
@@ -340,7 +341,7 @@ public class JIssueType extends TableImpl<JIssueTypeRecord> {
      * Create an inline derived table from this table
      */
     @Override
-    public JIssueType whereExists(Select<?> select) {
+    public JIssueType whereExists(TableLike<?> select) {
         return where(DSL.exists(select));
     }
 
@@ -348,7 +349,7 @@ public class JIssueType extends TableImpl<JIssueTypeRecord> {
      * Create an inline derived table from this table
      */
     @Override
-    public JIssueType whereNotExists(Select<?> select) {
+    public JIssueType whereNotExists(TableLike<?> select) {
         return where(DSL.notExists(select));
     }
 }

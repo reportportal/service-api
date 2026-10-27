@@ -50,11 +50,15 @@ public class WidgetResource extends OwnedResource {
 
   @NotNull
   @JsonProperty(value = "widgetType", required = true)
-  @Schema(required = true, allowableValues =
-      "oldLineChart, investigatedTrend, launchStatistics, statisticTrend,"
-          + " casesTrend, notPassed, overallStatistics, uniqueBugTable, bugTrend, activityStream, launchesComparisonChart,"
-          + " launchesDurationChart, launchesTable, topTestCases, flakyTestCases, passingRateSummary, passingRatePerLaunch,"
-          + " productStatus, mostTimeConsuming, cumulative")
+  @Schema(
+      requiredMode = Schema.RequiredMode.REQUIRED,
+      allowableValues = """
+          oldLineChart, investigatedTrend, launchStatistics, statisticTrend, casesTrend, notPassed, overallStatistics, \
+          uniqueBugTable, bugTrend, activityStream, launchesComparisonChart, launchesDurationChart, launchesTable, \
+          topTestCases, flakyTestCases, passingRateSummary, passingRatePerLaunch, productStatus, mostTimeConsuming, \
+          cumulative\
+          """
+  )
   private String widgetType;
 
   @NotNull

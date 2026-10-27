@@ -32,10 +32,9 @@ import lombok.Getter;
 @Deprecated
 public class CollectionsRQ<T> {
 
-  @Valid
   @NotNull
   @JsonProperty(value = "elements", required = true)
-  private List<T> elements;
+  private List<@Valid T> elements;
 
   @Override
   public String toString() {

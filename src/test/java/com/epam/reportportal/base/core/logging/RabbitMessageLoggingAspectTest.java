@@ -23,7 +23,6 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.Appender;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
@@ -37,10 +36,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessagePropertiesBuilder;
-import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
+import org.springframework.amqp.support.converter.JacksonJsonMessageConverter;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.aop.aspectj.annotation.AspectJProxyFactory;
 import org.springframework.test.util.ReflectionTestUtils;
+import tools.jackson.databind.json.JsonMapper;
 
 @ExtendWith(MockitoExtension.class)
 class RabbitMessageLoggingAspectTest {
@@ -63,18 +63,18 @@ class RabbitMessageLoggingAspectTest {
 
   private String log;
 
-  private static ObjectMapper objectMapper;
+  private static JsonMapper objectMapper;
 
   private static MessageConverter messageConverter;
 
   private static Map<String, Object> headers;
 
   @BeforeAll
-  static void beforeAll() throws Exception {
+  static void beforeAll() {
     aspect = new RabbitMessageLoggingAspect();
 
-    objectMapper = new ObjectMapper();
-    messageConverter = new Jackson2JsonMessageConverter();
+    objectMapper = JsonMapper.builder().build();
+    messageConverter = new JacksonJsonMessageConverter(objectMapper);
 
     ReflectionTestUtils.setField(aspect, "objectMapper", objectMapper);
     ReflectionTestUtils.setField(aspect, "messageConverter", messageConverter);

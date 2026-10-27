@@ -16,9 +16,7 @@
 
 package com.epam.reportportal.base.infrastructure.persistence.entity.attachment;
 
-import com.epam.reportportal.base.infrastructure.persistence.dao.converters.JpaInstantConverter;
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -27,6 +25,9 @@ import jakarta.persistence.Table;
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.Objects;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
  * Stored file metadata (path, size, type) for logs and binary uploads.
@@ -35,6 +36,9 @@ import java.util.Objects;
  */
 @Entity
 @Table(name = "attachment")
+@Setter
+@Getter
+@NoArgsConstructor
 public class Attachment implements Serializable {
 
   @Id
@@ -57,7 +61,6 @@ public class Attachment implements Serializable {
   private long fileSize;
 
   @Column(name = "creation_date")
-  @Convert(converter = JpaInstantConverter.class)
   private Instant creationDate;
 
   @Column(name = "project_id")
@@ -68,89 +71,6 @@ public class Attachment implements Serializable {
 
   @Column(name = "item_id")
   private Long itemId;
-
-  public Attachment() {
-  }
-
-  public Long getId() {
-    return id;
-  }
-
-  public void setId(Long id) {
-    this.id = id;
-  }
-
-  public String getFileId() {
-    return fileId;
-  }
-
-  public void setFileId(String fileId) {
-    this.fileId = fileId;
-  }
-
-  public String getThumbnailId() {
-    return thumbnailId;
-  }
-
-  public void setThumbnailId(String thumbnailId) {
-    this.thumbnailId = thumbnailId;
-  }
-
-  public String getContentType() {
-    return contentType;
-  }
-
-  public void setContentType(String contentType) {
-    this.contentType = contentType;
-  }
-
-  public long getFileSize() {
-    return fileSize;
-  }
-
-  public void setFileSize(long fileSize) {
-    this.fileSize = fileSize;
-  }
-
-  public Instant getCreationDate() {
-    return creationDate;
-  }
-
-  public void setCreationDate(Instant creationDate) {
-    this.creationDate = creationDate;
-  }
-
-  public Long getProjectId() {
-    return projectId;
-  }
-
-  public void setProjectId(Long projectId) {
-    this.projectId = projectId;
-  }
-
-  public Long getLaunchId() {
-    return launchId;
-  }
-
-  public void setLaunchId(Long launchId) {
-    this.launchId = launchId;
-  }
-
-  public Long getItemId() {
-    return itemId;
-  }
-
-  public void setItemId(Long itemId) {
-    this.itemId = itemId;
-  }
-
-  public String getFileName() {
-    return fileName;
-  }
-
-  public void setFileName(String fileName) {
-    this.fileName = fileName;
-  }
 
   @Override
   public boolean equals(Object o) {

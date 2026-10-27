@@ -10,9 +10,11 @@ import com.epam.reportportal.base.infrastructure.persistence.jooq.Keys;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JStatisticsField.JStatisticsFieldPath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTestItem.JTestItemPath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.records.JStatisticsRecord;
+
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+
 import org.jooq.Check;
 import org.jooq.Condition;
 import org.jooq.Field;
@@ -27,10 +29,10 @@ import org.jooq.QueryPart;
 import org.jooq.Record;
 import org.jooq.SQL;
 import org.jooq.Schema;
-import org.jooq.Select;
 import org.jooq.Stringly;
 import org.jooq.Table;
 import org.jooq.TableField;
+import org.jooq.TableLike;
 import org.jooq.TableOptions;
 import org.jooq.UniqueKey;
 import org.jooq.impl.DSL;
@@ -63,7 +65,7 @@ public class JStatistics extends TableImpl<JStatisticsRecord> {
     /**
      * The column <code>public.statistics.s_id</code>.
      */
-    public final TableField<JStatisticsRecord, Long> S_ID = createField(DSL.name("s_id"), SQLDataType.BIGINT.nullable(false).identity(true), this, "");
+    public final TableField<JStatisticsRecord, Long> S_ID = createField(DSL.name("s_id"), SQLDataType.BIGINT.nullable(false).generatedByDefaultAsIdentity(), this, "");
 
     /**
      * The column <code>public.statistics.s_counter</code>.
@@ -73,8 +75,7 @@ public class JStatistics extends TableImpl<JStatisticsRecord> {
     /**
      * The column <code>public.statistics.item_id</code>.
      */
-    public final TableField<JStatisticsRecord, Long> ITEM_ID = createField(DSL.name("item_id"),
-        SQLDataType.BIGINT.nullable(false), this, "");
+    public final TableField<JStatisticsRecord, Long> ITEM_ID = createField(DSL.name("item_id"), SQLDataType.BIGINT.nullable(false), this, "");
 
     /**
      * The column <code>public.statistics.statistics_field_id</code>.
@@ -150,7 +151,7 @@ public class JStatistics extends TableImpl<JStatisticsRecord> {
 
     @Override
     public List<Index> getIndexes() {
-      return Arrays.asList(Indexes.STATISTICS_TI_IDX);
+        return Arrays.asList(Indexes.STATISTICS_TI_IDX);
     }
 
     @Override
@@ -165,13 +166,12 @@ public class JStatistics extends TableImpl<JStatisticsRecord> {
 
     @Override
     public List<UniqueKey<JStatisticsRecord>> getUniqueKeys() {
-      return Arrays.asList(Keys.UNIQUE_STATS_ITEM);
+        return Arrays.asList(Keys.UNIQUE_STATS_ITEM);
     }
 
     @Override
     public List<ForeignKey<JStatisticsRecord, ?>> getReferences() {
-      return Arrays.asList(Keys.STATISTICS__STATISTICS_ITEM_ID_FKEY,
-          Keys.STATISTICS__STATISTICS_STATISTICS_FIELD_ID_FKEY);
+        return Arrays.asList(Keys.STATISTICS__STATISTICS_ITEM_ID_FKEY, Keys.STATISTICS__STATISTICS_STATISTICS_FIELD_ID_FKEY);
     }
 
     private transient JTestItemPath _testItem;
@@ -250,7 +250,7 @@ public class JStatistics extends TableImpl<JStatisticsRecord> {
      */
     @Override
     public JStatistics where(Condition condition) {
-        return new JStatistics(getQualifiedName(), aliased() ? this : null, null, condition);
+        return new JStatistics(getQualifiedName(), aliased() ? this : null, null, Internal.condition(this, condition));
     }
 
     /**
@@ -317,7 +317,7 @@ public class JStatistics extends TableImpl<JStatisticsRecord> {
      * Create an inline derived table from this table
      */
     @Override
-    public JStatistics whereExists(Select<?> select) {
+    public JStatistics whereExists(TableLike<?> select) {
         return where(DSL.exists(select));
     }
 
@@ -325,7 +325,7 @@ public class JStatistics extends TableImpl<JStatisticsRecord> {
      * Create an inline derived table from this table
      */
     @Override
-    public JStatistics whereNotExists(Select<?> select) {
+    public JStatistics whereNotExists(TableLike<?> select) {
         return where(DSL.notExists(select));
     }
 }

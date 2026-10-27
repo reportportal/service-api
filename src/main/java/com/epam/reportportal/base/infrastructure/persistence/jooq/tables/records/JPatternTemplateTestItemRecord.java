@@ -74,6 +74,6 @@ public class JPatternTemplateTestItemRecord extends UpdatableRecordImpl<JPattern
 
         setPatternId(patternId);
         setItemId(itemId);
-        resetChangedOnNotNull();
+        resetTouchedOnNotNull();
     }
 }

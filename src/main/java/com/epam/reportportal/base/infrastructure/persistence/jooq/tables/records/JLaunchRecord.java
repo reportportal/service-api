@@ -335,6 +335,6 @@ public class JLaunchRecord extends UpdatableRecordImpl<JLaunchRecord> {
         setLaunchType(launchType);
         setTestPlanId(testPlanId);
         setDisplayId(displayId);
-        resetChangedOnNotNull();
+        resetTouchedOnNotNull();
     }
 }

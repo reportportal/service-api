@@ -33,6 +33,5 @@ public class TmsStepRQ {
   /**
    * Attachments for the step.
    */
-  @Valid
-  private List<TmsManualScenarioAttachmentRQ> attachments;
+  private List<@Valid TmsManualScenarioAttachmentRQ> attachments;
 }

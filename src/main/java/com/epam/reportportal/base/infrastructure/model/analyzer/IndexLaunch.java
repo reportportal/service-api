@@ -19,13 +19,13 @@ package com.epam.reportportal.base.infrastructure.model.analyzer;
 import com.epam.reportportal.base.infrastructure.databind.LocalDateTimeSerializer;
 import com.epam.reportportal.base.infrastructure.model.project.AnalyzerConfig;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import tools.jackson.databind.annotation.JsonSerialize;
 
 /**
  * Represents launch container in index/analysis request/response.

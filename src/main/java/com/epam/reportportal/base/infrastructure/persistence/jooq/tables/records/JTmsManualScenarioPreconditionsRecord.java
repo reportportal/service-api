@@ -91,6 +91,6 @@ public class JTmsManualScenarioPreconditionsRecord extends UpdatableRecordImpl<J
         setId(id);
         setManualScenarioId(manualScenarioId);
         setValue(value);
-        resetChangedOnNotNull();
+        resetTouchedOnNotNull();
     }
 }

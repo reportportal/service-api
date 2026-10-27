@@ -16,9 +16,7 @@
 
 package com.epam.reportportal.base.infrastructure.persistence.entity.activity;
 
-import com.epam.reportportal.base.infrastructure.persistence.dao.converters.JpaInstantConverter;
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -33,9 +31,8 @@ import java.util.Objects;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import org.hibernate.annotations.JdbcType;
-import org.hibernate.annotations.Type;
-import org.hibernate.dialect.PostgreSQLEnumJdbcType;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 
 /**
@@ -56,12 +53,10 @@ public class Activity implements Serializable {
   private Long id;
 
   @Column(name = "created_at", nullable = false)
-  @Convert(converter = JpaInstantConverter.class)
   private Instant createdAt;
 
   @Column(name = "action", nullable = false)
   @Enumerated(EnumType.STRING)
-  @JdbcType(PostgreSQLEnumJdbcType.class)
   private EventAction action;
 
   @Column(name = "event_name", nullable = false)
@@ -69,7 +64,6 @@ public class Activity implements Serializable {
 
   @Column(name = "priority", nullable = false)
   @Enumerated(EnumType.STRING)
-  @JdbcType(PostgreSQLEnumJdbcType.class)
   private EventPriority priority;
 
   @Column(name = "object_id")
@@ -79,7 +73,6 @@ public class Activity implements Serializable {
   private String objectName;
 
   @Enumerated(EnumType.STRING)
-  @JdbcType(PostgreSQLEnumJdbcType.class)
   @Column(name = "object_type", nullable = false)
   private EventObject objectType;
 
@@ -93,7 +86,7 @@ public class Activity implements Serializable {
   private String projectName;
 
   @Column(name = "details")
-  @Type(ActivityDetails.class)
+  @JdbcTypeCode(SqlTypes.JSON)
   private ActivityDetails details;
 
   @Column(name = "subject_id", precision = 32)
@@ -103,7 +96,6 @@ public class Activity implements Serializable {
   private String subjectName;
 
   @Enumerated(EnumType.STRING)
-  @JdbcType(PostgreSQLEnumJdbcType.class)
   @Column(name = "subject_type", nullable = false)
   private EventSubject subjectType;
 

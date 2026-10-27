@@ -89,6 +89,6 @@ public class JProjectAttributeRecord extends UpdatableRecordImpl<JProjectAttribu
         setAttributeId(attributeId);
         setValue(value);
         setProjectId(projectId);
-        resetChangedOnNotNull();
+        resetTouchedOnNotNull();
     }
 }

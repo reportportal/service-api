@@ -37,7 +37,6 @@ import com.epam.reportportal.base.model.widget.ContentParameters;
 import com.epam.reportportal.base.model.widget.WidgetPreviewRQ;
 import com.epam.reportportal.base.model.widget.WidgetRQ;
 import com.epam.reportportal.base.ws.BaseMvcTest;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -47,6 +46,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MvcResult;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -57,7 +57,7 @@ class WidgetControllerTest extends BaseMvcTest {
   private final static String SUPERADMIN_USERNAME = "admin@reportportal.internal";
 
   @Autowired
-  private ObjectMapper objectMapper;
+  private JsonMapper objectMapper;
 
   @Autowired
   private WidgetRepository widgetRepository;

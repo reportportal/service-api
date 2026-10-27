@@ -106,6 +106,6 @@ public class JGroupsUsersRecord extends UpdatableRecordImpl<JGroupsUsersRecord> 
         setUserId(userId);
         setCreatedAt(createdAt);
         setUpdatedAt(updatedAt);
-        resetChangedOnNotNull();
+        resetTouchedOnNotNull();
     }
 }

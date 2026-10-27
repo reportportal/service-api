@@ -14,7 +14,6 @@ import com.epam.reportportal.base.core.tms.dto.ProductVersionRQ;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.ProductVersionRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsProductVersion;
 import com.epam.reportportal.base.ws.BaseMvcTest;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -22,6 +21,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.jdbc.Sql;
+import tools.jackson.databind.json.JsonMapper;
 
 @Sql("/db/tms/tms-product-version/tms-product-version-fill.sql")
 @ExtendWith(MockitoExtension.class)
@@ -35,7 +35,7 @@ class ProductVersionIntegrationTest extends BaseMvcTest {
   @Test
   void createVersionIntegrationTest() throws Exception {
     ProductVersionRQ request = new ProductVersionRQ(1L, "version1", "documentation1", 1L);
-    ObjectMapper mapper = new ObjectMapper();
+    JsonMapper mapper = JsonMapper.builder().build();
     String jsonContent = mapper.writeValueAsString(request);
 
     mockMvc.perform(post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/productversion")
@@ -55,7 +55,7 @@ class ProductVersionIntegrationTest extends BaseMvcTest {
   @Test
   void updateVersionIntegrationTest() throws Exception {
     ProductVersionRQ request = new ProductVersionRQ(3L, "versionUpdated", "docUpdated", 3L);
-    ObjectMapper mapper = new ObjectMapper();
+    JsonMapper mapper = JsonMapper.builder().build();
     String jsonContent = mapper.writeValueAsString(request);
 
     mockMvc.perform(put("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/productversion/3")

@@ -57,9 +57,9 @@ import com.epam.reportportal.base.model.project.config.IssueSubTypeCreatedRS;
 import com.epam.reportportal.base.model.project.config.pattern.CreatePatternTemplateRQ;
 import com.epam.reportportal.base.ws.converter.builders.IssueTypeBuilder;
 import com.epam.reportportal.base.ws.converter.converters.PatternTemplateConverter;
-import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableMap;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.UUID;
@@ -111,7 +111,7 @@ public class CreateProjectSettingsHandlerImpl implements CreateProjectSettingsHa
   }
 
   private static String shortUUID() {
-    long l = ByteBuffer.wrap(UUID.randomUUID().toString().getBytes(Charsets.UTF_8)).getLong();
+    long l = ByteBuffer.wrap(UUID.randomUUID().toString().getBytes(StandardCharsets.UTF_8)).getLong();
     return Long.toString(l, Character.MAX_RADIX);
   }
 

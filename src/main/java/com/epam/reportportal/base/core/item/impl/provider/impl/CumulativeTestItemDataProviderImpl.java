@@ -44,7 +44,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
+import org.springframework.util.ObjectUtils;
 
 /**
  * Cumulative trend data for the widget.
@@ -80,7 +80,7 @@ public class CumulativeTestItemDataProviderImpl implements DataProviderHandler {
   public Queryable updateFilter(Queryable filter, Map<String, String> providerParams) {
     String compositeAttribute = providerParams.get(
         DEFAULT_FILTER_PREFIX + Condition.HAS_FILTER + CRITERIA_LEVEL_ATTRIBUTE);
-    BusinessRule.expect(compositeAttribute, it -> !StringUtils.isEmpty(it))
+    BusinessRule.expect(compositeAttribute, it -> !ObjectUtils.isEmpty(it))
         .verify(ErrorType.BAD_REQUEST_ERROR,
             "Level attributes must be provided for widget based items provider");
     List<Long> redirectLaunchIds = widgetContentRepository.getCumulativeLevelRedirectLaunchIds(

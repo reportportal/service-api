@@ -18,8 +18,6 @@ package com.epam.reportportal.base.infrastructure.persistence.entity.filter;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -30,8 +28,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.JdbcType;
-import org.hibernate.dialect.PostgreSQLEnumJdbcType;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import org.springframework.data.domain.Sort;
 
 /**
@@ -56,8 +54,7 @@ public class FilterSort implements Serializable {
   private String field;
 
   @Column(name = "direction", nullable = false)
-  @Enumerated(EnumType.STRING)
-  @JdbcType(PostgreSQLEnumJdbcType.class)
+  @JdbcTypeCode(SqlTypes.NAMED_ENUM)
   private Sort.Direction direction;
 
   @Override

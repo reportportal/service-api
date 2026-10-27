@@ -107,6 +107,6 @@ public class JOrganizationUserRecord extends UpdatableRecordImpl<JOrganizationUs
         setOrganizationId(organizationId);
         setOrganizationRole(organizationRole);
         setAssignedAt(assignedAt);
-        resetChangedOnNotNull();
+        resetTouchedOnNotNull();
     }
 }

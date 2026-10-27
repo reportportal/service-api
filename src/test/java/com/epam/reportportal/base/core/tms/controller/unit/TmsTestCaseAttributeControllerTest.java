@@ -1,16 +1,15 @@
 package com.epam.reportportal.base.core.tms.controller.unit;
 
+import static com.epam.reportportal.base.util.StandaloneMockMvcSupport.standaloneJsonSetup;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static com.epam.reportportal.base.util.StandaloneMockMvcSupport.standaloneJsonSetup;
 
 import com.epam.reportportal.base.core.tms.controller.TmsTestCaseAttributeController;
 import com.epam.reportportal.base.core.tms.dto.GetAttributesByTestCaseIdsRQ;
@@ -21,7 +20,6 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.organization
 import com.epam.reportportal.base.model.Page;
 import com.epam.reportportal.base.util.ProjectExtractor;
 import com.epam.reportportal.base.ws.resolver.OffsetArgumentResolver;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Collections;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -39,6 +37,7 @@ import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
+import tools.jackson.databind.json.JsonMapper;
 
 class TmsTestCaseAttributeControllerTest {
 
@@ -55,13 +54,13 @@ class TmsTestCaseAttributeControllerTest {
   private TmsTestCaseAttributeController tmsTestCaseAttributeController;
 
   private MockMvc mockMvc;
-  private ObjectMapper objectMapper;
+  private JsonMapper objectMapper;
   private ReportPortalUser testUser;
 
   @BeforeEach
   void setup() {
     MockitoAnnotations.openMocks(this);
-    objectMapper = new ObjectMapper();
+    objectMapper = JsonMapper.builder().build();
 
     testUser = ReportPortalUser.userBuilder()
         .withUserName("testUser")

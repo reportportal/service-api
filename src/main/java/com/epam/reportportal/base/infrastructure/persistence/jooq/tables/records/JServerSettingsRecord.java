@@ -89,6 +89,6 @@ public class JServerSettingsRecord extends UpdatableRecordImpl<JServerSettingsRe
         setId(id);
         setKey(key);
         setValue(value);
-        resetChangedOnNotNull();
+        resetTouchedOnNotNull();
     }
 }

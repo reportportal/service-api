@@ -16,9 +16,9 @@
 
 package com.epam.reportportal.base.infrastructure.persistence.entity.integration;
 
-import com.epam.reportportal.base.infrastructure.persistence.commons.JsonbUserType;
 import java.io.Serializable;
 import java.util.Map;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -28,14 +28,9 @@ import lombok.Setter;
  * @author Yauheni_Martynau
  */
 @Setter
+@EqualsAndHashCode
 @Getter
-public class IntegrationTypeDetails extends JsonbUserType<IntegrationTypeDetails> implements Serializable {
+public class IntegrationTypeDetails implements Serializable {
 
   private Map<String, Object> details;
-
-  @Override
-  public Class<IntegrationTypeDetails> returnedClass() {
-    return IntegrationTypeDetails.class;
-  }
-
 }

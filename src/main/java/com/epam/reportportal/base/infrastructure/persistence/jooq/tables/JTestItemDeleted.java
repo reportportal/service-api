@@ -24,13 +24,14 @@ import org.jooq.PlainSQL;
 import org.jooq.QueryPart;
 import org.jooq.SQL;
 import org.jooq.Schema;
-import org.jooq.Select;
 import org.jooq.Stringly;
 import org.jooq.Table;
 import org.jooq.TableField;
+import org.jooq.TableLike;
 import org.jooq.TableOptions;
 import org.jooq.UniqueKey;
 import org.jooq.impl.DSL;
+import org.jooq.impl.Internal;
 import org.jooq.impl.SQLDataType;
 import org.jooq.impl.TableImpl;
 
@@ -59,7 +60,7 @@ public class JTestItemDeleted extends TableImpl<JTestItemDeletedRecord> {
     /**
      * The column <code>public.test_item_deleted.id</code>.
      */
-    public final TableField<JTestItemDeletedRecord, Long> ID = createField(DSL.name("id"), SQLDataType.BIGINT.nullable(false).identity(true), this, "");
+    public final TableField<JTestItemDeletedRecord, Long> ID = createField(DSL.name("id"), SQLDataType.BIGINT.nullable(false).generatedByDefaultAsIdentity(), this, "");
 
     /**
      * The column <code>public.test_item_deleted.item_id</code>.
@@ -169,7 +170,7 @@ public class JTestItemDeleted extends TableImpl<JTestItemDeletedRecord> {
      */
     @Override
     public JTestItemDeleted where(Condition condition) {
-        return new JTestItemDeleted(getQualifiedName(), aliased() ? this : null, null, condition);
+        return new JTestItemDeleted(getQualifiedName(), aliased() ? this : null, null, Internal.condition(this, condition));
     }
 
     /**
@@ -236,7 +237,7 @@ public class JTestItemDeleted extends TableImpl<JTestItemDeletedRecord> {
      * Create an inline derived table from this table
      */
     @Override
-    public JTestItemDeleted whereExists(Select<?> select) {
+    public JTestItemDeleted whereExists(TableLike<?> select) {
         return where(DSL.exists(select));
     }
 
@@ -244,7 +245,7 @@ public class JTestItemDeleted extends TableImpl<JTestItemDeletedRecord> {
      * Create an inline derived table from this table
      */
     @Override
-    public JTestItemDeleted whereNotExists(Select<?> select) {
+    public JTestItemDeleted whereNotExists(TableLike<?> select) {
         return where(DSL.notExists(select));
     }
 }

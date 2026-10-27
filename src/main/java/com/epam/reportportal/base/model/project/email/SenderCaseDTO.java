@@ -65,9 +65,8 @@ public class SenderCaseDTO implements Serializable {
   @JsonProperty(value = "launchNames")
   private List<String> launchNames;
 
-  @Valid
   @JsonProperty(value = "attributes")
-  private Set<AttributeResource> attributes;
+  private Set<@Valid AttributeResource> attributes;
 
   @JsonProperty(value = "enabled")
   private boolean enabled;

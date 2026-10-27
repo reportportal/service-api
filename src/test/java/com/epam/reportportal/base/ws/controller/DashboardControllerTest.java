@@ -37,7 +37,6 @@ import com.epam.reportportal.base.model.dashboard.CreateDashboardRQ;
 import com.epam.reportportal.base.model.dashboard.DashboardResource;
 import com.epam.reportportal.base.model.dashboard.UpdateDashboardRQ;
 import com.epam.reportportal.base.ws.BaseMvcTest;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -45,6 +44,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.event.ApplicationEvents;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MvcResult;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -53,7 +53,7 @@ import org.springframework.test.web.servlet.MvcResult;
 class DashboardControllerTest extends BaseMvcTest {
 
   @Autowired
-  private ObjectMapper objectMapper;
+  private JsonMapper objectMapper;
 
   @Autowired
   private DashboardRepository dashboardRepository;

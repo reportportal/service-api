@@ -27,12 +27,12 @@ import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
 import org.springframework.amqp.core.DirectExchange;
 import org.springframework.amqp.core.Queue;
+import org.springframework.amqp.listener.ConditionalRejectingErrorHandler;
 import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.amqp.rabbit.listener.ConditionalRejectingErrorHandler;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -66,7 +66,7 @@ public class AnalyzerRabbitMqConfiguration {
     Client rabbitClient;
     try {
       rabbitClient = new Client(address);
-    } catch (Exception e) {
+    } catch (Exception _) {
       throw new ReportPortalException(
           ErrorType.UNCLASSIFIED_REPORT_PORTAL_ERROR,
           "Cannot create a HTTP rabbit client instance. Incorrect api address " + address

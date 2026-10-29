@@ -19,15 +19,18 @@ package com.epam.reportportal.base.job;
 import com.epam.reportportal.base.core.analyzer.auto.LogIndexer;
 import com.epam.reportportal.base.core.analyzer.auto.client.AnalyzerServiceClient;
 import com.epam.reportportal.base.core.logtype.DefaultLogTypeProvider;
-import com.epam.reportportal.base.core.organization.PersonalOrganizationService;
+import com.epam.reportportal.base.core.organization.OrganizationUserService;
 import com.epam.reportportal.base.infrastructure.persistence.binary.UserBinaryDataService;
 import com.epam.reportportal.base.infrastructure.persistence.dao.AttachmentRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IssueTypeRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.LogTypeRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.UserRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.organization.OrganizationRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.FeatureFlag;
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.issue.IssueType;
+import com.epam.reportportal.base.infrastructure.persistence.entity.organization.Organization;
+import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationRole;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectIssueType;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.User;
@@ -36,7 +39,9 @@ import com.epam.reportportal.base.infrastructure.persistence.filesystem.DataStor
 import com.epam.reportportal.base.infrastructure.persistence.util.FeatureFlagHandler;
 import com.epam.reportportal.base.infrastructure.persistence.util.PersonalProjectService;
 import com.epam.reportportal.base.model.user.CreateUserRQFull;
+import com.epam.reportportal.base.util.SlugifyUtils;
 import com.epam.reportportal.base.ws.converter.builders.UserBuilder;
+import java.time.Instant;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.quartz.Job;
@@ -97,7 +102,10 @@ public class FlushingDataJob implements Job {
   private FeatureFlagHandler featureFlagHandler;
 
   @Autowired
-  private PersonalOrganizationService personalOrganizationService;
+  private OrganizationRepository organizationRepository;
+
+  @Autowired
+  private OrganizationUserService organizationUserService;
 
   @Autowired
   private DefaultLogTypeProvider defaultLogTypeProvider;
@@ -117,7 +125,7 @@ public class FlushingDataJob implements Job {
     LOGGER.info("Flushing demo instance data is starting...");
     truncateTables();
     projectRepository.findAllProjectNames().stream()
-        .filter(it -> !it.equalsIgnoreCase(SUPERADMIN_PERSONAL)).collect(Collectors.toList())
+        .filter(it -> !it.equalsIgnoreCase(SUPERADMIN_PERSONAL)).toList()
         .forEach(name -> projectRepository.findByName(name).ifPresent(this::deleteProject));
     if (featureFlagHandler.isEnabled(FeatureFlag.SINGLE_BUCKET)) {
       try {
@@ -165,11 +173,26 @@ public class FlushingDataJob implements Job {
     request.setPassword("1q2w3e");
     User user = new UserBuilder().addCreateUserFullRQ(request).addUserRole(UserRole.USER)
         .addPassword(passwordEncoder.encode(request.getPassword())).get();
-    Project savedProject = projectRepository.save(personalProjectService.generatePersonalProject(user));
-    logTypeRepository.saveAll(defaultLogTypeProvider.provideDefaultLogTypes(savedProject.getId()));
     var savedUser = userRepository.save(user);
-    personalOrganizationService.createPersonalOrganization(savedUser.getId());
+    Organization organization = superadminOrganization();
+    organizationUserService.saveOrganizationUser(organization, savedUser,
+        OrganizationRole.MEMBER.name());
+    Project project = personalProjectService.generatePersonalProject(savedUser);
+    project.setOrganizationId(organization.getId());
+    project.setSlug(SlugifyUtils.slugify(project.getName()));
+    project.setKey(organization.getSlug() + "." + project.getSlug());
+    project.setUpdatedAt(Instant.now());
+    Project savedProject = projectRepository.save(project);
+    logTypeRepository.saveAll(defaultLogTypeProvider.provideDefaultLogTypes(savedProject.getId()));
     LOGGER.info("Default user has been successfully created.");
+  }
+
+  private Organization superadminOrganization() {
+    Project superadminProject = projectRepository.findByName(SUPERADMIN_PERSONAL)
+        .orElseThrow(() -> new IllegalStateException("Superadmin personal project is missing"));
+    return organizationRepository.findById(superadminProject.getOrganizationId())
+        .orElseThrow(() -> new IllegalStateException(
+            "Organization of superadmin personal project is missing"));
   }
 
   private void deleteUser(User user) {

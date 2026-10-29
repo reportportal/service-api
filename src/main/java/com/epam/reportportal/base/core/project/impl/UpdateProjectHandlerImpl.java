@@ -294,7 +294,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
     expect(analyzeStatus.asMap().containsValue(project.getId()), equalTo(false)).verify(
         ErrorType.FORBIDDEN_OPERATION, "Index can not be removed until auto-analysis proceeds.");
 
-    logIndexer.deleteIndex(project.getId());
+    logIndexer.deleteIndexAsync(project.getId());
 
     logIndexer.index(project.getId(), AnalyzerUtils.getAnalyzerConfig(project)).thenAcceptAsync(
         indexedCount -> mailServiceFactory.getDefaultEmailService(true)

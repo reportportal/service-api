@@ -16,41 +16,67 @@
 
 package com.epam.reportportal.base.info;
 
-import com.epam.reportportal.base.core.analyzer.auto.client.RabbitMqManagementClient;
-import com.rabbitmq.http.client.domain.ExchangeInfo;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Collectors;
-import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestTemplate;
 
 /**
- * Shows list of supported analyzers
+ * Loads analyzer version and availability from the analyzer service health endpoint.
  *
  * @author Pavel Bortnik
  */
 @Component
-@RequiredArgsConstructor
 public class AnalyzerInfoContributor implements ExtensionContributor {
 
-  private static final String AVAILABLE_KEY = "available";
+  private static final Logger LOGGER = LoggerFactory.getLogger(AnalyzerInfoContributor.class);
 
-  private final RabbitMqManagementClient managementClient;
+  private static final String ANALYZERS_KEY = "analyzers";
+  private static final String ANALYZER_KEY = "analyzer";
+  private static final String ANALYZER_NAME = "analyzer";
+  private static final String VERSION_KEY = "version";
+  private static final String AVAILABLE_KEY = "available";
+  private static final String STATUS_KEY = "status";
+  private static final String HEALTHY_STATUS = "healthy";
+
+  private final RestTemplate restTemplate;
+  private final String analyzerBaseUrl;
+
+  public AnalyzerInfoContributor(RestTemplate restTemplate,
+      @Value("${rp.analyzer.baseUrl}") String analyzerBaseUrl) {
+    this.restTemplate = restTemplate;
+    this.analyzerBaseUrl = analyzerBaseUrl;
+  }
 
   @Override
   public Map<String, ?> contribute() {
-    Set<String> exchangesWithConsumers = managementClient.getExchangesWithActiveConsumers();
-    Set<Map<String, Object>> analyzersInfo = managementClient.getAnalyzerExchangesInfo()
-        .stream()
-        .map(exchange -> toAnalyzerInfo(exchange, exchangesWithConsumers))
-        .collect(Collectors.toSet());
-    return Map.of("analyzers", analyzersInfo);
+    try {
+      Map<?, ?> analyzerRs = restTemplate.getForObject(analyzerBaseUrl, Map.class);
+      if (analyzerRs == null) {
+        LOGGER.error("Analyzer service returned an empty response");
+        return Map.of(ANALYZERS_KEY, Set.of());
+      }
+      return Map.of(ANALYZERS_KEY, Set.of(toAnalyzerInfo(analyzerRs)));
+    } catch (Exception e) {
+      LOGGER.error("Analyzer service was not found: {}", e.getMessage());
+      return Map.of(ANALYZERS_KEY, Set.of());
+    }
   }
 
-  private Map<String, Object> toAnalyzerInfo(ExchangeInfo exchange, Set<String> exchangesWithConsumers) {
-    Map<String, Object> info = new HashMap<>(exchange.getArguments());
-    info.put(AVAILABLE_KEY, exchangesWithConsumers.contains(exchange.getName()));
+  private Map<String, Object> toAnalyzerInfo(Map<?, ?> response) {
+    Map<String, Object> info = new HashMap<>();
+    info.put(ANALYZER_KEY, ANALYZER_NAME);
+    Object version = response.get(VERSION_KEY);
+    if (version != null) {
+      info.put(VERSION_KEY, version);
+    }
+    Object status = response.get(STATUS_KEY);
+    info.put(AVAILABLE_KEY, HEALTHY_STATUS.equalsIgnoreCase(Objects.toString(status, "")));
     return info;
   }
 }

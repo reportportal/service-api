@@ -38,6 +38,7 @@ json-schema-validator = "1.5.6"
 lombok = "1.18.48"
 nimbus-oauth2-oidc-sdk = "10.15.1"
 opencsv = "5.12.0"
+opendal = "0.49.0"
 openpdf = "2.4.0"
 pf4j = "3.15.0"
 rabbitmq-http = "5.7.0"
@@ -89,6 +90,7 @@ spring-security-oauth2-authorization-server = { group = "org.springframework.sec
 springdoc-openapi = { group = "org.springdoc", name = "springdoc-openapi-starter-webmvc-ui", version.ref = "springdoc-openapi" }
 micrometer = { group = "io.micrometer", name = "micrometer-registry-prometheus" }
 opencsv = { group = "com.opencsv", name = "opencsv", version.ref = "opencsv" }
+opendal = { group = "org.apache.opendal", name = "opendal", version.ref = "opendal" }
 jooq = { group = "org.jooq", name = "jooq", version.ref = "jooq" }
 slugify = { group = "com.github.slugify", name = "slugify", version.ref = "slugify" }
 rabbitmq-http-client = { group = "com.rabbitmq", name = "http-client", version.ref = "rabbitmq-http" }

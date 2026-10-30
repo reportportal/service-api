@@ -128,6 +128,6 @@ public class IndexerServiceClientImpl implements IndexerServiceClient {
   public void deleteIndexAsync(Long index) {
     rabbitMqManagementClient.getAnalyzerExchangesInfo().forEach(
         exchange -> rabbitTemplate.convertAndSend(exchange.getName(), DELETE_ROUTE, index));
-    log.info("Successfully sent message for deleting index '{}'", index);
+    log.info("Successfully sent message for deleting index for project id '{}'", index);
   }
 }

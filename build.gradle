@@ -128,7 +128,15 @@ dependencies {
     implementation(libs.thumbnailator)
     implementation(libs.jakarta.xml.bind.api)
     implementation(libs.opendal)
-    implementation(variantOf(libs.opendal) { classifier(osdetector.classifier) })
+
+    // The Docker build stage runs on BUILDPLATFORM and that one jar is published for
+    // both linux/amd64 and linux/arm64. OpenDAL loads /native/<classifier>/libopendal_java.so
+    // for the OS it actually runs on, so both Linux natives have to be in the jar.
+    // osdetector.classifier adds the host library for local macOS runs.
+    runtimeOnly(variantOf(libs.opendal) { classifier("linux-x86_64") })
+    runtimeOnly(variantOf(libs.opendal) { classifier("linux-aarch_64") })
+    runtimeOnly(variantOf(libs.opendal) { classifier(osdetector.classifier) })
+
     implementation(libs.rabbitmq.http.client)
 
     // JasperReports 7 is modular: core + PDF/XLS/JDT compiler.

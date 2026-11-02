@@ -1,9 +1,7 @@
 package com.epam.reportportal.base.infrastructure.persistence.entity.aifactory;
 
 import com.epam.reportportal.base.core.aifactory.enums.StatusCategory;
-import com.epam.reportportal.base.infrastructure.persistence.dao.converters.JpaInstantConverter;
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -17,7 +15,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.Type;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 /**
  * A finished attempt of a stage, kept when the stage is run again (a retry, or a stage reported anew).
@@ -54,14 +53,12 @@ public class PipelineStageAttempt implements Serializable {
   private StatusCategory statusCategory;
 
   @Column(name = "started_at")
-  @Convert(converter = JpaInstantConverter.class)
   private Instant startedAt;
 
   @Column(name = "finished_at")
-  @Convert(converter = JpaInstantConverter.class)
   private Instant finishedAt;
 
-  @Type(PipelineExecutionData.class)
+  @JdbcTypeCode(SqlTypes.JSON)
   @Column(name = "execution", columnDefinition = "jsonb")
   private PipelineExecutionData execution;
 
@@ -71,11 +68,11 @@ public class PipelineStageAttempt implements Serializable {
   @Column(name = "result_ref")
   private String resultRef;
 
-  @Type(PipelineAttributes.class)
+  @JdbcTypeCode(SqlTypes.JSON)
   @Column(name = "attributes", columnDefinition = "jsonb")
   private PipelineAttributes attributes;
 
-  @Type(PipelineSections.class)
+  @JdbcTypeCode(SqlTypes.JSON)
   @Column(name = "sections", columnDefinition = "jsonb")
   private PipelineSections sections;
 

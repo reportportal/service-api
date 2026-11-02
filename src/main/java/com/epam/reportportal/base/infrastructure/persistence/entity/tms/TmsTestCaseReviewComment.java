@@ -1,10 +1,8 @@
 package com.epam.reportportal.base.infrastructure.persistence.entity.tms;
 
-import com.epam.reportportal.base.infrastructure.persistence.dao.converters.JpaInstantConverter;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.enums.TmsReviewCommentState;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.enums.TmsReviewCommentTarget;
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -60,7 +58,6 @@ public class TmsTestCaseReviewComment implements Serializable {
   private Long authorId;
 
   @Column(name = "created_at", nullable = false)
-  @Convert(converter = JpaInstantConverter.class)
   private Instant createdAt;
 
   @Enumerated(EnumType.STRING)

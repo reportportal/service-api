@@ -13,11 +13,11 @@ import static org.mockito.Mockito.when;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.Integration;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationParams;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Starting a brand-new run (the fix job of a test case), as opposed to running a stage again.
@@ -25,8 +25,8 @@ import org.mockito.ArgumentCaptor;
 class CiConnectorTriggerRunTest {
 
   private final CiHttpClient ciHttpClient = mock(CiHttpClient.class);
-  private final GitHubActionsCiConnector gitHub = new GitHubActionsCiConnector(ciHttpClient, new ObjectMapper());
-  private final GitLabCiConnector gitLab = new GitLabCiConnector(ciHttpClient, new ObjectMapper());
+  private final GitHubActionsCiConnector gitHub = new GitHubActionsCiConnector(ciHttpClient, JsonMapper.builder().build());
+  private final GitLabCiConnector gitLab = new GitLabCiConnector(ciHttpClient, JsonMapper.builder().build());
 
   private Integration integrationWithParams(Map<String, Object> params) {
     var integration = new Integration();

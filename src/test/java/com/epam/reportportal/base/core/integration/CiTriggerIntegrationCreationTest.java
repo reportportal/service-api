@@ -23,12 +23,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.epam.reportportal.base.model.integration.IntegrationRQ;
 import com.epam.reportportal.base.ws.BaseMvcTest;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * "github-actions" and "gitlab-ci" are built-in integration types without a plugin; creating them through the

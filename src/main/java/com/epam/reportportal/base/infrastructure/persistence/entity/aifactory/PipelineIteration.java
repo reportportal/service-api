@@ -1,9 +1,7 @@
 package com.epam.reportportal.base.infrastructure.persistence.entity.aifactory;
 
 import com.epam.reportportal.base.core.aifactory.enums.StatusCategory;
-import com.epam.reportportal.base.infrastructure.persistence.dao.converters.JpaInstantConverter;
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.EnumType;
@@ -21,7 +19,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.Type;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
@@ -63,7 +62,7 @@ public class PipelineIteration implements Serializable {
   @Column(name = "status_category", nullable = false)
   private StatusCategory statusCategory;
 
-  @Type(PipelineAttributes.class)
+  @JdbcTypeCode(SqlTypes.JSON)
   @Column(name = "attributes", columnDefinition = "jsonb")
   private PipelineAttributes attributes;
 
@@ -83,11 +82,9 @@ public class PipelineIteration implements Serializable {
   private String attributeIndex;
 
   @Column(name = "started_at")
-  @Convert(converter = JpaInstantConverter.class)
   private Instant startedAt;
 
   @Column(name = "finished_at")
-  @Convert(converter = JpaInstantConverter.class)
   private Instant finishedAt;
 
   @Column(name = "rerun", nullable = false)
@@ -107,6 +104,5 @@ public class PipelineIteration implements Serializable {
 
   @CreatedDate
   @Column(name = "created_at", nullable = false)
-  @Convert(converter = JpaInstantConverter.class)
   private Instant createdAt;
 }

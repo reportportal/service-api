@@ -1,9 +1,7 @@
 package com.epam.reportportal.base.infrastructure.persistence.entity.tms;
 
-import com.epam.reportportal.base.infrastructure.persistence.dao.converters.JpaInstantConverter;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.FetchType;
@@ -59,11 +57,9 @@ public class TmsQualityStandard implements Serializable {
 
   @CreatedDate
   @Column(name = "created_at", nullable = false)
-  @Convert(converter = JpaInstantConverter.class)
   private Instant createdAt;
 
   @LastModifiedDate
   @Column(name = "updated_at", nullable = false)
-  @Convert(converter = JpaInstantConverter.class)
   private Instant updatedAt;
 }

@@ -1,6 +1,5 @@
 package com.epam.reportportal.base.infrastructure.persistence.entity.aifactory;
 
-import com.epam.reportportal.base.infrastructure.persistence.commons.JsonbUserType;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 import java.io.Serializable;
@@ -15,7 +14,7 @@ import lombok.NoArgsConstructor;
  */
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = false)
-public class PipelineRawOutput extends JsonbUserType<PipelineRawOutput> implements Serializable {
+public class PipelineRawOutput implements Serializable {
 
   private Map<String, Object> content = new LinkedHashMap<>();
 
@@ -27,10 +26,5 @@ public class PipelineRawOutput extends JsonbUserType<PipelineRawOutput> implemen
   @JsonValue
   public Map<String, Object> getContent() {
     return content;
-  }
-
-  @Override
-  public Class<PipelineRawOutput> returnedClass() {
-    return PipelineRawOutput.class;
   }
 }

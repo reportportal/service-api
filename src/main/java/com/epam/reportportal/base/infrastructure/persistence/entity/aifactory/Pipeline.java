@@ -1,9 +1,7 @@
 package com.epam.reportportal.base.infrastructure.persistence.entity.aifactory;
 
-import com.epam.reportportal.base.infrastructure.persistence.dao.converters.JpaInstantConverter;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.FetchType;
@@ -19,7 +17,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.Type;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
@@ -56,16 +55,15 @@ public class Pipeline implements Serializable {
   @Column(name = "description", columnDefinition = "TEXT")
   private String description;
 
-  @Type(PipelineAttributes.class)
+  @JdbcTypeCode(SqlTypes.JSON)
   @Column(name = "attributes", columnDefinition = "jsonb")
   private PipelineAttributes attributes;
 
-  @Type(PipelineSettings.class)
+  @JdbcTypeCode(SqlTypes.JSON)
   @Column(name = "settings", columnDefinition = "jsonb")
   private PipelineSettings settings;
 
   @CreatedDate
   @Column(name = "created_at", nullable = false)
-  @Convert(converter = JpaInstantConverter.class)
   private Instant createdAt;
 }

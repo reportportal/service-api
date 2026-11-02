@@ -1,9 +1,7 @@
 package com.epam.reportportal.base.infrastructure.persistence.entity.tms;
 
-import com.epam.reportportal.base.infrastructure.persistence.dao.converters.JpaInstantConverter;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.enums.TmsFixRoundStatus;
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -68,11 +66,9 @@ public class TmsTestCaseFixRound implements Serializable {
   private Long requestedBy;
 
   @Column(name = "requested_at", nullable = false)
-  @Convert(converter = JpaInstantConverter.class)
   private Instant requestedAt;
 
   @Column(name = "finished_at")
-  @Convert(converter = JpaInstantConverter.class)
   private Instant finishedAt;
 
   @Column(name = "workflow_url", columnDefinition = "TEXT")

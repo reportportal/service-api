@@ -4,12 +4,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.epam.reportportal.base.core.configs.JsonSchemaValidatorConfig;
 import com.epam.reportportal.base.util.JsonSchemaValidator;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
+import tools.jackson.databind.json.JsonMapper;
 
 class PipelineRawOutputValidatorTest {
 
@@ -18,10 +18,10 @@ class PipelineRawOutputValidatorTest {
   @BeforeEach
   void setUp() {
     var config = new JsonSchemaValidatorConfig();
-    ReflectionTestUtils.setField(config, "schemaVersion", "V7");
+    ReflectionTestUtils.setField(config, "schemaVersion", "DRAFT_7");
     ReflectionTestUtils.setField(config, "schemaSource", "https://schema.reportportal.io/");
     ReflectionTestUtils.setField(config, "schemaLocation", "classpath:schema/");
-    validator = new PipelineRawOutputValidator(new JsonSchemaValidator(config), new ObjectMapper());
+    validator = new PipelineRawOutputValidator(new JsonSchemaValidator(config), JsonMapper.builder().build());
   }
 
   @Test

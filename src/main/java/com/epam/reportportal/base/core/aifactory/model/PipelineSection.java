@@ -4,7 +4,6 @@ import com.epam.reportportal.base.core.aifactory.enums.AttributeValueType;
 import com.epam.reportportal.base.core.aifactory.enums.SectionRole;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.JsonNode;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -17,6 +16,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import tools.jackson.databind.JsonNode;
 
 /**
  * A named table a stage reports about what it did - graded cases, an upload report, token usage per

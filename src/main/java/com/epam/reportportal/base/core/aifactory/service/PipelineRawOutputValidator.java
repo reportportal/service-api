@@ -1,9 +1,7 @@
 package com.epam.reportportal.base.core.aifactory.service;
 
 import com.epam.reportportal.base.util.JsonSchemaValidator;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.networknt.schema.ValidationMessage;
-import java.io.IOException;
+import com.networknt.schema.Error;
 import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Pattern;
@@ -11,6 +9,7 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * Checks the raw output a stage reports against the schema it names. Schemas live on the classpath as
@@ -38,16 +37,12 @@ public class PipelineRawOutputValidator {
         || !new ClassPathResource(RESOURCE_BASE + rawOutputSchemaName + SUFFIX).exists()) {
       return Optional.empty();
     }
-    try {
-      var messages = schemaValidator.validate(SCHEMA_BASE + rawOutputSchemaName + SUFFIX, objectMapper.valueToTree(rawOutput));
-      if (messages.isEmpty()) {
-        return Optional.empty();
-      }
-      var reason = "Raw output does not match schema '" + rawOutputSchemaName + "': "
-          + messages.stream().map(ValidationMessage::getMessage).sorted().collect(Collectors.joining("; "));
-      return Optional.of(reason.length() > MAX_REASON_LENGTH ? reason.substring(0, MAX_REASON_LENGTH) : reason);
-    } catch (IOException e) {
-      throw new IllegalStateException("Could not read schema '" + rawOutputSchemaName + "'", e);
+    var messages = schemaValidator.validate(SCHEMA_BASE + rawOutputSchemaName + SUFFIX, objectMapper.valueToTree(rawOutput));
+    if (messages.isEmpty()) {
+      return Optional.empty();
     }
+    var reason = "Raw output does not match schema '" + rawOutputSchemaName + "': "
+        + messages.stream().map(Error::getMessage).sorted().collect(Collectors.joining("; "));
+    return Optional.of(reason.length() > MAX_REASON_LENGTH ? reason.substring(0, MAX_REASON_LENGTH) : reason);
   }
 }

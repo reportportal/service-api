@@ -2,10 +2,8 @@ package com.epam.reportportal.base.infrastructure.persistence.entity.aifactory;
 
 import com.epam.reportportal.base.core.aifactory.enums.StageOwner;
 import com.epam.reportportal.base.core.aifactory.enums.StatusCategory;
-import com.epam.reportportal.base.infrastructure.persistence.dao.converters.JpaInstantConverter;
 import com.epam.reportportal.base.infrastructure.persistence.entity.LTreeType;
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.EnumType;
@@ -23,7 +21,9 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.Type;
+import org.hibernate.type.SqlTypes;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 /**
@@ -91,15 +91,15 @@ public class PipelineStage implements Serializable {
   @Column(name = "affects_iteration_status", nullable = false)
   private boolean affectsIterationStatus = true;
 
-  @Type(PipelineAttributes.class)
+  @JdbcTypeCode(SqlTypes.JSON)
   @Column(name = "attributes", columnDefinition = "jsonb")
   private PipelineAttributes attributes;
 
-  @Type(PipelineSections.class)
+  @JdbcTypeCode(SqlTypes.JSON)
   @Column(name = "sections", columnDefinition = "jsonb")
   private PipelineSections sections;
 
-  @Type(PipelineRelatedEntities.class)
+  @JdbcTypeCode(SqlTypes.JSON)
   @Column(name = "related_entities", columnDefinition = "jsonb")
   private PipelineRelatedEntities relatedEntities;
 
@@ -109,11 +109,11 @@ public class PipelineStage implements Serializable {
   @Column(name = "message")
   private String message;
 
-  @Type(PipelineLinks.class)
+  @JdbcTypeCode(SqlTypes.JSON)
   @Column(name = "links", columnDefinition = "jsonb")
   private PipelineLinks links;
 
-  @Type(PipelineRawOutput.class)
+  @JdbcTypeCode(SqlTypes.JSON)
   @Column(name = "raw_output", columnDefinition = "jsonb")
   private PipelineRawOutput rawOutput;
 
@@ -127,19 +127,16 @@ public class PipelineStage implements Serializable {
   private String resultRef;
 
   @Column(name = "started_at")
-  @Convert(converter = JpaInstantConverter.class)
   private Instant startedAt;
 
   @Column(name = "finished_at")
-  @Convert(converter = JpaInstantConverter.class)
   private Instant finishedAt;
 
-  @Type(PipelineExecutionData.class)
+  @JdbcTypeCode(SqlTypes.JSON)
   @Column(name = "execution", columnDefinition = "jsonb")
   private PipelineExecutionData execution;
 
   @Column(name = "last_retried_at")
-  @Convert(converter = JpaInstantConverter.class)
   private Instant lastRetriedAt;
 
   @Column(name = "last_retried_by")

@@ -1,8 +1,6 @@
 package com.epam.reportportal.base.infrastructure.persistence.entity.tms;
 
-import com.epam.reportportal.base.infrastructure.persistence.dao.converters.JpaInstantConverter;
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -48,7 +46,6 @@ public class TmsTestCaseQualityScore implements Serializable {
   private Integer score;
 
   @Column(name = "evaluated_at", nullable = false)
-  @Convert(converter = JpaInstantConverter.class)
   private Instant evaluatedAt;
 
   /**

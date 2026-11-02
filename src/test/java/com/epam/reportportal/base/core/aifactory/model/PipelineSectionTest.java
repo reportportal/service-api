@@ -5,13 +5,15 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.epam.reportportal.base.core.aifactory.PipelineTestData;
 import com.epam.reportportal.base.core.aifactory.enums.SectionRole;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.MapperFeature;
+import tools.jackson.databind.json.JsonMapper;
 
 class PipelineSectionTest {
 
-  private final ObjectMapper mapper = new ObjectMapper();
+  // like the application mapper (JacksonConfiguration): keep field defaults instead of passing null through the all-args constructor
+  private final JsonMapper mapper = JsonMapper.builder().disable(MapperFeature.DETECT_PARAMETER_NAMES).build();
 
   @Test
   void entityReferences_ShouldListEachTargetOnceInTheOrderOfAppearance() {

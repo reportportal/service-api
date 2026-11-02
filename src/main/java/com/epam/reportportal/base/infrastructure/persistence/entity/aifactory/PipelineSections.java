@@ -1,7 +1,6 @@
 package com.epam.reportportal.base.infrastructure.persistence.entity.aifactory;
 
 import com.epam.reportportal.base.core.aifactory.model.PipelineSection;
-import com.epam.reportportal.base.infrastructure.persistence.commons.JsonbUserType;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 import java.io.Serializable;
@@ -15,7 +14,7 @@ import lombok.NoArgsConstructor;
  */
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = false)
-public class PipelineSections extends JsonbUserType<PipelineSections> implements Serializable {
+public class PipelineSections implements Serializable {
 
   private List<PipelineSection> items = new ArrayList<>();
 
@@ -27,10 +26,5 @@ public class PipelineSections extends JsonbUserType<PipelineSections> implements
   @JsonValue
   public List<PipelineSection> getItems() {
     return items;
-  }
-
-  @Override
-  public Class<PipelineSections> returnedClass() {
-    return PipelineSections.class;
   }
 }

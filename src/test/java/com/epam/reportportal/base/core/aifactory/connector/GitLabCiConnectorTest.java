@@ -17,17 +17,17 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.aifactory.Pi
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.Integration;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationParams;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import tools.jackson.databind.json.JsonMapper;
 
 class GitLabCiConnectorTest {
 
   private final CiHttpClient ciHttpClient = mock(CiHttpClient.class);
-  private final GitLabCiConnector sut = new GitLabCiConnector(ciHttpClient, new ObjectMapper());
+  private final GitLabCiConnector sut = new GitLabCiConnector(ciHttpClient, JsonMapper.builder().build());
 
   private PipelineStage stage;
 

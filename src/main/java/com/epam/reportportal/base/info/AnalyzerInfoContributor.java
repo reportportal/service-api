@@ -20,11 +20,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.RestClient;
 
 /**
  * Loads analyzer version and availability from the analyzer service health endpoint.
@@ -32,9 +31,8 @@ import org.springframework.web.client.RestTemplate;
  * @author Pavel Bortnik
  */
 @Component
+@Slf4j
 public class AnalyzerInfoContributor implements ExtensionContributor {
-
-  private static final Logger LOGGER = LoggerFactory.getLogger(AnalyzerInfoContributor.class);
 
   private static final String ANALYZERS_KEY = "analyzers";
   private static final String ANALYZER_KEY = "analyzer";
@@ -44,26 +42,29 @@ public class AnalyzerInfoContributor implements ExtensionContributor {
   private static final String STATUS_KEY = "status";
   private static final String HEALTHY_STATUS = "healthy";
 
-  private final RestTemplate restTemplate;
+  private final RestClient restClient;
   private final String analyzerBaseUrl;
 
-  public AnalyzerInfoContributor(RestTemplate restTemplate,
+  public AnalyzerInfoContributor(RestClient restClient,
       @Value("${rp.analyzer.baseUrl}") String analyzerBaseUrl) {
-    this.restTemplate = restTemplate;
+    this.restClient = restClient;
     this.analyzerBaseUrl = analyzerBaseUrl;
   }
 
   @Override
   public Map<String, ?> contribute() {
     try {
-      Map<?, ?> analyzerRs = restTemplate.getForObject(analyzerBaseUrl, Map.class);
+      Map<?, ?> analyzerRs = restClient.get()
+          .uri(analyzerBaseUrl)
+          .retrieve()
+          .body(Map.class);
       if (analyzerRs == null) {
-        LOGGER.error("Analyzer service returned an empty response");
+        log.error("Analyzer service returned an empty response");
         return Map.of(ANALYZERS_KEY, Set.of());
       }
       return Map.of(ANALYZERS_KEY, Set.of(toAnalyzerInfo(analyzerRs)));
     } catch (Exception e) {
-      LOGGER.error("Analyzer service was not found: {}", e.getMessage());
+      log.error("Analyzer service was not found: {}", e.getMessage());
       return Map.of(ANALYZERS_KEY, Set.of());
     }
   }

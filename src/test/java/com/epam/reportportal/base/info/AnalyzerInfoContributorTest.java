@@ -18,39 +18,37 @@ package com.epam.reportportal.base.info;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.when;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.withServerError;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
 import java.util.Map;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.web.client.RestClientException;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.client.MockRestServiceServer;
+import org.springframework.web.client.RestClient;
 
-@ExtendWith(MockitoExtension.class)
 class AnalyzerInfoContributorTest {
 
   private static final String ANALYZER_URL = "http://analyzer:5001";
 
-  @Mock
-  private RestTemplate restTemplate;
-
+  private MockRestServiceServer server;
   private AnalyzerInfoContributor contributor;
 
   @BeforeEach
   void setUp() {
-    contributor = new AnalyzerInfoContributor(restTemplate, ANALYZER_URL);
+    RestClient.Builder builder = RestClient.builder();
+    server = MockRestServiceServer.bindTo(builder).build();
+    contributor = new AnalyzerInfoContributor(builder.build(), ANALYZER_URL);
   }
 
   @Test
   void contributeShouldExposeVersionWhenAnalyzerIsHealthy() {
-    when(restTemplate.getForObject(ANALYZER_URL, Map.class)).thenReturn(Map.of(
-        "status", "healthy",
-        "version", "6.0.0"
-    ));
+    server.expect(requestTo(ANALYZER_URL))
+        .andRespond(withSuccess("""
+            {"status":"healthy","version":"6.0.0"}""", MediaType.APPLICATION_JSON));
 
     Set<Map<String, Object>> analyzers = analyzers();
 
@@ -63,10 +61,9 @@ class AnalyzerInfoContributorTest {
 
   @Test
   void contributeShouldMarkAnalyzerUnavailableWhenStatusIsNotHealthy() {
-    when(restTemplate.getForObject(ANALYZER_URL, Map.class)).thenReturn(Map.of(
-        "status", "unhealthy",
-        "version", "6.0.0"
-    ));
+    server.expect(requestTo(ANALYZER_URL))
+        .andRespond(withSuccess("""
+            {"status":"unhealthy","version":"6.0.0"}""", MediaType.APPLICATION_JSON));
 
     Set<Map<String, Object>> analyzers = analyzers();
 
@@ -78,8 +75,8 @@ class AnalyzerInfoContributorTest {
 
   @Test
   void contributeShouldReturnEmptyAnalyzersWhenAnalyzerIsUnreachable() {
-    when(restTemplate.getForObject(ANALYZER_URL, Map.class))
-        .thenThrow(new RestClientException("connection refused"));
+    server.expect(requestTo(ANALYZER_URL))
+        .andRespond(withServerError());
 
     Set<Map<String, Object>> analyzers = analyzers();
 

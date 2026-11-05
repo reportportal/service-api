@@ -199,6 +199,10 @@ public class UpdateLaunchHandlerImpl implements UpdateLaunchHandler {
         NOT_FOUND, "Project " + membershipDetails.getProjectId());
 
     List<Launch> launches = launchRepository.findAllById(bulkUpdateRq.getIds());
+    launches.forEach(launch ->
+        expect(launch.getProjectId(), equalTo(membershipDetails.getProjectId()))
+            .verify(ACCESS_DENIED)
+    );
     Map<Long, LaunchFieldsSnapshot> snapshots = launches.stream()
         .collect(toMap(Launch::getId, launchChangesHandler::captureSnapshot));
 

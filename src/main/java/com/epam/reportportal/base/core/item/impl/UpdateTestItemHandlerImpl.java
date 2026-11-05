@@ -82,6 +82,7 @@ import com.epam.reportportal.base.ws.converter.builders.TestItemBuilder;
 import com.epam.reportportal.base.ws.converter.converters.AttributeConverter;
 import com.epam.reportportal.base.ws.converter.converters.IssueConverter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -139,7 +140,6 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
     Project project = projectRepository.findById(membershipDetails.getProjectId()).orElseThrow(
         () -> new ReportPortalException(NOT_FOUND, "Project " + membershipDetails.getProjectId()));
 
-    List<String> errors = new ArrayList<>();
     List<IssueDefinition> definitions = defineIssue.getIssues();
     expect(CollectionUtils.isEmpty(definitions), equalTo(false)).verify(
         FAILED_TEST_ITEM_ISSUE_TYPE_DEFINITION);
@@ -147,10 +147,8 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
     List<ItemIssueTypeDefinedEvent> events = new ArrayList<>();
     List<TestItem> itemsForIndexUpdate = new ArrayList<>();
     List<Long> itemsForIndexRemove = new ArrayList<>();
-
-    // save data for analytics
-    defectUpdateStatisticsService.saveUserAnalyzedDefectStatistics(definitions.size(),
-        membershipDetails.getProjectId());
+    Map<Long, TestItem> testItemsById = new HashMap<>();
+    List<String> errors = new ArrayList<>();
 
     definitions.forEach(issueDefinition -> {
       try {
@@ -160,53 +158,61 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
                 issueDefinition.getId()
             ).get()));
 
+        validate(membershipDetails, user, testItem);
         verifyTestItem(testItem, issueDefinition.getId());
-
-        TestItemActivityResource before =
-            TO_ACTIVITY_RESOURCE.apply(testItem, membershipDetails.getProjectId());
-        IssueType oldIssue = testItem.getItemResults().getIssue().getIssueType();
-
-        Issue issue = issueDefinition.getIssue();
-        IssueType issueType =
-            issueTypeHandler.defineIssueType(membershipDetails.getProjectId(),
-                issue.getIssueType());
-
-        IssueEntity issueEntity =
-            new IssueEntityBuilder(testItem.getItemResults().getIssue()).addIssueType(issueType)
-                .addDescription(issue.getComment()).addIgnoreFlag(issue.isIgnoreAnalyzer())
-                .addAutoAnalyzedFlag(issue.isAutoAnalyzed()).get();
-
-        externalTicketHandler.updateLinking(
-            user.getUsername(), issueEntity, issueDefinition.getIssue().getExternalSystemIssues());
-
-        testItem.getItemResults().setIssue(issueEntity);
-        issueEntity.setTestItemResults(testItem.getItemResults());
-        testItem.setAnalysisOwnerId(user.getUserId());
-
-        testItemRepository.save(testItem);
-
-        if (ITEM_CAN_BE_INDEXED.test(testItem)) {
-          itemsForIndexUpdate.add(testItem);
-        } else {
-          itemsForIndexRemove.add(testItem.getItemId());
-        }
-
-        updated.add(IssueConverter.TO_MODEL.apply(issueEntity));
-
-        testItemStatisticsService.changeDefectStatistics(testItem, oldIssue, issueType);
-
-        TestItemActivityResource after =
-            TO_ACTIVITY_RESOURCE.apply(testItem, membershipDetails.getProjectId());
-
-        events.add(
-            new ItemIssueTypeDefinedEvent(before, after, user.getUserId(), user.getUsername(),
-                membershipDetails.getOrgId()));
+        testItemsById.put(testItem.getItemId(), testItem);
       } catch (BusinessRuleViolationException e) {
         errors.add(e.getMessage());
       }
     });
     expect(errors.isEmpty(), equalTo(TRUE)).verify(
         FAILED_TEST_ITEM_ISSUE_TYPE_DEFINITION, errors.toString());
+
+    // save data for analytics
+    defectUpdateStatisticsService.saveUserAnalyzedDefectStatistics(definitions.size(),
+        membershipDetails.getProjectId());
+
+    definitions.forEach(issueDefinition -> {
+      TestItem testItem = testItemsById.get(issueDefinition.getId());
+      TestItemActivityResource before =
+          TO_ACTIVITY_RESOURCE.apply(testItem, membershipDetails.getProjectId());
+      IssueType oldIssue = testItem.getItemResults().getIssue().getIssueType();
+
+      Issue issue = issueDefinition.getIssue();
+      IssueType issueType =
+          issueTypeHandler.defineIssueType(membershipDetails.getProjectId(), issue.getIssueType());
+
+      IssueEntity issueEntity =
+          new IssueEntityBuilder(testItem.getItemResults().getIssue()).addIssueType(issueType)
+              .addDescription(issue.getComment()).addIgnoreFlag(issue.isIgnoreAnalyzer())
+              .addAutoAnalyzedFlag(issue.isAutoAnalyzed()).get();
+
+      externalTicketHandler.updateLinking(
+          user.getUsername(), issueEntity, issueDefinition.getIssue().getExternalSystemIssues());
+
+      testItem.getItemResults().setIssue(issueEntity);
+      issueEntity.setTestItemResults(testItem.getItemResults());
+      testItem.setAnalysisOwnerId(user.getUserId());
+
+      testItemRepository.save(testItem);
+
+      if (ITEM_CAN_BE_INDEXED.test(testItem)) {
+        itemsForIndexUpdate.add(testItem);
+      } else {
+        itemsForIndexRemove.add(testItem.getItemId());
+      }
+
+      updated.add(IssueConverter.TO_MODEL.apply(issueEntity));
+
+      testItemStatisticsService.changeDefectStatistics(testItem, oldIssue, issueType);
+
+      TestItemActivityResource after =
+          TO_ACTIVITY_RESOURCE.apply(testItem, membershipDetails.getProjectId());
+
+      events.add(
+          new ItemIssueTypeDefinedEvent(before, after, user.getUserId(), user.getUsername(),
+              membershipDetails.getOrgId()));
+    });
 
     if (CollectionUtils.isNotEmpty(itemsForIndexUpdate)) {
       logIndexerService.indexDefectsUpdate(project.getId(), AnalyzerUtils.getAnalyzerConfig(project),
@@ -301,6 +307,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
     List<String> errors = new ArrayList<>();
 
     List<TestItem> testItems = testItemRepository.findAllById(request.getTestItemIds());
+    testItems.forEach(testItem -> validate(membershipDetails, user, testItem));
 
     testItems.forEach(testItem -> {
       try {

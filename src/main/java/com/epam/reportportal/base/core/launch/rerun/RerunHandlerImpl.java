@@ -22,7 +22,6 @@ import static com.epam.reportportal.base.infrastructure.persistence.commons.quer
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.TestItemCriteriaConstant.CRITERIA_TEST_CASE_HASH;
 import static java.util.Optional.ofNullable;
 
-import com.epam.reportportal.base.core.events.domain.item.ItemRetryEvent;
 import com.epam.reportportal.base.core.item.identity.IdentityUtil;
 import com.epam.reportportal.base.core.item.identity.TestCaseHashGenerator;
 import com.epam.reportportal.base.core.item.identity.UniqueIdGenerator;

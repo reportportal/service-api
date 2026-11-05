@@ -120,12 +120,16 @@ public interface TmsTestCaseRepository extends ReportPortalRepository<TmsTestCas
    * throwing an exception.
    * </p>
    *
+   * @param projectId   the project the test cases must belong to. Rows from other projects are not
+   *                    deleted.
    * @param testCaseIds the list of test case IDs to delete. Cannot be null, but can be empty. If
    *                    empty list is provided, no deletion will be performed.
    */
   @Modifying
-  @Query(value = "DELETE FROM TmsTestCase WHERE id IN (:testCaseIds)")
-  void deleteAllByTestCaseIds(@Param("testCaseIds") List<Long> testCaseIds);
+  @Query(value = "DELETE FROM TmsTestCase tc "
+      + "WHERE tc.id IN (:testCaseIds) AND tc.project.id = :projectId")
+  void deleteAllByTestCaseIds(@Param("projectId") Long projectId,
+      @Param("testCaseIds") List<Long> testCaseIds);
 
   /**
    * Updates multiple test cases with new field values in a single batch operation.
@@ -145,8 +149,8 @@ public interface TmsTestCaseRepository extends ReportPortalRepository<TmsTestCas
    * <strong>Future extensibility:</strong> Additional fields can be added by uncommenting
    * and modifying the template CASE statements in the query.
    * </p>
-   *  @param projectId    the project ID for additional context/validation (currently not used in
-   *                     query but may be used for future security/validation purposes)
+   * @param projectId    the project the test cases must belong to. Rows from other projects are
+   *                     not updated.
    *
    * @param testCaseIds  the list of test case IDs to update. Cannot be null, but can be empty. If
    *                     empty, no updates will be performed.
@@ -168,8 +172,9 @@ public interface TmsTestCaseRepository extends ReportPortalRepository<TmsTestCas
       // + ", description = CASE "
       // + "    WHEN :description IS NOT NULL THEN :description "
       // + "    ELSE description "
-      // + "END "
-      + "WHERE id IN (:testCaseIds)",
+      //       + "END "
+      + "WHERE id IN (:testCaseIds) "
+      + "AND project_id = :projectId",
       nativeQuery = true)
   void patch(
       @Param("projectId") Long projectId,

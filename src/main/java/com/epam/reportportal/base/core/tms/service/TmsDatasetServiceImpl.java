@@ -85,9 +85,13 @@ public class TmsDatasetServiceImpl implements TmsDatasetService {
   @Override
   @Transactional
   public void delete(long projectId, Long datasetId) {
-    tmsDatasetDataService.deleteByDatasetId(datasetId);
-    tmsEnvironmentDatasetService.deleteByDatasetId(datasetId);
-    tmsDatasetRepository.deleteByIdAndProject_Id(datasetId, projectId);
+    var dataset = tmsDatasetRepository.findByIdAndProjectId(datasetId, projectId)
+        .orElseThrow(() -> new ReportPortalException(
+            NOT_FOUND, TMS_DATASET_NOT_FOUND_BY_ID.formatted(datasetId, projectId))
+        );
+    tmsDatasetDataService.deleteByDatasetId(dataset.getId());
+    tmsEnvironmentDatasetService.deleteByDatasetId(dataset.getId());
+    tmsDatasetRepository.delete(dataset);
   }
 
   @Override

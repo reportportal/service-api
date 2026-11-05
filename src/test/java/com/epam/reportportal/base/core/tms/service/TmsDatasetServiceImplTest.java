@@ -1,17 +1,20 @@
 package com.epam.reportportal.base.core.tms.service;
 
+import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.NOT_FOUND;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsDataset;
-import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsDatasetRepository;
 import com.epam.reportportal.base.core.tms.dto.TmsDatasetRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsDatasetRS;
 import com.epam.reportportal.base.core.tms.mapper.TmsDatasetMapper;
+import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsDatasetRepository;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsDataset;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import java.util.List;
 import java.util.Optional;
@@ -108,6 +111,10 @@ class TmsDatasetServiceImplTest {
     // Given
     long projectId = 1L;
     Long datasetId = 10L;
+    var dataset = new TmsDataset();
+    dataset.setId(datasetId);
+    when(tmsDatasetRepository.findByIdAndProjectId(datasetId, projectId))
+        .thenReturn(Optional.of(dataset));
 
     // When
     assertDoesNotThrow(() -> sut.delete(projectId, datasetId));
@@ -115,7 +122,37 @@ class TmsDatasetServiceImplTest {
     // Then
     verify(tmsDatasetDataService).deleteByDatasetId(datasetId);
     verify(tmsEnvironmentDatasetService).deleteByDatasetId(datasetId);
-    verify(tmsDatasetRepository).deleteByIdAndProject_Id(datasetId, projectId);
+    verify(tmsDatasetRepository).delete(any(TmsDataset.class));
+  }
+
+  @Test
+  void shouldNotDeleteDatasetFromAnotherProject() {
+    long projectId = 1L;
+    Long datasetId = 10L;
+    when(tmsDatasetRepository.findByIdAndProjectId(datasetId, projectId))
+        .thenReturn(Optional.empty());
+
+    var exception = assertThrows(ReportPortalException.class,
+        () -> sut.delete(projectId, datasetId));
+
+    assertEquals(NOT_FOUND, exception.getErrorType());
+    verify(tmsDatasetDataService, never()).deleteByDatasetId(datasetId);
+    verify(tmsEnvironmentDatasetService, never()).deleteByDatasetId(datasetId);
+    verify(tmsDatasetRepository, never()).deleteByIdAndProject_Id(datasetId, projectId);
+  }
+
+  @Test
+  void shouldNotDeleteMissingDataset() {
+    long projectId = 1L;
+    Long datasetId = 10L;
+    when(tmsDatasetRepository.findByIdAndProjectId(datasetId, projectId))
+        .thenReturn(Optional.empty());
+
+    var exception = assertThrows(ReportPortalException.class,
+        () -> sut.delete(projectId, datasetId));
+
+    assertEquals(NOT_FOUND, exception.getErrorType());
+    verify(tmsDatasetDataService, never()).deleteByDatasetId(datasetId);
   }
 
   @Test
@@ -257,7 +294,7 @@ class TmsDatasetServiceImplTest {
         Optional.empty());
 
     // Act & Assert
-   assertThrows(ReportPortalException.class,
+    assertThrows(ReportPortalException.class,
         () -> sut.patch(projectId, datasetId, tmsDatasetRQ));
   }
 }

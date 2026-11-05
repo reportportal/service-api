@@ -176,11 +176,28 @@ class TmsTestPlanServiceImplTest {
   void shouldDelete() {
     var projectId = 1L;
     var testPlanId = 2L;
+    when(testPlanRepository.findByIdAndProjectId(testPlanId, projectId))
+        .thenReturn(Optional.of(new TmsTestPlan()));
 
     assertDoesNotThrow(() -> sut.delete(projectId, testPlanId));
 
     verify(tmsTestPlanAttributeService).deleteAllByTestPlanId(testPlanId);
-    verify(testPlanRepository).deleteByIdAndProjectId(testPlanId, projectId);
+    verify(testPlanRepository).delete(any(TmsTestPlan.class));
+  }
+
+  @Test
+  void shouldNotDeleteTestPlanFromAnotherProject() {
+    var projectId = 1L;
+    var testPlanId = 2L;
+    when(testPlanRepository.findByIdAndProjectId(testPlanId, projectId))
+        .thenReturn(Optional.empty());
+
+    var exception = assertThrows(ReportPortalException.class,
+        () -> sut.delete(projectId, testPlanId));
+
+    assertEquals(ErrorType.NOT_FOUND, exception.getErrorType());
+    verify(tmsTestPlanAttributeService, never()).deleteAllByTestPlanId(any());
+    verify(testPlanRepository, never()).deleteByIdAndProjectId(any(), any());
   }
 
   @Test
@@ -424,6 +441,8 @@ class TmsTestPlanServiceImplTest {
     var testCaseIds = List.of(10L, 20L);
     var expectedResult = BatchTestCaseOperationResultRS.builder().totalCount(2).successCount(2).failureCount(0).errors(List.of()).build();
 
+    when(testPlanRepository.findByIdAndProjectId(testPlanId, projectId))
+        .thenReturn(Optional.of(new TmsTestPlan()));
     when(tmsTestPlanTestCaseRepository.findTestCaseIdsByTestPlanId(testPlanId)).thenReturn(List.of(10L, 20L));
     when(tmsTestPlanTestCaseRepository.deleteByTestPlanIdAndTestCaseId(testPlanId, 10L)).thenReturn(1);
     when(tmsTestPlanTestCaseRepository.deleteByTestPlanIdAndTestCaseId(testPlanId, 20L)).thenReturn(1);
@@ -444,6 +463,8 @@ class TmsTestPlanServiceImplTest {
     var expectedResult = BatchTestCaseOperationResultRS.builder().totalCount(2).successCount(1).failureCount(1)
         .errors(List.of(new BatchTestCaseOperationError(999L, "Test case with id 999 not found in test plan"))).build();
 
+    when(testPlanRepository.findByIdAndProjectId(testPlanId, projectId))
+        .thenReturn(Optional.of(new TmsTestPlan()));
     when(tmsTestPlanTestCaseRepository.findTestCaseIdsByTestPlanId(testPlanId)).thenReturn(List.of(10L));
     when(tmsTestPlanTestCaseRepository.deleteByTestPlanIdAndTestCaseId(testPlanId, 10L)).thenReturn(1);
     when(tmsTestPlanMapper.convertToRS(anyInt(), anyInt(), anyList())).thenReturn(expectedResult);
@@ -479,6 +500,8 @@ class TmsTestPlanServiceImplTest {
     var testCaseIds = List.<Long>of();
     var expectedResult = BatchTestCaseOperationResultRS.builder().totalCount(0).successCount(0).failureCount(0).errors(List.of()).build();
 
+    when(testPlanRepository.findByIdAndProjectId(testPlanId, projectId))
+        .thenReturn(Optional.of(new TmsTestPlan()));
     when(tmsTestPlanTestCaseRepository.findTestCaseIdsByTestPlanId(testPlanId)).thenReturn(List.of());
     when(tmsTestPlanMapper.convertToRS(anyInt(), anyInt(), anyList())).thenReturn(expectedResult);
 
@@ -486,6 +509,20 @@ class TmsTestPlanServiceImplTest {
 
     assertNotNull(result);
     verify(tmsTestPlanMapper).convertToRS(eq(0), eq(0), anyList());
+  }
+
+  @Test
+  void shouldNotRemoveTestCasesFromPlanInAnotherProject() {
+    var projectId = 1L;
+    var testPlanId = 2L;
+    when(testPlanRepository.findByIdAndProjectId(testPlanId, projectId))
+        .thenReturn(Optional.empty());
+
+    var exception = assertThrows(ReportPortalException.class,
+        () -> sut.removeTestCasesFromPlan(projectId, testPlanId, List.of(10L)));
+
+    assertEquals(ErrorType.NOT_FOUND, exception.getErrorType());
+    verify(tmsTestPlanTestCaseRepository, never()).deleteByTestPlanIdAndTestCaseId(any(), any());
   }
 
   @Test

@@ -30,6 +30,7 @@ jooq = "3.21.9"
 json-schema-validator = "3.0.8"
 lombok = "1.18.48"
 opencsv = "5.12.0"
+opendal = "0.49.0"
 openpdf = "2.4.0"
 pf4j = "3.16.0"
 rabbitmq-http = "5.7.0"
@@ -84,6 +85,7 @@ spring-security-saml2-service-provider = { group = "org.springframework.security
 springdoc-openapi = { group = "org.springdoc", name = "springdoc-openapi-starter-webmvc-ui", version.ref = "springdoc-openapi" }
 micrometer = { group = "io.micrometer", name = "micrometer-registry-prometheus" }
 opencsv = { group = "com.opencsv", name = "opencsv", version.ref = "opencsv" }
+opendal = { group = "org.apache.opendal", name = "opendal", version.ref = "opendal" }
 jooq = { group = "org.jooq", name = "jooq", version.ref = "jooq" }
 jooq-jpa-extensions = { group = "org.jooq", name = "jooq-jpa-extensions", version.ref = "jooq" }
 slugify = { group = "com.github.slugify", name = "slugify", version.ref = "slugify" }

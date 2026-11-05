@@ -186,6 +186,8 @@ class TmsTestCaseServiceImplTest {
     membershipDetails = mock(MembershipDetails.class);
     user = mock(ReportPortalUser.class);
     lenient().when(membershipDetails.getProjectId()).thenReturn(projectId);
+    lenient().when(tmsTestCaseRepository.findExistingIdsByProjectIdAndIds(anyLong(), anyList()))
+        .thenAnswer(invocation -> invocation.getArgument(1));
 
     lenient().when(tmsTestCaseActivityResourceMapper.buildActivityResource(any(), any()))
         .thenReturn(mock(TestCaseActivityResource.class));
@@ -813,12 +815,31 @@ class TmsTestCaseServiceImplTest {
 
   @Test
   void delete_ShouldDeleteTestCase() {
+    when(tmsTestCaseRepository.findByProjectIdAndId(projectId, testCaseId))
+        .thenReturn(Optional.of(testCase));
+
     sut.delete(membershipDetails, user, testCaseId);
 
+    verify(tmsTestCaseRepository).findByProjectIdAndId(projectId, testCaseId);
     verify(tmsTestCaseAttributeService).deleteAllByTestCaseId(testCaseId);
     verify(tmsTestCaseVersionService).deleteAllByTestCaseId(testCaseId);
     verify(tmsTestPlanTestCaseRepository).deleteAllByTestCaseId(testCaseId);
-    verify(tmsTestCaseRepository).deleteById(testCaseId);
+    verify(tmsTestCaseRepository).delete(any(TmsTestCase.class));
+  }
+
+  @Test
+  void delete_WhenTestCaseIsOutsideProject_ShouldNotDelete() {
+    when(tmsTestCaseRepository.findByProjectIdAndId(projectId, testCaseId))
+        .thenReturn(Optional.empty());
+
+    var exception = assertThrows(ReportPortalException.class,
+        () -> sut.delete(membershipDetails, user, testCaseId));
+    assertEquals(NOT_FOUND, exception.getErrorType());
+
+    verify(tmsTestCaseAttributeService, never()).deleteAllByTestCaseId(any());
+    verify(tmsTestCaseVersionService, never()).deleteAllByTestCaseId(any());
+    verify(tmsTestPlanTestCaseRepository, never()).deleteAllByTestCaseId(any());
+    verify(tmsTestCaseRepository, never()).deleteById(any());
   }
 
   @Test
@@ -832,10 +853,11 @@ class TmsTestCaseServiceImplTest {
 
     sut.delete(membershipDetails, user, deleteRequest);
 
+    verify(tmsTestCaseRepository).findExistingIdsByProjectIdAndIds(projectId, testCaseIds);
     verify(tmsTestCaseAttributeService).deleteAllByTestCaseIds(testCaseIds);
     verify(tmsTestCaseVersionService).deleteAllByTestCaseIds(testCaseIds);
     verify(tmsTestPlanTestCaseRepository).deleteAllByTestCaseIds(testCaseIds);
-    verify(tmsTestCaseRepository).deleteAllByTestCaseIds(testCaseIds);
+    verify(tmsTestCaseRepository).deleteAllByTestCaseIds(projectId, testCaseIds);
   }
 
   @Test
@@ -849,10 +871,28 @@ class TmsTestCaseServiceImplTest {
 
     sut.delete(membershipDetails, user, deleteRequest);
 
+    verify(tmsTestCaseRepository).findExistingIdsByProjectIdAndIds(projectId, singleTestCaseId);
     verify(tmsTestCaseAttributeService).deleteAllByTestCaseIds(singleTestCaseId);
     verify(tmsTestCaseVersionService).deleteAllByTestCaseIds(singleTestCaseId);
     verify(tmsTestPlanTestCaseRepository).deleteAllByTestCaseIds(singleTestCaseId);
-    verify(tmsTestCaseRepository).deleteAllByTestCaseIds(singleTestCaseId);
+    verify(tmsTestCaseRepository).deleteAllByTestCaseIds(projectId, singleTestCaseId);
+  }
+
+  @Test
+  void delete_WithBatchDeleteRequest_WhenTestCaseIsOutsideProject_ShouldNotDelete() {
+    var testCaseIds = Arrays.asList(1L, 2L, 3L);
+    var deleteRequest = BatchDeleteTestCasesRQ.builder()
+        .testCaseIds(testCaseIds)
+        .build();
+    when(tmsTestCaseRepository.findExistingIdsByProjectIdAndIds(projectId, testCaseIds))
+        .thenReturn(List.of());
+
+    var exception = assertThrows(ReportPortalException.class,
+        () -> sut.delete(membershipDetails, user, deleteRequest));
+    assertEquals(NOT_FOUND, exception.getErrorType());
+
+    verify(tmsTestCaseAttributeService, never()).deleteAllByTestCaseIds(any());
+    verify(tmsTestCaseRepository, never()).deleteAllByTestCaseIds(any(), any());
   }
 
   @Test
@@ -890,9 +930,29 @@ class TmsTestCaseServiceImplTest {
 
     sut.patch(projectId, patchRequest);
 
+    verify(tmsTestCaseRepository).findExistingIdsByProjectIdAndIds(projectId, testCaseIds);
     verify(tmsTestFolderService).resolveTargetFolderId(projectId, testFolderId, null);
     verify(tmsTestCaseRepository).patch(projectId, testCaseIds, testFolderId, priority);
     verify(tmsTestCaseMapper).toBatchPatchTestCasesRS(testFolderId, patchRequest);
+  }
+
+  @Test
+  void patch_WithBatchPatchRequest_WhenTestCaseIsOutsideProject_ShouldNotPatch() {
+    var testCaseIds = Arrays.asList(1L, 2L, 3L);
+    var patchRequest = BatchPatchTestCasesRQ.builder()
+        .testCaseIds(testCaseIds)
+        .testFolderId(5L)
+        .priority("HIGH")
+        .build();
+    when(tmsTestCaseRepository.findExistingIdsByProjectIdAndIds(projectId, testCaseIds))
+        .thenReturn(List.of());
+
+    var exception = assertThrows(ReportPortalException.class,
+        () -> sut.patch(projectId, patchRequest));
+    assertEquals(NOT_FOUND, exception.getErrorType());
+
+    verify(tmsTestFolderService, never()).resolveTargetFolderId(any(Long.class), any(), any());
+    verify(tmsTestCaseRepository, never()).patch(any(Long.class), any(), any(), any());
   }
 
   @Test

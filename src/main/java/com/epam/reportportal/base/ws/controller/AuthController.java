@@ -17,7 +17,6 @@
 package com.epam.reportportal.base.ws.controller;
 
 import static org.springframework.http.HttpStatus.OK;
-import static org.springframework.http.MediaType.APPLICATION_FORM_URLENCODED_VALUE;
 
 import com.epam.reportportal.auth.basic.LoginService;
 import com.epam.reportportal.auth.model.AccessTokenRs;
@@ -60,7 +59,7 @@ public class AuthController {
    * @param password  password
    * @return access token response
    */
-  @PostMapping(value = "/sso/oauth/token", consumes = APPLICATION_FORM_URLENCODED_VALUE)
+  @PostMapping("/sso/oauth/token")
   @ResponseStatus(OK)
   @Operation(summary = "Authenticate with username and password, returning a bearer access token")
   @SecurityRequirements

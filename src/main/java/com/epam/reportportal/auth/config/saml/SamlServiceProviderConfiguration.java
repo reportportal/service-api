@@ -18,6 +18,7 @@ package com.epam.reportportal.auth.config.saml;
 import com.epam.reportportal.auth.integration.saml.ReloadableRelyingPartyRegistrationRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ServerSettingsRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.ServerSettings;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.util.Collections;
@@ -33,7 +34,6 @@ import org.springframework.security.saml2.provider.service.web.Saml2Authenticati
 import org.springframework.security.saml2.provider.service.web.DefaultRelyingPartyRegistrationResolver;
 import org.springframework.security.saml2.provider.service.web.RelyingPartyRegistrationResolver;
 import org.springframework.util.StringUtils;
-import tools.jackson.databind.json.JsonMapper;
 
 /**
  * SAML Service Provider configuration. Creates an empty, reloadable RP registration repository
@@ -67,7 +67,7 @@ public class SamlServiceProviderConfiguration {
    */
   @Bean
   public Saml2AuthenticationRequestRepository<AbstractSaml2AuthenticationRequest> saml2AuthenticationRequestRepository(
-      RelyingPartyRegistrationRepository registrationRepository, JsonMapper objectMapper,
+      RelyingPartyRegistrationRepository registrationRepository, ObjectMapper objectMapper,
       ServerSettingsRepository serverSettingsRepository,
       @Value("${rp.jwt.signing-key:}") String jwtSigningKey,
       @Value("${rp.auth.cookie.secure.enforce-https:true}") boolean enforceHttps) throws GeneralSecurityException {

@@ -16,9 +16,14 @@
 
 package com.epam.reportportal.auth.config.saml;
 
+import com.fasterxml.jackson.core.JacksonException;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.security.MessageDigest;
@@ -40,9 +45,6 @@ import org.springframework.security.saml2.provider.service.registration.RelyingP
 import org.springframework.security.saml2.provider.service.registration.Saml2MessageBinding;
 import org.springframework.security.saml2.provider.service.web.Saml2AuthenticationRequestRepository;
 import org.springframework.util.StringUtils;
-import tools.jackson.core.JacksonException;
-import tools.jackson.core.type.TypeReference;
-import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Cookie-based {@link Saml2AuthenticationRequestRepository} for stateless, multi-instance deployments. The default
@@ -88,7 +90,7 @@ public class HttpCookieSaml2AuthenticationRequestRepository
   private static final Base64.Decoder DECODER = Base64.getUrlDecoder();
 
   private final RelyingPartyRegistrationRepository registrationRepository;
-  private final JsonMapper objectMapper;
+  private final ObjectMapper objectMapper;
   private final boolean enforceHttps;
   private final SecretKeySpec signingKey;
   private final Clock clock;
@@ -103,12 +105,12 @@ public class HttpCookieSaml2AuthenticationRequestRepository
    * @param signingKey             HMAC key shared by all instances (at least 32 bytes)
    */
   public HttpCookieSaml2AuthenticationRequestRepository(RelyingPartyRegistrationRepository registrationRepository,
-      JsonMapper objectMapper, boolean enforceHttps, byte[] signingKey) {
+      ObjectMapper objectMapper, boolean enforceHttps, byte[] signingKey) {
     this(registrationRepository, objectMapper, enforceHttps, signingKey, Clock.systemUTC());
   }
 
   HttpCookieSaml2AuthenticationRequestRepository(RelyingPartyRegistrationRepository registrationRepository,
-      JsonMapper objectMapper, boolean enforceHttps, byte[] signingKey, Clock clock) {
+      ObjectMapper objectMapper, boolean enforceHttps, byte[] signingKey, Clock clock) {
     if (signingKey == null || signingKey.length < 32) {
       throw new IllegalArgumentException("SAML2 authentication request signing key must be at least 32 bytes");
     }
@@ -139,7 +141,7 @@ public class HttpCookieSaml2AuthenticationRequestRepository
     }
     try {
       response.addCookie(buildCookie(serialize(authenticationRequest), COOKIE_EXPIRE_SECONDS, secure));
-    } catch (JacksonException | GeneralSecurityException _) {
+    } catch (GeneralSecurityException | JsonProcessingException _) {
       log.error("Failed to save SAML2 authentication request to cookie");
     }
   }
@@ -186,7 +188,8 @@ public class HttpCookieSaml2AuthenticationRequestRepository
         .map(this::deserialize);
   }
 
-  private String serialize(AbstractSaml2AuthenticationRequest authRequest) throws GeneralSecurityException {
+  private String serialize(AbstractSaml2AuthenticationRequest authRequest)
+      throws GeneralSecurityException, JsonProcessingException {
     Map<String, String> data = new LinkedHashMap<>();
     data.put(ID, authRequest.getId());
     data.put(RELAY_STATE, authRequest.getRelayState());
@@ -258,6 +261,8 @@ public class HttpCookieSaml2AuthenticationRequestRepository
     } catch (JacksonException | IllegalArgumentException | GeneralSecurityException _) {
       log.warn("Failed to deserialize SAML2 authentication request from cookie");
       return null;
+    } catch (IOException e) {
+      throw new RuntimeException(e);
     }
   }
 }

@@ -30,7 +30,7 @@ jooq = "3.21.9"
 json-schema-validator = "3.0.8"
 lombok = "1.18.48"
 opencsv = "5.12.0"
-opendal = "0.49.0"
+opendal = "0.50.7"
 openpdf = "2.4.0"
 pf4j = "3.16.0"
 rabbitmq-http = "5.7.0"
@@ -41,7 +41,6 @@ tika = "4.1.0"
 thumbnailator = "0.4.21"
 mapstruct = "1.6.3"
 pf4j-update = "2.3.0"
-opendal = "0.50.7"
 caffeine = "3.3.0"
 
 [libraries]
@@ -112,7 +111,6 @@ postgresql = { group = "org.postgresql", name = "postgresql", version.ref = "jdb
 tika = { group = "org.apache.tika", name = "tika-core", version.ref = "tika" }
 thumbnailator = { group = "net.coobird", name = "thumbnailator", version.ref = "thumbnailator" }
 jakarta-xml-bind-api = { group = "jakarta.xml.bind", name = "jakarta.xml.bind-api" }
-opendal = { group = "org.apache.opendal", name = "opendal", version.ref = "opendal" }
 guava = { group = "com.google.guava", name = "guava", version.ref = "guava" }
 jasypt = { group = "org.jasypt", name = "jasypt", version.ref = "jasypt" }
 pf4j = { group = "org.pf4j", name = "pf4j", version.ref = "pf4j" }

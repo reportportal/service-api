@@ -3,7 +3,6 @@ package com.epam.reportportal.base.core.aifactory.dto;
 import com.epam.reportportal.base.core.aifactory.model.PipelineAttribute;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.util.List;
@@ -30,16 +29,16 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class PipelineIterationRQ {
 
-  @NotBlank
   @Size(max = 256)
-  @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "Pipeline name, unique within the project; "
-      + "the pipeline is created by the first report that names it")
+  @Schema(description = "Pipeline name, unique within the project; the pipeline is created by the first report "
+      + "that names it. Required unless iteration.rerunOfIterationId is given: then the pipeline is the one of "
+      + "that iteration, and a name that differs from it is rejected")
   private String name;
 
   @Size(max = 64)
   @Schema(description = "Kind of the pipeline (e.g. TEST_CASE_GENERATION); recorded when the pipeline is first "
       + "reported and selects the behaviour plugged into that kind. Reporting a different type for an "
-      + "existing pipeline is rejected")
+      + "existing pipeline is rejected; may be left out for a re-run")
   private String type;
 
   @Valid

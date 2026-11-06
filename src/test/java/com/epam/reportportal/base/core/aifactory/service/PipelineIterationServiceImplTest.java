@@ -384,18 +384,84 @@ class PipelineIterationServiceImplTest {
   }
 
   @Test
-  void create_RerunOfAnIterationOfAnotherPipeline_ShouldThrowNotFound() {
-    var other = new Pipeline();
-    other.setId(77L);
-    var source = new PipelineIteration();
-    source.setId(99L);
-    source.setPipeline(other);
-    when(pipelineIterationRepository.findById(99L)).thenReturn(Optional.of(source));
-    var rq = PipelineIterationRQ.builder().name("factory-tc-gen").iteration(IterationRQ.builder().rerunOfIterationId(99L).build()).build();
+  void create_RerunWithOtherPipelineName_ShouldBeRejected() {
+    persistedIteration(99L);
+    var rq = PipelineIterationRQ.builder().name("another-pipeline").iteration(IterationRQ.builder().rerunOfIterationId(99L).build()).build();
 
     var ex = assertThrows(ReportPortalException.class, () -> sut.createPipelineIteration(projectId, userId, rq));
 
     assertTrue(ex.getMessage().contains("99"));
+    verify(pipelineIterationRepository, never()).save(any());
+  }
+
+  @Test
+  void create_RerunWithOtherPipelineType_ShouldBeRejected() {
+    pipeline.setType("TEST_CASE_GENERATION");
+    persistedIteration(99L);
+    var rq = PipelineIterationRQ.builder().type("OTHER").iteration(IterationRQ.builder().rerunOfIterationId(99L).build()).build();
+
+    assertThrows(ReportPortalException.class, () -> sut.createPipelineIteration(projectId, userId, rq));
+    verify(pipelineIterationRepository, never()).save(any());
+  }
+
+  @Test
+  void create_RerunWithoutNameAndType_ShouldTakeThemFromTheSource() {
+    pipeline.setType("TEST_CASE_GENERATION");
+    persistedIteration(99L);
+    var rq = PipelineIterationRQ.builder().iteration(IterationRQ.builder().rerunOfIterationId(99L).build()).build();
+
+    sut.createPipelineIteration(projectId, userId, rq);
+
+    var captor = ArgumentCaptor.forClass(PipelineIteration.class);
+    verify(pipelineIterationRepository).save(captor.capture());
+    assertEquals(pipeline, captor.getValue().getPipeline());
+    verify(pipelineRepository, never()).findByProjectIdAndName(any(), any());
+  }
+
+  @Test
+  void create_RerunOfAnIterationOfAnotherProject_ShouldThrowNotFound() {
+    var otherProject = new Project();
+    otherProject.setId(55L);
+    var other = new Pipeline();
+    other.setId(77L);
+    other.setProject(otherProject);
+    var source = new PipelineIteration();
+    source.setId(99L);
+    source.setPipeline(other);
+    when(pipelineIterationRepository.findById(99L)).thenReturn(Optional.of(source));
+    var rq = PipelineIterationRQ.builder().iteration(IterationRQ.builder().rerunOfIterationId(99L).build()).build();
+
+    var ex = assertThrows(ReportPortalException.class, () -> sut.createPipelineIteration(projectId, userId, rq));
+
+    assertTrue(ex.getMessage().contains("99"));
+    verify(pipelineIterationRepository, never()).save(any());
+  }
+
+  @Test
+  void create_RerunShouldInheritOnlyComparisonKeyAttributesAndLetReportedOnesWin() {
+    var source = persistedIteration(99L);
+    source.setAttributes(new PipelineAttributes(List.of(
+        PipelineAttribute.builder().key("requirement").value("US-1").comparisonKey(true).build(),
+        PipelineAttribute.builder().key("scope").value("old").comparisonKey(true).build(),
+        PipelineAttribute.builder().key("ci").value("#1").build())));
+    var rq = PipelineIterationRQ.builder().iteration(IterationRQ.builder().rerunOfIterationId(99L)
+        .attributes(List.of(PipelineAttribute.builder().key("scope").value("new").build(),
+            PipelineAttribute.builder().key("fixRoundId").value("7").build())).build()).build();
+
+    sut.createPipelineIteration(projectId, userId, rq);
+
+    var captor = ArgumentCaptor.forClass(PipelineIteration.class);
+    verify(pipelineIterationRepository).save(captor.capture());
+    var values = captor.getValue().getAttributes().getItems().stream()
+        .collect(java.util.stream.Collectors.toMap(PipelineAttribute::getKey, PipelineAttribute::getValue));
+    assertEquals(Map.of("requirement", "US-1", "scope", "new", "fixRoundId", "7"), values);
+  }
+
+  @Test
+  void create_WithoutNameAndRerunSource_ShouldThrowBadRequest() {
+    var rq = PipelineIterationRQ.builder().iteration(IterationRQ.builder().build()).build();
+
+    assertThrows(ReportPortalException.class, () -> sut.createPipelineIteration(projectId, userId, rq));
     verify(pipelineIterationRepository, never()).save(any());
   }
 

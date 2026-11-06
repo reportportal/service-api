@@ -76,9 +76,9 @@ public class PipelineIterationServiceImpl implements PipelineIterationService {
     var stageRQs = run.getStages() == null ? List.<PipelineStageRQ>of() : run.getStages();
     validateStages(stageRQs);
 
-    var pipeline = pipelineRepository
-        .findByProjectIdAndName(projectId, rq.getName())
-        .orElseGet(() -> createPipeline(projectId, rq.getName(), rq.getType()));
+    var source = run.getRerunOfIterationId() == null ? null
+        : getIterationOrThrow(projectId, run.getRerunOfIterationId());
+    var pipeline = source != null ? pipelineOfSource(source, rq) : pipelineByName(projectId, rq);
     // Serializes concurrent ingests of this pipeline: next iteration number, idempotency lookup.
     var lockedPipeline = pipelineRepository.findByIdForUpdate(pipeline.getId())
         .orElseThrow(() -> new ReportPortalException(ErrorType.NOT_FOUND, "Pipeline '" + pipeline.getId() + "'"));
@@ -106,12 +106,7 @@ public class PipelineIterationServiceImpl implements PipelineIterationService {
         .map(PipelineIteration::getIterationNumber)
         .orElse(0) + 1);
     iteration.setCreatedBy(userId);
-    if (run.getRerunOfIterationId() != null) {
-      var source = pipelineIterationRepository.findById(run.getRerunOfIterationId())
-          .filter(it -> it.getPipeline().getId().equals(lockedPipeline.getId()))
-          .orElseThrow(() -> new ReportPortalException(ErrorType.NOT_FOUND,
-              "Pipeline iteration '" + run.getRerunOfIterationId() + "' for pipeline '"
-                  + lockedPipeline.getName() + "'"));
+    if (source != null) {
       iteration.setRerun(true);
       iteration.setRerunOfIterationId(source.getId());
     }
@@ -124,7 +119,7 @@ public class PipelineIterationServiceImpl implements PipelineIterationService {
     iteration.setSummary(blankToNull(run.getSummary()));
     iteration.setDescription(blankToNull(run.getDescription()));
     iteration.setDetails(blankToNull(run.getDetails()));
-    setAttributes(iteration, PipelineAttributeSupport.normalize(run.getAttributes()));
+    setAttributes(iteration, PipelineAttributeSupport.merge(inheritedAttributes(source), run.getAttributes(), null));
     iteration.setStatus(StatusCategory.PENDING.defaultLabel());
     iteration.setStatusCategory(StatusCategory.PENDING);
     var savedIteration = pipelineIterationRepository.save(iteration);
@@ -329,6 +324,46 @@ public class PipelineIterationServiceImpl implements PipelineIterationService {
           .type(AttributeType.META).valueType(AttributeValueType.TEXT).build());
       stage.setAttributes(new PipelineAttributes(attributes));
     });
+  }
+
+  /**
+   * The pipeline a report names; a report without a source iteration must name it.
+   */
+  private Pipeline pipelineByName(Long projectId, PipelineIterationRQ rq) {
+    if (rq.getName() == null || rq.getName().isBlank()) {
+      throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
+          "'name' is required unless 'iteration.rerunOfIterationId' is given");
+    }
+    return pipelineRepository.findByProjectIdAndName(projectId, rq.getName())
+        .orElseGet(() -> createPipeline(projectId, rq.getName(), rq.getType()));
+  }
+
+  /**
+   * The pipeline of the iteration being re-run. Example: a re-run of iteration 41 of "Test case generation"
+   * may leave out the name and type; if it sends them they must be those of the source's pipeline,
+   * otherwise it is rejected.
+   */
+  private Pipeline pipelineOfSource(PipelineIteration source, PipelineIterationRQ rq) {
+    var pipeline = source.getPipeline();
+    if (rq.getName() != null && !rq.getName().isBlank() && !rq.getName().equals(pipeline.getName())) {
+      throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
+          "Pipeline iteration '" + source.getId() + "' belongs to pipeline '" + pipeline.getName()
+              + "', not '" + rq.getName() + "'");
+    }
+    return pipeline;
+  }
+
+  /**
+   * Attributes of the source iteration that say what it is about (the comparison keys, e.g. the requirement)
+   * and so stay true for a re-run. The rest (CI link, started by, scores) described that run only. A re-run
+   * that reports an attribute with the same key replaces the inherited one.
+   */
+  private static PipelineAttributes inheritedAttributes(PipelineIteration source) {
+    if (source == null || source.getAttributes() == null) {
+      return null;
+    }
+    var inherited = source.getAttributes().getItems().stream().filter(PipelineAttribute::isComparisonKey).toList();
+    return inherited.isEmpty() ? null : new PipelineAttributes(inherited);
   }
 
   private Pipeline createPipeline(Long projectId, String name, String type) {

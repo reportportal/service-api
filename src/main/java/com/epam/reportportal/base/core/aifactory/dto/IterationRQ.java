@@ -46,8 +46,11 @@ public class IterationRQ {
 
   private Instant finishedAt;
 
-  @Schema(description = "Marks the iteration as a re-run of the given iteration of the same pipeline; "
-      + "a new iteration is created either way")
+  @Schema(description = "Marks the iteration as a re-run of the given iteration; a new iteration is created either "
+      + "way. The pipeline (name and type) is taken from the given iteration, and its attributes marked "
+      + "comparisonKey (e.g. the requirement) are inherited unless this report sends one with the same key. "
+      + "Example: {\"iteration\": {\"rerunOfIterationId\": 41, \"attributes\": [{\"key\": \"fixRoundId\", "
+      + "\"value\": \"7\"}]}} needs no name, type or requirement")
   private Long rerunOfIterationId;
 
   @Valid

@@ -352,6 +352,21 @@ public enum ErrorType {
   USER_ALREADY_ASSIGNED(40912, "User '{}' cannot be assigned to {} twice. You couldn't create the duplicate."),
 
   /**
+   * Pipeline stage is in a state that does not allow the requested retry (e.g. a retry is already in progress)
+   */
+  PIPELINE_STAGE_RETRY_CONFLICT(40913, "Pipeline stage retry conflict. {}"),
+
+  /**
+   * An Idempotency-Key was reused with a different request body
+   */
+  IDEMPOTENCY_KEY_CONFLICT(40914, "Idempotency key conflict. {}"),
+
+  /**
+   * The test case is in a state that does not allow the requested review step (e.g. the agent is already fixing it)
+   */
+  TEST_CASE_REVIEW_CONFLICT(40915, "Test case review conflict. {}"),
+
+  /**
    * Unable remove resource from favorites
    */
   UNABLE_REMOVE_FROM_FAVORITE(4100, "Unable remove resource from favorites. {}"),

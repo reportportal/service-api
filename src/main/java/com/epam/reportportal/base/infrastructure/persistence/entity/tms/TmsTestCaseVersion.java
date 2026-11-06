@@ -11,6 +11,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import java.io.Serializable;
+import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -44,6 +45,16 @@ public class TmsTestCaseVersion implements Serializable {
 
   @OneToOne(mappedBy = "testCaseVersion")
   private TmsManualScenario manualScenario;
+
+  /**
+   * The pipeline iteration that produced this version: the one that uploaded the case, or the one of a fix
+   * round. Plain id, the Pipeline domain stays independent of TMS.
+   */
+  @Column(name = "pipeline_iteration_id")
+  private Long pipelineIterationId;
+
+  @Column(name = "updated_at", nullable = false)
+  private Instant updatedAt;
 
   //TODO: override equals and hashCode methods
 

@@ -16,6 +16,7 @@
 
 package com.epam.reportportal.base.core.configs;
 
+import com.epam.reportportal.base.core.integration.util.CiTriggerIntegrationService;
 import com.epam.reportportal.base.core.integration.util.EmailServerIntegrationService;
 import com.epam.reportportal.base.core.integration.util.IntegrationService;
 import com.epam.reportportal.base.core.integration.util.QaSpaceIntegrationService;
@@ -47,6 +48,8 @@ public class IntegrationConfig implements ApplicationContextAware {
     return ImmutableMap.<String, IntegrationService>builder()
         .put("email", applicationContext.getBean(EmailServerIntegrationService.class))
         .put("qa-space", applicationContext.getBean(QaSpaceIntegrationService.class))
+        .put("github-actions", applicationContext.getBean(CiTriggerIntegrationService.class))
+        .put("gitlab-ci", applicationContext.getBean(CiTriggerIntegrationService.class))
         .build();
 
   }

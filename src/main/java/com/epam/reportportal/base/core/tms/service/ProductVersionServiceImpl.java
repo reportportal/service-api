@@ -16,7 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class ProductVersionServiceImpl implements ProductVersionService {
 
-  private static final String VERSION_NOT_FOUND_BY_ID = "Product Version with id: %d";
+  private static final String VERSION_NOT_FOUND_BY_ID = "Product Version with id: %d for projectId: %d";
   private static final String VERSION_NOT_IN_PROJECT =
       "Product version '%s' is not under the specified project.";
 
@@ -53,13 +53,18 @@ public class ProductVersionServiceImpl implements ProductVersionService {
   @Override
   @Transactional
   public void delete(long projectId, Long id) {
-    productVersionRepository.deleteByIdAndProjectId(id, projectId);
+    var productVersion = productVersionRepository.findByProjectIdAndId(projectId, id)
+        .orElseThrow(
+            () -> new ReportPortalException(NOT_FOUND,
+                VERSION_NOT_FOUND_BY_ID.formatted(id, projectId)));
+    productVersionRepository.delete(productVersion);
   }
 
   @Override
   public TmsProductVersionRS getById(long projectId, Long id) {
     return productVersionRepository.findByProjectIdAndId(projectId, id)
         .map(productVersionMapper::convert)
-        .orElseThrow(() -> new ReportPortalException(NOT_FOUND, VERSION_NOT_FOUND_BY_ID.formatted(id)));
+        .orElseThrow(() -> new ReportPortalException(NOT_FOUND,
+            VERSION_NOT_FOUND_BY_ID.formatted(id, projectId)));
   }
 }

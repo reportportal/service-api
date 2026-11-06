@@ -1,13 +1,17 @@
 package com.epam.reportportal.base.core.tms.controller;
 
-import com.epam.reportportal.base.infrastructure.persistence.commons.EntityUtils;
-import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
+import static com.epam.reportportal.base.auth.permissions.Permissions.ALLOWED_TO_EDIT_PROJECT;
+import static com.epam.reportportal.base.auth.permissions.Permissions.ALLOWED_TO_VIEW_PROJECT;
+
 import com.epam.reportportal.base.core.tms.dto.ProductVersionRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsProductVersionRS;
 import com.epam.reportportal.base.core.tms.service.ProductVersionService;
+import com.epam.reportportal.base.infrastructure.persistence.commons.EntityUtils;
+import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.util.ProjectExtractor;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -41,6 +45,7 @@ public class ProductVersionController {
    * @return A data transfer object ({@link TmsProductVersionRS}) containing details of the product version.
    */
   @GetMapping("/{productVersionId}")
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   TmsProductVersionRS getById(@PathVariable("projectKey") String projectKey,
       @PathVariable("productVersionId") final long productVersionId,
       @AuthenticationPrincipal ReportPortalUser user) {
@@ -60,6 +65,7 @@ public class ProductVersionController {
    * @return A data transfer object ({@link TmsProductVersionRS}) with details of the created product version.
    */
   @PostMapping
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   TmsProductVersionRS createVersion(@PathVariable("projectKey") String projectKey,
       @RequestBody final ProductVersionRQ inputDto,
       @AuthenticationPrincipal ReportPortalUser user) {
@@ -80,6 +86,7 @@ public class ProductVersionController {
    * @return A data transfer object ({@link TmsProductVersionRS}) with updated details of the product version.
    */
   @PutMapping("/{productVersionId}")
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   TmsProductVersionRS updateVersion(@PathVariable("projectKey") String projectKey,
       @PathVariable("productVersionId") final long productVersionId,
       @RequestBody final ProductVersionRQ inputDto,
@@ -99,6 +106,7 @@ public class ProductVersionController {
    * @param productVersionId The ID of the product version to delete.
    */
   @DeleteMapping("/{productVersionId}")
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   void deleteVersion(@PathVariable("projectKey") String projectKey,
       @PathVariable("productVersionId") final long productVersionId,
       @AuthenticationPrincipal ReportPortalUser user) {

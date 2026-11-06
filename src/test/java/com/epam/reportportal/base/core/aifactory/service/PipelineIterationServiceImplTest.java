@@ -386,7 +386,10 @@ class PipelineIterationServiceImplTest {
   @Test
   void create_RerunWithOtherPipelineName_ShouldBeRejected() {
     persistedIteration(99L);
-    var rq = PipelineIterationRQ.builder().name("another-pipeline").iteration(IterationRQ.builder().rerunOfIterationId(99L).build()).build();
+    var rq = PipelineIterationRQ.builder()
+        .name("another-pipeline")
+        .iteration(IterationRQ.builder().rerunOfIterationId(99L).build())
+        .build();
 
     var ex = assertThrows(ReportPortalException.class, () -> sut.createPipelineIteration(projectId, userId, rq));
 
@@ -398,7 +401,10 @@ class PipelineIterationServiceImplTest {
   void create_RerunWithOtherPipelineType_ShouldBeRejected() {
     pipeline.setType("TEST_CASE_GENERATION");
     persistedIteration(99L);
-    var rq = PipelineIterationRQ.builder().type("OTHER").iteration(IterationRQ.builder().rerunOfIterationId(99L).build()).build();
+    var rq = PipelineIterationRQ.builder()
+        .type("OTHER")
+        .iteration(IterationRQ.builder().rerunOfIterationId(99L).build())
+        .build();
 
     assertThrows(ReportPortalException.class, () -> sut.createPipelineIteration(projectId, userId, rq));
     verify(pipelineIterationRepository, never()).save(any());

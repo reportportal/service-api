@@ -41,7 +41,7 @@ public class PipelineAttribute implements Serializable {
   @Schema(description = "Value as text; its interpretation is given by valueType")
   private String value;
 
-  @Size(max = 1024)
+  @Size(max = 16_000)
   @Schema(description = "Longer text that belongs to the value. Example: attribute requirement = "
       + "\"US-TMS-MIG-001\" with description \"Test Case Library empty state display and navigation panel\"; "
       + "the card shows the value, the details header shows both")

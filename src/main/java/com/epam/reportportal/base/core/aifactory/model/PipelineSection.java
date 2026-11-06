@@ -128,7 +128,7 @@ public class PipelineSection implements Serializable {
 
     @Size(max = 100)
     @Schema(description = "The points under the heading, e.g. failure reasons")
-    private List<@Size(max = 2048) String> items;
+    private List<@Size(max = 256_000) String> items;
   }
 
   /**
@@ -141,7 +141,7 @@ public class PipelineSection implements Serializable {
   @JsonInclude(JsonInclude.Include.NON_NULL)
   public static class Cell implements Serializable {
 
-    @Size(max = 2048)
+    @Size(max = 10_000)
     private String value;
 
     @Size(max = 2048)

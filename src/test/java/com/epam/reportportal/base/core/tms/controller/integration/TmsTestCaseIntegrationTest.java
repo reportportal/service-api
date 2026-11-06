@@ -2012,7 +2012,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
             .contentType("application/json")
             .content(jsonContent)
             .with(token(oAuthHelper.getSuperadminToken())))
-        .andExpect(status().isNoContent());
+        .andExpect(status().isNotFound());
   }
 
   @Test

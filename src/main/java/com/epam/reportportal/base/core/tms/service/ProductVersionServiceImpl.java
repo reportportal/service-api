@@ -17,6 +17,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class ProductVersionServiceImpl implements ProductVersionService {
 
   private static final String VERSION_NOT_FOUND_BY_ID = "Product Version with id: %d";
+  private static final String VERSION_NOT_IN_PROJECT =
+      "Product version '%s' is not under the specified project.";
 
   private final TmsProductVersionMapper productVersionMapper;
   private final ProductVersionRepository productVersionRepository;
@@ -33,7 +35,10 @@ public class ProductVersionServiceImpl implements ProductVersionService {
   @Transactional
   public TmsProductVersionRS update(long projectId, final Long productVersionId,
       final ProductVersionRQ inputDto) {
-    final var productVersion = new TmsProductVersion(productVersionId,
+    productVersionRepository.findByProjectIdAndId(projectId, productVersionId)
+        .orElseThrow(() -> new ReportPortalException(NOT_FOUND,
+            VERSION_NOT_IN_PROJECT.formatted(productVersionId)));
+    var productVersion = new TmsProductVersion(productVersionId,
         inputDto.version(),
         inputDto.documentation(),
         projectId);

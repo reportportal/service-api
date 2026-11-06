@@ -425,7 +425,7 @@ class LaunchControllerTest extends BaseMvcTest {
   @Test
   void bulkUpdateItemAttributes() throws Exception {
     BulkInfoUpdateRQ request = new BulkInfoUpdateRQ();
-    List<Long> launchIds = Arrays.asList(1L, 2L, 3L, 4L);
+    List<Long> launchIds = Arrays.asList(1L, 2L, 3L);
     request.setIds(launchIds);
     BulkInfoUpdateRQ.Description description = new BulkInfoUpdateRQ.Description();
     description.setAction(BulkInfoUpdateRQ.Action.CREATE);
@@ -460,7 +460,7 @@ class LaunchControllerTest extends BaseMvcTest {
   @Test
   void bulkCreateAttributes() throws Exception {
     BulkInfoUpdateRQ request = new BulkInfoUpdateRQ();
-    List<Long> launchIds = Arrays.asList(1L, 2L, 3L, 4L);
+    List<Long> launchIds = Arrays.asList(1L, 2L, 3L);
     request.setIds(launchIds);
     BulkInfoUpdateRQ.Description description = new BulkInfoUpdateRQ.Description();
     description.setAction(BulkInfoUpdateRQ.Action.UPDATE);
@@ -492,7 +492,7 @@ class LaunchControllerTest extends BaseMvcTest {
   @Test
   void bulkDeleteAttributes() throws Exception {
     BulkInfoUpdateRQ request = new BulkInfoUpdateRQ();
-    List<Long> launchIds = Arrays.asList(1L, 2L, 3L, 4L);
+    List<Long> launchIds = Arrays.asList(1L, 2L, 3L);
     request.setIds(launchIds);
     BulkInfoUpdateRQ.Description description = new BulkInfoUpdateRQ.Description();
     description.setAction(BulkInfoUpdateRQ.Action.CREATE);

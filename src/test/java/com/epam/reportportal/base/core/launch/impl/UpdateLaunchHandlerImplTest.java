@@ -24,6 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -52,6 +53,8 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRol
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.model.launch.UpdateLaunchRQ;
 import com.epam.reportportal.base.model.launch.cluster.CreateClustersRQ;
+import com.epam.reportportal.base.reporting.BulkInfoUpdateRQ;
+import java.util.Collections;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -179,5 +182,26 @@ class UpdateLaunchHandlerImplTest {
         ProjectAttributeEnum.UNIQUE_ERROR_ANALYZER_REMOVE_NUMBERS.getAttribute()));
     assertNotEquals(providedRemoveNumbers, defaultRemoveNumbers);
     assertEquals(createClustersRQ.isRemoveNumbers(), providedRemoveNumbers);
+  }
+
+  @Test
+  void bulkInfoUpdateFromAnotherProject() {
+    ReportPortalUser user =
+        getRpUser("user", UserRole.USER, OrganizationRole.MANAGER, ProjectRole.EDITOR, 1L);
+    Launch launch = new Launch();
+    launch.setId(2L);
+    launch.setProjectId(2L);
+    BulkInfoUpdateRQ request = new BulkInfoUpdateRQ();
+    request.setIds(Collections.singletonList(launch.getId()));
+
+    when(getProjectHandler.exists(1L)).thenReturn(true);
+    when(launchRepository.findAllById(request.getIds()))
+        .thenReturn(Collections.singletonList(launch));
+
+    ReportPortalException exception = assertThrows(ReportPortalException.class,
+        () -> handler.bulkInfoUpdate(request, rpUserToMembership(user)));
+
+    assertEquals("You do not have enough permissions.", exception.getMessage());
+    verify(launchChangesHandler, never()).captureSnapshot(launch);
   }
 }

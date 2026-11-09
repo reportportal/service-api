@@ -38,8 +38,6 @@ import com.epam.reportportal.base.infrastructure.persistence.filesystem.FilePath
 import com.epam.reportportal.base.infrastructure.persistence.util.FeatureFlagHandler;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Paths;
@@ -106,9 +104,8 @@ public class AttachmentBinaryDataServiceImpl implements AttachmentBinaryDataServ
   public Optional<BinaryDataMetaInfo> saveAttachment(AttachmentMetaInfo metaInfo,
       MultipartFile file) {
     Optional<BinaryDataMetaInfo> result = Optional.empty();
-    try (InputStream inputStream = file.getInputStream(); ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
-      inputStream.transferTo(outputStream);
-      String contentType = resolveContentType(file.getContentType(), outputStream);
+    try {
+      String contentType = resolveContentType(file);
       String fileName = resolveFileName(metaInfo, file, contentType);
 
       String commonPath;
@@ -120,8 +117,8 @@ public class AttachmentBinaryDataServiceImpl implements AttachmentBinaryDataServ
       String targetPath = Paths.get(commonPath, fileName).toString();
 
       String fileId;
-      try (ByteArrayInputStream copy = new ByteArrayInputStream(outputStream.toByteArray())) {
-        fileId = dataStoreService.save(targetPath, copy);
+      try (InputStream inputStream = file.getInputStream()) {
+        fileId = dataStoreService.save(targetPath, inputStream);
       }
 
       result = Optional.of(
@@ -235,13 +232,13 @@ public class AttachmentBinaryDataServiceImpl implements AttachmentBinaryDataServ
     attachmentRepository.deleteAllByProjectId(projectId);
   }
 
-  private String resolveContentType(String contentType, ByteArrayOutputStream outputStream)
-      throws IOException {
+  private String resolveContentType(MultipartFile file) throws IOException {
+    String contentType = file.getContentType();
     if (isContentTypePresent(contentType)) {
       return contentType;
     }
-    try (ByteArrayInputStream copy = new ByteArrayInputStream(outputStream.toByteArray())) {
-      return contentTypeResolver.detectContentType(copy);
+    try (InputStream inputStream = file.getInputStream()) {
+      return contentTypeResolver.detectContentType(inputStream);
     }
   }
 

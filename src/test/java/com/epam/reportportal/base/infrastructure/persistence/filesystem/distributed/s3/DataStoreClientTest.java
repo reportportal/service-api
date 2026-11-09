@@ -18,6 +18,7 @@ package com.epam.reportportal.base.infrastructure.persistence.filesystem.distrib
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.mockito.AdditionalMatchers.aryEq;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -28,9 +29,11 @@ import static org.mockito.Mockito.when;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.FeatureFlag;
 import com.epam.reportportal.base.infrastructure.persistence.filesystem.DataStoreClient;
 import com.epam.reportportal.base.infrastructure.persistence.util.FeatureFlagHandler;
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import org.apache.opendal.Operator;
 import org.apache.opendal.OperatorInputStream;
+import org.apache.opendal.OperatorOutputStream;
 import org.apache.opendal.ReadOptions;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
@@ -58,16 +61,19 @@ class DataStoreClientTest {
   @DisplayName("Save writes the file bytes to the operator under the prefixed bucket path")
   void save() throws Exception {
     byte[] content = "data".getBytes();
-    InputStream inputStream = mock(InputStream.class);
-    when(inputStream.readAllBytes()).thenReturn(content);
+    InputStream inputStream = new ByteArrayInputStream(content);
+    OperatorOutputStream outputStream = mock(OperatorOutputStream.class);
 
     String filePath = DEFAULT_BUCKET_NAME + "/" + FILE_NAME;
+    String fullPath = BUCKET_PREFIX + DEFAULT_BUCKET_NAME + BUCKET_POSTFIX + "/" + FILE_NAME;
     when(featureFlagHandler.isEnabled(FeatureFlag.SINGLE_BUCKET)).thenReturn(false);
+    when(operator.createOutputStream(fullPath)).thenReturn(outputStream);
 
     dataStoreClient.save(filePath, inputStream);
 
-    verify(operator, times(1))
-        .write(BUCKET_PREFIX + DEFAULT_BUCKET_NAME + BUCKET_POSTFIX + "/" + FILE_NAME, content);
+    verify(operator, times(1)).createOutputStream(fullPath);
+    verify(outputStream).write(aryEq(content), eq(0), eq(content.length));
+    verify(outputStream).close();
   }
 
   @Test

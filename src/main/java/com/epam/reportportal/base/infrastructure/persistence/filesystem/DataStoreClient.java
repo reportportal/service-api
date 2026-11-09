@@ -23,7 +23,6 @@ import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalExc
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
@@ -74,10 +73,9 @@ public class DataStoreClient implements DataStore {
     }
     StoredFile storedFile = getStoredFile(filePath);
     try {
+      byte[] data = inputStream.readAllBytes();
       String fullPath = getFullPath(storedFile);
-      try (OutputStream outputStream = operator.createOutputStream(fullPath)) {
-        inputStream.transferTo(outputStream);
-      }
+      operator.write(fullPath, data);
       return Paths.get(filePath).toString();
     } catch (IOException e) {
       log.error("Unable to save file '{}'", filePath, e);

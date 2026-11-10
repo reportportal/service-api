@@ -20,6 +20,8 @@ import io.swagger.v3.core.converter.AnnotatedType;
 import io.swagger.v3.oas.models.media.Schema;
 import java.util.Map;
 import java.util.Optional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springdoc.core.customizers.PropertyCustomizer;
 
 /**
@@ -28,6 +30,8 @@ import org.springdoc.core.customizers.PropertyCustomizer;
  * @author <a href="mailto:siarhei_hrabko@epam.com">Siarhei Hrabko</a>
  */
 public class DefaultPropertyCustomizer implements PropertyCustomizer {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(DefaultPropertyCustomizer.class);
 
   private final Map<String, PropertyHandler> propertyHandlerStrategy;
 
@@ -41,6 +45,14 @@ public class DefaultPropertyCustomizer implements PropertyCustomizer {
 
   @Override
   public Schema customize(Schema property, AnnotatedType annotatedType) {
+    if (property == null) {
+      // TEMP-DIAG: name the type whose schema a converter earlier in the chain left unresolved
+      LOGGER.warn("OpenAPI: no schema resolved for type '{}', parent '{}', property '{}'",
+          annotatedType == null ? null : annotatedType.getType(),
+          annotatedType == null || annotatedType.getParent() == null ? null : annotatedType.getParent().getName(),
+          annotatedType == null ? null : annotatedType.getPropertyName());
+      return null;
+    }
     return Optional.ofNullable(property.getType())
         .map(propertyHandlerStrategy::get)
         .map(handler -> handler.modifyProperty(property, annotatedType))

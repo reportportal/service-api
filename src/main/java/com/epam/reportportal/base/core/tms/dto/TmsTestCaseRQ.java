@@ -30,4 +30,12 @@ public class TmsTestCaseRQ {
 
   @Valid
   private TmsManualScenarioRQ manualScenario;
+
+  /**
+   * On create: defaults to {@code READY} for manual test cases; defaults to
+   * {@code DRAFT} when the AI agent reports this as an AI-authored case via
+   * {@code POST .../generation} (see {@link TmsTestCaseGenerationRQ}), unless explicitly
+   * set here. Honored on patch: changes status only when present.
+   */
+  private TmsTestCaseStatus status;
 }

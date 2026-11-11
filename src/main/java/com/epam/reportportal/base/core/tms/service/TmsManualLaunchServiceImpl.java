@@ -1,10 +1,12 @@
 package com.epam.reportportal.base.core.tms.service;
 
+import static com.epam.reportportal.base.core.launch.attribute.AttributeHandler.RETENTION_POLICY_KEY;
 import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.BAD_REQUEST_ERROR;
 import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.NOT_FOUND;
 
 import com.epam.reportportal.base.core.item.TestItemService;
 import com.epam.reportportal.base.core.launch.DeleteLaunchHandler;
+import com.epam.reportportal.base.core.launch.attribute.impl.RetentionPolicyAttributeHandler;
 import com.epam.reportportal.base.core.tms.dto.AddTestCaseToLaunchRQ;
 import com.epam.reportportal.base.core.tms.dto.CreateTmsManualLaunchRQ;
 import com.epam.reportportal.base.core.tms.dto.CreateTmsManualLaunchRS;
@@ -36,9 +38,11 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.organization
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.model.Page;
+import com.epam.reportportal.base.reporting.ItemAttributesRQ;
 import com.epam.reportportal.base.util.OffsetRequest;
 import com.epam.reportportal.base.ws.converter.PagedResourcesAssembler;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -79,6 +83,7 @@ public class TmsManualLaunchServiceImpl implements TmsManualLaunchService {
   private final TmsStepExecutionService tmsStepExecutionService;
   private final GetUserHandler getUserHandler;
   private final TmsTestPlanService tmsTestPlanService;
+  private final RetentionPolicyAttributeHandler retentionPolicyAttributeHandler;
 
   private TmsTestCaseExecutionService tmsTestCaseExecutionService;
   private TmsTestCaseService tmsTestCaseService;
@@ -97,8 +102,7 @@ public class TmsManualLaunchServiceImpl implements TmsManualLaunchService {
 
   @Override
   @Transactional
-  public CreateTmsManualLaunchRS create(Long projectId,
-      ReportPortalUser user,
+  public CreateTmsManualLaunchRS create(Long projectId, ReportPortalUser user,
       CreateTmsManualLaunchRQ request) {
     log.debug("Creating manual launch for project: {}", projectId);
 
@@ -106,12 +110,14 @@ public class TmsManualLaunchServiceImpl implements TmsManualLaunchService {
     var launch = tmsManualLaunchMapper.convertFromCreateTmsManualLaunchRQ(projectId, user, request);
     launch.setLaunchType(LaunchTypeEnum.MANUAL);
     launch.setStatus(StatusEnum.IN_PROGRESS);
-    launch = launchRepository.save(launch);
 
     // Create attributes if present
     if (CollectionUtils.isNotEmpty(request.getAttributes())) {
       tmsManualLaunchAttributeService.createAttributes(launch, request.getAttributes());
     }
+    retentionPolicyAttributeHandler.handleLaunchStart(launch);
+
+    launch = launchRepository.save(launch);
 
     // Add test cases to launch if present
     var addTestCasesResult = tmsTestCaseExecutionService
@@ -119,7 +125,8 @@ public class TmsManualLaunchServiceImpl implements TmsManualLaunchService {
             projectId,
             launch,
             CollectionUtils.isEmpty(request.getTestCaseIds()) ?
-                tmsTestPlanService.getTestCaseIdsAddedToPlan(projectId, request.getTestPlan() != null ? request.getTestPlan().getId() : null) :
+                tmsTestPlanService.getTestCaseIdsAddedToPlan(projectId,
+                    request.getTestPlan() != null ? request.getTestPlan().getId() : null) :
                 request.getTestCaseIds()
         );
 
@@ -246,7 +253,8 @@ public class TmsManualLaunchServiceImpl implements TmsManualLaunchService {
 
   @Override
   @Transactional
-  public TmsManualLaunchRS patch(long projectId, Long launchId, TmsManualLaunchRQ request) {
+  public TmsManualLaunchRS patch(long projectId, ReportPortalUser user, Long launchId,
+      TmsManualLaunchRQ request) {
     log.debug("Patching manual launch: {} for project: {}", launchId, projectId);
 
     var existingLaunch = launchRepository
@@ -262,9 +270,12 @@ public class TmsManualLaunchServiceImpl implements TmsManualLaunchService {
     }
     existingLaunch = launchRepository.save(existingLaunch);
 
-    // Patch attributes if present
     if (request.getAttributes() != null) {
       tmsManualLaunchAttributeService.updateAttributes(existingLaunch, request.getAttributes());
+      if (hasSystemRetentionPolicy(request.getAttributes())) {
+        retentionPolicyAttributeHandler.handleLaunchUpdate(existingLaunch, user);
+        existingLaunch = launchRepository.save(existingLaunch);
+      }
     }
 
     // Add test cases if present (don't remove existing ones)
@@ -322,7 +333,8 @@ public class TmsManualLaunchServiceImpl implements TmsManualLaunchService {
             NOT_FOUND, LAUNCH_NOT_FOUND_BY_ID.formatted(launchId, projectId))
         );
 
-    return tmsTestCaseExecutionService.addTestCasesToLaunch(projectId, launch, request.getTestCaseIds());
+    return tmsTestCaseExecutionService.addTestCasesToLaunch(projectId, launch,
+        request.getTestCaseIds());
   }
 
   @Override
@@ -468,12 +480,14 @@ public class TmsManualLaunchServiceImpl implements TmsManualLaunchService {
     validateLaunchBelongsToProject(launchId, projectId);
 
     // Delegate to execution service
-    return tmsTestCaseExecutionService.patch(membershipDetails, user, executionId, launchId, request);
+    return tmsTestCaseExecutionService.patch(membershipDetails, user, executionId, launchId,
+        request);
   }
 
   @Override
   @Transactional(readOnly = true)
-  public Page<TmsTestFolderRS> getLaunchFolders(Long projectId, Long launchId, Filter filter, OffsetRequest pageable) {
+  public Page<TmsTestFolderRS> getLaunchFolders(Long projectId, Long launchId, Filter filter,
+      OffsetRequest pageable) {
     log.debug("Getting folders for launch: {} in project: {}", launchId, projectId);
 
     // Validate launch belongs to project
@@ -568,19 +582,19 @@ public class TmsManualLaunchServiceImpl implements TmsManualLaunchService {
       Long executionId, TmsTestCaseExecutionCommentRQ request) {
     // Validate launch belongs to project
     validateLaunchBelongsToProject(launchId, projectId);
-  
+
     return tmsTestCaseExecutionService.putTestCaseExecutionComment(
         projectId, launchId, executionId, request
     );
   }
-  
+
   @Override
   @Transactional
   public TmsTestCaseExecutionCommentRS patchTestCaseExecutionComment(Long projectId, Long launchId,
       Long executionId, TmsTestCaseExecutionCommentRQ request) {
     // Validate launch belongs to project
     validateLaunchBelongsToProject(launchId, projectId);
-  
+
     return tmsTestCaseExecutionService.patchTestCaseExecutionComment(
         projectId, launchId, executionId, request
     );
@@ -607,6 +621,11 @@ public class TmsManualLaunchServiceImpl implements TmsManualLaunchService {
                 Launch::getId, Function.identity()
             )
         );
+  }
+
+  private static boolean hasSystemRetentionPolicy(Collection<ItemAttributesRQ> attributes) {
+    return attributes.stream().anyMatch(attribute -> attribute.isSystem()
+        && RETENTION_POLICY_KEY.equalsIgnoreCase(attribute.getKey()));
   }
 
   /**

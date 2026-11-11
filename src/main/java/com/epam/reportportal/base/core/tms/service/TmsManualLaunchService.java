@@ -73,11 +73,13 @@ public interface TmsManualLaunchService {
    * Patches manual launch.
    *
    * @param projectId project ID
+   * @param user ReportPortal user
    * @param launchId  launch ID
    * @param request   patch request
    * @return updated manual launch response
    */
-  TmsManualLaunchRS patch(long projectId, Long launchId, TmsManualLaunchRQ request);
+  TmsManualLaunchRS patch(long projectId, ReportPortalUser user, Long launchId,
+      TmsManualLaunchRQ request);
 
   /**
    * Adds single test case to launch.

@@ -14,13 +14,19 @@ import com.epam.reportportal.base.core.tms.mapper.config.CommonMapperConfig;
 import com.epam.reportportal.base.core.tms.service.TmsDisplayIdService;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
+import com.epam.reportportal.base.infrastructure.persistence.entity.launch.LaunchAttribute;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestPlan;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.User;
+import com.epam.reportportal.base.reporting.AttributeResource;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
+import org.mapstruct.Named;
 import org.mapstruct.NullValueCheckStrategy;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,7 +48,8 @@ public abstract class TmsManualLaunchMapper {
   @Mapping(target = "number", source = "launch.number")
   @Mapping(target = "mode", source = "launch.mode")
   @Mapping(target = "testPlan.id", source = "launch.testPlanId")
-  @Mapping(target = "attributes", source = "launch.attributes")
+  @Mapping(target = "attributes", source = "launch.attributes", qualifiedByName = "publicLaunchAttributes")
+  @Mapping(target = "retentionPolicy", source = "launch.retentionPolicy")
   @Mapping(target = "executionStatistic", source = "testCaseExecutionStatistic")
   @Mapping(target = "displayId", source = "launch.displayId")
   public abstract TmsManualLaunchRS convert(Launch launch,
@@ -59,7 +66,8 @@ public abstract class TmsManualLaunchMapper {
   @Mapping(target = "number", source = "launch.number")
   @Mapping(target = "mode", source = "launch.mode")
   @Mapping(target = "testPlan.id", source = "launch.testPlanId")
-  @Mapping(target = "attributes", source = "launch.attributes")
+  @Mapping(target = "attributes", source = "launch.attributes", qualifiedByName = "publicLaunchAttributes")
+  @Mapping(target = "retentionPolicy", source = "launch.retentionPolicy")
   @Mapping(target = "executionStatistic.total", source = "batchTestCaseOperationResultRS.successCount")
   @Mapping(target = "executionStatistic.toRun", source = "batchTestCaseOperationResultRS.successCount")
   @Mapping(target = "displayId", source = "launch.displayId")
@@ -82,7 +90,8 @@ public abstract class TmsManualLaunchMapper {
   @Mapping(target = "mode", source = "launch.mode")
   @Mapping(target = "testPlan.id", source = "testPlan.id")
   @Mapping(target = "testPlan.name", source = "testPlan.name")
-  @Mapping(target = "attributes", source = "launch.attributes")
+  @Mapping(target = "attributes", source = "launch.attributes", qualifiedByName = "publicLaunchAttributes")
+  @Mapping(target = "retentionPolicy", source = "launch.retentionPolicy")
   @Mapping(target = "executionStatistic", source = "testCaseExecutionStatistic")
   @Mapping(target = "displayId", source = "launch.displayId")
   public abstract TmsManualLaunchRS convert(Launch launch,
@@ -93,9 +102,21 @@ public abstract class TmsManualLaunchMapper {
   @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
       nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
   @Mapping(target = "attributes", ignore = true)
+  @Mapping(target = "retentionPolicy", ignore = true)
   @Mapping(target = "testPlanId", ignore = true)
   @Mapping(target = "displayId", ignore = true)
   public abstract void patch(@MappingTarget Launch existingLaunch, TmsManualLaunchRQ request);
+
+  @Named("publicLaunchAttributes")
+  protected Set<AttributeResource> toPublicAttributes(Set<LaunchAttribute> attributes) {
+    if (attributes == null) {
+      return null;
+    }
+    return attributes.stream()
+        .filter(attribute -> !Boolean.TRUE.equals(attribute.isSystem()))
+        .map(attribute -> new AttributeResource(attribute.getKey(), attribute.getValue()))
+        .collect(Collectors.toCollection(HashSet::new));
+  }
 
   @Mapping(target = "attributes", ignore = true)
   @Mapping(target = "uuid",

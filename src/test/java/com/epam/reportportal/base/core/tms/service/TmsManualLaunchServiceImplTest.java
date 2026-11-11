@@ -10,11 +10,13 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.epam.reportportal.base.core.item.TestItemService;
 import com.epam.reportportal.base.core.launch.DeleteLaunchHandler;
+import com.epam.reportportal.base.core.launch.attribute.impl.RetentionPolicyAttributeHandler;
 import com.epam.reportportal.base.core.tms.dto.AddTestCaseToLaunchRQ;
 import com.epam.reportportal.base.core.tms.dto.CreateTmsManualLaunchRQ;
 import com.epam.reportportal.base.core.tms.dto.CreateTmsManualLaunchRS;
@@ -78,6 +80,8 @@ class TmsManualLaunchServiceImplTest {
   private TmsTestCaseExecutionService tmsTestCaseExecutionService;
   @Mock
   private TmsTestCaseService tmsTestCaseService;
+  @Mock
+  private RetentionPolicyAttributeHandler retentionPolicyAttributeHandler;
   @InjectMocks
   private TmsManualLaunchServiceImpl sut;
   private MembershipDetails membershipDetails;
@@ -141,7 +145,9 @@ class TmsManualLaunchServiceImplTest {
 
     verify(tmsManualLaunchMapper).convertFromCreateTmsManualLaunchRQ(projectId, user,
         createLaunchRQ);
-    verify(launchRepository).save(launch);
+    verify(launchRepository, times(2)).save(launch);
+    verify(launchRepository).refresh(launch);
+    verify(retentionPolicyAttributeHandler).handleLaunchStart(launch);
     verify(tmsTestCaseExecutionService).addTestCasesToLaunch(projectId, launch,
         List.of(testCaseId));
   }
@@ -168,6 +174,7 @@ class TmsManualLaunchServiceImplTest {
     var result = sut.create(projectId, user, createLaunchRQ);
 
     assertNotNull(result);
+    verify(launchRepository).refresh(launch);
     verify(tmsTestPlanService).getTestCaseIdsAddedToPlan(projectId, testPlanId);
     verify(tmsTestCaseExecutionService).addTestCasesToLaunch(projectId, launch, List.of(10L, 20L));
   }

@@ -2,6 +2,7 @@ package com.epam.reportportal.base.core.tms.dto;
 
 import com.epam.reportportal.base.reporting.AttributeResource;
 import com.epam.reportportal.base.reporting.Mode;
+import com.epam.reportportal.base.reporting.RetentionPolicy;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -51,6 +52,10 @@ public class TmsManualLaunchRS {
 
   @JsonProperty("mode")
   private Mode mode;
+
+  @Schema(description = "Retention policy of the manual launch", example = "REGULAR")
+  @JsonProperty("retentionPolicy")
+  private RetentionPolicy retentionPolicy;
 
   @Schema(description = "Launch displayId", example = "ML123")
   private String displayId;

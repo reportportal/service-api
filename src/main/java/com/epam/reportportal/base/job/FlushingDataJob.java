@@ -16,213 +16,24 @@
 
 package com.epam.reportportal.base.job;
 
-import com.epam.reportportal.base.core.analyzer.auto.LogIndexer;
-import com.epam.reportportal.base.core.analyzer.auto.client.AnalyzerServiceClient;
-import com.epam.reportportal.base.core.logtype.DefaultLogTypeProvider;
-import com.epam.reportportal.base.core.organization.OrganizationUserService;
-import com.epam.reportportal.base.infrastructure.persistence.binary.UserBinaryDataService;
-import com.epam.reportportal.base.infrastructure.persistence.dao.AttachmentRepository;
-import com.epam.reportportal.base.infrastructure.persistence.dao.IssueTypeRepository;
-import com.epam.reportportal.base.infrastructure.persistence.dao.LogTypeRepository;
-import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectRepository;
-import com.epam.reportportal.base.infrastructure.persistence.dao.UserRepository;
-import com.epam.reportportal.base.infrastructure.persistence.dao.organization.OrganizationRepository;
-import com.epam.reportportal.base.infrastructure.persistence.entity.enums.FeatureFlag;
-import com.epam.reportportal.base.infrastructure.persistence.entity.item.issue.IssueType;
-import com.epam.reportportal.base.infrastructure.persistence.entity.organization.Organization;
-import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationRole;
-import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
-import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectIssueType;
-import com.epam.reportportal.base.infrastructure.persistence.entity.user.User;
-import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRole;
-import com.epam.reportportal.base.infrastructure.persistence.filesystem.DataStore;
-import com.epam.reportportal.base.infrastructure.persistence.util.FeatureFlagHandler;
-import com.epam.reportportal.base.infrastructure.persistence.util.PersonalProjectService;
-import com.epam.reportportal.base.model.user.CreateUserRQFull;
-import com.epam.reportportal.base.util.SlugifyUtils;
-import com.epam.reportportal.base.ws.converter.builders.UserBuilder;
-import java.time.Instant;
-import java.util.Set;
-import java.util.stream.Collectors;
+import com.epam.reportportal.base.job.service.DemoDataFlushingService;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.transaction.annotation.Isolation;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Maintenance job to truncate and reset reporting tables when a full data flush is required.
+ * Scheduled job that resets a demo instance to its baseline state. Registered only with the {@code demo} profile.
  *
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
+ * @see DemoDataFlushingService
  */
 public class FlushingDataJob implements Job {
 
-  private static final String SUPERADMIN_PERSONAL = "superadmin_personal";
-  private static final String SUPERADMIN = "admin@reportportal.internal";
-  private final Logger LOGGER = LoggerFactory.getLogger(this.getClass().getName());
   @Autowired
-  private JdbcTemplate jdbcTemplate;
-
-  @Autowired
-  private PersonalProjectService personalProjectService;
-
-  @Autowired
-  private AnalyzerServiceClient analyzerServiceClient;
-
-  @Autowired
-  private ProjectRepository projectRepository;
-
-  @Autowired
-  private UserRepository userRepository;
-
-  @Autowired
-  private LogIndexer logIndexer;
-
-  @Autowired
-  private IssueTypeRepository issueTypeRepository;
-
-  @Autowired
-  private AttachmentRepository attachmentRepository;
-
-  @Autowired
-  private UserBinaryDataService dataStore;
-
-  @Autowired
-  private DataStore fileDataStore;
-
-  @Autowired
-  private PasswordEncoder passwordEncoder;
-
-  @Autowired
-  private FeatureFlagHandler featureFlagHandler;
-
-  @Autowired
-  private OrganizationRepository organizationRepository;
-
-  @Autowired
-  private OrganizationUserService organizationUserService;
-
-  @Autowired
-  private DefaultLogTypeProvider defaultLogTypeProvider;
-
-  @Autowired
-  private LogTypeRepository logTypeRepository;
-
-  @Value("${datastore.bucketPrefix}")
-  private String bucketPrefix;
-
-  @Value("${datastore.defaultBucketName}")
-  private String defaultBucketName;
+  private DemoDataFlushingService demoDataFlushingService;
 
   @Override
-  @Transactional(isolation = Isolation.READ_UNCOMMITTED)
   public void execute(JobExecutionContext context) {
-    LOGGER.info("Flushing demo instance data is starting...");
-    truncateTables();
-    projectRepository.findAllProjectNames().stream()
-        .filter(it -> !it.equalsIgnoreCase(SUPERADMIN_PERSONAL)).toList()
-        .forEach(name -> projectRepository.findByName(name).ifPresent(this::deleteProject));
-    if (featureFlagHandler.isEnabled(FeatureFlag.SINGLE_BUCKET)) {
-      try {
-        fileDataStore.deleteContainer(defaultBucketName);
-      } catch (Exception e) {
-        LOGGER.warn("Cannot delete bucket {}", defaultBucketName);
-      }
-    }
-    userRepository.findAll().stream().filter(it -> !it.getLogin().equalsIgnoreCase(SUPERADMIN))
-        .forEach(this::deleteUser);
-    restartSequences();
-    createDefaultUser();
-    LOGGER.info("Flushing demo instance data finished");
-  }
-
-  /**
-   * Get exclusive lock. Kill all running transactions. Truncate tables
-   */
-  private void truncateTables() {
-    jdbcTemplate.execute("""
-        BEGIN;
-        TRUNCATE TABLE launch RESTART IDENTITY CASCADE;
-        TRUNCATE TABLE activity RESTART IDENTITY CASCADE;
-        TRUNCATE TABLE owned_entity RESTART IDENTITY CASCADE;
-        TRUNCATE TABLE ticket RESTART IDENTITY CASCADE;
-        TRUNCATE TABLE issue_ticket RESTART IDENTITY CASCADE;
-        DELETE FROM statistics_field WHERE sf_id > 14;
-        DELETE FROM log_type WHERE id > 7;
-        COMMIT;
-        """);
-  }
-
-  private void restartSequences() {
-    jdbcTemplate.execute("ALTER SEQUENCE project_id_seq RESTART WITH 2");
-    jdbcTemplate.execute("ALTER SEQUENCE users_id_seq RESTART WITH 2");
-    jdbcTemplate.execute("ALTER SEQUENCE project_attribute_attribute_id_seq RESTART WITH 15");
-    jdbcTemplate.execute("ALTER SEQUENCE statistics_field_sf_id_seq RESTART WITH 15");
-    jdbcTemplate.execute("ALTER SEQUENCE log_type_id_seq RESTART WITH 8");
-  }
-
-  private void createDefaultUser() {
-    final CreateUserRQFull request = new CreateUserRQFull();
-    request.setEmail("default@reportportal.internal");
-    request.setFullName("default tester");
-    request.setPassword("1q2w3e");
-    User user = new UserBuilder().addCreateUserFullRQ(request).addUserRole(UserRole.USER)
-        .addPassword(passwordEncoder.encode(request.getPassword())).get();
-    var savedUser = userRepository.save(user);
-    Organization organization = superadminOrganization();
-    organizationUserService.saveOrganizationUser(organization, savedUser,
-        OrganizationRole.MEMBER.name());
-    Project project = personalProjectService.generatePersonalProject(savedUser);
-    project.setOrganizationId(organization.getId());
-    project.setSlug(SlugifyUtils.slugify(project.getName()));
-    project.setKey(organization.getSlug() + "." + project.getSlug());
-    project.setUpdatedAt(Instant.now());
-    Project savedProject = projectRepository.save(project);
-    logTypeRepository.saveAll(defaultLogTypeProvider.provideDefaultLogTypes(savedProject.getId()));
-    LOGGER.info("Default user has been successfully created.");
-  }
-
-  private Organization superadminOrganization() {
-    Project superadminProject = projectRepository.findByName(SUPERADMIN_PERSONAL)
-        .orElseThrow(() -> new IllegalStateException("Superadmin personal project is missing"));
-    return organizationRepository.findById(superadminProject.getOrganizationId())
-        .orElseThrow(() -> new IllegalStateException(
-            "Organization of superadmin personal project is missing"));
-  }
-
-  private void deleteUser(User user) {
-    dataStore.deleteUserPhoto(user);
-    userRepository.delete(user);
-    userRepository.flush();
-    LOGGER.info("User with id = '{}' has been successfully deleted.", user.getId());
-  }
-
-  private void deleteProject(Project project) {
-    Set<Long> defaultIssueTypeIds =
-        issueTypeRepository.getDefaultIssueTypes().stream().map(IssueType::getId)
-            .collect(Collectors.toSet());
-    Set<IssueType> issueTypesToRemove =
-        project.getProjectIssueTypes().stream().map(ProjectIssueType::getIssueType)
-            .filter(issueType -> !defaultIssueTypeIds.contains(issueType.getId()))
-            .collect(Collectors.toSet());
-    projectRepository.delete(project);
-    analyzerServiceClient.removeSuggest(project.getId());
-    issueTypeRepository.deleteAll(issueTypesToRemove);
-    if (!featureFlagHandler.isEnabled(FeatureFlag.SINGLE_BUCKET)) {
-      try {
-        fileDataStore.deleteContainer(String.valueOf(project.getId()));
-      } catch (Exception e) {
-        LOGGER.warn("Cannot delete attachments bucket " + bucketPrefix + project.getId());
-      }
-    }
-    logIndexer.deleteIndexAsync(project.getId());
-    projectRepository.flush();
-    attachmentRepository.moveForDeletionByProjectId(project.getId());
-    LOGGER.info("Project with id = '" + project.getId() + "' has been successfully deleted.");
+    demoDataFlushingService.flush();
   }
 }

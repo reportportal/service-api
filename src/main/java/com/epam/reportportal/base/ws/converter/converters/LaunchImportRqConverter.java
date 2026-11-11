@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.epam.reportportal.base.ws.controller;
+package com.epam.reportportal.base.ws.converter.converters;
 
 import com.epam.reportportal.base.model.launch.LaunchImportRQ;
 import jakarta.servlet.http.Part;

@@ -22,6 +22,7 @@ import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.qu
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.IntegrationGroupEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.LaunchModeEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.LogLevel;
+import com.epam.reportportal.base.infrastructure.persistence.entity.enums.RetentionPolicyEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.StatusEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.TestItemIssueGroup;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.TestItemTypeEnum;
@@ -29,6 +30,7 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.organization
 import com.epam.reportportal.base.infrastructure.persistence.jooq.enums.JIntegrationGroupEnum;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.enums.JLaunchModeEnum;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.enums.JOrganizationRoleEnum;
+import com.epam.reportportal.base.infrastructure.persistence.jooq.enums.JRetentionPolicyEnum;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.enums.JStatusEnum;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.enums.JTestItemTypeEnum;
 import com.epam.reportportal.base.infrastructure.persistence.util.DateTimeUtils;
@@ -232,6 +234,14 @@ public class CriteriaHolder {
           .verify(errorType,
               formattedSupplier("Cannot convert '{}' to valid 'Launch mode'", oneValue));
       castedValue = JLaunchModeEnum.valueOf(launchMode.get().name());
+
+    } else if (JRetentionPolicyEnum.class.isAssignableFrom(getDataType())) {
+
+      Optional<RetentionPolicyEnum> retentionPolicy = RetentionPolicyEnum.fromValue(oneValue);
+      BusinessRule.expect(retentionPolicy, Optional::isPresent)
+          .verify(errorType,
+              formattedSupplier("Cannot convert '{}' to valid 'Retention policy'", oneValue));
+      castedValue = JRetentionPolicyEnum.valueOf(retentionPolicy.get().name());
 
     } else if (JIntegrationGroupEnum.class.isAssignableFrom(getDataType())) {
 

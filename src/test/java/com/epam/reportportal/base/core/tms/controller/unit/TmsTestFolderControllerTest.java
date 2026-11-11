@@ -1,5 +1,11 @@
 package com.epam.reportportal.base.core.tms.controller.unit;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.never;
+import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Condition;
+import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.FilterCondition;
+import org.mockito.ArgumentCaptor;
 import static com.epam.reportportal.base.util.StandaloneMockMvcSupport.standaloneJsonSetup;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -1018,5 +1024,49 @@ public class TmsTestFolderControllerTest {
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
     verify(tmsTestFolderService).duplicateFolder(membershipDetails, testUser, folderId, request);
+  }
+
+  @Test
+  public void testSearchFolders_PassesBodyConditionsToFilter() throws Exception {
+    Page<TmsTestFolderRS> expectedResponse = new Page<>(Collections.emptyList(), 100L, 0L, 0L, 0L);
+    given(tmsTestFolderService.getFoldersByCriteria(eq(projectId), any(Filter.class),
+        any(OffsetRequest.class))).willReturn(expectedResponse);
+
+    var body = """
+        {"conditions": [{"filterKey": "testCaseAttributes", "condition": "has", "value": "10,20"}]}
+        """;
+
+    mockMvc.perform(post("/v1/project/{projectKey}/tms/folder/search", projectKey)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(body))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content").isArray());
+
+    var filterCaptor = ArgumentCaptor.forClass(Filter.class);
+    verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
+    verify(tmsTestFolderService).getFoldersByCriteria(eq(projectId), filterCaptor.capture(),
+        any(OffsetRequest.class));
+
+    var conditions = filterCaptor.getValue().getFilterConditions();
+    assertEquals(1, conditions.size());
+    var condition = (FilterCondition) conditions.getFirst();
+    assertEquals(Condition.HAS, condition.getCondition());
+    assertEquals("testCaseAttributes", condition.getSearchCriteria());
+    assertEquals("10,20", condition.getValue());
+  }
+
+  @Test
+  public void testSearchFolders_BlankValueReturnsBadRequest() throws Exception {
+    var body = """
+        {"conditions": [{"filterKey": "testCaseAttributes", "condition": "has", "value": ""}]}
+        """;
+
+    mockMvc.perform(post("/v1/project/{projectKey}/tms/folder/search", projectKey)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(body))
+        .andExpect(status().isBadRequest());
+
+    verify(tmsTestFolderService, never()).getFoldersByCriteria(eq(projectId), any(Filter.class),
+        any(OffsetRequest.class));
   }
 }

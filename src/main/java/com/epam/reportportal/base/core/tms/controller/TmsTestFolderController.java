@@ -4,6 +4,7 @@ import static com.epam.reportportal.base.auth.permissions.Permissions.ALLOWED_TO
 import static com.epam.reportportal.base.auth.permissions.Permissions.ALLOWED_TO_VIEW_PROJECT;
 
 import com.epam.reportportal.base.core.tms.dto.DuplicateTmsTestFolderRS;
+import com.epam.reportportal.base.core.tms.dto.TmsSearchRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestFolderExportFileType;
 import com.epam.reportportal.base.core.tms.dto.TmsTestFolderRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestFolderRS;
@@ -25,6 +26,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -238,6 +240,40 @@ public class TmsTestFolderController {
             .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey))
             .getProjectId(),
         filter,
+        offsetRequest
+    );
+  }
+
+  /**
+   * Searches test folders of a project by criteria passed in the request body. Equivalent to
+   * {@link #getFoldersByCriteria} but without URL length limits (e.g. filtering by many tags).
+   *
+   * @param projectKey    The key of the project.
+   * @param searchRQ      Filter conditions
+   * @param user          Authenticated user
+   * @param offsetRequest Paging and sorting parameters
+   * @return A paginated list of {@link TmsTestFolderRS}.
+   */
+  @PostMapping("/search")
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
+  @Operation(
+      summary = "Search Test Folders by criteria",
+      description = "Same as GET test folders, but filter conditions are passed in the request "
+          + "body. Use it when filter values are too long for a URL."
+  )
+  @ApiResponse(responseCode = "200", description = "Test folders retrieved successfully")
+  public Page<TmsTestFolderRS> searchFolders(
+      @Parameter(description = "Project key", required = true)
+      @PathVariable("projectKey") String projectKey,
+      @Valid @RequestBody TmsSearchRQ searchRQ,
+      @AuthenticationPrincipal ReportPortalUser user,
+      @Parameter(description = "Pagination parameters")
+      @PagingOffset(sortable = TmsTestFolder.class) OffsetRequest offsetRequest) {
+    return tmsTestFolderService.getFoldersByCriteria(
+        projectExtractor
+            .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey))
+            .getProjectId(),
+        searchRQ.toFilter(TmsTestFolder.class),
         offsetRequest
     );
   }

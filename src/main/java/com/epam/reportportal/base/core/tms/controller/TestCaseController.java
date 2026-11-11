@@ -4,6 +4,7 @@ import static com.epam.reportportal.base.auth.permissions.Permissions.ALLOWED_TO
 import static com.epam.reportportal.base.auth.permissions.Permissions.ALLOWED_TO_VIEW_PROJECT;
 
 import com.epam.reportportal.base.core.tms.dto.DeleteTagsRQ;
+import com.epam.reportportal.base.core.tms.dto.TmsSearchRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseRS;
 import com.epam.reportportal.base.core.tms.dto.TmsTestFolderRS;
@@ -120,6 +121,37 @@ public class TestCaseController {
             .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey))
             .getProjectId(),
         filter,
+        offsetRequest);
+  }
+
+  /**
+   * Searches test cases of a project by criteria passed in the request body. Equivalent to
+   * {@link #getTestCasesByCriteria} but without URL length limits (e.g. filtering by many tags).
+   *
+   * @param projectKey    The key of the project.
+   * @param offsetRequest Paging and sorting parameters
+   * @param searchRQ      Filter conditions
+   * @param user          Authenticated user
+   * @return A paginated list of {@link TmsTestCaseRS}.
+   */
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
+  @PostMapping("/search")
+  @Operation(
+      summary = "Search test cases for a project by criteria",
+      description = "Same as GET test cases by criteria, but filter conditions are passed in the "
+          + "request body. Use it when filter values are too long for a URL."
+  )
+  @ApiResponse(responseCode = "200", description = "Successful operation")
+  public Page<TmsTestCaseRS> searchTestCases(
+      @PathVariable("projectKey") String projectKey,
+      @PagingOffset(sortable = TmsTestCase.class) OffsetRequest offsetRequest,
+      @Valid @RequestBody TmsSearchRQ searchRQ,
+      @AuthenticationPrincipal ReportPortalUser user) {
+    return tmsTestCaseService.getTestCasesByCriteria(
+        projectExtractor
+            .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey))
+            .getProjectId(),
+        searchRQ.toFilter(TmsTestCase.class),
         offsetRequest);
   }
 

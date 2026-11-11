@@ -38,7 +38,9 @@ public enum FilterOperation {
   GT(FilterCondition.builder().withCondition(Condition.GREATER_THAN)),
   GTE(FilterCondition.builder().withCondition(Condition.GREATER_THAN_OR_EQUALS)),
   LT(FilterCondition.builder().withCondition(Condition.LOWER_THAN)),
-  LTE(FilterCondition.builder().withCondition(Condition.LOWER_THAN_OR_EQUALS));
+  LTE(FilterCondition.builder().withCondition(Condition.LOWER_THAN_OR_EQUALS)),
+  HAS(FilterCondition.builder().withCondition(Condition.HAS)),
+  ANY(FilterCondition.builder().withCondition(Condition.ANY));
 
   private final ConditionBuilder conditionBuilder;
 

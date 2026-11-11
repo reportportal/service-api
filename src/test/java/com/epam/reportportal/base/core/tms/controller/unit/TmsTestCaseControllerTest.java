@@ -1,5 +1,12 @@
 package com.epam.reportportal.base.core.tms.controller.unit;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Condition;
+import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.FilterCondition;
+import org.mockito.ArgumentCaptor;
 import static com.epam.reportportal.base.util.StandaloneMockMvcSupport.standaloneJsonSetup;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -42,6 +49,9 @@ import com.epam.reportportal.base.util.OffsetRequest;
 import com.epam.reportportal.base.util.ProjectExtractor;
 import com.epam.reportportal.base.ws.resolver.FilterCriteriaResolver;
 import com.epam.reportportal.base.ws.resolver.OffsetArgumentResolver;
+import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
+import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
+import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.Arrays;
 import java.util.Collections;
@@ -1106,5 +1116,58 @@ public class TmsTestCaseControllerTest {
         .andExpect(status().isBadRequest());
 
     verify(tmsTestCaseService, never()).duplicate(eq(membershipDetails), eq(testUser), any());
+  }
+
+  @Test
+  void searchTestCasesPassesBodyConditionsToFilterTest() throws Exception {
+    var page = new Page<>(List.of(new TmsTestCaseRS()), 10, 0, 1, 1);
+    given(tmsTestCaseService.getTestCasesByCriteria(eq(projectId), any(Filter.class),
+        any(OffsetRequest.class))).willReturn(page);
+
+    var body = """
+        {"conditions": [
+          {"filterKey": "attributes", "condition": "has", "value": "1,2,3"},
+          {"filterKey": "name", "condition": "cnt", "value": "login", "negative": true}
+        ]}
+        """;
+
+    mockMvc.perform(
+            post("/v1/project/{projectKey}/tms/test-case/search", projectKey)
+                .param("offset", "0")
+                .param("limit", "10")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body))
+        .andExpect(status().isOk());
+
+    var filterCaptor = ArgumentCaptor.forClass(Filter.class);
+    verify(tmsTestCaseService).getTestCasesByCriteria(eq(projectId), filterCaptor.capture(),
+        any(OffsetRequest.class));
+
+    var conditions = filterCaptor.getValue().getFilterConditions();
+    assertEquals(2, conditions.size());
+    var attributes = (FilterCondition) conditions.get(0);
+    assertEquals(Condition.HAS, attributes.getCondition());
+    assertEquals("attributes", attributes.getSearchCriteria());
+    assertEquals("1,2,3", attributes.getValue());
+    var name = (FilterCondition) conditions.get(1);
+    assertEquals(Condition.CONTAINS, name.getCondition());
+    assertTrue(name.isNegative());
+  }
+
+  @Test
+  void searchTestCasesWithUnknownConditionThrowsIncorrectFilterParametersTest() {
+    var body = """
+        {"conditions": [{"filterKey": "attributes", "condition": "unknown", "value": "1"}]}
+        """;
+
+    var exception = assertThrows(ServletException.class, () -> mockMvc.perform(
+        post("/v1/project/{projectKey}/tms/test-case/search", projectKey)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(body)));
+    var cause = assertInstanceOf(ReportPortalException.class, exception.getCause());
+    assertEquals(ErrorType.INCORRECT_FILTER_PARAMETERS, cause.getErrorType());
+
+    verify(tmsTestCaseService, never()).getTestCasesByCriteria(eq(projectId), any(Filter.class),
+        any(OffsetRequest.class));
   }
 }

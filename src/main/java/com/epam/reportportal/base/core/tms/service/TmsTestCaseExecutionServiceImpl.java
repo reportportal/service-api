@@ -37,12 +37,15 @@ import com.epam.reportportal.base.model.Page;
 import com.epam.reportportal.base.model.item.UpdateTestItemRQ;
 import com.epam.reportportal.base.reporting.FinishTestItemRQ;
 import com.epam.reportportal.base.ws.converter.PagedResourcesAssembler;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.FlushModeType;
 import jakarta.persistence.PersistenceException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -87,6 +90,7 @@ public class TmsTestCaseExecutionServiceImpl implements TmsTestCaseExecutionServ
   private final NestedStepItemBuilder nestedStepItemBuilder;
   private final TestCaseItemBuilder testCaseItemBuilder;
   private final TmsManualScenarioMapper tmsManualScenarioMapper;
+  private final EntityManager entityManager;
 
   private TmsTestCaseService tmsTestCaseService;
   private TmsManualLaunchService tmsManualLaunchService;
@@ -353,68 +357,93 @@ public class TmsTestCaseExecutionServiceImpl implements TmsTestCaseExecutionServ
     // Partition testCaseIds into chunks of 1000 to batch load test case data and avoid N+1 queries
     var testCaseIdsPartition = ListUtils.partition(testCaseIds, 1000);
 
-    for (var partition : testCaseIdsPartition) {
-      // Find IDs that are valid and not already added to the launch
-      var testCaseIdsInPartition = partition
-          .stream()
-          .filter(id -> {
-            if (!seenTestCaseIds.add(id)) {
-              log.warn("Duplicate test case {} in request for launch: {}, skipping", id,
-                  launch.getId());
-              errors.add(new BatchTestCaseOperationError(id, "Duplicate test case ID in request"));
-              return false;
-            }
-            if (!existingTestCaseIds.contains(id)) {
-              log.warn("Test case {} for project {} does not exist", id, projectId);
-              errors.add(new BatchTestCaseOperationError(id, "Test case does not exist in the project"));
-              return false;
-            }
-            if (existingExecutionTestCaseIds.contains(id)) {
-              log.warn("Execution for test case: {} already exists in launch: {}, skipping", id,
-                  launch.getId());
-              errors.add(new BatchTestCaseOperationError(id,
-                  "Test case execution already exists in launch"));
-              return false;
-            }
-            return true;
-          })
-          .toList();
+    // Resolve all SUITE items before any TEST item is created, while the persistence context is
+    // still small. Otherwise every new folder triggers queries (and auto-flushes) against a
+    // context that already holds all items created so far.
+    prepareSuiteItems(projectId, launch, testCaseIdsPartition, existingTestCaseIds,
+        existingExecutionTestCaseIds, suiteItemsByIds);
 
-      if (testCaseIdsInPartition.isEmpty()) {
-        continue;
-      }
+    // Pending changes must reach the DB before auto-flush is turned off for the loop
+    entityManager.flush();
+    var previousFlushMode = entityManager.getFlushMode();
+    entityManager.setFlushMode(FlushModeType.COMMIT);
+    try {
+      var processed = 0;
+      var startedAt = System.nanoTime();
+      for (var partition : testCaseIdsPartition) {
+        var partitionStartedAt = System.nanoTime();
+        // Find IDs that are valid and not already added to the launch
+        var testCaseIdsInPartition = partition
+            .stream()
+            .filter(id -> {
+              if (!seenTestCaseIds.add(id)) {
+                log.warn("Duplicate test case {} in request for launch: {}, skipping", id,
+                    launch.getId());
+                errors.add(new BatchTestCaseOperationError(id, "Duplicate test case ID in request"));
+                return false;
+              }
+              if (!existingTestCaseIds.contains(id)) {
+                log.warn("Test case {} for project {} does not exist", id, projectId);
+                errors.add(new BatchTestCaseOperationError(id, "Test case does not exist in the project"));
+                return false;
+              }
+              if (existingExecutionTestCaseIds.contains(id)) {
+                log.warn("Execution for test case: {} already exists in launch: {}, skipping", id,
+                    launch.getId());
+                errors.add(new BatchTestCaseOperationError(id,
+                    "Test case execution already exists in launch"));
+                return false;
+              }
+              return true;
+            })
+            .toList();
 
-      // Batch fetch test cases for the chunk in a single round-trip without last execution queries
-      var testCasesMap = tmsTestCaseService.getByIdsMap(projectId, testCaseIdsInPartition, false);
-
-      for (var testCaseId : testCaseIdsInPartition) {
-        try {
-          var testCase = testCasesMap.get(testCaseId);
-          if (testCase == null) {
-            log.warn("Test case {} for project {} not found in batch fetch", testCaseId, projectId);
-            errors.add(new BatchTestCaseOperationError(testCaseId, "Test case does not exist in the project"));
-            continue;
-          }
-
-          // Create execution
-          createExecution(projectId, testCase, launch, suiteItemsByIds, testItemNamesByIds, existingExecutionTestCaseIds);
-          successfulIds.add(testCaseId);
-
-          log.debug("Successfully added test case {} to launch {}", testCaseId, launch.getId());
-
-        } catch (DataAccessException | PersistenceException e) {
-          throw e;
-        } catch (ReportPortalException e) {
-          log.warn("Failed to add test case {} to launch {}: {}", testCaseId, launch.getId(),
-            e.getMessage());
-          errors.add(new BatchTestCaseOperationError(testCaseId, e.getMessage()));
-        } catch (Exception e) {
-          log.error("Unexpected error adding test case {} to launch {}: {}", testCaseId,
-              launch.getId(), e.getMessage(), e);
-          errors.add(new BatchTestCaseOperationError(testCaseId,
-              "Unexpected error: " + e.getMessage()));
+        if (testCaseIdsInPartition.isEmpty()) {
+          continue;
         }
+
+        // Batch fetch test cases for the chunk in a single round-trip without last execution queries
+        var testCasesMap = tmsTestCaseService.getByIdsMap(projectId, testCaseIdsInPartition, false);
+
+        for (var testCaseId : testCaseIdsInPartition) {
+          try {
+            var testCase = testCasesMap.get(testCaseId);
+            if (testCase == null) {
+              log.warn("Test case {} for project {} not found in batch fetch", testCaseId, projectId);
+              errors.add(new BatchTestCaseOperationError(testCaseId, "Test case does not exist in the project"));
+              continue;
+            }
+
+            // Create execution
+            createExecution(projectId, testCase, launch, suiteItemsByIds, testItemNamesByIds, existingExecutionTestCaseIds);
+            successfulIds.add(testCaseId);
+
+            log.debug("Successfully added test case {} to launch {}", testCaseId, launch.getId());
+
+          } catch (DataAccessException | PersistenceException e) {
+            throw e;
+          } catch (ReportPortalException e) {
+            log.warn("Failed to add test case {} to launch {}: {}", testCaseId, launch.getId(),
+                e.getMessage());
+            errors.add(new BatchTestCaseOperationError(testCaseId, e.getMessage()));
+          } catch (Exception e) {
+            log.error("Unexpected error adding test case {} to launch {}: {}", testCaseId,
+                launch.getId(), e.getMessage(), e);
+            errors.add(new BatchTestCaseOperationError(testCaseId,
+                "Unexpected error: " + e.getMessage()));
+          }
+        }
+
+        // One explicit flush per chunk instead of one per query
+        entityManager.flush();
+        processed += testCaseIdsInPartition.size();
+        log.info("Launch {}: added {}/{} test cases, chunk of {} took {} ms, total {} ms",
+            launch.getId(), processed, testCaseIds.size(), testCaseIdsInPartition.size(),
+            (System.nanoTime() - partitionStartedAt) / 1_000_000,
+            (System.nanoTime() - startedAt) / 1_000_000);
       }
+    } finally {
+      entityManager.setFlushMode(previousFlushMode);
     }
 
     var result = BatchTestCaseOperationResultRS.builder()
@@ -429,6 +458,39 @@ public class TmsTestCaseExecutionServiceImpl implements TmsTestCaseExecutionServ
         launch.getId(), result.getTotalCount(), result.getSuccessCount(), result.getFailureCount());
 
     return result;
+  }
+
+  /**
+   * Finds or creates SUITE items (with all their ancestors) for every folder that will receive a
+   * new execution, and stores them in {@code suiteItemsByIds}.
+   */
+  private void prepareSuiteItems(long projectId,
+      Launch launch,
+      List<List<Long>> testCaseIdsPartition,
+      Set<Long> existingTestCaseIds,
+      Set<Long> existingExecutionTestCaseIds,
+      Map<Long, TestItem> suiteItemsByIds) {
+    var startedAt = System.nanoTime();
+    var folderIds = new LinkedHashSet<Long>();
+    var candidateIds = new HashSet<Long>();
+    for (var partition : testCaseIdsPartition) {
+      var newIds = partition
+          .stream()
+          .filter(id -> existingTestCaseIds.contains(id)
+              && !existingExecutionTestCaseIds.contains(id)
+              && candidateIds.add(id))
+          .toList();
+      folderIds.addAll(tmsTestCaseService.getTestFolderIdsByTestCaseIds(projectId, newIds));
+    }
+
+    for (var folderId : folderIds) {
+      var suiteItem = testFolderItemService.findTestFolderItem(
+          projectId, folderId, launch, suiteItemsByIds
+      );
+      testFolderItemService.markAsHavingChildren(suiteItem);
+    }
+    log.info("Launch {}: prepared {} folders ({} SUITE items) in {} ms", launch.getId(),
+        folderIds.size(), suiteItemsByIds.size(), (System.nanoTime() - startedAt) / 1_000_000);
   }
 
   @Override

@@ -62,6 +62,7 @@ import static com.epam.reportportal.base.infrastructure.persistence.commons.quer
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.LaunchCriteriaConstant.CRITERIA_LAUNCH_STATUS;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.LaunchCriteriaConstant.CRITERIA_LAUNCH_TYPE;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.LaunchCriteriaConstant.CRITERIA_LAUNCH_UUID;
+import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.LaunchCriteriaConstant.CRITERIA_RETENTION_POLICY;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.LaunchCriteriaConstant.CRITERIA_TEST_PLAN_ID;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.LogCriteriaConstant.CRITERIA_ITEM_LAUNCH_ID;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.LogCriteriaConstant.CRITERIA_LOG_BINARY_CONTENT;
@@ -278,6 +279,7 @@ import com.epam.reportportal.base.infrastructure.persistence.jooq.enums.JIntegra
 import com.epam.reportportal.base.infrastructure.persistence.jooq.enums.JLaunchModeEnum;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.enums.JLaunchTypeEnum;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.enums.JOrganizationRoleEnum;
+import com.epam.reportportal.base.infrastructure.persistence.jooq.enums.JRetentionPolicyEnum;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.enums.JStatusEnum;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.enums.JTestItemTypeEnum;
 import com.google.common.collect.Lists;
@@ -635,7 +637,9 @@ public enum FilterTarget {
               JoinEntity.of(USERS, JoinType.LEFT_OUTER_JOIN, LAUNCH.USER_ID.eq(USERS.ID)))
       ).withAggregateCriteria(DSL.max(USERS.LOGIN).toString()).get(),
       new CriteriaHolderBuilder().newBuilder(CRITERIA_LAUNCH_TYPE, LAUNCH.LAUNCH_TYPE,
-          JLaunchTypeEnum.class).get()
+          JLaunchTypeEnum.class).get(),
+      new CriteriaHolderBuilder().newBuilder(CRITERIA_RETENTION_POLICY, LAUNCH.RETENTION_POLICY,
+          JRetentionPolicyEnum.class).get()
   )) {
     @Override
     protected Collection<? extends SelectField> selectFields() {

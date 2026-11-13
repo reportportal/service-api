@@ -1,14 +1,19 @@
 package com.epam.reportportal.base.infrastructure.persistence.commons.querygen;
 
+import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.LaunchCriteriaConstant.CRITERIA_RETENTION_POLICY;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.TestItemCriteriaConstant.CRITERIA_TEST_CASE_ID;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseCriteriaConstant.CRITERIA_TMS_TEST_CASE_DISPLAY_ID;
+import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.LAUNCH;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.TMS_TEST_CASE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import com.epam.reportportal.base.infrastructure.persistence.jooq.enums.JRetentionPolicyEnum;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.google.common.collect.Lists;
+import org.jooq.SQLDialect;
+import org.jooq.impl.DSL;
 import org.junit.jupiter.api.Test;
 
 
@@ -52,6 +57,58 @@ class FilterConditionTest {
     assertEquals(CRITERIA_TMS_TEST_CASE_DISPLAY_ID, criteriaHolder.getFilterCriteria());
     assertEquals(String.class, criteriaHolder.getDataType());
     assertEquals(TMS_TEST_CASE.DISPLAY_ID.getQualifiedName().toString(), criteriaHolder.getQueryCriteria());
+  }
+
+  @Test
+  void retentionPolicyFilterTargetsLaunchColumn() {
+    CriteriaHolder criteriaHolder = FilterTarget.LAUNCH_TARGET
+        .getCriteriaByFilter(CRITERIA_RETENTION_POLICY)
+        .orElseThrow();
+
+    assertEquals(CRITERIA_RETENTION_POLICY, criteriaHolder.getFilterCriteria());
+    assertEquals(JRetentionPolicyEnum.class, criteriaHolder.getDataType());
+    assertEquals(LAUNCH.RETENTION_POLICY.getQualifiedName().toString(),
+        criteriaHolder.getQueryCriteria());
+    assertEquals(JRetentionPolicyEnum.IMPORTANT, criteriaHolder.castValue("important"));
+    assertEquals(JRetentionPolicyEnum.REGULAR, criteriaHolder.castValue("REGULAR"));
+
+    ReportPortalException exception = assertThrows(ReportPortalException.class,
+        () -> criteriaHolder.castValue("UNKNOWN"));
+    assertEquals(ErrorType.INCORRECT_FILTER_PARAMETERS, exception.getErrorType());
+  }
+
+  @Test
+  void retentionPolicyEqualsAndInConditionsUseRetentionPolicyColumn() {
+    String equalsSql = render(FilterCondition.builder()
+        .eq(CRITERIA_RETENTION_POLICY, "important")
+        .build());
+    assertEquals(
+        "\"launch\".\"retention_policy\" = cast('IMPORTANT' as \"public\".\"retention_policy_enum\")",
+        equalsSql);
+
+    String notEqualsSql = render(FilterCondition.builder()
+        .withCondition(Condition.NOT_EQUALS)
+        .withSearchCriteria(CRITERIA_RETENTION_POLICY)
+        .withValue("REGULAR")
+        .build());
+    assertEquals(
+        "\"launch\".\"retention_policy\" <> cast('REGULAR' as \"public\".\"retention_policy_enum\")",
+        notEqualsSql);
+
+    String inSql = render(FilterCondition.builder()
+        .in(CRITERIA_RETENTION_POLICY, Lists.newArrayList("IMPORTANT", "regular"))
+        .build());
+    assertEquals(
+        "\"launch\".\"retention_policy\" in ("
+            + "cast('IMPORTANT' as \"public\".\"retention_policy_enum\"), "
+            + "cast('REGULAR' as \"public\".\"retention_policy_enum\"))",
+        inSql);
+  }
+
+  private static String render(FilterCondition filterCondition) {
+    return DSL.using(SQLDialect.POSTGRES)
+        .renderInlined(filterCondition.toCondition(FilterTarget.LAUNCH_TARGET)
+            .get(ConditionType.WHERE));
   }
 
   @Test

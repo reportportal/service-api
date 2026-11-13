@@ -35,6 +35,7 @@ import com.epam.reportportal.base.model.integration.UpdatePluginStateRQ;
 import com.epam.reportportal.base.model.launch.LaunchImportRQ;
 import com.epam.reportportal.base.reporting.OperationCompletionRS;
 import com.epam.reportportal.base.util.ProjectExtractor;
+import com.epam.reportportal.base.ws.converter.converters.LaunchImportRqConverter;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;

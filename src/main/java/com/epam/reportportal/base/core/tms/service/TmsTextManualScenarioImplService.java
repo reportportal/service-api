@@ -1,0 +1,177 @@
+package com.epam.reportportal.base.core.tms.service;
+
+import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.NOT_FOUND;
+
+import com.epam.reportportal.base.core.tms.dto.TmsManualScenarioRQ;
+import com.epam.reportportal.base.core.tms.dto.TmsManualScenarioType;
+import com.epam.reportportal.base.core.tms.dto.TmsTextManualScenarioRQ;
+import com.epam.reportportal.base.core.tms.mapper.TmsTextManualScenarioMapper;
+import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTextManualScenarioRepository;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsManualScenario;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTextManualScenario;
+import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import lombok.RequiredArgsConstructor;
+import org.apache.commons.collections4.CollectionUtils;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Service
+@RequiredArgsConstructor
+public class TmsTextManualScenarioImplService implements TmsManualScenarioImplService {
+
+  private static final String TEXT_MANUAL_SCENARIO_FOR_MANUAL_SCENARIO =
+      "Text Manual Scenario for Manual Scenario with id: %d";
+
+  private final TmsTextManualScenarioMapper tmsTextManualScenarioMapper;
+  private final TmsTextManualScenarioRepository tmsTextManualScenarioRepository;
+  private final TmsTextManualScenarioAttachmentService tmsTextManualScenarioAttachmentService;
+
+  @Override
+  public TmsManualScenarioType getTmsManualScenarioType() {
+    return TmsManualScenarioType.TEXT;
+  }
+
+  @Override
+  @Transactional
+  public void createTmsManualScenarioImpl(
+      Long projectId,
+      TmsManualScenario tmsManualScenario,
+      TmsManualScenarioRQ testCaseManualScenarioRq) {
+
+    var tmsTextManualScenarioRQ = (TmsTextManualScenarioRQ) testCaseManualScenarioRq;
+
+    var tmsTextManualScenario = tmsTextManualScenarioMapper.createTmsManualScenario(
+        tmsTextManualScenarioRQ);
+
+    tmsTextManualScenarioAttachmentService.createAttachments(projectId, tmsTextManualScenario,
+        tmsTextManualScenarioRQ);
+
+    tmsManualScenario.setTextScenario(tmsTextManualScenario);
+    tmsTextManualScenario.setManualScenario(tmsManualScenario);
+
+    tmsTextManualScenarioRepository.save(tmsTextManualScenario);
+  }
+
+  @Override
+  @Transactional
+  public void createTmsManualScenarioBatch(Long projectId,
+      List<TmsManualScenario> tmsManualScenarios,
+      List<TmsManualScenarioRQ> testCaseManualScenarioRqs) {
+
+    var textScenarios = new ArrayList<TmsTextManualScenario>(tmsManualScenarios.size());
+
+    for (int i = 0; i < tmsManualScenarios.size(); i++) {
+      var tmsManualScenario = tmsManualScenarios.get(i);
+      var tmsTextManualScenarioRQ = (TmsTextManualScenarioRQ) testCaseManualScenarioRqs.get(i);
+
+      var tmsTextManualScenario = tmsTextManualScenarioMapper.createTmsManualScenario(
+          tmsTextManualScenarioRQ);
+
+      tmsManualScenario.setTextScenario(tmsTextManualScenario);
+      tmsTextManualScenario.setManualScenario(tmsManualScenario);
+
+      textScenarios.add(tmsTextManualScenario);
+    }
+
+    var savedTextScenarios = tmsTextManualScenarioRepository.saveAll(textScenarios);
+
+    for (int i = 0; i < savedTextScenarios.size(); i++) {
+      tmsTextManualScenarioAttachmentService.createAttachments(projectId,
+          savedTextScenarios.get(i), (TmsTextManualScenarioRQ) testCaseManualScenarioRqs.get(i));
+    }
+  }
+
+  @Override
+  @Transactional
+  public void updateTmsManualScenarioImpl(Long projectId, TmsManualScenario manualScenario,
+      TmsManualScenarioRQ testCaseManualScenarioRq) {
+    var textManualScenario = manualScenario.getTextScenario();
+    var tmsTextManualScenarioRQ = (TmsTextManualScenarioRQ) testCaseManualScenarioRq;
+
+    if (Objects.nonNull(textManualScenario)) {
+      tmsTextManualScenarioMapper.updateTmsManualScenario(
+          textManualScenario, tmsTextManualScenarioRQ
+      );
+      tmsTextManualScenarioAttachmentService.updateAttachments(projectId, textManualScenario,
+          tmsTextManualScenarioRQ);
+    } else {
+      textManualScenario = tmsTextManualScenarioMapper.createTmsManualScenario(
+          tmsTextManualScenarioRQ
+      );
+      manualScenario.setTextScenario(textManualScenario);
+      textManualScenario.setManualScenario(manualScenario);
+    }
+
+    tmsTextManualScenarioRepository.save(textManualScenario);
+  }
+
+  @Override
+  @Transactional
+  public void patchTmsManualScenarioImpl(Long projectId, TmsManualScenario manualScenario,
+      TmsManualScenarioRQ testCaseManualScenarioRq) {
+    var existingTextManualScenario = manualScenario.getTextScenario();
+    if (Objects.nonNull(existingTextManualScenario)) {
+      var tmsTextManualScenarioRQ = (TmsTextManualScenarioRQ) testCaseManualScenarioRq;
+
+      tmsTextManualScenarioMapper.patchTmsManualScenario(existingTextManualScenario,
+          tmsTextManualScenarioRQ);
+
+      tmsTextManualScenarioAttachmentService.updateAttachments(projectId,
+          existingTextManualScenario, tmsTextManualScenarioRQ);
+
+      tmsTextManualScenarioRepository.save(existingTextManualScenario);
+    } else {
+      throw new ReportPortalException(
+          NOT_FOUND, TEXT_MANUAL_SCENARIO_FOR_MANUAL_SCENARIO.formatted(manualScenario.getId()));
+    }
+  }
+
+  @Override
+  @Transactional
+  public void deleteAllByTestCaseId(Long testCaseId) {
+    tmsTextManualScenarioAttachmentService.deleteAllByTestCaseId(testCaseId);
+    tmsTextManualScenarioRepository.deleteAllByTestCaseId(testCaseId);
+  }
+
+  @Override
+  @Transactional
+  public void deleteAllByTestCaseIds(List<Long> testCaseIds) {
+    if (CollectionUtils.isNotEmpty(testCaseIds)) {
+      tmsTextManualScenarioAttachmentService.deleteAllByTestCaseIds(testCaseIds);
+      tmsTextManualScenarioRepository.deleteAllByTestCaseIds(testCaseIds);
+    }
+  }
+
+  @Override
+  @Transactional
+  public void deleteAllByTestFolderId(Long projectId, Long folderId) {
+    tmsTextManualScenarioAttachmentService.deleteAllByTestFolderId(projectId, folderId);
+    tmsTextManualScenarioRepository.deleteAllByTestFolderId(projectId, folderId);
+  }
+
+  @Override
+  @Transactional
+  public void duplicateManualScenarioImpl(TmsManualScenario newScenario,
+      TmsManualScenario originalScenario) {
+    if (Objects.isNull(originalScenario)) {
+      return;
+    }
+    var originalTextScenario = originalScenario.getTextScenario();
+    if (Objects.nonNull(originalTextScenario)) {
+      var duplicatedTextScenario = tmsTextManualScenarioMapper.duplicateTextScenario(newScenario,
+          originalTextScenario);
+
+      duplicatedTextScenario = tmsTextManualScenarioRepository.save(duplicatedTextScenario);
+
+      if (CollectionUtils.isNotEmpty(originalTextScenario.getAttachments())) {
+        tmsTextManualScenarioAttachmentService.duplicateAttachments(originalTextScenario,
+            duplicatedTextScenario);
+      }
+
+      newScenario.setTextScenario(duplicatedTextScenario);
+    }
+  }
+}

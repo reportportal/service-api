@@ -1,0 +1,1 @@
+select widget_content_init();

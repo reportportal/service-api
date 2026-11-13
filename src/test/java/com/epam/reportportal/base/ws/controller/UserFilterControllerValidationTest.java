@@ -1,0 +1,283 @@
+/*
+ * Copyright 2019 EPAM Systems
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.epam.reportportal.base.ws.controller;
+
+import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.INCORRECT_REQUEST;
+import static com.epam.reportportal.base.ws.controller.constants.ValidationTestsConstants.FIELD_NAME_IS_BLANK_MESSAGE;
+import static com.epam.reportportal.base.ws.controller.constants.ValidationTestsConstants.FIELD_NAME_SIZE_MESSAGE_WITH_FORMAT;
+import static com.epam.reportportal.base.ws.controller.constants.ValidationTestsConstants.ID_PATH;
+import static com.epam.reportportal.base.ws.controller.constants.ValidationTestsConstants.INCORRECT_REQUEST_MESSAGE;
+import static com.epam.reportportal.base.ws.controller.constants.ValidationTestsConstants.LONG_NAME_VALUE;
+import static com.epam.reportportal.base.ws.controller.constants.ValidationTestsConstants.SHORT_NAME_VALUE;
+import static com.epam.reportportal.base.ws.controller.constants.ValidationTestsConstants.WHITESPACES_NAME_VALUE;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import com.epam.reportportal.base.infrastructure.rules.exception.ErrorRS;
+import com.epam.reportportal.base.model.filter.Order;
+import com.epam.reportportal.base.model.filter.UpdateUserFilterRQ;
+import com.epam.reportportal.base.model.filter.UserFilterCondition;
+import com.epam.reportportal.base.ws.BaseMvcTest;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.web.servlet.MvcResult;
+
+/**
+ * @author <a href="mailto:tatyana_gladysheva@epam.com">Tatyana Gladysheva</a>
+ */
+public class UserFilterControllerValidationTest extends BaseMvcTest {
+
+  private static final String FILTER_PATH = "/filter";
+
+  private static final String FIELD_NAME_SIZE_MESSAGE = String.format(FIELD_NAME_SIZE_MESSAGE_WITH_FORMAT, 3, 128);
+
+  @Autowired
+  private ObjectMapper objectMapper;
+
+  @Test
+  public void createFilterShouldReturnErrorWhenNameIsNull() throws Exception {
+    //GIVEN
+    UpdateUserFilterRQ userFilterRQ = prepareFilter();
+
+    //WHEN
+    MvcResult mvcResult = mockMvc.perform(
+            post(DEFAULT_PROJECT_BASE_URL + FILTER_PATH).with(token(oAuthHelper.getDefaultToken()))
+                .content(objectMapper.writeValueAsBytes(userFilterRQ)).contentType(APPLICATION_JSON))
+        .andExpect(status().isBadRequest()).andReturn();
+
+    //THEN
+    ErrorRS error =
+        objectMapper.readValue(mvcResult.getResponse().getContentAsString(), ErrorRS.class);
+    assertEquals(INCORRECT_REQUEST, error.getErrorType());
+    assertThat(error.getMessage(), containsString(INCORRECT_REQUEST_MESSAGE));
+    assertThat(error.getMessage(), containsString(FIELD_NAME_IS_BLANK_MESSAGE));
+  }
+
+  @Test
+  public void createFilterShouldReturnErrorWhenNameIsEmpty() throws Exception {
+    //GIVEN
+    UpdateUserFilterRQ userFilterRQ = prepareFilter();
+    userFilterRQ.setName(EMPTY);
+
+    //WHEN
+    MvcResult mvcResult = mockMvc.perform(
+            post(DEFAULT_PROJECT_BASE_URL + FILTER_PATH).with(token(oAuthHelper.getDefaultToken()))
+                .content(objectMapper.writeValueAsBytes(userFilterRQ)).contentType(APPLICATION_JSON))
+        .andExpect(status().isBadRequest()).andReturn();
+
+    //THEN
+    ErrorRS error =
+        objectMapper.readValue(mvcResult.getResponse().getContentAsString(), ErrorRS.class);
+    assertEquals(INCORRECT_REQUEST, error.getErrorType());
+    assertThat(error.getMessage(), containsString(INCORRECT_REQUEST_MESSAGE));
+    assertThat(error.getMessage(), containsString(FIELD_NAME_IS_BLANK_MESSAGE));
+  }
+
+  @Test
+  public void createFilterShouldReturnErrorWhenNameConsistsOfWhitespaces() throws Exception {
+    //GIVEN
+    UpdateUserFilterRQ userFilterRQ = prepareFilter();
+    userFilterRQ.setName(WHITESPACES_NAME_VALUE);
+
+    //WHEN
+    MvcResult mvcResult = mockMvc.perform(
+            post(DEFAULT_PROJECT_BASE_URL + FILTER_PATH).with(token(oAuthHelper.getDefaultToken()))
+                .content(objectMapper.writeValueAsBytes(userFilterRQ)).contentType(APPLICATION_JSON))
+        .andExpect(status().isBadRequest()).andReturn();
+
+    //THEN
+    ErrorRS error =
+        objectMapper.readValue(mvcResult.getResponse().getContentAsString(), ErrorRS.class);
+    assertEquals(INCORRECT_REQUEST, error.getErrorType());
+    assertThat(error.getMessage(), containsString(INCORRECT_REQUEST_MESSAGE));
+    assertThat(error.getMessage(), containsString(FIELD_NAME_IS_BLANK_MESSAGE));
+  }
+
+  @Test
+  public void createFilterShouldReturnErrorWhenNameIsLessThanThreeCharacters() throws Exception {
+    //GIVEN
+    UpdateUserFilterRQ userFilterRQ = prepareFilter();
+    userFilterRQ.setName(SHORT_NAME_VALUE);
+
+    //WHEN
+    MvcResult mvcResult = mockMvc.perform(
+            post(DEFAULT_PROJECT_BASE_URL + FILTER_PATH).with(token(oAuthHelper.getDefaultToken()))
+                .content(objectMapper.writeValueAsBytes(userFilterRQ)).contentType(APPLICATION_JSON))
+        .andExpect(status().isBadRequest()).andReturn();
+
+    //THEN
+    ErrorRS error =
+        objectMapper.readValue(mvcResult.getResponse().getContentAsString(), ErrorRS.class);
+    assertEquals(INCORRECT_REQUEST, error.getErrorType());
+    assertEquals(INCORRECT_REQUEST_MESSAGE + "[" + FIELD_NAME_SIZE_MESSAGE + "] ",
+        error.getMessage()
+    );
+  }
+
+  @Test
+  public void createFilterShouldReturnErrorWhenNameIsGreaterThanOneHundredAndTwentyEightCharacters()
+      throws Exception {
+    //GIVEN
+    UpdateUserFilterRQ userFilterRQ = prepareFilter();
+    userFilterRQ.setName(LONG_NAME_VALUE);
+
+    //WHEN
+    MvcResult mvcResult = mockMvc.perform(
+            post(DEFAULT_PROJECT_BASE_URL + FILTER_PATH).with(token(oAuthHelper.getDefaultToken()))
+                .content(objectMapper.writeValueAsBytes(userFilterRQ)).contentType(APPLICATION_JSON))
+        .andExpect(status().isBadRequest()).andReturn();
+
+    //THEN
+    ErrorRS error =
+        objectMapper.readValue(mvcResult.getResponse().getContentAsString(), ErrorRS.class);
+    assertEquals(INCORRECT_REQUEST, error.getErrorType());
+    assertEquals(INCORRECT_REQUEST_MESSAGE + "[" + FIELD_NAME_SIZE_MESSAGE + "] ",
+        error.getMessage()
+    );
+  }
+
+  @Test
+  public void updateFilterShouldReturnErrorWhenNameIsNull() throws Exception {
+    //GIVEN
+    UpdateUserFilterRQ userFilterRQ = prepareFilter();
+
+    //WHEN
+    MvcResult mvcResult = mockMvc.perform(
+            put(DEFAULT_PROJECT_BASE_URL + FILTER_PATH + ID_PATH).with(
+                    token(oAuthHelper.getDefaultToken()))
+                .content(objectMapper.writeValueAsBytes(userFilterRQ)).contentType(APPLICATION_JSON))
+        .andExpect(status().isBadRequest()).andReturn();
+
+    //THEN
+    ErrorRS error = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), ErrorRS.class);
+    assertEquals(INCORRECT_REQUEST, error.getErrorType());
+    assertThat(error.getMessage(), containsString(INCORRECT_REQUEST_MESSAGE));
+    assertThat(error.getMessage(), containsString(FIELD_NAME_IS_BLANK_MESSAGE));
+  }
+
+  @Test
+  public void updateFilterShouldReturnErrorWhenNameIsEmpty() throws Exception {
+    //GIVEN
+    UpdateUserFilterRQ userFilterRQ = prepareFilter();
+    userFilterRQ.setName(EMPTY);
+
+    //WHEN
+    MvcResult mvcResult = mockMvc.perform(
+            put(DEFAULT_PROJECT_BASE_URL + FILTER_PATH + ID_PATH).with(
+                    token(oAuthHelper.getDefaultToken()))
+                .content(objectMapper.writeValueAsBytes(userFilterRQ)).contentType(APPLICATION_JSON))
+        .andExpect(status().isBadRequest()).andReturn();
+
+    //THEN
+    ErrorRS error =
+        objectMapper.readValue(mvcResult.getResponse().getContentAsString(), ErrorRS.class);
+    assertEquals(INCORRECT_REQUEST, error.getErrorType());
+    assertThat(error.getMessage(), containsString(INCORRECT_REQUEST_MESSAGE));
+    assertThat(error.getMessage(), containsString(FIELD_NAME_IS_BLANK_MESSAGE));
+  }
+
+  @Test
+  public void updateFilterShouldReturnErrorWhenNameConsistsOfWhitespaces() throws Exception {
+    //GIVEN
+    UpdateUserFilterRQ userFilterRQ = prepareFilter();
+    userFilterRQ.setName(WHITESPACES_NAME_VALUE);
+
+    //WHEN
+    MvcResult mvcResult = mockMvc.perform(
+            put(DEFAULT_PROJECT_BASE_URL + FILTER_PATH + ID_PATH).with(
+                    token(oAuthHelper.getDefaultToken()))
+                .content(objectMapper.writeValueAsBytes(userFilterRQ)).contentType(APPLICATION_JSON))
+        .andExpect(status().isBadRequest()).andReturn();
+
+    //THEN
+    ErrorRS error =
+        objectMapper.readValue(mvcResult.getResponse().getContentAsString(), ErrorRS.class);
+    assertEquals(INCORRECT_REQUEST, error.getErrorType());
+    assertThat(error.getMessage(), containsString(INCORRECT_REQUEST_MESSAGE));
+    assertThat(error.getMessage(), containsString(FIELD_NAME_IS_BLANK_MESSAGE));
+  }
+
+  @Test
+  public void updateFilterShouldReturnErrorWhenNameIsLessThanThreeCharacters() throws Exception {
+    //GIVEN
+    UpdateUserFilterRQ userFilterRQ = prepareFilter();
+    userFilterRQ.setName(SHORT_NAME_VALUE);
+
+    //WHEN
+    MvcResult mvcResult = mockMvc.perform(
+            put(DEFAULT_PROJECT_BASE_URL + FILTER_PATH + ID_PATH).with(
+                    token(oAuthHelper.getDefaultToken()))
+                .content(objectMapper.writeValueAsBytes(userFilterRQ)).contentType(APPLICATION_JSON))
+        .andExpect(status().isBadRequest()).andReturn();
+
+    //THEN
+    ErrorRS error =
+        objectMapper.readValue(mvcResult.getResponse().getContentAsString(), ErrorRS.class);
+    assertEquals(INCORRECT_REQUEST, error.getErrorType());
+    assertEquals(INCORRECT_REQUEST_MESSAGE + "[" + FIELD_NAME_SIZE_MESSAGE + "] ",
+        error.getMessage()
+    );
+  }
+
+  @Test
+  public void updateFilterShouldReturnErrorWhenNameIsGreaterThanOneHundredAndTwentyEightCharacters()
+      throws Exception {
+    //GIVEN
+    UpdateUserFilterRQ userFilterRQ = prepareFilter();
+    userFilterRQ.setName(LONG_NAME_VALUE);
+
+    //WHEN
+    MvcResult mvcResult = mockMvc.perform(
+            put(DEFAULT_PROJECT_BASE_URL + FILTER_PATH + ID_PATH).with(
+                    token(oAuthHelper.getDefaultToken()))
+                .content(objectMapper.writeValueAsBytes(userFilterRQ)).contentType(APPLICATION_JSON))
+        .andExpect(status().isBadRequest()).andReturn();
+
+    //THEN
+    ErrorRS error =
+        objectMapper.readValue(mvcResult.getResponse().getContentAsString(), ErrorRS.class);
+    assertEquals(INCORRECT_REQUEST, error.getErrorType());
+    assertEquals(INCORRECT_REQUEST_MESSAGE + "[" + FIELD_NAME_SIZE_MESSAGE + "] ",
+        error.getMessage()
+    );
+  }
+
+  private UpdateUserFilterRQ prepareFilter() {
+    UpdateUserFilterRQ userFilterRQ = new UpdateUserFilterRQ();
+    userFilterRQ.setObjectType("Launch");
+
+    Order order = new Order();
+    order.setIsAsc(false);
+    order.setSortingColumnName("startTime");
+
+    userFilterRQ.setOrders(Lists.newArrayList(order));
+
+    userFilterRQ.setDescription("description");
+    userFilterRQ.setConditions(Sets.newHashSet(new UserFilterCondition("name", "cnt", "test")));
+
+    return userFilterRQ;
+  }
+}

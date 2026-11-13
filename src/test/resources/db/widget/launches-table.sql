@@ -3,9 +3,9 @@ insert into launch(id, uuid, project_id, user_id, name, description, start_time,
                    last_modified, mode, status, has_retries)
 values (2, 'uuid2', 1, 1, 'test launch', 'desc', now(), null, 2, now(), 'DEFAULT', 'FAILED', false);
 
-insert into item_attribute(key, value, launch_id)
+insert into launch_attribute(key, value, launch_id)
 VALUES ('key', 'value', 2);
-insert into item_attribute(key, value, launch_id)
+insert into launch_attribute(key, value, launch_id)
 VALUES ('key1', 'value1', 2);
 
 insert into test_item(test_case_hash, item_id, uuid, name, type, start_time, description, unique_id,
@@ -66,10 +66,10 @@ values (10, 1, 'to investigate', false, true);
 
 -- Filters and widgets
 INSERT INTO public.owned_entity (id, owner, project_id)
-VALUES (1, 'superadmin', 1),
-       (2, 'superadmin', 1),
-       (3, 'superadmin', 1),
-       (4, 'superadmin', 1);
+VALUES (1, 'admin@reportportal.internal', 1),
+       (2, 'admin@reportportal.internal', 1),
+       (3, 'admin@reportportal.internal', 1),
+       (4, 'admin@reportportal.internal', 1);
 
 INSERT INTO public.filter (id, name, target, description)
 VALUES (1, 'Admin Filter', 'Launch', null),
@@ -127,4 +127,4 @@ INSERT INTO statistics(s_counter, statistics_field_id, item_id) VALUES (1, 1, 7)
 INSERT INTO statistics(s_counter, statistics_field_id, item_id) VALUES (1, 1, 8), (1, 4, 8), (1, 7, 8), (1, 8, 8);
 INSERT INTO statistics(s_counter, statistics_field_id, item_id) VALUES (1, 1, 9), (1, 3, 9);
 INSERT INTO statistics(s_counter, statistics_field_id, item_id) VALUES (1, 1, 10), (1, 4, 10), (1, 11, 10), (1, 12, 10);
-INSERT INTO statistics(s_counter, statistics_field_id, launch_id) VALUES (5, 1, 2), (1, 2, 2), (3, 4, 2), (1, 3, 2), (2, 11, 2), (2, 12, 2), (1, 7, 2), (1, 8, 2);
+INSERT INTO launch_statistics(s_counter, statistics_field_id, launch_id) VALUES (5, 1, 2), (1, 2, 2), (3, 4, 2), (1, 3, 2), (2, 11, 2), (2, 12, 2), (1, 7, 2), (1, 8, 2);

@@ -1,10 +1,10 @@
 -- First launch
 insert into launch(id, uuid, project_id, user_id, name, description, start_time, end_time, number,
                    last_modified, mode, status, has_retries)
-values (1, 'uuid', 1, 1, 'test launch', 'desc', now(), null, 1, now(), 'DEFAULT', 'FAILED', false);
+values (1, 'uuid', 1, 1, 'test launch', 'desc', '2024-01-01 10:00:00', null, 1, '2024-01-01 10:00:00', 'DEFAULT', 'FAILED', false);
 
-insert into item_attribute(id, key, value, item_id, launch_id, system)
-values (1, 'key', 'val', null, 1, false);
+insert into launch_attribute(id, key, value, launch_id, system)
+values (1, 'key', 'val', 1, false);
 
 insert into test_item(test_case_hash, item_id, uuid, name, type, start_time, description, unique_id,
                       last_modified, path, parent_id, launch_id)
@@ -65,7 +65,7 @@ values (5, 1, 'to investigate', false, true);
 -- Second launch
 insert into launch(id, uuid, project_id, user_id, name, description, start_time, end_time, number,
                    last_modified, mode, status, has_retries)
-values (2, 'uuid2', 1, 1, 'test launch', 'desc', now(), null, 2, now(), 'DEFAULT', 'FAILED', false);
+values (2, 'uuid2', 1, 1, 'test launch', 'desc', '2024-01-02 10:00:00', null, 2, '2024-01-02 10:00:00', 'DEFAULT', 'FAILED', false);
 
 insert into test_item(test_case_hash, item_id, uuid, name, type, start_time, description, unique_id,
                       last_modified, path, parent_id, launch_id)
@@ -125,14 +125,14 @@ values (10, 1, 'to investigate', false, true);
 
 -- Filter and widget
 INSERT INTO public.owned_entity (id, owner, project_id)
-VALUES (1, 'superadmin', 1),
-       (2, 'superadmin', 1),
-       (3, 'superadmin', 1),
-       (4, 'superadmin', 1),
-       (5, 'superadmin', 1),
-       (6, 'superadmin', 1),
-       (7, 'superadmin', 1),
-       (8, 'superadmin', 1);
+VALUES (1, 'admin@reportportal.internal', 1),
+       (2, 'admin@reportportal.internal', 1),
+       (3, 'admin@reportportal.internal', 1),
+       (4, 'admin@reportportal.internal', 1),
+       (5, 'admin@reportportal.internal', 1),
+       (6, 'admin@reportportal.internal', 1),
+       (7, 'admin@reportportal.internal', 1),
+       (8, 'admin@reportportal.internal', 1);
 
 INSERT INTO public.filter (id, name, target, description)
 VALUES (1, 'Admin Filter', 'Launch', null),
@@ -140,7 +140,7 @@ VALUES (1, 'Admin Filter', 'Launch', null),
        (3, 'Admin Filter Desc', 'Launch', null);
 
 INSERT INTO public.filter_sort (id, filter_id, field, direction)
-VALUES (1, 1, 'name', 'ASC'),
+VALUES (1, 1, 'number', 'ASC'),
        (2, 2, 'name', 'DESC'),
        (3, 2, 'name', 'DESC');
 
@@ -188,5 +188,5 @@ INSERT INTO statistics(s_counter, statistics_field_id, item_id) VALUES (1, 1, 7)
 INSERT INTO statistics(s_counter, statistics_field_id, item_id) VALUES (1, 1, 8), (1, 4, 8), (1, 7, 8), (1, 8, 8);
 INSERT INTO statistics(s_counter, statistics_field_id, item_id) VALUES (1, 1, 9), (1, 3, 9);
 INSERT INTO statistics(s_counter, statistics_field_id, item_id) VALUES (1, 1, 10), (1, 4, 10), (1, 11, 10), (1, 12, 10);
-INSERT INTO statistics(s_counter, statistics_field_id, launch_id) VALUES (5, 1, 1), (2, 2, 1), (3, 4, 1), (1, 5, 1), (1, 6, 1), (1, 7, 1), (1, 8, 1), (1, 11, 1), (1, 12, 1);
-INSERT INTO statistics(s_counter, statistics_field_id, launch_id) VALUES (5, 1, 2), (1, 2, 2), (3, 4, 2), (1, 3, 2), (2, 11, 2), (2, 12, 2), (1, 7, 2), (1, 8, 2);
+INSERT INTO launch_statistics(s_counter, statistics_field_id, launch_id) VALUES (5, 1, 1), (2, 2, 1), (3, 4, 1), (1, 5, 1), (1, 6, 1), (1, 7, 1), (1, 8, 1), (1, 11, 1), (1, 12, 1);
+INSERT INTO launch_statistics(s_counter, statistics_field_id, launch_id) VALUES (5, 1, 2), (1, 2, 2), (3, 4, 2), (1, 3, 2), (2, 11, 2), (2, 12, 2), (1, 7, 2), (1, 8, 2);

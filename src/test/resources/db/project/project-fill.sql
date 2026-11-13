@@ -1,5 +1,8 @@
-insert into project (id, name, project_type, organization, creation_date)
-values (3, 'test_project', 'INTERNAL', 'org', now());
+INSERT INTO public.organization (id, name, slug, organization_type)
+  VALUES (101, 'test Org', 'org', 'INTERNAL');
+
+insert into project (id, name, organization, organization_id, key, slug, created_at)
+values (3, 'test_project', 'org', 101, 'test_project', 'test_project', now());
 
 INSERT INTO project_attribute (attribute_id, value, project_id)
 VALUES (1, '1 day', 3),
@@ -22,12 +25,17 @@ values (3, 'test_user', '179AD45C6CE2CB97CF1029E212046E81', 'test@domain.com', n
         '{"metadata": {"last_login": "now"}}');
 
 insert into project_user(user_id, project_id, project_role)
-values (3, 3, 'MEMBER');
+values (3, 3, 'VIEWER');
 insert into project_user(user_id, project_id, project_role)
-values (1, 3, 'PROJECT_MANAGER');
+values (1, 3, 'EDITOR');
+
+insert into organization_user (user_id, organization_id, organization_role)
+    values (1, 101, (select 'MANAGER'::public."organization_role_enum"));
+insert into organization_user (user_id, organization_id, organization_role)
+    values (3, 101, (select 'MEMBER'::public."organization_role_enum"));
 
 insert into owned_entity(id, owner, project_id)
-values (1, 'superadmin', 3);
+values (1, 'admin@reportportal.internal', 3);
 insert into filter(id, name, target, description)
 values (1, 'test filter', 'Launch', 'decription');
 insert into filter_sort(filter_id, field)
@@ -39,7 +47,7 @@ insert into user_preference(project_id, user_id, filter_id)
 values (3, 1, 1);
 
 insert into owned_entity(id, owner, project_id)
-values (2, 'superadmin', 3);
+values (2, 'admin@reportportal.internal', 3);
 insert into filter(id, name, target, description)
 values (2, 'test filter2', 'Launch', 'decription');
 insert into filter_sort(filter_id, field)
@@ -51,7 +59,7 @@ values (2, 2, 'CONTAINS', 'kek', 'name', false);
 insert into launch(id, uuid, project_id, user_id, name, description, start_time, end_time, number, last_modified, mode, status, has_retries)
 values (1, 'uuid', 1, 1, 'test launch', 'desc', now(), null, 3, now(), 'DEFAULT', 'FAILED', false);
 
-insert into item_attribute(id, "key", "value", item_id, launch_id, system) values (1, 'key', 'val', null, 1, false);
+insert into launch_attribute(id, "key", "value", launch_id, system) values (1, 'key', 'val', 1, false);
 
 insert into test_item(test_case_hash, item_id, uuid, name, type, start_time, description, unique_id, last_modified, path, parent_id, launch_id)
 values (1, 1, 'uuid1', 'test item 1', 'STEP', now(), 'desc', 'uuid1', now(), '1', null, 1);
@@ -167,7 +175,7 @@ values (3, 'uuid3', 1, 1, 'empty launch', 'desc', now(), null, 2, now(), 'DEFAUL
 -- 5=automation_bug$total, 6=automation_bug$ab001, 7=product_bug$total, 8=product_bug$pb001,
 -- 9=system_issue$total, 10=system_issue$si001, 11=to_investigate$total, 12=to_investigate$ti001
 
--- Test item statistics (item_id, launch_id NULL for items)
+-- Test item statistics
 -- Item 1: PASSED
 insert into statistics(s_counter, statistics_field_id, item_id) values (1, 1, 1), (1, 2, 1);
 -- Item 2: FAILED, automation_bug (ab001)
@@ -189,13 +197,13 @@ insert into statistics(s_counter, statistics_field_id, item_id) values (1, 1, 9)
 -- Item 10: FAILED, to_investigate (ti001)
 insert into statistics(s_counter, statistics_field_id, item_id) values (1, 1, 10), (1, 4, 10), (1, 11, 10), (1, 12, 10);
 
--- Launch statistics (launch_id, item_id NULL for launches)
+-- Launch statistics
 -- Launch 1: 5 total, 2 passed, 3 failed, 1 automation_bug, 1 product_bug, 1 to_investigate
-insert into statistics(s_counter, statistics_field_id, launch_id) values (5, 1, 1), (2, 2, 1), (3, 4, 1), (1, 5, 1), (1, 6, 1), (1, 7, 1), (1, 8, 1), (1, 11, 1), (1, 12, 1);
+insert into launch_statistics(s_counter, statistics_field_id, launch_id) values (5, 1, 1), (2, 2, 1), (3, 4, 1), (1, 5, 1), (1, 6, 1), (1, 7, 1), (1, 8, 1), (1, 11, 1), (1, 12, 1);
 -- Launch 2: 5 total, 1 passed, 3 failed, 1 skipped, 2 to_investigate, 1 product_bug
-insert into statistics(s_counter, statistics_field_id, launch_id) values (5, 1, 2), (1, 2, 2), (3, 4, 2), (1, 3, 2), (2, 11, 2), (2, 12, 2), (1, 7, 2), (1, 8, 2);
+insert into launch_statistics(s_counter, statistics_field_id, launch_id) values (5, 1, 2), (1, 2, 2), (3, 4, 2), (1, 3, 2), (2, 11, 2), (2, 12, 2), (1, 7, 2), (1, 8, 2);
 -- Launch 3: empty launch, 0 total
-insert into statistics(s_counter, statistics_field_id, launch_id) values (0, 1, 3);
+insert into launch_statistics(s_counter, statistics_field_id, launch_id) values (0, 1, 3);
 
 alter sequence project_id_seq restart with 4;
 alter sequence users_id_seq restart with 4;

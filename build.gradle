@@ -15,13 +15,13 @@
  */
 
 plugins {
-    id 'io.spring.dependency-management' version '1.1.7'
-    id 'java'
-    id 'java-library'
-    id 'org.owasp.dependencycheck' version '11.1.1'
-    id 'org.springframework.boot' version "${springBootVersion}"
-    id "com.epam.drill.integration.cicd" version "0.1.6"
-    id "org.openapi.generator" version "7.11.0"
+    alias(libs.plugins.java.library)
+    alias(libs.plugins.owasp.dependencycheck)
+    alias(libs.plugins.drill.integration)
+    alias(libs.plugins.openapi.generator)
+    alias(libs.plugins.spring.boot)
+    alias(libs.plugins.jooq.codegen)
+    alias(libs.plugins.osdetector)
 }
 
 import org.owasp.dependencycheck.reporting.ReportGenerator
@@ -32,187 +32,195 @@ apply from: "$scriptsUrl/build-info.gradle"
 apply from: "$scriptsUrl/release-service.gradle"
 apply from: "$scriptsUrl/signing.gradle"
 apply from: "$scriptsUrl/copy-database-scripts.gradle"
+apply from: 'jooq.gradle'
 
-project.hasProperty('sealightsSession') && sealightsSession?.trim() ? apply(from: 'sealights.gradle') : println('No sealights session')
-
-repositories {
-    mavenCentral { url "https://repo1.maven.org/maven2" }
-    maven { url 'https://jitpack.io' }
+// jOOQ codegen plugin always registers target.directory as a main source dir.
+// Generation writes into src/main/java, which the Java plugin already includes,
+// so the same files would otherwise be packed twice into sourcesJar.
+tasks.named('jooqCodegen').configure {
+    def javaSrc = sourceSets.main.java
+    javaSrc.setSrcDirs(javaSrc.srcDirs.collect { it.canonicalFile }.unique())
 }
+
+project.hasProperty('sealightsSession') && sealightsSession?.trim() ?
+        apply(from: 'sealights.gradle') :
+        println('No sealights session')
 
 java {
-    targetCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_25
     toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
-    }
-}
-
-ext['spring-boot.version'] = "${springBootVersion}"
-ext['spring-security.version'] = "${springSecurityVersion}"
-ext['jackson-bom.version'] = "${jacksonVersion}"
-ext['spring-framework.version'] = "${springFrameworkVersion}"
-ext['logback.version'] = "${logbackVersion}"
-// Latest OSS 1.15.x. 1.15.13 is snapshot-only; 1.16.x is Boot 4.
-ext['micrometer.version'] = '1.15.12'
-// CVE-2020-29582: align kotlin stack to patched stdlib
-ext['kotlin.version'] = '2.1.0'
-// SNYK-JAVA-ORGSPRINGFRAMEWORKRETRY-17260993: resource allocation fixed in 2.0.13
-ext['spring-retry.version'] = '2.0.13'
-ext['httpcore5.version'] = "${httpcore5Version}"
-// SNYK-JAVA-COMRABBITMQ-20562151: amqp-client infinite loop fixed in 5.37.0
-ext['rabbit-amqp-client.version'] = '5.37.0'
-
-dependencyManagement {
-    imports {
-        mavenBom(releaseMode ? 'com.epam.reportportal:commons-bom:5.15.2' : 'com.github.reportportal:commons-bom:48f92b6e68')
-        mavenBom('io.zonky.test.postgres:embedded-postgres-binaries-bom:16.2.0')
-        mavenBom("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
-        // Later imports win over Boot / older transitive jackson-boms (springdoc, swagger).
-        mavenBom("com.fasterxml.jackson:jackson-bom:${jacksonVersion}")
-        mavenBom("org.springframework:spring-framework-bom:${springFrameworkVersion}")
-        mavenBom("org.springframework.security:spring-security-bom:${springSecurityVersion}")
-    }
-    dependencies {
-        dependency 'org.apache.tika:tika-core:3.2.2'
-        dependency 'org.eclipse.parsson:parsson:1.1.8'
-        dependency "org.apache.httpcomponents.core5:httpcore5:${httpcore5Version}"
-        dependency "org.apache.httpcomponents.core5:httpcore5-h2:${httpcore5Version}"
-        // SNYK-JAVA-ORGXERIALSNAPPY-20825055: excessive memory allocation fixed in 1.1.10.9
-        dependency 'org.xerial.snappy:snappy-java:1.1.10.9'
-        // SNYK-JAVA-COMGOOGLEGUAVA-20825054: resource allocation fixed in 33.7.2-jre
-        dependency 'com.google.guava:guava:33.7.2-jre'
-    }
-}
-
-def secureNettyVersion = '4.1.137.Final'
-configurations.configureEach {
-    resolutionStrategy {
-        force 'com.mchange:mchange-commons-java:0.4.0'
-        force 'org.eclipse.parsson:parsson:1.1.8'
-        force "org.apache.httpcomponents.core5:httpcore5:${httpcore5Version}"
-        force "org.apache.httpcomponents.core5:httpcore5-h2:${httpcore5Version}"
-        eachDependency { details ->
-            if (details.requested.group == 'io.netty') {
-                details.useVersion(secureNettyVersion)
-            } else if (details.requested.group.startsWith('com.fasterxml.jackson')) {
-                // annotations 2.21+ ship as 2.21 / 2.22 (no patch), unlike jackson-core/databind
-                if (details.requested.name == 'jackson-annotations') {
-                    details.useVersion('2.21')
-                } else {
-                    details.useVersion("${jacksonVersion}")
-                }
-            } else if (details.requested.group == 'org.springframework') {
-                details.useVersion("${springFrameworkVersion}")
-            } else if (details.requested.group == 'org.springframework.boot') {
-                details.useVersion("${springBootVersion}")
-            } else if (details.requested.group == 'org.springframework.security') {
-                details.useVersion("${springSecurityVersion}")
-            } else if (details.requested.group == 'ch.qos.logback') {
-                details.useVersion("${logbackVersion}")
-            }
-        }
+        languageVersion = JavaLanguageVersion.of(25)
     }
 }
 
 println("Release mode: $releaseMode")
+
 dependencies {
-    implementation 'com.github.reportportal:commons:5.15.3'
-    implementation 'com.github.reportportal:commons-dao:5.15.8'
-    implementation('com.github.reportportal:plugin-api:5.15.1') {
-        exclude group: 'com.github.reportportal', module: 'commons-dao'
-        exclude group: 'com.github.reportportal', module: 'commons'
+    // Patch-level Snyk fixes within the same major.minor line already resolved by the Spring Boot 3.5.16 BOM.
+    // TODO remove once Spring Boot 4 upgrade lands and these are managed by the new BOM.
+    constraints {
+        implementation('ch.qos.logback:logback-classic:1.6.4')
+        implementation('ch.qos.logback:logback-core:1.6.4')
+        implementation('com.fasterxml.jackson.core:jackson-core:2.22.3')
+        implementation('com.fasterxml.jackson.core:jackson-databind:2.22.3')
+        implementation('org.apache.logging.log4j:log4j-api:2.26.1')
+        implementation('org.apache.logging.log4j:log4j-to-slf4j:2.26.1')
+        implementation('org.apache.tomcat.embed:tomcat-embed-core:10.1.60')
+        implementation('org.apache.tomcat.embed:tomcat-embed-websocket:10.1.60')
+        implementation('org.freemarker:freemarker:2.3.35')
+        // Align with bcprov-jdk18on (already pinned to 1.86 via libs.bouncycastle) to avoid a mixed-version classpath.
+        implementation('org.bouncycastle:bcpkix-jdk18on:1.86')
+        implementation('org.bouncycastle:bcutil-jdk18on:1.86')
     }
 
-    implementation 'jakarta.servlet:jakarta.servlet-api:6.1.0'
+    implementation(platform(libs.zonky.postgres.bom))
+    api(libs.embedded.postgres)
 
-    implementation 'org.opensearch.client:opensearch-java:3.2.0'
-    implementation 'jakarta.json:jakarta.json-api:2.1.1'
-    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+    api(platform(libs.spring.boot.bom))
 
-    implementation 'org.springframework.boot:spring-boot-starter-aop'
-    implementation 'org.springframework.boot:spring-boot-starter-web'
-    implementation 'org.springframework.boot:spring-boot-starter-quartz'
-    implementation 'org.springframework.boot:spring-boot-starter-freemarker'
-    implementation 'org.springframework.boot:spring-boot-starter-actuator'
-    implementation 'org.springframework.boot:spring-boot-starter-amqp'
-    implementation 'org.springframework.boot:spring-boot-starter-batch'
-    implementation 'org.springframework.boot:spring-boot-starter-security'
-    implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+    // Spring Modulith
+    implementation(platform(libs.spring.modulith.bom))
+    implementation(libs.spring.modulith.starter.core)
+    implementation(libs.spring.modulith.events.api)
+    implementation(libs.spring.modulith.actuator)
+    testImplementation(libs.spring.modulith.docs)
+    testImplementation(libs.spring.modulith.starter.test)
+    testImplementation(libs.spring.modulith.junit)
 
-    implementation 'org.springframework.security:spring-security-acl'
-    implementation 'org.springframework.security:spring-security-core'
-    implementation 'org.springframework.security:spring-security-oauth2-core'
-    implementation 'org.springframework.security:spring-security-oauth2-client'
-    implementation 'org.springframework.security:spring-security-oauth2-resource-server'
-    implementation 'org.springframework.security:spring-security-web'
-    implementation 'org.springframework:spring-context-support'
-    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.14'
+    api(libs.guava)
+    api(libs.jasypt)
+    api(libs.pf4j)
+    api(libs.jackson.databind)
+    api(libs.jackson.jsr310)
+    api(libs.jooq)
+    api(libs.apache.commons.collections4)
+    api(libs.tika)
+    api(libs.httpclient5) // supports gzip encoding
+    api(libs.spring.context)
+    api(libs.spring.jdbc)
+    api(libs.spring.web)
+    api(libs.spring.data.jpa)
+    api(libs.spring.security.core)
+    api(libs.jakarta.inject.api)
+    implementation(libs.spring.security.ldap)
+    implementation(libs.spring.security.saml2.service.provider)
+    implementation(libs.spring.security.oauth2.authorization.server)
 
-    // CVE-2025-70952 (Zip Slip in Unzip); transitive from commons was < 3.14.1
-    implementation 'org.pf4j:pf4j:3.15.0'
+    runtimeOnly(libs.nimbus.oauth2.oidc.sdk)
 
-    // Tomcat 11 embed trio aligned (Boot 3.5 BOM uses 10.1.x). 11.0.23+ patches embed-core CVEs on 11.0.22.
-    implementation 'org.apache.tomcat.embed:tomcat-embed-core:11.0.27'
-    implementation 'org.apache.tomcat.embed:tomcat-embed-el:11.0.27'
-    implementation 'org.apache.tomcat.embed:tomcat-embed-websocket:11.0.27'
+    api(libs.spring.data.commons)
+    api(libs.hibernate.core)
+    api(libs.jakarta.validation)
 
-    implementation 'org.apache.commons:commons-lang3:3.20.0'
-    implementation 'com.opencsv:opencsv:5.12.0'
-    implementation 'commons-beanutils:commons-beanutils:1.11.0'
-    implementation "org.jooq:jooq:${jooqVersion}"
+    api(libs.pf4j.update) // TODO get rid of and rewrite with the latest version of pf4j
+    implementation(libs.bundles.spring.boot.starters)
+    implementation(libs.bundles.spring.security)
+
+    // MultipartFileUtils requires org.springframework.mock.web.MockMultipartFile
+    // TODO: implement own MultipartFile class
+    implementation(libs.spring.test)
+
+    implementation(libs.springdoc.openapi)
+    implementation(libs.micrometer)
+    implementation(libs.kotlin.stdlib)
+    implementation(libs.opencsv)
+    implementation(libs.slugify)
+    implementation(libs.postgresql)
+    jooqCodegen(libs.postgresql)
+    implementation(libs.thumbnailator)
+    implementation(libs.jakarta.xml.bind.api)
+    implementation(libs.jaxb.api)
+    implementation(libs.json) // TODO get rid of
+    implementation(libs.flyway.core) // TODO get rid of
+    implementation(libs.flyway.database.postgresql) // TODO get rid of
+
+    implementation(libs.opendal)
+    // The Docker build stage runs on BUILDPLATFORM and that one jar is published for
+    // both linux/amd64 and linux/arm64. OpenDAL loads /native/<classifier>/libopendal_java.so
+    // for the OS it actually runs on, so both Linux natives have to be in the jar.
+    // osdetector.classifier adds the host library for local macOS runs.
+    runtimeOnly(variantOf(libs.opendal) { classifier("linux-x86_64") })
+    runtimeOnly(variantOf(libs.opendal) { classifier("linux-aarch_64") })
+    runtimeOnly(variantOf(libs.opendal) { classifier(osdetector.classifier) })
 
     // Optional for spring-boot-starter-amqp
-    implementation "com.rabbitmq:http-client:5.3.0"
-    implementation("org.apache.httpcomponents.client5:httpclient5:5.6.4") // gzip; 5.6.4 cert-validation / resource-lifetime CVEs
+    implementation(libs.rabbitmq.http.client)
 
     // JasperReports 7 is modular: core + PDF/XLS/JDT compiler. jackson-dataformat-xml is required
-    // to parse JRXML 7 (Digester was removed). Jackson version is forced to 2.21.7 above.
-    def jasperreportsVersion = '7.0.8'
-    implementation "net.sf.jasperreports:jasperreports:${jasperreportsVersion}"
-    implementation "net.sf.jasperreports:jasperreports-pdf:${jasperreportsVersion}"
-    implementation "net.sf.jasperreports:jasperreports-excel-poi:${jasperreportsVersion}"
-    implementation "net.sf.jasperreports:jasperreports-jdt:${jasperreportsVersion}"
-    implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-xml'
+    // to parse JRXML 7 (Digester was removed).
+    implementation(libs.jasperreports)
+    implementation(libs.jasperreports.pdf)
+    implementation(libs.jasperreports.excel.poi)
+    implementation(libs.jasperreports.jdt)
+    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml")
+
     // JasperReport's export to XLS uses Apache POI and openpdf for PDF export
-    implementation 'org.apache.poi:poi:5.5.0'
-    implementation 'com.github.librepdf:openpdf:2.4.0'
-
-    implementation 'jakarta.inject:jakarta.inject-api:2.0.1'
-    implementation 'com.sun.mail:jakarta.mail:2.0.2'
-
-    implementation 'xerces:xercesImpl:2.12.2'
-    implementation 'org.bouncycastle:bcprov-jdk18on:1.85'
-    implementation 'com.google.api-client:google-api-client:2.8.1'
-
-    implementation('commons-validator:commons-validator:1.10.0') {
+    implementation(libs.apache.poi)
+    implementation(libs.apache.poi.ooxml)
+    implementation(libs.apache.commons.commonscsv)
+    implementation(libs.openpdf)
+    implementation(libs.jakarta.mail)
+    implementation(libs.xerces)
+    implementation(libs.bouncycastle)
+    implementation(libs.google.api.client)
+    implementation(libs.commons.validator) {
         exclude group: 'commons-beanutils', module: 'commons-beanutils'
     }
-    implementation 'com.github.ben-manes.caffeine:caffeine'
+    implementation(libs.caffeine)
+    implementation(libs.apache.commons.compress)
+    implementation(libs.apache.commons.lang3)
+    implementation(libs.hibernate.validator)
+    implementation(libs.json.schema.validator)
 
-    implementation "org.apache.jclouds.api:filesystem:${jcloudsVersion}"
-    implementation 'org.apache.commons:commons-compress:1.28.0'
-    implementation 'io.micrometer:micrometer-registry-prometheus'
+    // Add lombok support
+    compileOnly(libs.lombok)
+    annotationProcessor(libs.lombok)
 
-    implementation "org.hibernate.validator:hibernate-validator:${hibernateValidatorVersion}"
-
-    implementation 'com.networknt:json-schema-validator:1.5.6'
-
-    implementation 'com.github.slugify:slugify:3.0.7'
-
-    // add lombok support
-    compileOnly "org.projectlombok:lombok:${lombokVersion}"
-    annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
-    testCompileOnly "org.projectlombok:lombok:${lombokVersion}"
-    testAnnotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+    //mapstruct
+    implementation(libs.mapstruct)
+    annotationProcessor(libs.mapstruct.processor)
 
     //  Tests
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    implementation 'org.springframework:spring-web'
-    implementation 'org.springframework:spring-test'
-    testImplementation 'org.flywaydb.flyway-test-extensions:flyway-spring-test:10.0.0'
+    testImplementation(libs.bundles.test.libs)
+    testCompileOnly(libs.lombok)
+    testAnnotationProcessor(libs.lombok)
+}
 
-    testImplementation 'io.jsonwebtoken:jjwt-impl:0.12.5'
-    testImplementation 'io.jsonwebtoken:jjwt-jackson:0.12.5'
+sourceSets {
+    main {
+        java {
+            srcDirs "$buildDir/generated/src/main/java"
+        }
+        resources {
+            srcDir "$buildDir/generated/spring-modulith"
+        }
+    }
+}
+
+tasks.register('generateModulithMetadata', JavaExec) {
+    dependsOn tasks.named('compileJava')
+    group = 'build'
+    description = 'Precomputes Spring Modulith application module metadata (ArchUnit classpath scan) at build ' +
+            'time, so the app loads it from the classpath instead of repeating the scan on every startup.'
+    mainClass.set('com.epam.reportportal.base.modulith.ApplicationModulesMetadataGenerator')
+    classpath = files(sourceSets.main.java.classesDirectory) + configurations.runtimeClasspath
+    def outputFile = layout.buildDirectory.file(
+            'generated/spring-modulith/META-INF/spring-modulith/application-modules.json')
+    outputs.file(outputFile)
+    args = [outputFile.get().asFile.absolutePath]
+}
+
+processResources.dependsOn tasks.named('generateModulithMetadata')
+
+openApiGenerate {
+    generatorName.set("spring")
+    inputSpec.set(file("$rootDir/api-registry/api/openapi/reportportal-api.yaml"))
+    outputDir.set(layout.buildDirectory.dir("generated"))
+    configFile.set(file("$rootDir/src/main/resources/openapi/config.json"))
+    skipOverwrite.set(false)
+    cleanupOutput.set(false)
+    workerIsolation.set("process")
+    // verbose.set(true)
 }
 
 processResources {
@@ -222,12 +230,8 @@ processResources {
     }
 }
 
-sourceSets {
-    main {
-        java {
-            srcDirs "$buildDir/generated/src/main/java"
-        }
-    }
+javadoc {
+    source = fileTree(dir: "src/main/java")
 }
 
 tasks.register('updateApiSubmodule', Exec) {
@@ -235,8 +239,8 @@ tasks.register('updateApiSubmodule', Exec) {
 }
 
 tasks.withType(JavaCompile).configureEach {
-    sourceCompatibility = JavaVersion.VERSION_21
-    targetCompatibility = JavaVersion.VERSION_21
+    sourceCompatibility = JavaVersion.VERSION_25
+    targetCompatibility = JavaVersion.VERSION_25
     options.encoding = "UTF-8"
     options.compilerArgs << "-parameters"
     options.debug = true
@@ -259,16 +263,19 @@ tasks.register('downloadManifestSchema') {
 }
 
 dependencyCheck {
-    formats = [ReportGenerator.Format.HTML, ReportGenerator.Format.XML]
+    formats = [ReportGenerator.Format.HTML, ReportGenerator.Format.XML] as List<String>
 //    cveValidForHours = 1
 }
 
 bootJar {
     duplicatesStrategy = duplicatesStrategy.EXCLUDE
-    project.hasProperty('gcp') ? getArchiveFileName().set('app.jar') : archiveClassifier.set('' +
-            'exec')
+    project.hasProperty('gcp') ? getArchiveFileName().set('app.jar') : archiveClassifier.set('' + 'exec')
 }
-jar.enabled(true)
+
+tasks.named('sourcesJar', Jar) {
+    duplicatesStrategy = duplicatesStrategy.EXCLUDE
+}
+jar.enabled = true
 jar.archiveClassifier.set('')
 
 test {
@@ -282,6 +289,7 @@ test {
     reports {
         junitXml.required = true
     }
+    maxHeapSize = '2g'
 }
 
 compileJava.dependsOn tasks.named('openApiGenerate')
@@ -296,7 +304,7 @@ checkCommitNeeded.dependsOn removeScripts
 drill {
     groupId = "report-portal"
     appId = "service-api"
-    packagePrefixes = ["com/epam/ta/reportportal"]
+    packagePrefixes = ["com/epam/reportportal"]
     enableTestAgent {
         enabled = System.getenv("DRILL_AGENT_ENABLED") == "true" ?: false
         version = "0.23.5"
@@ -320,15 +328,6 @@ springBoot {
             excludes = ['time', 'artifact']
         }
     }
-}
-
-openApiGenerate {
-    generatorName = "spring"
-    inputSpec = "$rootDir/api-registry/api/openapi/reportportal-api.yaml"
-    outputDir = "${layout.buildDirectory.get()}/generated"
-    configFile = "$rootDir/src/main/resources/openapi/config.json"
-    skipOverwrite = false
-    cleanupOutput = true
 }
 
 tasks.preTagCommit.enabled = false

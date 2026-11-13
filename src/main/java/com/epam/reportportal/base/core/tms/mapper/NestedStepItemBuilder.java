@@ -1,0 +1,152 @@
+/*
+ * Copyright 2019 EPAM Systems
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.epam.reportportal.base.core.tms.mapper;
+
+import static com.epam.reportportal.base.reporting.ValidationConstraints.MAX_TEST_ITEM_NAME_LENGTH;
+
+import com.epam.reportportal.base.infrastructure.persistence.entity.enums.StatusEnum;
+import com.epam.reportportal.base.infrastructure.persistence.entity.enums.TestItemTypeEnum;
+import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItem;
+import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItemResults;
+import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
+import java.time.Instant;
+import java.util.UUID;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.stereotype.Component;
+
+/**
+ * Builder for creating nested step test items from manual scenario data.
+ * Encapsulates nested step creation logic with proper initialization.
+ *
+ * @author ReportPortal
+ */
+@Slf4j
+@Component
+public class NestedStepItemBuilder {
+
+  /**
+   * Creates a nested step test item with given parameters.
+   * Nested steps have hasStats=false and are not counted in statistics.
+   *
+   * @param parentTestItem parent TEST item
+   * @param name nested step name/title
+   * @param description nested step description
+   * @param launch launch entity
+   * @return created nested step test item (not yet persisted)
+   */
+  public TestItem buildNestedStepItem(
+      TestItem parentTestItem,
+      String name,
+      String description,
+      Launch launch) {
+
+    log.debug("Building nested step item with name: {}", name);
+
+    var nestedStep = new TestItem();
+    nestedStep.setUuid(UUID.randomUUID().toString());
+    nestedStep.setName(StringUtils.substring(name, 0, MAX_TEST_ITEM_NAME_LENGTH));
+    nestedStep.setDescription(description);
+    nestedStep.setType(TestItemTypeEnum.STEP);
+    nestedStep.setStartTime(Instant.now());
+    nestedStep.setLaunchId(launch.getId());
+    nestedStep.setHasStats(false);  // Nested step - does NOT contribute to statistics
+    nestedStep.setHasChildren(false);
+    nestedStep.setRetryOf(null);
+    nestedStep.setParentId(parentTestItem.getItemId());
+    nestedStep.setTestCaseId(parentTestItem.getTestCaseId());
+
+    // Create test item results with INFO status
+    var nestedResults = new TestItemResults();
+    nestedResults.setStatus(StatusEnum.INFO);
+    nestedResults.setEndTime(null);
+    nestedResults.setDuration(null);
+
+    nestedStep.setItemResults(nestedResults);
+    nestedResults.setTestItem(nestedStep);
+
+    nestedStep.setTestCaseHash(parentTestItem.getTestCaseHash());
+
+    log.trace("Successfully built nested step item: {}", name);
+    return nestedStep;
+  }
+  
+  public TestItem buildRetryNestedStepItem(TestItem originalStep, TestItem parentRetryItem) {
+    var newStep = new TestItem();
+    newStep.setUuid(UUID.randomUUID().toString());
+    newStep.setName(StringUtils.substring(originalStep.getName(), 0, MAX_TEST_ITEM_NAME_LENGTH));
+    newStep.setDescription(originalStep.getDescription());
+    newStep.setType(TestItemTypeEnum.STEP);
+    newStep.setStartTime(Instant.now());
+    newStep.setLaunchId(parentRetryItem.getLaunchId());
+    newStep.setHasStats(false);
+    newStep.setHasChildren(false);
+    newStep.setRetryOf(null);
+    newStep.setParentId(parentRetryItem.getItemId());
+    newStep.setTestCaseId(parentRetryItem.getTestCaseId());
+    newStep.setTestCaseHash(parentRetryItem.getTestCaseHash());
+    newStep.setUniqueId(originalStep.getUniqueId());
+  
+    var results = new TestItemResults();
+    results.setStatus(StatusEnum.TO_RUN);
+    results.setTestItem(newStep);
+    newStep.setItemResults(results);
+  
+    return newStep;
+  }
+
+  /**
+   * Builds nested step name from instructions and step index.
+   * Format: "Step N: {instructions}"
+   *
+   * @param instructions step instructions
+   * @param stepIndex step index (1-based)
+   * @return formatted step name
+   */
+  public String buildStepName(String instructions, int stepIndex) {
+    return String.format("Step %d: %s", stepIndex, instructions);
+  }
+
+  /**
+   * Builds nested step description from text and text scenario data.
+   * Combines instructions and expected result with formatting.
+   *
+   * Format for text scenario: "{instructions}\n\nExpected result: {expectedResult}"
+   *
+   * @param instructions scenario instructions
+   * @param expectedResult scenario expected result
+   * @return combined description
+   */
+  public String buildTextScenarioDescription(String instructions, String expectedResult) {
+    var description = new StringBuilder();
+
+    if (instructions != null && !instructions.isEmpty()) {
+      description.append(instructions);
+    }
+
+    if (expectedResult != null && !expectedResult.isEmpty()) {
+      if (!description.isEmpty()) {
+        description.append("\n\nExpected result: ");
+      } else {
+        description.append("Expected result: ");
+      }
+      description.append(expectedResult);
+    }
+
+    return description.toString();
+  }
+}

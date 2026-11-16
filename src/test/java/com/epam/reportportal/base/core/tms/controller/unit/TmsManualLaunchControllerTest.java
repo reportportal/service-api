@@ -157,14 +157,16 @@ public class TmsManualLaunchControllerTest {
     TmsManualLaunchRQ request = new TmsManualLaunchRQ();
     request.setName("Patched Name");
 
-    given(tmsManualLaunchService.patch(eq(projectId), eq(launchId), any())).willReturn(new TmsManualLaunchRS());
+    given(tmsManualLaunchService.patch(eq(projectId), any(ReportPortalUser.class), eq(launchId),
+        any())).willReturn(new TmsManualLaunchRS());
 
     mockMvc.perform(patch("/v1/project/{projectKey}/launch/manual/{launchId}", projectKey, launchId)
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(request)))
         .andExpect(status().isOk());
 
-    verify(tmsManualLaunchService).patch(eq(projectId), eq(launchId), any());
+    verify(tmsManualLaunchService).patch(eq(projectId), any(ReportPortalUser.class), eq(launchId),
+        any());
   }
 
   @Test

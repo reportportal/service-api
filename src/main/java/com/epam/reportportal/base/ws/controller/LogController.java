@@ -68,6 +68,7 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 import org.apache.commons.collections4.MultiValuedMap;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -164,7 +165,8 @@ public class LogController {
       @Schema(implementation = SaveLogRQ[].class) Part createLogRqPart,
       HttpServletRequest request, @AuthenticationPrincipal ReportPortalUser user) {
 
-    SaveLogRQ[] createLogRqs = multipartJsonConverter.convert(createLogRqPart, SaveLogRQ[].class);
+    SaveLogRQ[] createLogRqs = ArrayUtils.nullToEmpty(
+        multipartJsonConverter.convert(createLogRqPart, SaveLogRQ[].class), SaveLogRQ[].class);
     /*
      * Since this is multipart request we can retrieve list of uploaded
      * attachments

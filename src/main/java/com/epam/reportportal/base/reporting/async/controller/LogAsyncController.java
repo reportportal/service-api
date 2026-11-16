@@ -45,6 +45,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.Part;
 import jakarta.validation.Validator;
 import org.apache.commons.collections4.MultiValuedMap;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -133,7 +134,8 @@ public class LogAsyncController {
       HttpServletRequest request,
       @AuthenticationPrincipal ReportPortalUser user) {
 
-    SaveLogRQ[] createLogRqs = multipartJsonConverter.convert(createLogRqPart, SaveLogRQ[].class);
+    SaveLogRQ[] createLogRqs = ArrayUtils.nullToEmpty(
+        multipartJsonConverter.convert(createLogRqPart, SaveLogRQ[].class), SaveLogRQ[].class);
     /*
      * Since this is multipart request we can retrieve list of uploaded
      * attachments

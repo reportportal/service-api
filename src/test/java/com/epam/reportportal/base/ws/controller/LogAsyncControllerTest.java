@@ -36,7 +36,9 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRol
 import com.epam.reportportal.base.reporting.SaveLogRQ;
 import com.epam.reportportal.base.reporting.async.controller.LogAsyncController;
 import com.epam.reportportal.base.util.ProjectExtractor;
+import com.epam.reportportal.base.ws.converter.converters.MultipartJsonConverter;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.Part;
 import jakarta.validation.Validator;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -61,6 +63,12 @@ class LogAsyncControllerTest {
 
   @Mock
   Validator validator;
+
+  @Mock
+  MultipartJsonConverter multipartJsonConverter;
+
+  @Mock
+  Part createLogRqPart;
 
   @InjectMocks
   LogAsyncController logAsyncController;
@@ -135,7 +143,9 @@ class LogAsyncControllerTest {
     when(projectExtractor.extractMembershipDetails(any(ReportPortalUser.class),
         anyString())).thenReturn(rpUserToMembership(user));
 
-    logAsyncController.createLog(TEST_PROJECT_KEY, saveLogRQs, httpServletRequest, user);
+    when(multipartJsonConverter.convert(createLogRqPart, SaveLogRQ[].class)).thenReturn(saveLogRQs);
+
+    logAsyncController.createLog(TEST_PROJECT_KEY, createLogRqPart, httpServletRequest, user);
     verify(validator, times(4)).validate(requestArgumentCaptor.capture());
     verify(createLogHandler, times(2)).createLog(requestArgumentCaptor.capture(),
         fileArgumentCaptor.capture(), projectDetailsArgumentCaptor.capture());

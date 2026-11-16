@@ -1,0 +1,20 @@
+name: Publish to Maven Central
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g., 5.3.14)'
+        required: true
+        type: string
+
+jobs:
+  publish:
+    uses: reportportal/.github/.github/workflows/maven-publish.yml@main
+    with:
+      version: ${{ github.event.inputs.version }}
+      artifact: service-api
+      package_suffixes: '-javadoc.jar,-javadoc.jar.asc,-javadoc.jar.md5,-javadoc.jar.sha1,-javadoc.jar.sha256,-javadoc.jar.sha512,-sources.jar,-sources.jar.asc,-sources.jar.md5,-sources.jar.sha1,-sources.jar.sha256,-sources.jar.sha512,.jar,.jar.asc,.jar.md5,.jar.sha1,.jar.sha256,.jar.sha512,.pom,.pom.asc,.pom.md5,.pom.sha1,.pom.sha256,.pom.sha512,.module,.module.asc,.module.md5,.module.sha1,.module.sha256,.module.sha512'
+    secrets:
+      SONATYPE_USER: ${{ secrets.SONATYPE_USER }}
+      SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}

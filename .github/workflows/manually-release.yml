@@ -40,6 +40,7 @@ jobs:
       - name: Release with Gradle
         id: release
         run: |
+          git config --global fetch.recurseSubmodules false
           ./gradlew release -PreleaseMode \
           -PgithubUserName=${{env.GH_USER_NAME}} -PgithubToken=${{secrets.GITHUB_TOKEN}} \
           -PpublishRepo=${{ env.REPOSITORY_URL }}${{ github.repository }} \

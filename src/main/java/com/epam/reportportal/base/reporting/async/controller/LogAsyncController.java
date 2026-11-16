@@ -36,10 +36,13 @@ import com.epam.reportportal.base.reporting.Constants;
 import com.epam.reportportal.base.reporting.EntryCreatedAsyncRS;
 import com.epam.reportportal.base.reporting.SaveLogRQ;
 import com.epam.reportportal.base.util.ProjectExtractor;
+import com.epam.reportportal.base.ws.converter.converters.MultipartJsonConverter;
 import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.Part;
 import jakarta.validation.Validator;
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.lang3.StringUtils;
@@ -73,10 +76,13 @@ public class LogAsyncController {
   private final ProjectExtractor projectExtractor;
   private final CreateLogHandler createLogHandler;
   private final Validator validator;
+  private final MultipartJsonConverter multipartJsonConverter;
 
   @Autowired
   public LogAsyncController(ProjectExtractor projectExtractor,
-      @Qualifier("logProducer") CreateLogHandler createLogHandler, Validator validator) {
+      @Qualifier("logProducer") CreateLogHandler createLogHandler, Validator validator,
+      MultipartJsonConverter multipartJsonConverter) {
+    this.multipartJsonConverter = multipartJsonConverter;
     this.projectExtractor = projectExtractor;
     this.createLogHandler = createLogHandler;
     this.validator = validator;
@@ -122,10 +128,12 @@ public class LogAsyncController {
   //	@Async
   @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   public ResponseEntity<BatchSaveOperatingRS> createLog(@PathVariable String projectKey,
-      @RequestPart(value = Constants.LOG_REQUEST_JSON_PART) SaveLogRQ[] createLogRQs,
+      @RequestPart(value = Constants.LOG_REQUEST_JSON_PART)
+      @Schema(implementation = SaveLogRQ[].class) Part createLogRqPart,
       HttpServletRequest request,
       @AuthenticationPrincipal ReportPortalUser user) {
 
+    SaveLogRQ[] createLogRqs = multipartJsonConverter.convert(createLogRqPart, SaveLogRQ[].class);
     /*
      * Since this is multipart request we can retrieve list of uploaded
      * attachments
@@ -134,7 +142,7 @@ public class LogAsyncController {
     BatchSaveOperatingRS response = new BatchSaveOperatingRS();
     EntryCreatedAsyncRS responseItem;
     /* Go through all provided save log request items */
-    for (SaveLogRQ createLogRq : createLogRQs) {
+    for (SaveLogRQ createLogRq : createLogRqs) {
       try {
         validateSaveRQ(validator, createLogRq);
         String filename = createLogRq.getFile() == null ? null : createLogRq.getFile().getName();

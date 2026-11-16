@@ -52,14 +52,17 @@ import com.epam.reportportal.base.reporting.EntryCreatedAsyncRS;
 import com.epam.reportportal.base.reporting.OperationCompletionRS;
 import com.epam.reportportal.base.reporting.SaveLogRQ;
 import com.epam.reportportal.base.util.ProjectExtractor;
+import com.epam.reportportal.base.ws.converter.converters.MultipartJsonConverter;
 import com.epam.reportportal.base.ws.resolver.FilterFor;
 import com.epam.reportportal.base.ws.resolver.SortFor;
 import com.google.common.collect.ImmutableMap;
 import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.Part;
 import jakarta.validation.Validator;
 import java.io.Serializable;
 import java.util.List;
@@ -103,11 +106,14 @@ public class LogController {
   private final GetLogHandler getLogHandler;
   private final SearchLogService searchLogService;
   private final Validator validator;
+  private final MultipartJsonConverter multipartJsonConverter;
 
   @Autowired
   public LogController(ProjectExtractor projectExtractor,
       @Autowired CreateLogHandler createLogHandler, DeleteLogHandler deleteLogHandler,
-      GetLogHandler getLogHandler, SearchLogService searchLogService, Validator validator) {
+      GetLogHandler getLogHandler, SearchLogService searchLogService, Validator validator,
+      MultipartJsonConverter multipartJsonConverter) {
+    this.multipartJsonConverter = multipartJsonConverter;
     this.projectExtractor = projectExtractor;
     this.createLogHandler = createLogHandler;
     this.deleteLogHandler = deleteLogHandler;
@@ -154,9 +160,11 @@ public class LogController {
   //	@Async
   @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   public ResponseEntity<BatchSaveOperatingRS> createLog(@PathVariable String projectKey,
-      @RequestPart(value = Constants.LOG_REQUEST_JSON_PART) SaveLogRQ[] createLogRQs,
+      @RequestPart(value = Constants.LOG_REQUEST_JSON_PART)
+      @Schema(implementation = SaveLogRQ[].class) Part createLogRqPart,
       HttpServletRequest request, @AuthenticationPrincipal ReportPortalUser user) {
 
+    SaveLogRQ[] createLogRqs = multipartJsonConverter.convert(createLogRqPart, SaveLogRQ[].class);
     /*
      * Since this is multipart request we can retrieve list of uploaded
      * attachments
@@ -165,7 +173,7 @@ public class LogController {
     BatchSaveOperatingRS response = new BatchSaveOperatingRS();
     EntryCreatedAsyncRS responseItem;
     /* Go through all provided save log request items */
-    for (SaveLogRQ createLogRq : createLogRQs) {
+    for (SaveLogRQ createLogRq : createLogRqs) {
       try {
         validateSaveRQ(validator, createLogRq);
         String filename = createLogRq.getFile() == null ? null : createLogRq.getFile().getName();

@@ -25,13 +25,13 @@ WHERE result_id = 2;
 INSERT INTO issue(issue_id, issue_type, issue_description, auto_analyzed, ignore_analyzer)
 VALUES (2, 2, 'automation bug', FALSE, TRUE);
 INSERT INTO ticket(id, ticket_id, submitter, bts_url, submit_date, url, bts_project)
-VALUES (1, 'ticket1', 'superadmin', 'http:/example.com', now(), 'http:/example.com/ticket1',
+VALUES (1, 'ticket1', 'admin@reportportal.internal', 'http:/example.com', now(), 'http:/example.com/ticket1',
         'superadmin_bts');
 INSERT INTO issue_ticket(issue_id, ticket_id)
 VALUES (2, 1);
-INSERT INTO item_attribute(key, value, item_id, launch_id, system)
-VALUES (NULL, 'test', 2, NULL, FALSE),
-       (NULL, 'value', 2, NULL, FALSE);
+INSERT INTO item_attribute(key, value, item_id, system)
+VALUES (NULL, 'test', 2, FALSE),
+       (NULL, 'value', 2, FALSE);
 
 INSERT INTO test_item(test_case_hash, item_id, uuid, name, type, start_time, description, unique_id,
                       last_modified, path, parent_id, launch_id)
@@ -130,10 +130,10 @@ VALUES (10, 1, 'to investigate', FALSE, TRUE);
 
 -- Filter and widget
 INSERT INTO public.owned_entity (id, owner, project_id)
-VALUES (1, 'superadmin', 1),
-       (2, 'superadmin', 1),
-       (3, 'superadmin', 1),
-       (4, 'superadmin', 1);
+VALUES (1, 'admin@reportportal.internal', 1),
+       (2, 'admin@reportportal.internal', 1),
+       (3, 'admin@reportportal.internal', 1),
+       (4, 'admin@reportportal.internal', 1);
 
 INSERT INTO public.filter (id, name, target, description)
 VALUES (1, 'Admin Filter', 'Launch', NULL),
@@ -170,5 +170,5 @@ INSERT INTO statistics(s_counter, statistics_field_id, item_id) VALUES (1, 1, 7)
 INSERT INTO statistics(s_counter, statistics_field_id, item_id) VALUES (1, 1, 8), (1, 4, 8), (1, 7, 8), (1, 8, 8);
 INSERT INTO statistics(s_counter, statistics_field_id, item_id) VALUES (1, 1, 9), (1, 3, 9);
 INSERT INTO statistics(s_counter, statistics_field_id, item_id) VALUES (1, 1, 10), (1, 4, 10), (1, 11, 10), (1, 12, 10);
-INSERT INTO statistics(s_counter, statistics_field_id, launch_id) VALUES (5, 1, 1), (2, 2, 1), (3, 4, 1), (1, 5, 1), (1, 6, 1), (1, 7, 1), (1, 8, 1), (1, 11, 1), (1, 12, 1);
-INSERT INTO statistics(s_counter, statistics_field_id, launch_id) VALUES (5, 1, 2), (1, 2, 2), (3, 4, 2), (1, 3, 2), (2, 11, 2), (2, 12, 2), (1, 7, 2), (1, 8, 2);
+INSERT INTO launch_statistics(s_counter, statistics_field_id, launch_id) VALUES (5, 1, 1), (2, 2, 1), (3, 4, 1), (1, 5, 1), (1, 6, 1), (1, 7, 1), (1, 8, 1), (1, 11, 1), (1, 12, 1);
+INSERT INTO launch_statistics(s_counter, statistics_field_id, launch_id) VALUES (5, 1, 2), (1, 2, 2), (3, 4, 2), (1, 3, 2), (2, 11, 2), (2, 12, 2), (1, 7, 2), (1, 8, 2);

@@ -72,12 +72,12 @@ values (2, 'uuid1', 1, 1, 'empty launch', 'desc', now(), null, 1, now(), 'DEFAUL
 
 -- Filter and widgets
 INSERT INTO public.owned_entity (id, owner, project_id)
-VALUES (1, 'superadmin', 1),
-       (2, 'superadmin', 1),
-       (3, 'superadmin', 1),
-       (4, 'superadmin', 1),
-       (5, 'superadmin', 1),
-       (6, 'superadmin', 1);
+VALUES (1, 'admin@reportportal.internal', 1),
+       (2, 'admin@reportportal.internal', 1),
+       (3, 'admin@reportportal.internal', 1),
+       (4, 'admin@reportportal.internal', 1),
+       (5, 'admin@reportportal.internal', 1),
+       (6, 'admin@reportportal.internal', 1);
 
 INSERT INTO public.filter (id, name, target, description)
 VALUES (1, 'Admin Filter', 'Launch', null),
@@ -110,5 +110,5 @@ INSERT INTO statistics(s_counter, statistics_field_id, item_id) VALUES (1, 1, 2)
 INSERT INTO statistics(s_counter, statistics_field_id, item_id) VALUES (1, 1, 3), (1, 4, 3), (1, 7, 3), (1, 8, 3);
 INSERT INTO statistics(s_counter, statistics_field_id, item_id) VALUES (1, 1, 4), (1, 2, 4);
 INSERT INTO statistics(s_counter, statistics_field_id, item_id) VALUES (1, 1, 5), (1, 4, 5), (1, 11, 5), (1, 12, 5);
-INSERT INTO statistics(s_counter, statistics_field_id, launch_id) VALUES (5, 1, 1), (2, 2, 1), (3, 4, 1), (1, 5, 1), (1, 6, 1), (1, 7, 1), (1, 8, 1), (1, 11, 1), (1, 12, 1);
-INSERT INTO statistics(s_counter, statistics_field_id, launch_id) VALUES (0, 1, 2);
+INSERT INTO launch_statistics(s_counter, statistics_field_id, launch_id) VALUES (5, 1, 1), (2, 2, 1), (3, 4, 1), (1, 5, 1), (1, 6, 1), (1, 7, 1), (1, 8, 1), (1, 11, 1), (1, 12, 1);
+INSERT INTO launch_statistics(s_counter, statistics_field_id, launch_id) VALUES (0, 1, 2);

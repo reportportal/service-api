@@ -10,4 +10,4 @@ jobs:
 
     with:
       artifact_upload_url: 'https://maven.pkg.github.com/'
-      java_version: "21"
+      java_version: "25"

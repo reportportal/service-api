@@ -1,0 +1,219 @@
+
+package com.epam.reportportal.base.core.tms.service;
+
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
+
+import com.epam.reportportal.base.core.tms.dto.TmsAttributeRS;
+import com.epam.reportportal.base.core.tms.dto.TmsTestCaseAttributeRQ;
+import com.epam.reportportal.base.core.tms.mapper.TmsAttributeMapper;
+import com.epam.reportportal.base.core.tms.mapper.TmsTestCaseAttributeMapper;
+import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsAttributeRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestCaseAttributeRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestCaseRepository;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCase;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCaseAttribute;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCaseAttributeId;
+import com.epam.reportportal.base.model.Page;
+import com.epam.reportportal.base.ws.converter.PagedResourcesAssembler;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import org.apache.commons.collections4.CollectionUtils;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Service
+@RequiredArgsConstructor
+@Valid
+public class TmsTestCaseAttributeServiceImpl implements TmsTestCaseAttributeService {
+
+  private final TmsTestCaseAttributeMapper tmsTestCaseAttributeMapper;
+  private final TmsTestCaseAttributeRepository tmsTestCaseAttributeRepository;
+  private final TmsTestCaseRepository tmsTestCaseRepository;
+  private final TmsAttributeService tmsAttributeService;
+  private final TmsAttributeRepository tmsAttributeRepository;
+  private final TmsAttributeMapper tmsAttributeMapper;
+
+  @Override
+  @Transactional
+  public void createTestCaseAttributes(long projectId, @NotNull TmsTestCase tmsTestCase,
+      @NotEmpty List<TmsTestCaseAttributeRQ> attributes) {
+    var byAttributeId = buildDistinctTestCaseAttributes(projectId, tmsTestCase, attributes);
+
+    // persist() (unlike the merge() used before TmsTestCaseAttribute implemented Persistable)
+    // fails on a pair that already exists, e.g. when a test case is re-synced, so only insert
+    // the missing ones.
+    var existingAttributeIds = tmsTestCaseAttributeRepository.findExistingIds(
+            Collections.singletonList(tmsTestCase.getId()), byAttributeId.keySet())
+        .stream()
+        .map(TmsTestCaseAttributeId::getAttributeId)
+        .collect(Collectors.toSet());
+    var newTestCaseAttributes = byAttributeId.entrySet().stream()
+        .filter(entry -> !existingAttributeIds.contains(entry.getKey()))
+        .map(Map.Entry::getValue)
+        .collect(Collectors.toSet());
+
+    tmsTestCase.setAttributes(new HashSet<>(byAttributeId.values()));
+    tmsTestCaseAttributeRepository.saveAll(newTestCaseAttributes);
+  }
+
+  /**
+   * Resolves the requested attributes and builds one entity per distinct attribute. The same
+   * attribute can be requested more than once (repeated label, or an id and a key resolving to the
+   * same tag); two entities with an equal id in one persistence context make persist() throw.
+   */
+  private Map<Long, TmsTestCaseAttribute> buildDistinctTestCaseAttributes(long projectId,
+      TmsTestCase tmsTestCase, List<TmsTestCaseAttributeRQ> attributes) {
+    var byAttributeId = new LinkedHashMap<Long, TmsTestCaseAttribute>();
+    for (var req : attributes) {
+      var attribute = req.getId() != null
+          ? tmsAttributeService.getEntityById(projectId, req.getId())
+          : tmsAttributeService.findOrCreateTag(projectId, req.getKey());
+      byAttributeId.computeIfAbsent(attribute.getId(),
+          id -> tmsTestCaseAttributeMapper.createTestCaseAttribute(tmsTestCase, attribute));
+    }
+    return byAttributeId;
+  }
+
+  @Override
+  @Transactional
+  public void createTestCaseAttributesByIds(@NotNull TmsTestCase tmsTestCase,
+      @NotEmpty Collection<Long> attributeIds) {
+    // Use a managed reference (not a bare id-only instance) for the attribute side: persist()
+    // cascades into @MapsId associations, and a plain "new TmsAttribute(); setId(id)" object is
+    // indistinguishable from a detached entity to Hibernate, which throws
+    // "detached entity passed to persist". getReferenceById returns a proxy Hibernate recognizes
+    // as already-persistent, without issuing a SELECT.
+    var tmsTestCaseAttributes = attributeIds
+        .stream()
+        .distinct()
+        .map(attributeId -> tmsTestCaseAttributeMapper.createTestCaseAttribute(
+            tmsTestCase, tmsAttributeRepository.getReferenceById(attributeId)))
+        .collect(Collectors.toSet());
+
+    tmsTestCase.setAttributes(tmsTestCaseAttributes);
+    tmsTestCaseAttributeRepository.saveAll(tmsTestCaseAttributes);
+  }
+
+  @Override
+  @Transactional
+  public void updateTestCaseAttributes(long projectId, @NotNull TmsTestCase tmsTestCase,
+      List<TmsTestCaseAttributeRQ> attributes) {
+    if (CollectionUtils.isNotEmpty(tmsTestCase.getAttributes())) { //TODO refactor to the option with highest performance
+      tmsTestCaseAttributeRepository.deleteAll(tmsTestCase.getAttributes());
+      tmsTestCase.setAttributes(new HashSet<>());
+    }
+    if (CollectionUtils.isNotEmpty(attributes)) {
+      var tmsTestCaseAttributes =
+          new HashSet<>(buildDistinctTestCaseAttributes(projectId, tmsTestCase, attributes).values());
+
+      tmsTestCase.setAttributes(tmsTestCaseAttributes);
+      tmsTestCaseAttributeRepository.saveAll(tmsTestCaseAttributes);
+    }
+  }
+
+  @Override
+  @Transactional
+  public void patchTestCaseAttributes(long projectId, @NotNull TmsTestCase tmsTestCase,
+      List<TmsTestCaseAttributeRQ> attributes) {
+    if (attributes != null) {
+      updateTestCaseAttributes(projectId, tmsTestCase, attributes);
+    }
+  }
+
+  @Override
+  @Transactional
+  public void deleteAllByTestCaseId(@NotNull Long testCaseId) {
+    tmsTestCaseAttributeRepository.deleteAllByTestCaseId(testCaseId);
+  }
+
+  @Override
+  @Transactional
+  public void deleteAllByTestFolderId(@NotNull Long projectId, @NotNull Long testFolderId) {
+    tmsTestCaseAttributeRepository.deleteTestCaseAttributesByTestFolderId(projectId, testFolderId);
+  }
+
+  @Override
+  @Transactional
+  public void deleteAllByTestCaseIds(@NotNull @NotEmpty List<Long> testCaseIds) {
+    tmsTestCaseAttributeRepository.deleteAllByTestCaseIds(testCaseIds);
+  }
+
+  @Override
+  @Transactional
+  public void deleteByTestCaseIdAndAttributeIds(Long testCaseId,
+      List<Long> attributeIds) {
+    tmsTestCaseAttributeRepository.deleteByTestCaseIdAndAttributeIds(testCaseId, attributeIds);
+  }
+
+  @Override
+  @Transactional
+  public void deleteByTestCaseIdsAndAttributeIds(List<Long> testCaseIds,
+      Collection<Long> attributeIds) {
+    tmsTestCaseAttributeRepository.deleteByTestCaseIdsAndAttributeIds(testCaseIds, attributeIds);
+  }
+
+  @Override
+  @Transactional
+  public void duplicateTestCaseAttributes(TmsTestCase originalTestCase, TmsTestCase newTestCase) {
+    if (CollectionUtils.isNotEmpty(originalTestCase.getAttributes())) {
+      var duplicatedAttributes = originalTestCase
+          .getAttributes()
+          .stream()
+          .map(originalAttribute -> tmsTestCaseAttributeMapper.duplicateTestCaseAttribute(
+              originalAttribute, newTestCase))
+          .collect(Collectors.toSet());
+
+      var savedAttributes = new HashSet<>(
+          tmsTestCaseAttributeRepository.saveAll(duplicatedAttributes));
+
+      newTestCase.setAttributes(savedAttributes);
+    }
+  }
+
+  @Override
+  @Transactional
+  public void addAttributesToTestCases(@NotNull @NotEmpty List<Long> testCaseIds,
+      @NotNull @NotEmpty Collection<Long> attributeIds) {
+    // "Add" must be idempotent: a (testCaseId, attributeId) pair may already exist, and
+    // persist() (unlike the merge() used before TmsTestCaseAttribute implemented Persistable)
+    // throws a unique-constraint violation on a duplicate insert instead of silently upserting.
+    var existingTmsTestCaseAttributeIds = new HashSet<>(
+        tmsTestCaseAttributeRepository.findExistingIds(testCaseIds, attributeIds));
+
+    // See createTestCaseAttributesByIds: use managed references for both sides so persist()'s
+    // @MapsId cascade doesn't mistake a bare id-only instance for a detached entity.
+    var testCaseAttributes = testCaseIds
+        .stream()
+        .flatMap(testCaseId -> attributeIds
+            .stream()
+            .filter(attributeId -> !existingTmsTestCaseAttributeIds.contains(
+                new TmsTestCaseAttributeId(testCaseId, attributeId)))
+            .map(attributeId -> tmsTestCaseAttributeMapper.createTestCaseAttribute(
+                tmsTestCaseRepository.getReferenceById(testCaseId),
+                tmsAttributeRepository.getReferenceById(attributeId))
+            ))
+        .toList();
+
+    tmsTestCaseAttributeRepository.saveAll(testCaseAttributes);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Page<TmsAttributeRS> getAttributesByTestCaseIds(Long projectId, List<Long> testCaseIds,
+      Pageable pageable) {
+    return PagedResourcesAssembler
+        .pageConverter(tmsAttributeMapper::convertToTmsAttributeRS)
+        .apply(tmsAttributeRepository.findDistinctByTestCaseIdsAndProjectId(
+            projectId, testCaseIds, pageable));
+  }
+}

@@ -1,0 +1,34 @@
+package com.epam.reportportal.base.core.tms.dto;
+
+import com.epam.reportportal.base.reporting.ItemAttributesRQ;
+import com.epam.reportportal.base.reporting.Mode;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.List;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
+public class TmsManualLaunchRQ {
+
+  private String name;
+
+  private String uuid;
+
+  private String startTime;
+
+  @JsonProperty("mode")
+  private Mode mode;
+
+  private String description;
+
+  private TmsManualLaunchTestPlanRQ testPlan;
+
+  private List<Long> testCaseIds;
+
+  private List<ItemAttributesRQ> attributes;
+}

@@ -1,0 +1,1117 @@
+package com.epam.reportportal.base.core.tms.service;
+
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.nullable;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
+
+import com.epam.reportportal.base.core.tms.dto.DuplicateTmsTestPlanRS;
+import com.epam.reportportal.base.core.tms.dto.TmsTestCaseInTestPlanRS;
+import com.epam.reportportal.base.core.tms.dto.TmsTestFolderRS;
+import com.epam.reportportal.base.core.tms.dto.TmsTestPlanRQ;
+import com.epam.reportportal.base.core.tms.dto.TmsTestPlanRS;
+import com.epam.reportportal.base.core.tms.dto.batch.BatchTestCaseOperationError;
+import com.epam.reportportal.base.core.tms.dto.batch.BatchTestCaseOperationResultRS;
+import com.epam.reportportal.base.core.tms.mapper.TmsTestPlanMapper;
+import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
+import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
+import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsMilestoneRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestCaseRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestPlanRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestPlanTestCaseRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.tms.filterable.TmsTestPlanFilterableRepository;
+import com.epam.reportportal.base.infrastructure.persistence.entity.organization.MembershipDetails;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestPlan;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestPlanWithStatistic;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.projection.TmsTestPlanName;
+import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
+import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
+import com.epam.reportportal.base.model.Page;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+
+@ExtendWith(MockitoExtension.class)
+class TmsTestPlanServiceImplTest {
+
+  @Mock
+  private TmsTestPlanRepository testPlanRepository;
+
+  @Mock
+  private TmsMilestoneRepository tmsMilestoneRepository;
+
+  @Mock
+  private LaunchRepository launchRepository;
+
+  @Mock
+  private TmsTestPlanFilterableRepository tmsTestPlanFilterableRepository;
+
+  @Mock
+  private TmsTestPlanMapper tmsTestPlanMapper;
+
+  @Mock
+  private TmsTestPlanAttributeService tmsTestPlanAttributeService;
+
+  @Mock
+  private TmsTestPlanTestCaseRepository tmsTestPlanTestCaseRepository;
+
+  @Mock
+  private TmsTestCaseService tmsTestCaseService;
+
+  @Mock
+  private TmsTestCaseRepository tmsTestCaseRepository;
+
+  @Mock
+  private TmsTestPlanExecutionService tmsTestPlanExecutionService;
+
+  @Mock
+  private TmsTestFolderService tmsTestFolderService;
+
+  @Mock
+  private MembershipDetails membershipDetails;
+
+  @Mock
+  private ReportPortalUser user;
+
+  @InjectMocks
+  private TmsTestPlanServiceImpl sut;
+
+  private Long projectId;
+  private Long testPlanId;
+  private Long testCaseId;
+  private Long milestoneId;
+  private Pageable pageable;
+
+  @BeforeEach
+  void setUp() {
+    projectId = 1L;
+    testPlanId = 100L;
+    testCaseId = 10L;
+    milestoneId = 50L;
+    pageable = PageRequest.of(0, 10);
+    lenient().when(membershipDetails.getProjectId()).thenReturn(projectId);
+  }
+
+  @Test
+  void shouldGetByIdSuccess() {
+    var projectId = 1L;
+    var testPlanId = 2L;
+    var testPlan = new TmsTestPlan();
+    var testPlanWithStatistic = mock(TmsTestPlanWithStatistic.class);
+    var testPlanRS = new TmsTestPlanRS();
+
+    when(testPlanRepository.findByIdAndProjectId(testPlanId, projectId)).thenReturn(Optional.of(testPlan));
+    when(tmsTestPlanExecutionService.enrichWithStatistics(testPlan)).thenReturn(testPlanWithStatistic);
+    when(tmsTestPlanMapper.convertTmsTestPlanWithStatisticToRS(testPlanWithStatistic)).thenReturn(testPlanRS);
+
+    var result = assertDoesNotThrow(() -> sut.getById(projectId, testPlanId));
+
+    assertEquals(testPlanRS, result);
+    verify(testPlanRepository).findByIdAndProjectId(testPlanId, projectId);
+    verify(tmsTestPlanExecutionService).enrichWithStatistics(testPlan);
+    verify(tmsTestPlanMapper).convertTmsTestPlanWithStatisticToRS(testPlanWithStatistic);
+  }
+
+  @Test
+  void testGetByIdNotFound() {
+    var projectId = 1L;
+    var testPlanId = 2L;
+
+    when(testPlanRepository.findByIdAndProjectId(testPlanId, projectId)).thenReturn(Optional.empty());
+
+    var exception = assertThrows(ReportPortalException.class, () -> sut.getById(projectId, testPlanId));
+
+    assertEquals(exception.getErrorType(), ErrorType.NOT_FOUND);
+    verify(testPlanRepository).findByIdAndProjectId(testPlanId, projectId);
+    verify(tmsTestPlanExecutionService, never()).enrichWithStatistics(any());
+  }
+
+  @Test
+  void shouldCreate() {
+    var projectId = 1L;
+    var testPlanRQ = new TmsTestPlanRQ();
+    var testPlan = new TmsTestPlan();
+    var testPlanRS = new TmsTestPlanRS();
+
+    when(tmsTestPlanMapper.convertFromRQ(projectId, testPlanRQ)).thenReturn(testPlan);
+    when(tmsTestPlanMapper.convertTmsTestPlanWithStatisticToRS(any(TmsTestPlanWithStatistic.class))).thenReturn(testPlanRS);
+
+    var result = sut.create(projectId, testPlanRQ);
+
+    assertEquals(testPlanRS, result);
+    verify(tmsTestPlanMapper).convertFromRQ(projectId, testPlanRQ);
+    verify(testPlanRepository).save(testPlan);
+    verify(tmsTestPlanAttributeService).createTestPlanAttributes(projectId, testPlan, testPlanRQ.getAttributes());
+    verify(tmsTestPlanMapper).convertTmsTestPlanWithStatisticToRS(any(TmsTestPlanWithStatistic.class));
+  }
+
+  @Test
+  void shouldDelete() {
+    var projectId = 1L;
+    var testPlanId = 2L;
+    when(testPlanRepository.findByIdAndProjectId(testPlanId, projectId))
+        .thenReturn(Optional.of(new TmsTestPlan()));
+
+    assertDoesNotThrow(() -> sut.delete(projectId, testPlanId));
+
+    verify(tmsTestPlanAttributeService).deleteAllByTestPlanId(testPlanId);
+    verify(testPlanRepository).delete(any(TmsTestPlan.class));
+  }
+
+  @Test
+  void shouldNotDeleteTestPlanFromAnotherProject() {
+    var projectId = 1L;
+    var testPlanId = 2L;
+    when(testPlanRepository.findByIdAndProjectId(testPlanId, projectId))
+        .thenReturn(Optional.empty());
+
+    var exception = assertThrows(ReportPortalException.class,
+        () -> sut.delete(projectId, testPlanId));
+
+    assertEquals(ErrorType.NOT_FOUND, exception.getErrorType());
+    verify(tmsTestPlanAttributeService, never()).deleteAllByTestPlanId(any());
+    verify(testPlanRepository, never()).deleteByIdAndProjectId(any(), any());
+  }
+
+  @Test
+  void shouldGetByCriteria() {
+    var projectId = 1L;
+    var filter = mock(Filter.class);
+    var pageable = PageRequest.of(0, 10);
+    var testPlan = new TmsTestPlan();
+    testPlan.setId(1L);
+    var testPlanWithStatistic = mock(TmsTestPlanWithStatistic.class);
+    var testPlanRS = new TmsTestPlanRS();
+    testPlanRS.setId(1L);
+    org.springframework.data.domain.Page<Long> testPlanIdsPage = new PageImpl<>(List.of(1L), pageable, 1);
+    org.springframework.data.domain.Page<TmsTestPlanRS> testPlanPage = new PageImpl<>(List.of(testPlanRS), pageable, 1);
+
+    when(tmsTestPlanFilterableRepository.findIdsByProjectIdAndFilter(projectId, filter, pageable)).thenReturn(testPlanIdsPage);
+    when(testPlanRepository.findByIdsWithAttributes(List.of(1L))).thenReturn(List.of(testPlan));
+    when(tmsTestPlanExecutionService.enrichWithStatistics(testPlan)).thenReturn(testPlanWithStatistic);
+    when(tmsTestPlanMapper.convertTmsTestPlanWithStatisticToRS(List.of(testPlanWithStatistic), pageable, 1L)).thenReturn(testPlanPage);
+
+    var result = assertDoesNotThrow(() -> sut.getByCriteria(projectId, filter, pageable));
+
+    assertNotNull(result);
+    assertNotNull(result.getContent());
+    assertEquals(1, result.getContent().size());
+    assertEquals(1L, result.getContent().iterator().next().getId());
+    assertEquals(10, result.getPage().getSize());
+    assertEquals(1, result.getPage().getNumber());
+    assertEquals(1, result.getPage().getTotalElements());
+    assertEquals(1, result.getPage().getTotalPages());
+
+    verify(tmsTestPlanFilterableRepository).findIdsByProjectIdAndFilter(projectId, filter, pageable);
+    verify(testPlanRepository).findByIdsWithAttributes(List.of(1L));
+    verify(tmsTestPlanExecutionService).enrichWithStatistics(testPlan);
+    verify(tmsTestPlanMapper).convertTmsTestPlanWithStatisticToRS(List.of(testPlanWithStatistic), pageable, 1L);
+  }
+
+  @Test
+  void shouldGetByCriteriaWithNullFilter() {
+    var projectId = 1L;
+    Filter filter = null;
+    var pageable = PageRequest.of(0, 10);
+    var testPlan = new TmsTestPlan();
+    testPlan.setId(1L);
+    var testPlanWithStatistic = mock(TmsTestPlanWithStatistic.class);
+    var testPlanRS = new TmsTestPlanRS();
+    testPlanRS.setId(1L);
+    org.springframework.data.domain.Page<Long> testPlanIdsPage = new PageImpl<>(List.of(1L), pageable, 1);
+    org.springframework.data.domain.Page<TmsTestPlanRS> testPlanPage = new PageImpl<>(List.of(testPlanRS), pageable, 1);
+
+    when(tmsTestPlanFilterableRepository.findIdsByProjectIdAndFilter(projectId, filter, pageable)).thenReturn(testPlanIdsPage);
+    when(testPlanRepository.findByIdsWithAttributes(List.of(1L))).thenReturn(List.of(testPlan));
+    when(tmsTestPlanExecutionService.enrichWithStatistics(testPlan)).thenReturn(testPlanWithStatistic);
+    when(tmsTestPlanMapper.convertTmsTestPlanWithStatisticToRS(List.of(testPlanWithStatistic), pageable, 1L)).thenReturn(testPlanPage);
+
+    var result = assertDoesNotThrow(() -> sut.getByCriteria(projectId, filter, pageable));
+
+    assertNotNull(result);
+    assertNotNull(result.getContent());
+    assertEquals(1, result.getContent().size());
+
+    verify(tmsTestPlanFilterableRepository).findIdsByProjectIdAndFilter(projectId, filter, pageable);
+    verify(testPlanRepository).findByIdsWithAttributes(List.of(1L));
+    verify(tmsTestPlanExecutionService).enrichWithStatistics(testPlan);
+    verify(tmsTestPlanMapper).convertTmsTestPlanWithStatisticToRS(List.of(testPlanWithStatistic), pageable, 1L);
+  }
+
+  @Test
+  void shouldGetByCriteriaWhenEmpty() {
+    var projectId = 1L;
+    var filter = mock(Filter.class);
+    var pageable = PageRequest.of(0, 10);
+    org.springframework.data.domain.Page<Long> emptyPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
+
+    when(tmsTestPlanFilterableRepository.findIdsByProjectIdAndFilter(projectId, filter, pageable)).thenReturn(emptyPage);
+
+    var result = assertDoesNotThrow(() -> sut.getByCriteria(projectId, filter, pageable));
+
+    assertNotNull(result);
+    assertNotNull(result.getContent());
+    assertEquals(0, result.getContent().size());
+    assertEquals(10, result.getPage().getSize());
+    assertEquals(1, result.getPage().getNumber());
+    assertEquals(0, result.getPage().getTotalElements());
+    assertEquals(0, result.getPage().getTotalPages());
+
+    verify(tmsTestPlanFilterableRepository).findIdsByProjectIdAndFilter(projectId, filter, pageable);
+    verify(testPlanRepository, never()).findByIdsWithAttributes(any());
+    verify(tmsTestPlanExecutionService, never()).enrichWithStatistics(any(TmsTestPlan.class));
+    verify(tmsTestPlanMapper, never()).convertTmsTestPlanWithStatisticToRS(anyList(), any(), anyLong());
+  }
+
+  @Test
+  void shouldUpdateExisting() {
+    var projectId = 1L;
+    var testPlanId = 2L;
+    var testPlanRQ = new TmsTestPlanRQ();
+    var existingTestPlan = new TmsTestPlan();
+    var updatedTestPlan = new TmsTestPlan();
+    var testPlanWithStatistic = mock(TmsTestPlanWithStatistic.class);
+    var testPlanRS = new TmsTestPlanRS();
+
+    when(testPlanRepository.findByIdAndProjectId(testPlanId, projectId)).thenReturn(Optional.of(existingTestPlan));
+    when(tmsTestPlanMapper.convertFromRQ(projectId, testPlanRQ)).thenReturn(updatedTestPlan);
+    when(tmsTestPlanExecutionService.enrichWithStatistics(existingTestPlan)).thenReturn(testPlanWithStatistic);
+    when(tmsTestPlanMapper.convertTmsTestPlanWithStatisticToRS(testPlanWithStatistic)).thenReturn(testPlanRS);
+
+    var result = assertDoesNotThrow(() -> sut.update(projectId, testPlanId, testPlanRQ));
+
+    assertEquals(testPlanRS, result);
+    verify(testPlanRepository).findByIdAndProjectId(testPlanId, projectId);
+    verify(tmsTestPlanMapper).update(existingTestPlan, updatedTestPlan);
+    verify(tmsTestPlanAttributeService).updateTestPlanAttributes(projectId, existingTestPlan, testPlanRQ.getAttributes());
+    verify(tmsTestPlanExecutionService).enrichWithStatistics(existingTestPlan);
+    verify(tmsTestPlanMapper).convertTmsTestPlanWithStatisticToRS(testPlanWithStatistic);
+  }
+
+  @Test
+  void shouldCreateWhenUpdateButNotFound() {
+    var projectId = 1L;
+    var testPlanId = 2L;
+    var testPlanRQ = new TmsTestPlanRQ();
+    var testPlan = new TmsTestPlan();
+    var testPlanRS = new TmsTestPlanRS();
+
+    when(testPlanRepository.findByIdAndProjectId(testPlanId, projectId)).thenReturn(Optional.empty());
+    when(tmsTestPlanMapper.convertFromRQ(projectId, testPlanRQ)).thenReturn(testPlan);
+    when(tmsTestPlanMapper.convertTmsTestPlanWithStatisticToRS(any(TmsTestPlanWithStatistic.class))).thenReturn(testPlanRS);
+
+    var result = assertDoesNotThrow(() -> sut.update(projectId, testPlanId, testPlanRQ));
+
+    assertEquals(testPlanRS, result);
+    verify(testPlanRepository).findByIdAndProjectId(testPlanId, projectId);
+    verify(testPlanRepository).save(testPlan);
+    verify(tmsTestPlanAttributeService).createTestPlanAttributes(projectId, testPlan, testPlanRQ.getAttributes());
+    verify(tmsTestPlanMapper).convertTmsTestPlanWithStatisticToRS(any(TmsTestPlanWithStatistic.class));
+  }
+
+  @Test
+  void shouldPatchExisting() {
+    var projectId = 1L;
+    var testPlanId = 2L;
+    var testPlanRQ = new TmsTestPlanRQ();
+    var existingTestPlan = new TmsTestPlan();
+    var patchedTestPlan = new TmsTestPlan();
+    var testPlanWithStatistic = mock(TmsTestPlanWithStatistic.class);
+    var testPlanRS = new TmsTestPlanRS();
+
+    when(testPlanRepository.findByIdAndProjectId(testPlanId, projectId)).thenReturn(Optional.of(existingTestPlan));
+    when(tmsTestPlanMapper.convertFromRQ(projectId, testPlanRQ)).thenReturn(patchedTestPlan);
+    when(tmsTestPlanExecutionService.enrichWithStatistics(existingTestPlan)).thenReturn(testPlanWithStatistic);
+    when(tmsTestPlanMapper.convertTmsTestPlanWithStatisticToRS(testPlanWithStatistic)).thenReturn(testPlanRS);
+
+    var result = assertDoesNotThrow(() -> sut.patch(projectId, testPlanId, testPlanRQ));
+
+    assertEquals(testPlanRS, result);
+    verify(testPlanRepository).findByIdAndProjectId(testPlanId, projectId);
+    verify(tmsTestPlanMapper).patch(existingTestPlan, patchedTestPlan);
+    verify(tmsTestPlanAttributeService).updateTestPlanAttributes(projectId, existingTestPlan, testPlanRQ.getAttributes());
+    verify(tmsTestPlanExecutionService).enrichWithStatistics(existingTestPlan);
+    verify(tmsTestPlanMapper).convertTmsTestPlanWithStatisticToRS(testPlanWithStatistic);
+  }
+
+  @Test
+  void shouldThrowNotFoundExceptionWhenPatchAndNotFound() {
+    var projectId = 1L;
+    var testPlanId = 2L;
+    var testPlanRQ = new TmsTestPlanRQ();
+
+    when(testPlanRepository.findByIdAndProjectId(testPlanId, projectId)).thenReturn(Optional.empty());
+
+    var exception = assertThrows(ReportPortalException.class, () -> sut.patch(projectId, testPlanId, testPlanRQ));
+
+    assertEquals(exception.getErrorType(), ErrorType.NOT_FOUND);
+    verify(testPlanRepository).findByIdAndProjectId(testPlanId, projectId);
+    verify(tmsTestPlanExecutionService, never()).enrichWithStatistics(any());
+  }
+
+  @Test
+  void shouldAddTestCasesToPlanSuccessfully() {
+    var projectId = 1L;
+    var testPlanId = 2L;
+    var testCaseIds = List.of(10L, 20L, 30L);
+    var expectedResult = BatchTestCaseOperationResultRS.builder().totalCount(3).successCount(2).failureCount(1).errors(List.of()).build();
+
+    when(testPlanRepository.existsByIdAndProject_Id(testPlanId, projectId)).thenReturn(true);
+    when(tmsTestCaseService.getExistingTestCaseIds(projectId, testCaseIds)).thenReturn(List.of(10L, 20L, 30L));
+    when(tmsTestPlanTestCaseRepository.findTestCaseIdsByTestPlanId(testPlanId)).thenReturn(List.of(10L));
+    when(tmsTestPlanTestCaseRepository.insertTestPlanTestCaseIgnoreConflict(testPlanId, 20L)).thenReturn(1);
+    when(tmsTestPlanTestCaseRepository.insertTestPlanTestCaseIgnoreConflict(testPlanId, 30L)).thenReturn(1);
+    when(tmsTestPlanMapper.convertToRS(anyInt(), anyInt(), anyList())).thenReturn(expectedResult);
+
+    var result = sut.addTestCasesToPlan(projectId, testPlanId, testCaseIds);
+
+    assertNotNull(result);
+    verify(testPlanRepository).existsByIdAndProject_Id(testPlanId, projectId);
+    verify(tmsTestCaseService).getExistingTestCaseIds(projectId, testCaseIds);
+    verify(tmsTestPlanTestCaseRepository).findTestCaseIdsByTestPlanId(testPlanId);
+    verify(tmsTestPlanMapper).convertToRS(eq(3), eq(2), anyList());
+  }
+
+  @Test
+  void shouldAddTestCasesToPlanWithErrors() {
+    var projectId = 1L;
+    var testPlanId = 2L;
+    var testCaseIds = List.of(10L, 999L);
+    var expectedResult = BatchTestCaseOperationResultRS.builder().totalCount(2).successCount(1).failureCount(1)
+        .errors(List.of(new BatchTestCaseOperationError(999L, "Test case with id 999 not found"))).build();
+
+    when(testPlanRepository.existsByIdAndProject_Id(testPlanId, projectId)).thenReturn(true);
+    when(tmsTestCaseService.getExistingTestCaseIds(projectId, testCaseIds)).thenReturn(List.of(10L));
+    when(tmsTestPlanTestCaseRepository.findTestCaseIdsByTestPlanId(testPlanId)).thenReturn(List.of());
+    when(tmsTestPlanTestCaseRepository.insertTestPlanTestCaseIgnoreConflict(testPlanId, 10L)).thenReturn(1);
+    when(tmsTestPlanMapper.convertToRS(anyInt(), anyInt(), anyList())).thenReturn(expectedResult);
+
+    var result = sut.addTestCasesToPlan(projectId, testPlanId, testCaseIds);
+
+    assertNotNull(result);
+    verify(tmsTestPlanMapper).convertToRS(eq(2), eq(1), anyList());
+  }
+
+  @Test
+  void shouldThrowNotFoundWhenAddTestCasesToNonExistentPlan() {
+    var projectId = 1L;
+    var testPlanId = 2L;
+    var testCaseIds = List.of(10L, 20L);
+
+    when(testPlanRepository.existsByIdAndProject_Id(testPlanId, projectId)).thenReturn(false);
+
+    var exception = assertThrows(ReportPortalException.class, () -> sut.addTestCasesToPlan(projectId, testPlanId, testCaseIds));
+
+    assertEquals(ErrorType.NOT_FOUND, exception.getErrorType());
+    verify(testPlanRepository).existsByIdAndProject_Id(testPlanId, projectId);
+    verify(tmsTestCaseService, never()).getExistingTestCaseIds(any(), any());
+  }
+
+  @Test
+  void shouldRemoveTestCasesFromPlanSuccessfully() {
+    var projectId = 1L;
+    var testPlanId = 2L;
+    var testCaseIds = List.of(10L, 20L);
+    var expectedResult = BatchTestCaseOperationResultRS.builder().totalCount(2).successCount(2).failureCount(0).errors(List.of()).build();
+
+    when(testPlanRepository.findByIdAndProjectId(testPlanId, projectId))
+        .thenReturn(Optional.of(new TmsTestPlan()));
+    when(tmsTestPlanTestCaseRepository.findTestCaseIdsByTestPlanId(testPlanId)).thenReturn(List.of(10L, 20L));
+    when(tmsTestPlanTestCaseRepository.deleteByTestPlanIdAndTestCaseId(testPlanId, 10L)).thenReturn(1);
+    when(tmsTestPlanTestCaseRepository.deleteByTestPlanIdAndTestCaseId(testPlanId, 20L)).thenReturn(1);
+    when(tmsTestPlanMapper.convertToRS(anyInt(), anyInt(), anyList())).thenReturn(expectedResult);
+
+    var result = sut.removeTestCasesFromPlan(projectId, testPlanId, testCaseIds);
+
+    assertNotNull(result);
+    verify(tmsTestPlanTestCaseRepository).findTestCaseIdsByTestPlanId(testPlanId);
+    verify(tmsTestPlanMapper).convertToRS(eq(2), eq(2), anyList());
+  }
+
+  @Test
+  void shouldRemoveTestCasesFromPlanWithErrors() {
+    var projectId = 1L;
+    var testPlanId = 2L;
+    var testCaseIds = List.of(10L, 999L);
+    var expectedResult = BatchTestCaseOperationResultRS.builder().totalCount(2).successCount(1).failureCount(1)
+        .errors(List.of(new BatchTestCaseOperationError(999L, "Test case with id 999 not found in test plan"))).build();
+
+    when(testPlanRepository.findByIdAndProjectId(testPlanId, projectId))
+        .thenReturn(Optional.of(new TmsTestPlan()));
+    when(tmsTestPlanTestCaseRepository.findTestCaseIdsByTestPlanId(testPlanId)).thenReturn(List.of(10L));
+    when(tmsTestPlanTestCaseRepository.deleteByTestPlanIdAndTestCaseId(testPlanId, 10L)).thenReturn(1);
+    when(tmsTestPlanMapper.convertToRS(anyInt(), anyInt(), anyList())).thenReturn(expectedResult);
+
+    var result = sut.removeTestCasesFromPlan(projectId, testPlanId, testCaseIds);
+
+    assertNotNull(result);
+    verify(tmsTestPlanMapper).convertToRS(eq(2), eq(1), anyList());
+  }
+
+  @Test
+  void shouldHandleEmptyTestCaseListForAdd() {
+    var projectId = 1L;
+    var testPlanId = 2L;
+    var testCaseIds = List.<Long>of();
+    var expectedResult = BatchTestCaseOperationResultRS.builder().totalCount(0).successCount(0).failureCount(0).errors(List.of()).build();
+
+    when(testPlanRepository.existsByIdAndProject_Id(testPlanId, projectId)).thenReturn(true);
+    when(tmsTestCaseService.getExistingTestCaseIds(projectId, testCaseIds)).thenReturn(List.of());
+    when(tmsTestPlanTestCaseRepository.findTestCaseIdsByTestPlanId(testPlanId)).thenReturn(List.of());
+    when(tmsTestPlanMapper.convertToRS(anyInt(), anyInt(), anyList())).thenReturn(expectedResult);
+
+    var result = sut.addTestCasesToPlan(projectId, testPlanId, testCaseIds);
+
+    assertNotNull(result);
+    verify(tmsTestPlanMapper).convertToRS(eq(0), eq(0), anyList());
+  }
+
+  @Test
+  void shouldHandleEmptyTestCaseListForRemove() {
+    var projectId = 1L;
+    var testPlanId = 2L;
+    var testCaseIds = List.<Long>of();
+    var expectedResult = BatchTestCaseOperationResultRS.builder().totalCount(0).successCount(0).failureCount(0).errors(List.of()).build();
+
+    when(testPlanRepository.findByIdAndProjectId(testPlanId, projectId))
+        .thenReturn(Optional.of(new TmsTestPlan()));
+    when(tmsTestPlanTestCaseRepository.findTestCaseIdsByTestPlanId(testPlanId)).thenReturn(List.of());
+    when(tmsTestPlanMapper.convertToRS(anyInt(), anyInt(), anyList())).thenReturn(expectedResult);
+
+    var result = sut.removeTestCasesFromPlan(projectId, testPlanId, testCaseIds);
+
+    assertNotNull(result);
+    verify(tmsTestPlanMapper).convertToRS(eq(0), eq(0), anyList());
+  }
+
+  @Test
+  void shouldNotRemoveTestCasesFromPlanInAnotherProject() {
+    var projectId = 1L;
+    var testPlanId = 2L;
+    when(testPlanRepository.findByIdAndProjectId(testPlanId, projectId))
+        .thenReturn(Optional.empty());
+
+    var exception = assertThrows(ReportPortalException.class,
+        () -> sut.removeTestCasesFromPlan(projectId, testPlanId, List.of(10L)));
+
+    assertEquals(ErrorType.NOT_FOUND, exception.getErrorType());
+    verify(tmsTestPlanTestCaseRepository, never()).deleteByTestPlanIdAndTestCaseId(any(), any());
+  }
+
+  @Test
+  void shouldAddTestCaseToTestPlanSuccessfully() {
+    var testPlanId = 1L;
+    var testCaseId = 2L;
+
+    when(tmsTestPlanTestCaseRepository.insertTestPlanTestCaseIgnoreConflict(testPlanId, testCaseId)).thenReturn(1);
+
+    var result = sut.addTestCaseToTestPlan(testPlanId, testCaseId);
+
+    assertTrue(result);
+    verify(tmsTestPlanTestCaseRepository).insertTestPlanTestCaseIgnoreConflict(testPlanId, testCaseId);
+  }
+
+  @Test
+  void shouldFailToAddTestCaseToTestPlan() {
+    var testPlanId = 1L;
+    var testCaseId = 2L;
+
+    when(tmsTestPlanTestCaseRepository.insertTestPlanTestCaseIgnoreConflict(testPlanId, testCaseId)).thenReturn(0);
+
+    var result = sut.addTestCaseToTestPlan(testPlanId, testCaseId);
+
+    assertFalse(result);
+    verify(tmsTestPlanTestCaseRepository).insertTestPlanTestCaseIgnoreConflict(testPlanId, testCaseId);
+  }
+
+  @Test
+  void shouldHandleExceptionWhenAddingTestCaseToTestPlan() {
+    var testPlanId = 1L;
+    var testCaseId = 2L;
+
+    when(tmsTestPlanTestCaseRepository.insertTestPlanTestCaseIgnoreConflict(testPlanId, testCaseId))
+        .thenThrow(new RuntimeException("Database error"));
+
+    var result = sut.addTestCaseToTestPlan(testPlanId, testCaseId);
+
+    assertFalse(result);
+    verify(tmsTestPlanTestCaseRepository).insertTestPlanTestCaseIgnoreConflict(testPlanId, testCaseId);
+  }
+
+  @Test
+  void shouldRemoveSingleTestCaseFromPlanSuccessfully() {
+    var testPlanId = 1L;
+    var testCaseId = 2L;
+
+    when(tmsTestPlanTestCaseRepository.deleteByTestPlanIdAndTestCaseId(testPlanId, testCaseId)).thenReturn(1);
+
+    var result = sut.removeSingleTestCaseFromPlan(testPlanId, testCaseId);
+
+    assertTrue(result);
+    verify(tmsTestPlanTestCaseRepository).deleteByTestPlanIdAndTestCaseId(testPlanId, testCaseId);
+  }
+
+  @Test
+  void shouldFailToRemoveSingleTestCaseFromPlan() {
+    var testPlanId = 1L;
+    var testCaseId = 2L;
+
+    when(tmsTestPlanTestCaseRepository.deleteByTestPlanIdAndTestCaseId(testPlanId, testCaseId)).thenReturn(0);
+
+    var result = sut.removeSingleTestCaseFromPlan(testPlanId, testCaseId);
+
+    assertFalse(result);
+    verify(tmsTestPlanTestCaseRepository).deleteByTestPlanIdAndTestCaseId(testPlanId, testCaseId);
+  }
+
+  @Test
+  void shouldHandleExceptionWhenRemovingSingleTestCaseFromPlan() {
+    var testPlanId = 1L;
+    var testCaseId = 2L;
+
+    when(tmsTestPlanTestCaseRepository.deleteByTestPlanIdAndTestCaseId(testPlanId, testCaseId))
+        .thenThrow(new RuntimeException("Database error"));
+
+    var result = sut.removeSingleTestCaseFromPlan(testPlanId, testCaseId);
+
+    assertFalse(result);
+    verify(tmsTestPlanTestCaseRepository).deleteByTestPlanIdAndTestCaseId(testPlanId, testCaseId);
+  }
+
+  @Test
+  void shouldDuplicateTestPlanSuccessfully() {
+    var projectId = 1L;
+    var testPlanId = 2L;
+    var duplicateTestPlanRQ = new TmsTestPlanRQ();
+    var originalTestPlan = new TmsTestPlan();
+    originalTestPlan.setId(testPlanId);
+    var duplicatedTestPlan = new TmsTestPlan();
+    duplicatedTestPlan.setId(3L);
+    var originalTestCaseIds = List.of(10L, 20L);
+    var duplicatedTestCaseIds = List.of(30L, 40L);
+    var duplicationResult = BatchTestCaseOperationResultRS.builder().totalCount(2).successCount(2).failureCount(0)
+        .successTestCaseIds(duplicatedTestCaseIds).errors(List.of()).build();
+    var addToPlanResult = BatchTestCaseOperationResultRS.builder().totalCount(2).successCount(2).failureCount(0).errors(List.of()).build();
+    var combinedResult = BatchTestCaseOperationResultRS.builder().totalCount(2).successCount(2).failureCount(0).errors(List.of()).build();
+    var expectedResponse = DuplicateTmsTestPlanRS.builder().id(3L).duplicationStatistic(combinedResult).build();
+
+    when(testPlanRepository.findByIdAndProjectId(testPlanId, projectId)).thenReturn(Optional.of(originalTestPlan));
+    when(tmsTestPlanMapper.duplicateTestPlan(originalTestPlan, duplicateTestPlanRQ)).thenReturn(duplicatedTestPlan);
+    when(testPlanRepository.save(duplicatedTestPlan)).thenReturn(duplicatedTestPlan);
+    when(tmsTestPlanTestCaseRepository.findTestCaseIdsByTestPlanId(testPlanId)).thenReturn(originalTestCaseIds);
+    when(tmsTestCaseService.duplicateTestCases(membershipDetails, user, originalTestCaseIds)).thenReturn(duplicationResult);
+    when(tmsTestCaseService.getExistingTestCaseIds(projectId, duplicatedTestCaseIds)).thenReturn(duplicatedTestCaseIds);
+    when(tmsTestPlanTestCaseRepository.findTestCaseIdsByTestPlanId(3L)).thenReturn(List.of());
+    when(tmsTestPlanTestCaseRepository.insertTestPlanTestCaseIgnoreConflict(eq(3L), anyLong())).thenReturn(1);
+    when(testPlanRepository.existsByIdAndProject_Id(3L, projectId)).thenReturn(true);
+    when(tmsTestPlanMapper.convertToRS(anyInt(), anyInt(), anyList())).thenReturn(addToPlanResult);
+    when(tmsTestPlanMapper.combineDuplicateTestPlanBatchResults(duplicationResult, addToPlanResult)).thenReturn(combinedResult);
+    when(tmsTestPlanMapper.buildDuplicateTestPlanResponse(duplicatedTestPlan, combinedResult)).thenReturn(expectedResponse);
+
+    var result = sut.duplicate(membershipDetails, user, testPlanId, duplicateTestPlanRQ);
+
+    assertNotNull(result);
+    assertEquals(3L, result.getId());
+    verify(testPlanRepository).findByIdAndProjectId(testPlanId, projectId);
+    verify(tmsTestPlanMapper).duplicateTestPlan(originalTestPlan, duplicateTestPlanRQ);
+    verify(testPlanRepository).save(duplicatedTestPlan);
+    verify(tmsTestPlanAttributeService).createTestPlanAttributes(projectId, duplicatedTestPlan, duplicateTestPlanRQ.getAttributes());
+    verify(tmsTestPlanTestCaseRepository).findTestCaseIdsByTestPlanId(testPlanId);
+    verify(tmsTestCaseService).duplicateTestCases(membershipDetails, user, originalTestCaseIds);
+    verify(tmsTestPlanMapper).buildDuplicateTestPlanResponse(duplicatedTestPlan, combinedResult);
+  }
+
+  @Test
+  void shouldDuplicateTestPlanWithoutTestCases() {
+    var projectId = 1L;
+    var testPlanId = 2L;
+    var duplicateTestPlanRQ = new TmsTestPlanRQ();
+    var originalTestPlan = new TmsTestPlan();
+    originalTestPlan.setId(testPlanId);
+    var duplicatedTestPlan = new TmsTestPlan();
+    duplicatedTestPlan.setId(3L);
+    var emptyResult = BatchTestCaseOperationResultRS.builder().totalCount(0).successCount(0).failureCount(0).errors(List.of()).build();
+    var expectedResponse = DuplicateTmsTestPlanRS.builder().id(3L).duplicationStatistic(emptyResult).build();
+
+    when(testPlanRepository.findByIdAndProjectId(testPlanId, projectId)).thenReturn(Optional.of(originalTestPlan));
+    when(tmsTestPlanMapper.duplicateTestPlan(originalTestPlan, duplicateTestPlanRQ)).thenReturn(duplicatedTestPlan);
+    when(testPlanRepository.save(duplicatedTestPlan)).thenReturn(duplicatedTestPlan);
+    when(tmsTestPlanTestCaseRepository.findTestCaseIdsByTestPlanId(testPlanId)).thenReturn(List.of());
+    when(tmsTestPlanMapper.createFailedBatchResult(eq(Collections.emptyList()), anyString())).thenReturn(emptyResult);
+    when(tmsTestPlanMapper.buildDuplicateTestPlanResponse(duplicatedTestPlan, emptyResult)).thenReturn(expectedResponse);
+
+    var result = sut.duplicate(membershipDetails, user, testPlanId, duplicateTestPlanRQ);
+
+    assertNotNull(result);
+    assertEquals(3L, result.getId());
+    verify(testPlanRepository).findByIdAndProjectId(testPlanId, projectId);
+    verify(tmsTestPlanMapper).duplicateTestPlan(originalTestPlan, duplicateTestPlanRQ);
+    verify(testPlanRepository).save(duplicatedTestPlan);
+    verify(tmsTestPlanAttributeService).createTestPlanAttributes(projectId, duplicatedTestPlan, duplicateTestPlanRQ.getAttributes());
+    verify(tmsTestCaseService, never()).duplicateTestCases(any(), any(), anyList());
+    verify(tmsTestPlanMapper).buildDuplicateTestPlanResponse(duplicatedTestPlan, emptyResult);
+  }
+
+  @Test
+  void shouldThrowNotFoundWhenDuplicatingNonExistentTestPlan() {
+    var projectId = 1L;
+    var testPlanId = 2L;
+    var duplicateTestPlanRQ = new TmsTestPlanRQ();
+
+    when(testPlanRepository.findByIdAndProjectId(testPlanId, projectId)).thenReturn(Optional.empty());
+
+    var exception = assertThrows(ReportPortalException.class, () -> sut.duplicate(membershipDetails, user, testPlanId, duplicateTestPlanRQ));
+
+    assertEquals(ErrorType.NOT_FOUND, exception.getErrorType());
+    verify(testPlanRepository).findByIdAndProjectId(testPlanId, projectId);
+    verify(tmsTestPlanMapper, never()).duplicateTestPlan(any(), any(TmsTestPlanRQ.class));
+    verify(testPlanRepository, never()).save(any());
+  }
+
+  @Test
+  void getTestCasesAddedToPlan_WhenTestPlanExists_ShouldReturnTestCases() {
+    var filter = mock(Filter.class);
+    var tmsTestCaseInTestPlan = new TmsTestCaseInTestPlanRS();
+    tmsTestCaseInTestPlan.setId(testCaseId);
+    Page<TmsTestCaseInTestPlanRS> testCasePage = new Page<>(List.of(tmsTestCaseInTestPlan), 10L, 0L, 1L, 1L);
+
+    when(testPlanRepository.existsByIdAndProject_Id(testPlanId, projectId)).thenReturn(true);
+    when(tmsTestCaseService.getTestCasesInTestPlan(projectId, testPlanId, filter, pageable)).thenReturn(testCasePage);
+
+    var result = sut.getTestCasesAddedToPlan(projectId, testPlanId, filter, pageable);
+
+    assertNotNull(result);
+    assertEquals(1, result.getContent().size());
+    assertEquals(testCaseId, result.getContent().stream().findFirst().orElseThrow().getId());
+    verify(testPlanRepository).existsByIdAndProject_Id(testPlanId, projectId);
+    verify(tmsTestCaseService).getTestCasesInTestPlan(projectId, testPlanId, filter, pageable);
+  }
+
+  @Test
+  void getTestCasesAddedToPlan_WhenTestPlanNotFound_ShouldThrowException() {
+    var filter = mock(Filter.class);
+
+    when(testPlanRepository.existsByIdAndProject_Id(testPlanId, projectId)).thenReturn(false);
+
+    var exception = assertThrows(ReportPortalException.class,
+        () -> sut.getTestCasesAddedToPlan(projectId, testPlanId, filter, pageable));
+
+    assertEquals(ErrorType.NOT_FOUND, exception.getErrorType());
+    verify(testPlanRepository).existsByIdAndProject_Id(testPlanId, projectId);
+    verifyNoInteractions(tmsTestCaseService);
+  }
+
+  @Test
+  void getTestCaseInTestPlan_WhenTestPlanExists_ShouldReturnTestCase() {
+    var testCaseRS = TmsTestCaseInTestPlanRS.builder().id(testCaseId).name("Test Case").build();
+
+    when(testPlanRepository.existsByIdAndProject_Id(testPlanId, projectId)).thenReturn(true);
+    when(tmsTestCaseService.getTestCaseInTestPlan(projectId, testPlanId, testCaseId)).thenReturn(testCaseRS);
+
+    var result = sut.getTestCaseInTestPlan(projectId, testPlanId, testCaseId);
+
+    assertNotNull(result);
+    assertEquals(testCaseId, result.getId());
+    assertEquals("Test Case", result.getName());
+    verify(testPlanRepository).existsByIdAndProject_Id(testPlanId, projectId);
+    verify(tmsTestCaseService).getTestCaseInTestPlan(projectId, testPlanId, testCaseId);
+  }
+
+  @Test
+  void getTestCaseInTestPlan_WhenTestPlanNotFound_ShouldThrowException() {
+    when(testPlanRepository.existsByIdAndProject_Id(testPlanId, projectId)).thenReturn(false);
+
+    var exception = assertThrows(ReportPortalException.class,
+        () -> sut.getTestCaseInTestPlan(projectId, testPlanId, testCaseId));
+
+    assertEquals(ErrorType.NOT_FOUND, exception.getErrorType());
+    verify(testPlanRepository).existsByIdAndProject_Id(testPlanId, projectId);
+    verifyNoInteractions(tmsTestCaseService);
+  }
+
+  @Test
+  void verifyTestPlanExists_WhenTestPlanExists_ShouldNotThrowException() {
+    when(testPlanRepository.existsByIdAndProject_Id(testPlanId, projectId)).thenReturn(true);
+
+    assertDoesNotThrow(() -> sut.verifyTestPlanExists(projectId, testPlanId));
+    verify(testPlanRepository).existsByIdAndProject_Id(testPlanId, projectId);
+  }
+
+  @Test
+  void verifyTestPlanExists_WhenTestPlanNotFound_ShouldThrowException() {
+    when(testPlanRepository.existsByIdAndProject_Id(testPlanId, projectId)).thenReturn(false);
+
+    var exception = assertThrows(ReportPortalException.class, () -> sut.verifyTestPlanExists(projectId, testPlanId));
+
+    assertEquals(ErrorType.NOT_FOUND, exception.getErrorType());
+    verify(testPlanRepository).existsByIdAndProject_Id(testPlanId, projectId);
+  }
+
+  @Test
+  void getTestFoldersFromPlan_WhenTestPlanExists_ShouldReturnFolders() {
+    var testFolder1 = new TmsTestFolderRS();
+    testFolder1.setId(1L);
+    testFolder1.setName("Folder 1");
+    testFolder1.setCountOfTestCases(5L);
+    var testFolder2 = new TmsTestFolderRS();
+    testFolder2.setId(2L);
+    testFolder2.setName("Folder 2");
+    testFolder2.setCountOfTestCases(3L);
+    Page<TmsTestFolderRS> expectedPage = new Page<>(List.of(testFolder1, testFolder2), 10L, 0L, 2L, 1L);
+
+    when(testPlanRepository.existsByIdAndProject_Id(testPlanId, projectId)).thenReturn(true);
+    when(tmsTestFolderService.getFoldersByTestPlanId(projectId, testPlanId, pageable)).thenReturn(expectedPage);
+
+    var result = sut.getTestFoldersFromPlan(projectId, testPlanId, pageable);
+
+    assertNotNull(result);
+    assertEquals(2, result.getContent().size());
+    var folders = new ArrayList<>(result.getContent());
+    assertEquals(1L, folders.get(0).getId());
+    assertEquals("Folder 1", folders.get(0).getName());
+    assertEquals(5L, folders.get(0).getCountOfTestCases());
+    assertEquals(2L, folders.get(1).getId());
+    assertEquals("Folder 2", folders.get(1).getName());
+    assertEquals(3L, folders.get(1).getCountOfTestCases());
+
+    verify(testPlanRepository).existsByIdAndProject_Id(testPlanId, projectId);
+    verify(tmsTestFolderService).getFoldersByTestPlanId(projectId, testPlanId, pageable);
+  }
+
+  @Test
+  void getTestFoldersFromPlan_WhenTestPlanNotFound_ShouldThrowException() {
+    when(testPlanRepository.existsByIdAndProject_Id(testPlanId, projectId)).thenReturn(false);
+
+    var exception = assertThrows(ReportPortalException.class,
+        () -> sut.getTestFoldersFromPlan(projectId, testPlanId, pageable));
+
+    assertEquals(ErrorType.NOT_FOUND, exception.getErrorType());
+    verify(testPlanRepository).existsByIdAndProject_Id(testPlanId, projectId);
+    verifyNoInteractions(tmsTestFolderService);
+  }
+
+  @Test
+  void getTestFoldersFromPlan_WhenNoFoldersFound_ShouldReturnEmptyPage() {
+    Page<TmsTestFolderRS> emptyPage = new Page<>(Collections.emptyList(), 10L, 0L, 0L, 0L);
+
+    when(testPlanRepository.existsByIdAndProject_Id(testPlanId, projectId)).thenReturn(true);
+    when(tmsTestFolderService.getFoldersByTestPlanId(projectId, testPlanId, pageable)).thenReturn(emptyPage);
+
+    var result = sut.getTestFoldersFromPlan(projectId, testPlanId, pageable);
+
+    assertNotNull(result);
+    assertEquals(0, result.getContent().size());
+    assertEquals(0L, result.getPage().getTotalElements());
+
+    verify(testPlanRepository).existsByIdAndProject_Id(testPlanId, projectId);
+    verify(tmsTestFolderService).getFoldersByTestPlanId(projectId, testPlanId, pageable);
+  }
+
+  @Test
+  void getTestFoldersFromPlan_WithPagination_ShouldReturnCorrectPage() {
+    var customPageable = PageRequest.of(1, 5);
+    var testFolder = new TmsTestFolderRS();
+    testFolder.setId(10L);
+    testFolder.setName("Folder 10");
+    testFolder.setCountOfTestCases(2L);
+    Page<TmsTestFolderRS> expectedPage = new Page<>(List.of(testFolder), 5L, 1L, 15L, 3L);
+
+    when(testPlanRepository.existsByIdAndProject_Id(testPlanId, projectId)).thenReturn(true);
+    when(tmsTestFolderService.getFoldersByTestPlanId(projectId, testPlanId, customPageable)).thenReturn(expectedPage);
+
+    var result = sut.getTestFoldersFromPlan(projectId, testPlanId, customPageable);
+
+    assertNotNull(result);
+    assertEquals(1, result.getContent().size());
+    assertEquals(5L, result.getPage().getSize());
+    assertEquals(1L, result.getPage().getNumber());
+    assertEquals(15L, result.getPage().getTotalElements());
+    assertEquals(3L, result.getPage().getTotalPages());
+
+    verify(testPlanRepository).existsByIdAndProject_Id(testPlanId, projectId);
+    verify(tmsTestFolderService).getFoldersByTestPlanId(projectId, testPlanId, customPageable);
+  }
+
+  @Test
+  void deleteTestPlansByMilestoneId_WhenMilestoneHasTestPlans_ShouldDeleteTestPlans() {
+    var testPlanIds = List.of(100L, 200L);
+
+    when(tmsMilestoneRepository.existsByIdAndProjectId(milestoneId, projectId)).thenReturn(true);
+    when(testPlanRepository.findIdsByProjectIdAndMilestoneId(projectId, milestoneId)).thenReturn(testPlanIds);
+
+    sut.deleteTestPlansByMilestoneId(projectId, milestoneId);
+
+    verify(tmsMilestoneRepository).existsByIdAndProjectId(milestoneId, projectId);
+    verify(testPlanRepository).findIdsByProjectIdAndMilestoneId(projectId, milestoneId);
+    verify(launchRepository).clearTestPlanIdsByProjectIdAndTestPlanIds(projectId, testPlanIds);
+    verify(tmsTestPlanAttributeService).deleteAllByTestPlanId(100L);
+    verify(tmsTestPlanAttributeService).deleteAllByTestPlanId(200L);
+    verify(testPlanRepository).deleteByProjectIdAndMilestoneId(projectId, milestoneId);
+  }
+
+  @Test
+  void deleteTestPlansByMilestoneId_WhenMilestoneHasNoTestPlans_ShouldDoNothing() {
+    when(tmsMilestoneRepository.existsByIdAndProjectId(milestoneId, projectId)).thenReturn(true);
+    when(testPlanRepository.findIdsByProjectIdAndMilestoneId(projectId, milestoneId)).thenReturn(List.of());
+
+    sut.deleteTestPlansByMilestoneId(projectId, milestoneId);
+
+    verify(tmsMilestoneRepository).existsByIdAndProjectId(milestoneId, projectId);
+    verify(testPlanRepository).findIdsByProjectIdAndMilestoneId(projectId, milestoneId);
+    verifyNoInteractions(launchRepository, tmsTestPlanAttributeService);
+    verify(testPlanRepository, never()).deleteByProjectIdAndMilestoneId(projectId, milestoneId);
+  }
+
+  @Test
+  void removeTestPlanFromMilestone_WhenTestPlanExists_ShouldRemoveSuccessfully() {
+    when(tmsMilestoneRepository.existsByIdAndProjectId(milestoneId, projectId)).thenReturn(true);
+    when(testPlanRepository.existsByIdAndProject_Id(testPlanId, projectId)).thenReturn(true);
+    when(testPlanRepository.removeTestPlanFromMilestone(milestoneId, testPlanId, projectId)).thenReturn(1);
+
+    assertDoesNotThrow(() -> sut.removeTestPlanFromMilestone(projectId, milestoneId, testPlanId));
+
+    verify(tmsMilestoneRepository).existsByIdAndProjectId(milestoneId, projectId);
+    verify(testPlanRepository).existsByIdAndProject_Id(testPlanId, projectId);
+    verify(testPlanRepository).removeTestPlanFromMilestone(milestoneId, testPlanId, projectId);
+  }
+
+  @Test
+  void removeTestPlanFromMilestone_WhenTestPlanNotFound_ShouldThrowException() {
+    when(tmsMilestoneRepository.existsByIdAndProjectId(milestoneId, projectId)).thenReturn(false);
+
+    var exception = assertThrows(ReportPortalException.class,
+        () -> sut.removeTestPlanFromMilestone(projectId, milestoneId, testPlanId));
+
+    assertEquals(ErrorType.NOT_FOUND, exception.getErrorType());
+    verify(tmsMilestoneRepository).existsByIdAndProjectId(milestoneId, projectId);
+    verify(testPlanRepository, never()).removeTestPlanFromMilestone(anyLong(), anyLong(), anyLong());
+  }
+
+  @Test
+  void removeTestPlanFromMilestone_WhenTestPlanNotInMilestone_ShouldThrowException() {
+    when(tmsMilestoneRepository.existsByIdAndProjectId(milestoneId, projectId)).thenReturn(true);
+    when(testPlanRepository.existsByIdAndProject_Id(testPlanId, projectId)).thenReturn(true);
+    when(testPlanRepository.removeTestPlanFromMilestone(milestoneId, testPlanId, projectId)).thenReturn(0);
+
+    var exception = assertThrows(ReportPortalException.class,
+        () -> sut.removeTestPlanFromMilestone(projectId, milestoneId, testPlanId));
+
+    assertEquals(ErrorType.NOT_FOUND, exception.getErrorType());
+    verify(tmsMilestoneRepository).existsByIdAndProjectId(milestoneId, projectId);
+    verify(testPlanRepository).existsByIdAndProject_Id(testPlanId, projectId);
+    verify(testPlanRepository).removeTestPlanFromMilestone(milestoneId, testPlanId, projectId);
+  }
+
+  @Test
+  void getByMilestoneId_WhenMilestoneHasTestPlans_ShouldReturnTestPlans() {
+    var testPlan1 = new TmsTestPlan();
+    testPlan1.setId(100L);
+    var testPlan2 = new TmsTestPlan();
+    testPlan2.setId(200L);
+    var testPlanWithStatistic1 = mock(TmsTestPlanWithStatistic.class);
+    var testPlanWithStatistic2 = mock(TmsTestPlanWithStatistic.class);
+    var testPlanRS1 = new TmsTestPlanRS();
+    testPlanRS1.setId(100L);
+    var testPlanRS2 = new TmsTestPlanRS();
+    testPlanRS2.setId(200L);
+
+    when(testPlanRepository.findIdsByProjectIdAndMilestoneId(projectId, milestoneId)).thenReturn(List.of(100L, 200L));
+    when(testPlanRepository.findByIdsWithAttributes(List.of(100L, 200L))).thenReturn(List.of(testPlan1, testPlan2));
+    when(tmsTestPlanExecutionService.enrichWithStatistics(testPlan1)).thenReturn(testPlanWithStatistic1);
+    when(tmsTestPlanExecutionService.enrichWithStatistics(testPlan2)).thenReturn(testPlanWithStatistic2);
+    when(tmsTestPlanMapper.convertTmsTestPlansWithStatisticToRS(List.of(testPlanWithStatistic1, testPlanWithStatistic2)))
+        .thenReturn(List.of(testPlanRS1, testPlanRS2));
+
+    var result = sut.getByMilestoneId(projectId, milestoneId);
+
+    assertNotNull(result);
+    assertEquals(2, result.size());
+    assertEquals(100L, result.get(0).getId());
+    assertEquals(200L, result.get(1).getId());
+
+    verify(testPlanRepository).findIdsByProjectIdAndMilestoneId(projectId, milestoneId);
+    verify(testPlanRepository).findByIdsWithAttributes(List.of(100L, 200L));
+    verify(tmsTestPlanExecutionService).enrichWithStatistics(testPlan1);
+    verify(tmsTestPlanExecutionService).enrichWithStatistics(testPlan2);
+    verify(tmsTestPlanMapper).convertTmsTestPlansWithStatisticToRS(anyList());
+  }
+
+  @Test
+  void getByMilestoneId_WhenMilestoneHasNoTestPlans_ShouldReturnEmptyList() {
+    when(testPlanRepository.findIdsByProjectIdAndMilestoneId(projectId, milestoneId)).thenReturn(List.of());
+
+    var result = sut.getByMilestoneId(projectId, milestoneId);
+
+    assertNotNull(result);
+    assertTrue(result.isEmpty());
+
+    verify(testPlanRepository).findIdsByProjectIdAndMilestoneId(projectId, milestoneId);
+    verify(testPlanRepository, never()).findByIdsWithAttributes(anyList());
+    verify(tmsTestPlanExecutionService, never()).enrichWithStatistics(any());
+    verify(tmsTestPlanMapper, never()).convertTmsTestPlansWithStatisticToRS(anyList());
+  }
+
+  @Test
+  void getByMilestoneIds_WhenMilestonesHaveTestPlans_ShouldReturnTestPlansGroupedByMilestone() {
+    var milestone1Id = 50L;
+    var milestone2Id = 60L;
+    var milestoneIds = List.of(milestone1Id, milestone2Id);
+    var testPlan1 = new TmsTestPlan();
+    testPlan1.setId(100L);
+    var testPlan2 = new TmsTestPlan();
+    testPlan2.setId(200L);
+    var testPlanWithStatistic1 = mock(TmsTestPlanWithStatistic.class);
+    var testPlanWithStatistic2 = mock(TmsTestPlanWithStatistic.class);
+    var testPlanRS1 = new TmsTestPlanRS();
+    testPlanRS1.setId(100L);
+    testPlanRS1.setMilestoneId(milestone1Id);
+    var testPlanRS2 = new TmsTestPlanRS();
+    testPlanRS2.setId(200L);
+    testPlanRS2.setMilestoneId(milestone2Id);
+    var expectedMap = Map.of(milestone1Id, List.of(testPlanRS1), milestone2Id, List.of(testPlanRS2));
+
+    when(testPlanRepository.findIdsByProjectIdAndMilestoneIds(projectId, milestoneIds)).thenReturn(List.of(100L, 200L));
+    when(testPlanRepository.findByIdsWithAttributes(List.of(100L, 200L))).thenReturn(List.of(testPlan1, testPlan2));
+    when(tmsTestPlanExecutionService.enrichWithStatistics(testPlan1)).thenReturn(testPlanWithStatistic1);
+    when(tmsTestPlanExecutionService.enrichWithStatistics(testPlan2)).thenReturn(testPlanWithStatistic2);
+    when(tmsTestPlanMapper.convertTmsTestPlansWithStatisticToMap(List.of(testPlanWithStatistic1, testPlanWithStatistic2)))
+        .thenReturn(expectedMap);
+
+    var result = sut.getByMilestoneIds(projectId, milestoneIds);
+
+    assertNotNull(result);
+    assertEquals(2, result.size());
+    assertTrue(result.containsKey(milestone1Id));
+    assertTrue(result.containsKey(milestone2Id));
+    assertEquals(1, result.get(milestone1Id).size());
+    assertEquals(1, result.get(milestone2Id).size());
+    assertEquals(100L, result.get(milestone1Id).get(0).getId());
+    assertEquals(200L, result.get(milestone2Id).get(0).getId());
+
+    verify(testPlanRepository).findIdsByProjectIdAndMilestoneIds(projectId, milestoneIds);
+    verify(testPlanRepository).findByIdsWithAttributes(List.of(100L, 200L));
+    verify(tmsTestPlanExecutionService).enrichWithStatistics(testPlan1);
+    verify(tmsTestPlanExecutionService).enrichWithStatistics(testPlan2);
+    verify(tmsTestPlanMapper).convertTmsTestPlansWithStatisticToMap(anyList());
+  }
+
+  @Test
+  void getByMilestoneIds_WhenMilestonesHaveNoTestPlans_ShouldReturnEmptyMap() {
+    var milestoneIds = List.of(50L, 60L);
+
+    when(testPlanRepository.findIdsByProjectIdAndMilestoneIds(projectId, milestoneIds)).thenReturn(List.of());
+
+    var result = sut.getByMilestoneIds(projectId, milestoneIds);
+
+    assertNotNull(result);
+    assertTrue(result.isEmpty());
+
+    verify(testPlanRepository).findIdsByProjectIdAndMilestoneIds(projectId, milestoneIds);
+    verify(testPlanRepository, never()).findByIdsWithAttributes(anyList());
+    verify(tmsTestPlanExecutionService, never()).enrichWithStatistics(any());
+    verify(tmsTestPlanMapper, never()).convertTmsTestPlansWithStatisticToMap(anyList());
+  }
+
+  @Test
+  void duplicateTestPlansInMilestone_WhenMilestoneHasNoTestPlans_ShouldReturnEmptyList() {
+    when(testPlanRepository.findIdsByProjectIdAndMilestoneId(projectId, milestoneId)).thenReturn(List.of());
+
+    var result = sut.duplicateTestPlansInMilestone(membershipDetails, user, milestoneId, 999L);
+
+    assertNotNull(result);
+    assertTrue(result.isEmpty());
+
+    verify(testPlanRepository).findIdsByProjectIdAndMilestoneId(projectId, milestoneId);
+    verify(testPlanRepository, never()).findByIdAndProjectId(anyLong(), anyLong());
+    verify(tmsTestPlanMapper, never()).duplicateTestPlan(any(TmsTestPlan.class), nullable(Long.class));
+  }
+
+  @Test
+  void addTestPlanMilestone_WhenTestPlanExists_ShouldAddSuccessfully() {
+    when(tmsMilestoneRepository.existsByIdAndProjectId(milestoneId, projectId)).thenReturn(true);
+    when(testPlanRepository.existsByIdAndProject_Id(testPlanId, projectId)).thenReturn(true);
+
+    assertDoesNotThrow(() -> sut.addTestPlanMilestone(projectId, milestoneId, testPlanId));
+
+    verify(tmsMilestoneRepository).existsByIdAndProjectId(milestoneId, projectId);
+    verify(testPlanRepository).existsByIdAndProject_Id(testPlanId, projectId);
+    verify(testPlanRepository).addTestPlanToMilestone(milestoneId, testPlanId, projectId);
+  }
+
+  @Test
+  void addTestPlanMilestone_WhenTestPlanNotFound_ShouldThrowException() {
+    when(tmsMilestoneRepository.existsByIdAndProjectId(milestoneId, projectId)).thenReturn(false);
+
+    var exception = assertThrows(ReportPortalException.class,
+        () -> sut.addTestPlanMilestone(projectId, milestoneId, testPlanId));
+
+    assertEquals(ErrorType.NOT_FOUND, exception.getErrorType());
+    verify(tmsMilestoneRepository).existsByIdAndProjectId(milestoneId, projectId);
+    verify(testPlanRepository, never()).addTestPlanToMilestone(anyLong(), anyLong(), anyLong());
+  }
+
+  @Test
+  void getTestPlanNames_ShouldReturnPagedNames() {
+    var search = "test";
+    TmsTestPlanName projection = mock(TmsTestPlanName.class);
+    when(projection.getId()).thenReturn(1L);
+    when(projection.getName()).thenReturn("test plan");
+    org.springframework.data.domain.Page<TmsTestPlanName> springPage = new PageImpl<>(List.of(projection), pageable, 1);
+
+    when(testPlanRepository.findIdAndNameByProjectIdAndSearch(projectId, search, pageable)).thenReturn(springPage);
+
+    var result = sut.getTestPlanNames(projectId, search, pageable);
+
+    assertNotNull(result);
+    assertEquals(1, result.getContent().size());
+    var rs = result.getContent().iterator().next();
+    assertEquals(1L, rs.getId());
+    assertEquals("test plan", rs.getName());
+    assertEquals(1, result.getPage().getTotalElements());
+
+    verify(testPlanRepository).findIdAndNameByProjectIdAndSearch(projectId, search, pageable);
+  }
+
+  @Test
+  void getTestPlanNames_WhenEmpty_ShouldReturnEmptyPage() {
+    var search = "nonexistent";
+    org.springframework.data.domain.Page<TmsTestPlanName> springPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
+
+    when(testPlanRepository.findIdAndNameByProjectIdAndSearch(projectId, search, pageable)).thenReturn(springPage);
+
+    var result = sut.getTestPlanNames(projectId, search, pageable);
+
+    assertNotNull(result);
+    assertTrue(result.getContent().isEmpty());
+    assertEquals(0, result.getPage().getTotalElements());
+
+    verify(testPlanRepository).findIdAndNameByProjectIdAndSearch(projectId, search, pageable);
+  }
+}

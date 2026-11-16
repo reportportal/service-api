@@ -1,0 +1,42 @@
+jooq {
+    configuration {
+        jdbc {
+            driver = 'org.postgresql.Driver'
+            url = 'jdbc:postgresql://localhost:5432/reportportal'
+            user = 'rpuser'
+            password = 'rppass'
+        }
+        generator {
+            strategy {
+                name = 'org.jooq.codegen.example.JPrefixGeneratorStrategy'
+            }
+            database {
+                name = 'org.jooq.meta.postgres.PostgresDatabase'
+                inputSchema = 'public'
+
+                excludes = 'batch_.*|schema_migrations'
+                forcedTypes {
+                    forcedType {
+                        // Specify the Java type of your custom type. This corresponds to the Converter's <U> type.
+                        userType = "java.time.Instant"
+                        // Associate that custom type with your converter.
+                        converter = "com.epam.reportportal.base.infrastructure.persistence.dao.converters.JooqInstantConverter"
+                        // A Java regex matching fully-qualified columns, attributes, parameters. Use the pipe to separate several expressions.
+                        types = "TIMESTAMP"
+                    }
+                }
+            }
+            generate {
+                pojos = false
+                jpaAnnotations = false
+                routines = false
+                deprecationOnUnknownTypes = false
+                records = true
+            }
+            target {
+                packageName = 'com.epam.reportportal.base.infrastructure.persistence.jooq'
+                directory = 'src/main/java/'
+            }
+        }
+    }
+}

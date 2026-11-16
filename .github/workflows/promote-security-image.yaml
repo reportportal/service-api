@@ -3,6 +3,9 @@ name: Promote Security Image
 on:
   pull_request_review:
     types: [submitted]
+    branches:
+      - main
+      - master
 
 jobs:
   extract-image-tag:

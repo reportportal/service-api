@@ -1,0 +1,270 @@
+/*
+ * Copyright 2025 EPAM Systems
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.epam.reportportal.base.core.project.impl;
+
+import static com.epam.reportportal.base.infrastructure.persistence.commons.Predicates.equalTo;
+import static com.epam.reportportal.base.infrastructure.persistence.commons.Predicates.isPresent;
+import static com.epam.reportportal.base.infrastructure.persistence.commons.Predicates.not;
+import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT_ID;
+import static com.epam.reportportal.base.infrastructure.rules.commons.validation.BusinessRule.expect;
+import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.NOT_FOUND;
+import static com.epam.reportportal.base.util.DateTimeProvider.instantNow;
+import static com.epam.reportportal.base.util.OffsetUtils.responseWithPageParameters;
+import static com.epam.reportportal.base.util.SecurityContextUtils.getPrincipal;
+import static com.epam.reportportal.base.ws.converter.converters.OrganizationConverter.PROJECT_PROFILE_TO_ORG_PROJECT_INFO;
+import static com.epam.reportportal.base.ws.converter.converters.OrganizationConverter.PROJECT_TO_ORG_PROJECT_INFO;
+
+import com.epam.reportportal.api.model.OrganizationProjectsPage;
+import com.epam.reportportal.api.model.ProjectBase;
+import com.epam.reportportal.api.model.ProjectInfo;
+import com.epam.reportportal.base.core.analyzer.auto.LogIndexer;
+import com.epam.reportportal.base.core.analyzer.auto.client.AnalyzerServiceClient;
+import com.epam.reportportal.base.core.events.domain.ProjectCreatedEvent;
+import com.epam.reportportal.base.core.events.domain.ProjectDeletedEvent;
+import com.epam.reportportal.base.core.project.OrganizationProjectHandler;
+import com.epam.reportportal.base.core.remover.ContentRemover;
+import com.epam.reportportal.base.core.tms.service.TmsAttachmentService;
+import com.epam.reportportal.base.infrastructure.model.ValidationConstraints;
+import com.epam.reportportal.base.infrastructure.persistence.binary.AttachmentBinaryDataService;
+import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
+import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Condition;
+import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.FilterCondition;
+import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Queryable;
+import com.epam.reportportal.base.infrastructure.persistence.dao.AttributeRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.GroupMembershipRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.IssueTypeRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.LogRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectUserRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.organization.OrganizationRepositoryCustom;
+import com.epam.reportportal.base.infrastructure.persistence.dao.project.OrganizationProjectRepository;
+import com.epam.reportportal.base.infrastructure.persistence.entity.item.issue.IssueType;
+import com.epam.reportportal.base.infrastructure.persistence.entity.organization.Organization;
+import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationRole;
+import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
+import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectAttribute;
+import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectIssueType;
+import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectProfile;
+import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectUtils;
+import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRole;
+import com.epam.reportportal.base.infrastructure.rules.commons.validation.Suppliers;
+import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
+import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
+import com.epam.reportportal.base.util.SlugifyUtils;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+
+@Service
+@RequiredArgsConstructor
+public class OrganizationProjectHandlerImpl implements OrganizationProjectHandler {
+
+  private final OrganizationProjectRepository organizationProjectRepository;
+  private final ProjectUserRepository projectUserRepository;
+  private final ProjectRepository projectRepository;
+  private final OrganizationRepositoryCustom organizationRepositoryCustom;
+  private final AttributeRepository attributeRepository;
+  private final ApplicationEventPublisher applicationEventPublisher;
+  private final IssueTypeRepository issueTypeRepository;
+  private final ContentRemover<Project> projectContentRemover;
+  private final LogRepository logRepository;
+  private final AttachmentBinaryDataService attachmentBinaryDataService;
+  private final TmsAttachmentService tmsAttachmentService;
+  private final LogIndexer logIndexer;
+  private final AnalyzerServiceClient analyzerServiceClient;
+  private final GroupMembershipRepository groupMembershipRepository;
+
+  @Override
+  public OrganizationProjectsPage getOrganizationProjectsPage(Long orgId, Queryable filter,
+      Pageable pageable) {
+    var rpUser = getPrincipal();
+    OrganizationProjectsPage organizationProjectsPage = new OrganizationProjectsPage();
+
+    if (!rpUser.getUserRole().equals(UserRole.ADMINISTRATOR) && isOrganizationMember(rpUser, orgId)) {
+
+      var projectIds = projectUserRepository.findProjectIdsByUserId(rpUser.getUserId())
+          .stream()
+          .map(Object::toString)
+          .collect(Collectors.joining(","));
+
+      var groupProjectIds = groupMembershipRepository
+          .findAllUserProjectsInOrganization(rpUser.getUserId(), orgId)
+          .stream()
+          .map(gp -> gp.getId().getProjectId().toString())
+          .collect(Collectors.joining(","));
+
+      projectIds = Stream.of(projectIds, groupProjectIds)
+          .filter(StringUtils::isNotEmpty)
+          .distinct()
+          .collect(Collectors.joining(","));
+
+      if (projectIds.isEmpty()) {
+        // return empty response
+        return responseWithPageParameters(organizationProjectsPage, pageable, 0);
+      } else {
+        filter.getFilterConditions()
+            .add(new FilterCondition(Condition.IN, false, projectIds, CRITERIA_PROJECT_ID));
+      }
+    }
+
+    Page<ProjectProfile> projectProfilePagedList =
+        organizationProjectRepository.getProjectProfileListByFilter(filter, pageable);
+
+    organizationProjectsPage.items(projectProfilePagedList.getContent()
+        .stream()
+        .map(PROJECT_PROFILE_TO_ORG_PROJECT_INFO)
+        .toList());
+
+    return responseWithPageParameters(organizationProjectsPage, pageable,
+        projectProfilePagedList.getTotalElements());
+  }
+
+  private boolean isOrganizationMember(ReportPortalUser rpUser, Long orgId) {
+    var orgDetails = rpUser.getOrganizationDetails().get(orgId.toString());
+    expect(orgDetails, Objects::nonNull).verify(ErrorType.ACCESS_DENIED);
+    return OrganizationRole.MEMBER.equals(orgDetails.getOrgRole());
+  }
+
+  @Override
+  public ProjectInfo createProject(Long orgId, ProjectBase projectBase) {
+    projectBase.setName(projectBase.getName().trim());
+    expect(projectBase.getName().length(), (Integer length) -> length >= ValidationConstraints.MIN_NAME_LENGTH)
+        .verify(ErrorType.INCORRECT_REQUEST,
+            Suppliers.formattedSupplier("Project name '{}' is too short after trimming whitespaces",
+                projectBase.getName()));
+
+    Organization organization = organizationRepositoryCustom.findById(orgId)
+        .orElseThrow(() -> new ReportPortalException(ErrorType.ORGANIZATION_NOT_FOUND, orgId));
+
+    if (StringUtils.isEmpty(projectBase.getSlug())) {
+      projectBase.setSlug(SlugifyUtils.slugify(projectBase.getName()));
+    }
+    var projectKey = organization.getSlug() + "." + projectBase.getSlug();
+
+    // verify project uniqueness
+    Optional<Project> existingProject =
+        projectRepository.findByNameAndOrganizationId(projectBase.getName(), orgId);
+    expect(existingProject, not(isPresent())).verify(ErrorType.PROJECT_ALREADY_EXISTS, projectKey);
+    existingProject = projectRepository.findByKey(projectKey);
+    expect(existingProject, not(isPresent())).verify(ErrorType.PROJECT_ALREADY_EXISTS, projectKey);
+    existingProject = projectRepository.findBySlugAndOrganizationId(projectBase.getSlug(), orgId);
+    expect(existingProject, not(isPresent())).verify(ErrorType.PROJECT_ALREADY_EXISTS, projectKey);
+
+    var projectToSave = generateProjectBody(orgId, projectBase, projectKey);
+    Set<ProjectAttribute> projectAttributes = ProjectUtils.defaultProjectAttributes(projectToSave,
+        attributeRepository.getDefaultProjectAttributes()
+    );
+    projectToSave.setProjectAttributes(projectAttributes);
+
+    projectToSave.setProjectIssueTypes(
+        ProjectUtils.defaultIssueTypes(projectToSave, issueTypeRepository.getDefaultIssueTypes()));
+
+    Project createdProject = projectRepository.save(projectToSave);
+
+    publishProjectCreatedEvent(getPrincipal(), createdProject);
+
+    return PROJECT_TO_ORG_PROJECT_INFO.apply(createdProject); // backward convert to ProjectInfo
+  }
+
+  @Override
+  public void deleteProject(Long orgId, Long projectId) {
+    Project project = getProjectById(projectId);
+    expect(project.getOrganizationId(), equalTo(orgId))
+        .verify(NOT_FOUND, "Project " + projectId + " not found in organization " + orgId);
+
+    List<Long> userIds = projectUserRepository.findUserIdsByProjectId(projectId);
+    deleteProjectWithDependants(project);
+
+    publishSpecialProjectDeletedEvent(getPrincipal(), project, userIds);
+  }
+
+
+  private Project generateProjectBody(Long orgId, ProjectBase projectDetails,
+      String projectKey) {
+    var project = new Project();
+    var now = instantNow();
+    project.setName(projectDetails.getName());
+    project.setSlug(projectDetails.getSlug());
+    project.setKey(projectKey);
+    project.setOrganizationId(orgId);
+    project.setCreationDate(now);
+    project.setUpdatedAt(now);
+    return project;
+  }
+
+  private void deleteProjectWithDependants(Project project) {
+    Set<Long> defaultIssueTypeIds = issueTypeRepository.getDefaultIssueTypes()
+        .stream()
+        .map(IssueType::getId)
+        .collect(Collectors.toSet());
+
+    Set<IssueType> issueTypesToRemove = project.getProjectIssueTypes()
+        .stream()
+        .map(ProjectIssueType::getIssueType)
+        .filter(issueType -> !defaultIssueTypeIds.contains(issueType.getId()))
+        .collect(Collectors.toSet());
+
+    projectContentRemover.remove(project);
+    projectRepository.delete(project);
+    issueTypeRepository.deleteAll(issueTypesToRemove);
+    logIndexer.deleteIndex(project.getId());
+    analyzerServiceClient.removeSuggest(project.getId());
+    logRepository.deleteByProjectId(project.getId());
+    attachmentBinaryDataService.deleteAllByProjectId(project.getId());
+    tmsAttachmentService.deleteAllByProjectId(project.getId());
+
+  }
+
+  private void publishProjectCreatedEvent(ReportPortalUser user, Project project) {
+    ProjectCreatedEvent event = new ProjectCreatedEvent(
+        user.getUserId(),
+        user.getUsername(),
+        project.getId(),
+        project.getName(),
+        project.getOrganizationId());
+    applicationEventPublisher.publishEvent(event);
+  }
+
+  private void publishSpecialProjectDeletedEvent(ReportPortalUser user, Project project, List<Long> userIds) {
+    if (Objects.nonNull(user)) {
+      Long userId = user.getUserId();
+      String username = user.getUsername();
+      applicationEventPublisher.publishEvent(
+          new ProjectDeletedEvent(userId, username, project.getId(), project.getName(), project.getOrganizationId(),
+              userIds));
+    } else {
+      applicationEventPublisher.publishEvent(
+          new ProjectDeletedEvent(project.getId(), "personal_project", project.getOrganizationId(), userIds));
+    }
+  }
+
+  private Project getProjectById(Long projectId) {
+    return projectRepository.findById(projectId)
+        .orElseThrow(() -> new ReportPortalException(NOT_FOUND, "Project " + projectId));
+  }
+
+
+}

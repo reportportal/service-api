@@ -19,7 +19,7 @@ on:
 jobs:
   call-java-checks:
     name: Call Java Checks with Drill4J
-    runs-on: 'rp-beta-runner-set'
+    runs-on: 'rp-beta-arc-runner-set'
     env:
       DRILL_AGENT_ENABLED: ${{ github.event_name == 'push' && 'true' || inputs.drill-agent-enabled }}
       DRILL_API_URL: ${{ secrets.DRILL_API_URL }}
@@ -31,10 +31,10 @@ jobs:
           submodules: true
 
       - name: Set up JDK
-        uses: actions/setup-java@v2
+        uses: actions/setup-java@v4
         with:
-          distribution: adopt
-          java-version: 21
+          distribution: temurin
+          java-version: 25
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew

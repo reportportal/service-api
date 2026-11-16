@@ -1,4 +1,4 @@
-14:05:56.621 [TestNG-tests-1] ERROR o.s.test.context.TestContextManager - Caught exception while allowing TestExecutionListener [org.springframework.test.context.support.DependencyInjectionTestExecutionListener@7398c5e9] to prepare test instance [com.epam.ta.reportportal.qa.ws.tests.email_settings.EmailServerSettingsTest@5cc5b667]
+14:05:56.621 [TestNG-tests-1] ERROR o.s.test.context.TestContextManager - Caught exception while allowing TestExecutionListener [org.springframework.test.context.support.DependencyInjectionTestExecutionListener@7398c5e9] to prepare test instance [com.epam.reportportal.qa.ws.tests.email_settings.EmailServerSettingsTest@5cc5b667]
 java.lang.IllegalStateException: Failed to load ApplicationContext
 	at org.springframework.test.context.cache.DefaultCacheAwareContextLoaderDelegate.loadContext(DefaultCacheAwareContextLoaderDelegate.java:124)
 	at org.springframework.test.context.support.DefaultTestContext.getApplicationContext(DefaultTestContext.java:83)

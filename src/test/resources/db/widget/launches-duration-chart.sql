@@ -12,10 +12,10 @@ values (2, 'uuid2', 1, 1, 'test launch', 'desc', now() - interval '11 minute', n
 
 -- Filters and widgets
 INSERT INTO public.owned_entity (id, owner, project_id)
-VALUES (1, 'superadmin', 1),
-       (2, 'superadmin', 1),
-       (3, 'superadmin', 1),
-       (4, 'superadmin', 1);
+VALUES (1, 'admin@reportportal.internal', 1),
+       (2, 'admin@reportportal.internal', 1),
+       (3, 'admin@reportportal.internal', 1),
+       (4, 'admin@reportportal.internal', 1);
 
 INSERT INTO public.filter (id, name, target, description)
 VALUES (1, 'Admin Filter', 'Launch', null),
@@ -38,5 +38,5 @@ values (2, 1),
        (3, 4);
 
 -- Statistics (launches 1 and 2 only, no test items - total=0)
-INSERT INTO statistics(s_counter, statistics_field_id, launch_id) VALUES (0, 1, 1);
-INSERT INTO statistics(s_counter, statistics_field_id, launch_id) VALUES (0, 1, 2);
+INSERT INTO launch_statistics(s_counter, statistics_field_id, launch_id) VALUES (0, 1, 1);
+INSERT INTO launch_statistics(s_counter, statistics_field_id, launch_id) VALUES (0, 1, 2);

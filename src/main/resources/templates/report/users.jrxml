@@ -30,10 +30,9 @@
   <query language="sql"></query>
   <field name="Full name" class="java.lang.String"/>
   <field name="Type" class="java.lang.String"/>
-  <field name="Login" class="java.lang.String"/>
   <field name="Email" class="java.lang.String"/>
   <field name="Last login" class="java.lang.String"/>
-  <field name="Projects and Roles" class="java.lang.String"/>
+  <field name="Organizations" class="java.lang.Long"/>
   <background splitType="Stretch">
     </background>
   <columnHeader height="23" splitType="Stretch">
@@ -45,21 +44,17 @@
         <property name="com.jaspersoft.studio.spreadsheet.connectionID" value="f172f0b8-1df3-4c59-bec2-45f6582696e3"/>
         <text>Type</text>
       </element>
-      <element kind="staticText" x="260" y="0" width="150" height="18" uuid="64cc94b9-8766-49b1-8b9f-e45296c5c9c7" hTextAlign="Center">
-        <property name="com.jaspersoft.studio.spreadsheet.connectionID" value="3ebec559-1ba4-4dc0-978b-ff46d0298c59"/>
-        <text>Login</text>
-      </element>
-      <element kind="staticText" x="410" y="0" width="150" height="18" uuid="b0549432-b1b4-41af-931e-7e25e63d738c" hTextAlign="Center">
+      <element kind="staticText" x="260" y="0" width="150" height="18" uuid="b0549432-b1b4-41af-931e-7e25e63d738c" hTextAlign="Center">
         <property name="com.jaspersoft.studio.spreadsheet.connectionID" value="0eca9f7f-619a-44d6-9cf6-46dc79e5e251"/>
         <text>Email</text>
       </element>
-      <element kind="staticText" x="560" y="0" width="120" height="18" uuid="e0ddb3e8-ddc4-41af-b0bb-5299862be558" hTextAlign="Center">
+      <element kind="staticText" x="410" y="0" width="150" height="18" uuid="e0ddb3e8-ddc4-41af-b0bb-5299862be558" hTextAlign="Center">
         <property name="com.jaspersoft.studio.spreadsheet.connectionID" value="7d2a698e-beb1-4dbb-b059-0654b305955e"/>
         <text>Last login</text>
       </element>
-      <element kind="staticText" x="680" y="0" width="117" height="18" uuid="ac60d496-d8c7-4543-b8da-1112cde3fc2c" hTextAlign="Center">
+      <element kind="staticText" x="560" y="0" width="150" height="18" uuid="ac60d496-d8c7-4543-b8da-1112cde3fc2c" hTextAlign="Center">
         <property name="com.jaspersoft.studio.spreadsheet.connectionID" value="d4571106-56c2-445d-a317-a38effb2595b"/>
-        <text>Projects and Roles</text>
+        <text>Organizations</text>
       </element>
     </columnHeader>
   <detail>
@@ -75,25 +70,20 @@
           <property name="net.sf.jasperreports.print.keep.full.text" value="true"/>
           <expression>$F{Type}</expression>
         </element>
-        <element kind="textField" x="260" y="0" width="150" height="30" uuid="66d3c031-147d-40f1-a43b-d1d9a3a6e457" hTextAlign="Center">
-          <property name="com.jaspersoft.studio.spreadsheet.connectionID" value="3ebec559-1ba4-4dc0-978b-ff46d0298c59"/>
-          <property name="net.sf.jasperreports.print.keep.full.text" value="true"/>
-          <expression>$F{Login}</expression>
-        </element>
-        <element kind="textField" x="410" y="0" width="150" height="30" uuid="d4aa9cdc-f50c-4cb9-9246-f0f57250f17f" hTextAlign="Center">
+        <element kind="textField" x="260" y="0" width="150" height="30" uuid="d4aa9cdc-f50c-4cb9-9246-f0f57250f17f" hTextAlign="Center">
           <property name="com.jaspersoft.studio.spreadsheet.connectionID" value="0eca9f7f-619a-44d6-9cf6-46dc79e5e251"/>
           <property name="net.sf.jasperreports.print.keep.full.text" value="true"/>
           <expression>$F{Email}</expression>
         </element>
-        <element kind="textField" x="560" y="0" width="120" height="30" uuid="47939077-bc56-4fc7-85b9-2942fcaddaa0" hTextAlign="Center">
+        <element kind="textField" x="410" y="0" width="150" height="30" uuid="47939077-bc56-4fc7-85b9-2942fcaddaa0" hTextAlign="Center">
           <property name="com.jaspersoft.studio.spreadsheet.connectionID" value="7d2a698e-beb1-4dbb-b059-0654b305955e"/>
           <property name="net.sf.jasperreports.print.keep.full.text" value="true"/>
           <expression>$F{Last login}</expression>
         </element>
-        <element kind="textField" x="680" y="0" width="117" height="30" uuid="5fc335bb-6c5a-46ac-b345-fbefa1deec6a" hTextAlign="Center" vTextAlign="Top">
+        <element kind="textField" x="560" y="0" width="150" height="30" uuid="5fc335bb-6c5a-46ac-b345-fbefa1deec6a" hTextAlign="Center" vTextAlign="Top">
           <property name="com.jaspersoft.studio.spreadsheet.connectionID" value="d4571106-56c2-445d-a317-a38effb2595b"/>
           <property name="net.sf.jasperreports.print.keep.full.text" value="true"/>
-          <expression>$F{Projects and Roles}</expression>
+          <expression>$F{Organizations}</expression>
         </element>
       </element>
     </band>

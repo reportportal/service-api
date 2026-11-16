@@ -28,7 +28,9 @@ import com.epam.reportportal.base.infrastructure.persistence.dao.tms.filterable.
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.RetentionPolicyEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.LaunchAttribute;
+import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
 import com.epam.reportportal.base.reporting.ItemAttributesRQ;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.StreamSupport;
@@ -38,6 +40,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 @ExtendWith(MockitoExtension.class)
 class TmsManualLaunchRetentionPolicyTest {
@@ -75,9 +78,17 @@ class TmsManualLaunchRetentionPolicyTest {
   private ServerSettingsService serverSettingsService;
 
   private TmsManualLaunchServiceImpl service;
+  private ReportPortalUser user;
 
   @BeforeEach
   void setUp() {
+    user = ReportPortalUser.userBuilder()
+        .withUserName("test_user")
+        .withPassword("password")
+        .withUserId(1L)
+        .withActive(true)
+        .withAuthorities(Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER")))
+        .build();
     var attributeService = new TmsManualLaunchAttributeServiceImpl(launchAttributeRepository);
     var handler = new RetentionPolicyAttributeHandler(eventPublisher, projectService,
         serverSettingsService);
@@ -170,7 +181,7 @@ class TmsManualLaunchRetentionPolicyTest {
         .attributes(List.of(new ItemAttributesRQ("environment", "staging")))
         .build();
 
-    service.patch(PROJECT_ID, LAUNCH_ID, request);
+    service.patch(PROJECT_ID, user, LAUNCH_ID, request);
 
     assertEquals(RetentionPolicyEnum.IMPORTANT, launch.getRetentionPolicy());
     assertTrue(launch.getAttributes().stream().anyMatch(attribute ->
@@ -185,12 +196,13 @@ class TmsManualLaunchRetentionPolicyTest {
     when(launchRepository.findManualLaunchByIdAndProjectId(LAUNCH_ID, PROJECT_ID))
         .thenReturn(Optional.of(launch));
     when(tmsManualLaunchMapper.convert(eq(launch), any())).thenReturn(new TmsManualLaunchRS());
+    when(projectService.findProjectById(any())).thenReturn(new Project());
 
     var request = TmsManualLaunchRQ.builder()
-        .attributes(List.of(new ItemAttributesRQ("retentionPolicy", "REGULAR", true)))
+        .attributes(List.of(new ItemAttributesRQ("retentionPolicy", "REGULAR", false)))
         .build();
 
-    service.patch(PROJECT_ID, LAUNCH_ID, request);
+    service.patch(PROJECT_ID, user, LAUNCH_ID, request);
 
     assertEquals(RetentionPolicyEnum.REGULAR, launch.getRetentionPolicy());
     assertTrue(launch.getAttributes().stream().anyMatch(attribute ->
@@ -204,7 +216,8 @@ class TmsManualLaunchRetentionPolicyTest {
         .thenReturn(Optional.of(launch));
     when(tmsManualLaunchMapper.convert(eq(launch), any())).thenReturn(new TmsManualLaunchRS());
 
-    service.patch(PROJECT_ID, LAUNCH_ID, TmsManualLaunchRQ.builder().name("Renamed").build());
+    service.patch(PROJECT_ID, user, LAUNCH_ID,
+        TmsManualLaunchRQ.builder().name("Renamed").build());
 
     assertEquals(RetentionPolicyEnum.IMPORTANT, launch.getRetentionPolicy());
     assertEquals(1, launch.getAttributes().size());

@@ -272,7 +272,7 @@ public class TmsManualLaunchServiceImpl implements TmsManualLaunchService {
 
     if (request.getAttributes() != null) {
       tmsManualLaunchAttributeService.updateAttributes(existingLaunch, request.getAttributes());
-      if (hasSystemRetentionPolicy(request.getAttributes())) {
+      if (hasRetentionPolicy(request.getAttributes())) {
         retentionPolicyAttributeHandler.handleLaunchUpdate(existingLaunch, user);
         existingLaunch = launchRepository.save(existingLaunch);
       }
@@ -623,9 +623,9 @@ public class TmsManualLaunchServiceImpl implements TmsManualLaunchService {
         );
   }
 
-  private static boolean hasSystemRetentionPolicy(Collection<ItemAttributesRQ> attributes) {
-    return attributes.stream().anyMatch(attribute -> attribute.isSystem()
-        && RETENTION_POLICY_KEY.equalsIgnoreCase(attribute.getKey()));
+  private static boolean hasRetentionPolicy(Collection<ItemAttributesRQ> attributes) {
+    return attributes.stream().anyMatch(attribute ->
+        RETENTION_POLICY_KEY.equalsIgnoreCase(attribute.getKey()));
   }
 
   /**

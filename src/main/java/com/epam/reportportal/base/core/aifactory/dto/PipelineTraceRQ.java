@@ -79,6 +79,12 @@ public class PipelineTraceRQ {
     @Schema(description = "TOOL_CALL: how long the call took")
     private Long durationMs;
 
+    @Size(max = 256)
+    @Schema(description = "The unit of the stage that produced the event: the key of a row in the stage's units "
+        + "section, e.g. \"test-case-review-single#2#1\". Leave it out for events of the stage itself, such as the "
+        + "orchestrator's reasoning and its delegate calls")
+    private String unitKey;
+
     @Size(max = 1024)
     @Schema(description = "TOOL_CALL: what the call acted on, a file, a Library id or a command")
     private String target;

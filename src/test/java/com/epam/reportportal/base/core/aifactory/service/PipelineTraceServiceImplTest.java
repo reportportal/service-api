@@ -110,6 +110,36 @@ class PipelineTraceServiceImplTest {
   }
 
   @Test
+  void reportTrace_ShouldStoreTheUnitKeyOfAnEventAndLeaveItEmptyForTheStageItself() {
+    var unitEvent = PipelineTraceRQ.Event.builder().seq(1).type(TraceEventType.AGENT)
+        .unitKey("test-case-review-single#2#1").text("reviewing TC-12").build();
+    var rq = PipelineTraceRQ.builder().attempt(2)
+        .events(List.of(event(0, TraceEventType.PROMPT, "orchestrator prompt"), unitEvent)).build();
+
+    sut.reportTrace(PROJECT_ID, ITERATION_ID, STAGE_KEY, rq);
+
+    @SuppressWarnings("unchecked")
+    ArgumentCaptor<List<PipelineStageTraceEvent>> saved = ArgumentCaptor.forClass(List.class);
+    verify(eventRepository).saveAll(saved.capture());
+    assertNull(saved.getValue().get(0).getUnitKey());
+    assertEquals("test-case-review-single#2#1", saved.getValue().get(1).getUnitKey());
+  }
+
+  @Test
+  void getTrace_ShouldReturnTheUnitKeyOfAnEvent() {
+    var unitEvent = new PipelineStageTraceEvent();
+    unitEvent.setSeq(0);
+    unitEvent.setType(TraceEventType.AGENT);
+    unitEvent.setUnitKey("test-case-review-single#2#1");
+    when(eventRepository.findByIterationIdAndStageKeyAndAttemptOrderBySeqAsc(ITERATION_ID, STAGE_KEY, 1))
+        .thenReturn(List.of(unitEvent));
+
+    var result = sut.getTrace(PROJECT_ID, ITERATION_ID, STAGE_KEY, 1);
+
+    assertEquals("test-case-review-single#2#1", result.getEvents().get(0).getUnitKey());
+  }
+
+  @Test
   void reportTrace_WhenSeqAlreadyStored_ShouldReplaceItInsteadOfDuplicating() {
     var stored = new PipelineStageTraceEvent();
     stored.setSeq(0);

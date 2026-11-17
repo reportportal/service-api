@@ -56,6 +56,10 @@ public class PipelineStageTraceEvent implements Serializable {
   @Column(name = "duration_ms")
   private Long durationMs;
 
+  /** Key of the units-section row that produced the event, e.g. "test-case-review-single#2#1"; null for the stage itself. */
+  @Column(name = "unit_key")
+  private String unitKey;
+
   @Column(name = "target")
   private String target;
 

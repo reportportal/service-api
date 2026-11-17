@@ -107,6 +107,7 @@ public class PipelineTraceServiceImpl implements PipelineTraceService {
       entity.setTitle(event.getTitle());
       entity.setOffsetMs(event.getOffsetMs());
       entity.setDurationMs(event.getDurationMs());
+      entity.setUnitKey(event.getUnitKey());
       entity.setTarget(event.getTarget());
       entity.setText(event.getText());
       entity.setData(event.getData() == null ? null : new PipelineRawOutput(event.getData()));
@@ -181,6 +182,7 @@ public class PipelineTraceServiceImpl implements PipelineTraceService {
         .title(event.getTitle())
         .offsetMs(event.getOffsetMs())
         .durationMs(event.getDurationMs())
+        .unitKey(event.getUnitKey())
         .target(event.getTarget())
         .text(event.getText())
         .data(event.getData() == null ? null : event.getData().getContent())

@@ -74,7 +74,7 @@ public class UpdateLogTypeHandlerImpl implements UpdateLogTypeHandler {
   public SuccessfulUpdate updateLogType(String projectKey, Long logTypeId, LogTypeRequest updateRq,
       ReportPortalUser user) {
     Project project = projectRepository.findByKey(projectKey)
-        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectKey));
+        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_KEY_NOT_FOUND, projectKey));
 
     ProjectLogType existingLogType = logTypeRepository.findById(logTypeId)
         .orElseThrow(() -> new ReportPortalException(ErrorType.NOT_FOUND, "Log type"));

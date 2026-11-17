@@ -184,7 +184,7 @@ class GetLaunchHandlerImplTest {
             "user"
         )
     );
-    assertEquals("Project 'not_exist' not found. Did you use correct project name?",
+    assertEquals("Project 'not_exist' not found. Did you use correct project key?",
         exception.getMessage()
     );
   }

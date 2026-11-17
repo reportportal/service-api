@@ -93,9 +93,9 @@ public class PatchProjectUserHandler extends BasePatchProjectHandler {
         .orElseThrow(() -> new ReportPortalException(ErrorType.ORGANIZATION_NOT_FOUND, orgId));
 
     var project = projectRepository.findById(projectId)
-        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectId));
+        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_ID_NOT_FOUND, projectId));
 
-    expect(org.getId(), isEqual(project.getOrganizationId())).verify(ErrorType.PROJECT_NOT_FOUND, projectId);
+    expect(org.getId(), isEqual(project.getOrganizationId())).verify(ErrorType.PROJECT_ID_NOT_FOUND, projectId);
 
     assignmentHelper.validateUserAssignment(org, principal, user);
 

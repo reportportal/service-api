@@ -21,6 +21,7 @@ import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Validator;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.lang.reflect.Array;
 import java.nio.charset.StandardCharsets;
@@ -67,15 +68,19 @@ public class MultipartJsonConverter {
       return type.isArray() ? type.cast(Array.newInstance(type.getComponentType(), 0)) : null;
     }
     T value = parse(json, type);
-    if (value != null && !type.isArray()) {
+    if (type.isArray()) {
+      if (value == null) {
+        throw new IllegalArgumentException("Unable to parse " + type.getSimpleName() + ": value must not be null");
+      }
+    } else if (value != null) {
       validate(value);
     }
     return value;
   }
 
   private String readContent(Part part) {
-    try {
-      return new String(part.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+    try (InputStream inputStream = part.getInputStream()) {
+      return new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
     } catch (IOException e) {
       throw new UncheckedIOException("Unable to read multipart part '" + part.getName() + "'", e);
     }

@@ -135,7 +135,7 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
       String pluginName, ReportPortalUser user) {
 
     Project project = projectRepository.findByKey(projectKey)
-        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectKey));
+        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_KEY_NOT_FOUND, projectKey));
 
     IntegrationType integrationType = integrationTypeRepository.findByName(pluginName)
         .orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, pluginName));
@@ -209,7 +209,7 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
       IntegrationRQ updateRequest, ReportPortalUser user) {
 
     Project project = projectRepository.findByKey(projectKey)
-        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectKey));
+        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_KEY_NOT_FOUND, projectKey));
 
     final Integration integration = integrationRepository.findByIdAndProjectId(id, project.getId())
         .orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, id));

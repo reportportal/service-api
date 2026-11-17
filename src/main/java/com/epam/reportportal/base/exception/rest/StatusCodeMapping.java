@@ -38,7 +38,9 @@ public class StatusCodeMapping {
 
     {
       put(ErrorType.NOT_FOUND, HttpStatus.NOT_FOUND);
-      put(ErrorType.PROJECT_NOT_FOUND, HttpStatus.NOT_FOUND);
+      put(ErrorType.PROJECT_KEY_NOT_FOUND, HttpStatus.NOT_FOUND);
+      put(ErrorType.PROJECT_NAME_NOT_FOUND, HttpStatus.NOT_FOUND);
+      put(ErrorType.PROJECT_ID_NOT_FOUND, HttpStatus.NOT_FOUND);
       put(ErrorType.LAUNCH_NOT_FOUND, HttpStatus.NOT_FOUND);
       put(ErrorType.TEST_ITEM_NOT_FOUND, HttpStatus.NOT_FOUND);
       put(ErrorType.LOG_NOT_FOUND, HttpStatus.NOT_FOUND);

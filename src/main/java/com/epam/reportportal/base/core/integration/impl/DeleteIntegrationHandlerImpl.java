@@ -17,7 +17,7 @@
 package com.epam.reportportal.base.core.integration.impl;
 
 import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.INTEGRATION_NOT_FOUND;
-import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.PROJECT_NOT_FOUND;
+import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.PROJECT_KEY_NOT_FOUND;
 import static com.epam.reportportal.base.ws.converter.converters.IntegrationConverter.TO_ACTIVITY_RESOURCE;
 
 import com.epam.reportportal.auth.event.SamlProvidersReloadEvent;
@@ -105,7 +105,7 @@ public class DeleteIntegrationHandlerImpl implements DeleteIntegrationHandler {
   public OperationCompletionRS deleteProjectIntegration(Long integrationId, String projectKey,
       ReportPortalUser user) {
     Project project = projectRepository.findByKey(projectKey)
-        .orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectKey));
+        .orElseThrow(() -> new ReportPortalException(PROJECT_KEY_NOT_FOUND, projectKey));
     Integration integration = integrationRepository.findByIdAndProjectId(integrationId,
             project.getId())
         .orElseThrow(() -> new ReportPortalException(INTEGRATION_NOT_FOUND, integrationId));
@@ -124,7 +124,7 @@ public class DeleteIntegrationHandlerImpl implements DeleteIntegrationHandler {
   public OperationCompletionRS deleteProjectIntegrationsByType(String type, String projectKey,
       ReportPortalUser user) {
     Project project = projectRepository.findByKey(projectKey)
-        .orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectKey));
+        .orElseThrow(() -> new ReportPortalException(PROJECT_KEY_NOT_FOUND, projectKey));
     IntegrationType integrationType = integrationTypeRepository.findByName(type)
         .orElseThrow(() -> new ReportPortalException(INTEGRATION_NOT_FOUND, type));
     List<Integration> integrations = integrationRepository.findAllByProjectIdAndInIntegrationTypeIds(

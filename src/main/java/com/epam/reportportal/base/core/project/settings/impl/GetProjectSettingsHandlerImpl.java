@@ -46,7 +46,7 @@ public class GetProjectSettingsHandlerImpl implements GetProjectSettingsHandler 
   @Override
   public ProjectSettingsResource getProjectSettings(String projectKey) {
     Project project = projectRepository.findByKey(projectKey)
-        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectKey));
+        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_KEY_NOT_FOUND, projectKey));
     return ProjectSettingsConverter.TO_PROJECT_SETTINGS_RESOURCE.apply(project);
   }
 }

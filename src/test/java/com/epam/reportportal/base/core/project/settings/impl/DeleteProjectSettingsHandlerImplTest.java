@@ -61,7 +61,7 @@ class DeleteProjectSettingsHandlerImplTest {
     );
 
     assertEquals(
-        String.format("Project '%s' not found. Did you use correct project name?", TEST_PROJECT_KEY),
+        String.format("Project '%s' not found. Did you use correct project key?", TEST_PROJECT_KEY),
         exception.getMessage());
   }
 

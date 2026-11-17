@@ -61,7 +61,7 @@ public class DeleteLogTypeHandlerImpl implements DeleteLogTypeHandler {
   @Transactional
   public void deleteLogType(String projectKey, Long logTypeId, ReportPortalUser user) {
     Project project = projectRepository.findByKey(projectKey)
-        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectKey));
+        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_KEY_NOT_FOUND, projectKey));
 
     ProjectLogType logType = logTypeRepository.findById(logTypeId)
         .orElseThrow(() -> new ReportPortalException(NOT_FOUND, "Log type"));

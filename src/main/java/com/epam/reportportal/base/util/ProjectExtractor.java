@@ -125,7 +125,7 @@ public class ProjectExtractor {
    */
   public MembershipDetails extractProjectDetailsAdmin(String projectKey) {
     return projectUserRepository.findAdminDetailsProjectKey(normalizeId(projectKey))
-        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectKey));
+        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_KEY_NOT_FOUND, projectKey));
   }
 
 }

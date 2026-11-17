@@ -111,6 +111,10 @@ public class TmsManualLaunchServiceImpl implements TmsManualLaunchService {
     launch.setLaunchType(LaunchTypeEnum.MANUAL);
     launch.setStatus(StatusEnum.IN_PROGRESS);
 
+    // Persist launch first so attributes can reference its ID
+    launch = launchRepository.save(launch);
+    launchRepository.refresh(launch);
+
     // Create attributes if present
     if (CollectionUtils.isNotEmpty(request.getAttributes())) {
       tmsManualLaunchAttributeService.createAttributes(launch, request.getAttributes());

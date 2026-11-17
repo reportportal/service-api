@@ -185,7 +185,7 @@ public abstract class AbstractExtensionCommand<T> implements ExtensionCommand<T>
 
   private void validateProjectRole(ReportPortalUser user, Long projectId) {
     Project project = projectRepository.findById(projectId)
-        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectId));
+        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_ID_NOT_FOUND, projectId));
     Long projectOrgId = project.getOrganizationId();
     OrganizationRole orgRole = findOrgRole(user.getUserId(), projectOrgId);
 

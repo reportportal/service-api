@@ -26,7 +26,7 @@ import static com.epam.reportportal.base.infrastructure.persistence.entity.enums
 import static com.epam.reportportal.base.infrastructure.rules.commons.validation.BusinessRule.expect;
 import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.FORBIDDEN_OPERATION;
 import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.ISSUE_TYPE_NOT_FOUND;
-import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.PROJECT_NOT_FOUND;
+import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.PROJECT_KEY_NOT_FOUND;
 import static com.epam.reportportal.base.ws.converter.converters.IssueTypeConverter.TO_ACTIVITY_RESOURCE;
 
 import com.epam.reportportal.base.core.events.domain.DefectTypeDeletedEvent;
@@ -92,7 +92,7 @@ public class DeleteProjectSettingsHandlerImpl implements DeleteProjectSettingsHa
   public OperationCompletionRS deleteProjectIssueSubType(String projectKey, ReportPortalUser user,
       Long id) {
     Project project = projectRepository.findByKey(projectKey)
-        .orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectKey));
+        .orElseThrow(() -> new ReportPortalException(PROJECT_KEY_NOT_FOUND, projectKey));
 
     ProjectIssueType type = project.getProjectIssueTypes()
         .stream()
@@ -176,7 +176,7 @@ public class DeleteProjectSettingsHandlerImpl implements DeleteProjectSettingsHa
       Long id) {
 
     Project project = projectRepository.findByKey(projectKey)
-        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectKey));
+        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_KEY_NOT_FOUND, projectKey));
 
     PatternTemplate patternTemplate = patternTemplateRepository.findByIdAndProjectId(id,
             project.getId())

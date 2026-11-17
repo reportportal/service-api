@@ -61,7 +61,7 @@ class GeneratedProjectControllerTest extends BaseMvcTest {
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isNotFound())
         .andExpect(jsonPath("$.message")
-            .value("Project 'unknown_project' not found. Did you use correct project name?"));
+            .value("Project 'unknown_project' not found. Did you use correct project key?"));
   }
 
   @Test

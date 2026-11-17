@@ -131,7 +131,7 @@ class DeleteProjectHandlerImplTest {
     ReportPortalException exception = assertThrows(ReportPortalException.class,
         () -> handler.deleteProjectIndex(projectKey, "user"));
 
-    assertEquals("Project 'notExist' not found. Did you use correct project name?",
+    assertEquals("Project 'notExist' not found. Did you use correct project key?",
         exception.getMessage());
   }
 

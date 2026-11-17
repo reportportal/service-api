@@ -67,7 +67,7 @@ public abstract class ProjectMemberContextCommand<T> extends AbstractContextBase
     Project project = ofNullable(commandContext.getOrgId())
         .map(orgId -> projectRepository.findByIdAndOrganizationId(commandContext.getProjectId(), orgId))
         .orElseGet(() -> projectRepository.findById(commandContext.getProjectId()))
-        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, commandContext.getProjectId()));
+        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_ID_NOT_FOUND, commandContext.getProjectId()));
 
     validateProjectPermissions(user, project);
   }

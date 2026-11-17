@@ -166,8 +166,8 @@ public class PatchProjectUsersHandler extends BasePatchProjectHandler {
 
   private Project findAndValidateProject(Long orgId, Long projectId) {
     var project = projectRepository.findById(projectId)
-        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectId));
-    expect(project.getOrganizationId(), isEqual(orgId)).verify(ErrorType.PROJECT_NOT_FOUND, projectId);
+        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_ID_NOT_FOUND, projectId));
+    expect(project.getOrganizationId(), isEqual(orgId)).verify(ErrorType.PROJECT_ID_NOT_FOUND, projectId);
     return project;
   }
 

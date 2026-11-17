@@ -48,6 +48,9 @@ public class PipelineTraceRS {
     private String title;
     private Long offsetMs;
     private Long durationMs;
+    @Schema(description = "Key of the row in the stage's units section that produced the event, e.g. "
+        + "\"test-case-review-single#2#1\"; absent for events of the stage itself")
+    private String unitKey;
     private String target;
     private String text;
     private Map<String, Object> data;

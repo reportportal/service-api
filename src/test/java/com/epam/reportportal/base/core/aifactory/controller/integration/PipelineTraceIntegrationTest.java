@@ -115,6 +115,25 @@ class PipelineTraceIntegrationTest extends BaseMvcTest {
   }
 
   @Test
+  void trace_ShouldKeepTheUnitKeyOfEachEventSoTheEventsOfSubAgentsCanBeToldApart() throws Exception {
+    var iterationId = iterationWithFinishedCreateStage();
+    var firstUnit = PipelineTraceRQ.Event.builder().seq(1).type(TraceEventType.AGENT)
+        .unitKey("test-case-review-single#2#1").text("reviewing TC-12").build();
+    var secondUnit = PipelineTraceRQ.Event.builder().seq(2).type(TraceEventType.AGENT)
+        .unitKey("test-case-review-single#2#2").text("reviewing TC-13").build();
+
+    report(iterationId, PipelineTraceRQ.builder().attempt(1)
+        .events(List.of(event(0, TraceEventType.PROMPT, "orchestrator"), firstUnit, secondUnit)).build());
+
+    mockMvc.perform(get(BASE + "/iteration/" + iterationId + "/stage/create/trace")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.events[0].unitKey").doesNotExist())
+        .andExpect(jsonPath("$.events[1].unitKey").value("test-case-review-single#2#1"))
+        .andExpect(jsonPath("$.events[2].unitKey").value("test-case-review-single#2#2"));
+  }
+
+  @Test
   void trace_WhenTheJobCouldNotReportIt_ShouldShowNotReportedWithTheReason() throws Exception {
     var iterationId = iterationWithFinishedCreateStage();
 

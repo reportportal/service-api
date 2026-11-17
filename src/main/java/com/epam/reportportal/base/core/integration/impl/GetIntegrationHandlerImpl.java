@@ -143,8 +143,8 @@ public class GetIntegrationHandlerImpl implements GetIntegrationHandler {
       Long integrationId) {
 
     Project project = projectRepository.findById(membershipDetails.getProjectId()).orElseThrow(
-        () -> new ReportPortalException(ErrorType.PROJECT_KEY_NOT_FOUND,
-            membershipDetails.getProjectName()
+        () -> new ReportPortalException(ErrorType.PROJECT_ID_NOT_FOUND,
+            membershipDetails.getProjectId()
         ));
 
     Integration integration =

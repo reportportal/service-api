@@ -20,7 +20,6 @@ import com.epam.reportportal.base.auth.userdetails.DefaultUserDetailsService;
 import com.epam.reportportal.base.core.analyzer.auto.client.RabbitMqManagementClient;
 import com.epam.reportportal.base.core.analyzer.auto.client.impl.RabbitMqManagementClientTemplate;
 import com.epam.reportportal.base.util.ApplicationContextAwareFactoryBeanTest;
-import com.epam.reportportal.base.util.TestJsonMapper;
 import com.rabbitmq.http.client.Client;
 import javax.sql.DataSource;
 import org.flywaydb.core.Flyway;
@@ -39,7 +38,6 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.context.annotation.Profile;
 import org.springframework.modulith.Modulithic;
-import tools.jackson.databind.json.JsonMapper;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -86,11 +84,6 @@ public class TestConfig {
     factory.setConnectionFactory(connectionFactory);
     factory.setAutoStartup(false);
     return factory;
-  }
-
-  @Bean
-  public JsonMapper testObjectMapper() {
-    return TestJsonMapper.INSTANCE;
   }
 
 }

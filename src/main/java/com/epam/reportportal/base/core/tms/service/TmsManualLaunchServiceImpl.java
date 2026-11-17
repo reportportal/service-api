@@ -110,8 +110,6 @@ public class TmsManualLaunchServiceImpl implements TmsManualLaunchService {
     var launch = tmsManualLaunchMapper.convertFromCreateTmsManualLaunchRQ(projectId, user, request);
     launch.setLaunchType(LaunchTypeEnum.MANUAL);
     launch.setStatus(StatusEnum.IN_PROGRESS);
-    // The launch is saved first: the attribute rows reference its id (launch_attribute.launch_id is NOT NULL)
-    launch = launchRepository.save(launch);
 
     // Persist launch first so attributes can reference its ID
     launch = launchRepository.save(launch);
@@ -121,10 +119,8 @@ public class TmsManualLaunchServiceImpl implements TmsManualLaunchService {
     if (CollectionUtils.isNotEmpty(request.getAttributes())) {
       tmsManualLaunchAttributeService.createAttributes(launch, request.getAttributes());
     }
-    // The database assigns launch.number on insert; load it, or the next save would update it to null
-    launchRepository.refresh(launch);
-    // Sets the retention policy from the attributes (and drops 'regular' when 'important' is also given)
     retentionPolicyAttributeHandler.handleLaunchStart(launch);
+
     launch = launchRepository.save(launch);
 
     // Add test cases to launch if present

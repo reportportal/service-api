@@ -10,6 +10,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -144,7 +145,7 @@ class TmsManualLaunchServiceImplTest {
 
     verify(tmsManualLaunchMapper).convertFromCreateTmsManualLaunchRQ(projectId, user,
         createLaunchRQ);
-    verify(launchRepository).save(launch);
+    verify(launchRepository, times(2)).save(launch);
     verify(retentionPolicyAttributeHandler).handleLaunchStart(launch);
     verify(tmsTestCaseExecutionService).addTestCasesToLaunch(projectId, launch,
         List.of(testCaseId));

@@ -35,7 +35,7 @@ import com.epam.reportportal.base.model.integration.UpdatePluginStateRQ;
 import com.epam.reportportal.base.model.launch.LaunchImportRQ;
 import com.epam.reportportal.base.reporting.OperationCompletionRS;
 import com.epam.reportportal.base.util.ProjectExtractor;
-import com.epam.reportportal.base.ws.converter.converters.LaunchImportRqConverter;
+import com.epam.reportportal.base.ws.converter.converters.MultipartJsonConverter;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -81,7 +81,7 @@ public class PluginController {
   private final ExecuteIntegrationHandler executeIntegrationHandler;
   private final ImportPluginCommandHandler importPluginCommandHandler;
   private final ProjectExtractor projectExtractor;
-  private final LaunchImportRqConverter launchImportRqConverter;
+  private final MultipartJsonConverter multipartJsonConverter;
 
   @Transactional
   @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -151,6 +151,6 @@ public class PluginController {
       @RequestPart(value = "launchImportRq", required = false)
       @Schema(implementation = LaunchImportRQ.class) Part launchImportRqPart) {
     return importPluginCommandHandler.execute(user, projectKey, pluginName, file,
-        launchImportRqConverter.convert(launchImportRqPart));
+        multipartJsonConverter.convert(launchImportRqPart, LaunchImportRQ.class));
   }
 }

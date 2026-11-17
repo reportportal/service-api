@@ -121,6 +121,8 @@ public class TmsManualLaunchServiceImpl implements TmsManualLaunchService {
     if (CollectionUtils.isNotEmpty(request.getAttributes())) {
       tmsManualLaunchAttributeService.createAttributes(launch, request.getAttributes());
     }
+    // The database assigns launch.number on insert; load it, or the next save would update it to null
+    launchRepository.refresh(launch);
     // Sets the retention policy from the attributes (and drops 'regular' when 'important' is also given)
     retentionPolicyAttributeHandler.handleLaunchStart(launch);
     launch = launchRepository.save(launch);

@@ -146,6 +146,7 @@ class TmsManualLaunchServiceImplTest {
     verify(tmsManualLaunchMapper).convertFromCreateTmsManualLaunchRQ(projectId, user,
         createLaunchRQ);
     verify(launchRepository, times(2)).save(launch);
+    verify(launchRepository).refresh(launch);
     verify(retentionPolicyAttributeHandler).handleLaunchStart(launch);
     verify(tmsTestCaseExecutionService).addTestCasesToLaunch(projectId, launch,
         List.of(testCaseId));
@@ -173,6 +174,7 @@ class TmsManualLaunchServiceImplTest {
     var result = sut.create(projectId, user, createLaunchRQ);
 
     assertNotNull(result);
+    verify(launchRepository).refresh(launch);
     verify(tmsTestPlanService).getTestCaseIdsAddedToPlan(projectId, testPlanId);
     verify(tmsTestCaseExecutionService).addTestCasesToLaunch(projectId, launch, List.of(10L, 20L));
   }

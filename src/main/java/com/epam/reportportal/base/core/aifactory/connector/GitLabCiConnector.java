@@ -95,7 +95,8 @@ public class GitLabCiConnector extends AbstractCiTriggerConnector {
     var configuredProjectId = requiredParam(integration, PROJECT_ID_PARAM);
     if (request.repo() == null || !configuredProjectId.equals(request.repo())) {
       throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
-          "CI project '" + request.repo() + "' does not match the project configured for this project's GitLab CI integration");
+          "CI project '" + request.repo()
+              + "' does not match the project configured for this project's GitLab CI integration");
     }
     return new CiRunRequest(request.repo(), gitRef(integration, request.workflowRef()), request.inputs());
   }

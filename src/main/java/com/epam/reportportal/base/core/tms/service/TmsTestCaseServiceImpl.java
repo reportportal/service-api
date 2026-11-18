@@ -154,15 +154,23 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
             NOT_FOUND, TEST_CASE_NOT_FOUND_BY_ID.formatted(testCaseId, projectId))
         );
     var defaultVersion = tmsTestCaseVersionService.getDefaultVersion(testCaseId);
-    if (!includeLastExecution) {
-      return tmsTestCaseMapper.convert(testCase, defaultVersion,
-          tmsTestCaseQualityService.buildMetrics(defaultVersion));
-    }
-    return tmsTestCaseMapper.convert(
-        testCase,
-        defaultVersion,
-        tmsTestCaseExecutionService.getLastTestCaseExecution(testCaseId),
-        tmsTestCaseQualityService.buildMetrics(defaultVersion));
+    var metrics = tmsTestCaseQualityService.buildMetrics(defaultVersion);
+    var response = includeLastExecution
+        ? tmsTestCaseMapper.convert(testCase, defaultVersion,
+            tmsTestCaseExecutionService.getLastTestCaseExecution(testCaseId), metrics)
+        : tmsTestCaseMapper.convert(testCase, defaultVersion, metrics);
+    withUnsentReviewComments(Collections.singletonList(response));
+    return response;
+  }
+
+  /**
+   * Sets {@code unsentReviewComments} on the given responses; a case with no unsent comment keeps it absent.
+   */
+  private void withUnsentReviewComments(Collection<TmsTestCaseRS> responses) {
+    var present = responses.stream().filter(Objects::nonNull).toList();
+    var unsentByCaseId = tmsTestCaseReadyEligibilityService.countUnsentComments(
+        present.stream().map(TmsTestCaseRS::getId).filter(Objects::nonNull).toList());
+    present.forEach(response -> response.setUnsentReviewComments(unsentByCaseId.get(response.getId())));
   }
 
   @Override
@@ -775,6 +783,7 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
           pageable,
           testCaseIds.getTotalElements()
       );
+      withUnsentReviewComments(page.getContent());
 
       return PagedResourcesAssembler
           .<TmsTestCaseRS>pageConverter()
@@ -1160,12 +1169,14 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
         : Collections.<Long, TmsTestCaseExecution>emptyMap();
     var metricsByVersionId = tmsTestCaseQualityService.buildMetricsBatch(defaultVersions.values());
 
-    return testCases.stream().collect(Collectors.toMap(
+    var responsesById = testCases.stream().collect(Collectors.toMap(
         TmsTestCase::getId,
         testCase -> toTestCaseResource(testCase, defaultVersions, lastExecutions, metricsByVersionId,
             includeLastExecution),
         (first, ignored) -> first
     ));
+    withUnsentReviewComments(responsesById.values());
+    return responsesById;
   }
 
   @Override

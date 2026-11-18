@@ -134,6 +134,10 @@ class TestCaseFixRoundE2eIntegrationTest extends BaseMvcTest {
     assertEquals("AI", testCase.get("origin").asText());
     assertEquals("DRAFT", testCase.get("status").asText());
     assertEquals(72, testCase.get("metrics").get("overallScore").asInt());
+    assertEquals(firstIterationId, testCase.get("metrics").get("pipelineIterationId").asLong(),
+        "the case links back to the iteration that produced it");
+    assertEquals(iteration.get("iterationNumber").asInt(), testCase.get("metrics").get("pipelineIterationNumber").asInt());
+    assertFalse(testCase.has("unsentReviewComments"), "no comments yet");
     firstVersionId = testCase.get("defaultVersionId").asLong();
 
     send(patch(PIPELINES + "/" + pipelineId),
@@ -158,6 +162,7 @@ class TestCaseFixRoundE2eIntegrationTest extends BaseMvcTest {
 
     send(patch(TEST_CASES + "/" + testCaseId), "{\"status\": \"READY\"}", HttpStatus.CONFLICT);
     assertEquals("DRAFT", libraryCase().get("status").asText(), "Approve is blocked while comments are not sent");
+    assertEquals(2, libraryCase().get("unsentReviewComments").asInt(), "the \"2 comments not sent\" chip");
   }
 
   // ------------------------------------------------------------------ step 3
@@ -246,6 +251,8 @@ class TestCaseFixRoundE2eIntegrationTest extends BaseMvcTest {
         roundComments.get(0).get("id").asLong(), roundComments.get(1).get("id").asLong()), HttpStatus.OK);
 
     assertEquals(94, fixed.get("metrics").get("overallScore").asInt());
+    assertEquals(secondIterationId, fixed.get("metrics").get("pipelineIterationId").asLong(),
+        "after a fix round the case links to the iteration of that round");
     assertEquals("READY", fixed.get("status").asText(), "94 >= 90: promoted by Auto-Ready after the update");
     assertNotEquals(firstVersionId, fixed.get("defaultVersionId").asLong(), "the fix is a new default version");
     assertEquals(2, fixed.get("manualScenario").get("steps").size());

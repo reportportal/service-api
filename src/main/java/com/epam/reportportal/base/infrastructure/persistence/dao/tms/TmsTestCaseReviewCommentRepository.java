@@ -29,6 +29,20 @@ public interface TmsTestCaseReviewCommentRepository extends JpaRepository<TmsTes
   List<Long> findTestCaseIdsWithState(@Param("testCaseIds") Collection<Long> testCaseIds,
       @Param("state") TmsReviewCommentState state);
 
+  /**
+   * Comment count per test case, for the given cases that have at least one comment in the given state.
+   */
+  @Query("SELECT c.testCaseId AS testCaseId, COUNT(c) AS count FROM TmsTestCaseReviewComment c "
+      + "WHERE c.state = :state AND c.testCaseId IN :testCaseIds GROUP BY c.testCaseId")
+  List<TestCaseCommentCount> countByTestCaseIdInAndState(@Param("testCaseIds") Collection<Long> testCaseIds,
+      @Param("state") TmsReviewCommentState state);
+
+  interface TestCaseCommentCount {
+    Long getTestCaseId();
+
+    long getCount();
+  }
+
   @Modifying
   @Query("DELETE FROM TmsTestCaseReviewComment c WHERE c.testCaseId = :testCaseId AND c.state = :state")
   int deleteByTestCaseIdAndState(@Param("testCaseId") Long testCaseId, @Param("state") TmsReviewCommentState state);

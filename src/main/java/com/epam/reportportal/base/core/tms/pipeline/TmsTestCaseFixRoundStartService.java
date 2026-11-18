@@ -147,6 +147,10 @@ public class TmsTestCaseFixRoundStartService {
     var connector = connectorsByType.get(execution.getExecutorType());
     var project = iterationRepository.findById(previousIterationId).orElseThrow().getPipeline().getProject();
     var integration = resolveIntegration(project, connector);
+    // Refuse before anything is recorded: a run that cannot start (wrong project, no token) leaves no round behind
+    var parameters = execution.getRetryParameters();
+    var resolvedRun = connector.resolveRun(integration,
+        new CiRunRequest(parameters.get("repo"), parameters.get("workflowRef"), Map.of()));
 
     var round = new TmsTestCaseFixRound();
     round.setTestCaseId(testCaseId);
@@ -171,8 +175,7 @@ public class TmsTestCaseFixRoundStartService {
     inputs.put(INPUT_TEST_CASE_ID, String.valueOf(testCaseId));
     inputs.put(INPUT_FIX_ROUND_ID, String.valueOf(round.getId()));
     inputs.put(INPUT_PREVIOUS_ITERATION_ID, String.valueOf(previousIterationId));
-    var parameters = execution.getRetryParameters();
-    var runRequest = new CiRunRequest(parameters.get("repo"), parameters.get("workflowRef"), inputs);
+    var runRequest = new CiRunRequest(resolvedRun.repo(), resolvedRun.workflowRef(), inputs);
     return new Claimed(round.getId(), connector, integration, runRequest);
   }
 

@@ -17,7 +17,8 @@ import tools.jackson.databind.node.ObjectNode;
  * Re-triggers a stage's agent job via the GitLab
  * <a href="https://docs.gitlab.com/ee/ci/triggers/">pipeline trigger</a> API.
  * the retry parameter {@code repo} holds the GitLab project id, {@code workflowRef}
- * the git ref (branch/tag) the pipeline should run on.
+ * the git ref (branch/tag) the pipeline should run on. A run that is not tied to a stage (the fix job) takes its
+ * ref from the request, else from the integration's optional {@code ref} parameter, else {@code main}.
  */
 @Component
 @RequiredArgsConstructor
@@ -29,6 +30,8 @@ public class GitLabCiConnector extends AbstractCiTriggerConnector {
   private static final String DEFAULT_BASE_URL = "https://gitlab.com";
   private static final String REPO_PARAM = "repo";
   private static final String REF_PARAM = "workflowRef";
+  private static final String INTEGRATION_REF_PARAM = "ref";
+  private static final String DEFAULT_REF = "main";
 
   private final CiHttpClient ciHttpClient;
   private final ObjectMapper objectMapper;
@@ -79,17 +82,37 @@ public class GitLabCiConnector extends AbstractCiTriggerConnector {
     return extractPipelineUrl(responseBody, fallbackUrl);
   }
 
+  /**
+   * The git ref is the one of the request; when it has none, the integration's {@code ref}; when that is not
+   * set either, {@code main}.
+   * <p>
+   * Example: a stage reported {@code workflowRef: "release"} - the run goes to {@code release}. A stage reported
+   * none and the integration has {@code ref: "develop"} - it goes to {@code develop}. Neither - {@code main}.
+   */
   @Override
-  public String triggerRun(Integration integration, CiRunRequest request) {
-    var token = requiredParam(integration, TOKEN_PARAM);
+  public CiRunRequest resolveRun(Integration integration, CiRunRequest request) {
+    requiredParam(integration, TOKEN_PARAM);
     var configuredProjectId = requiredParam(integration, PROJECT_ID_PARAM);
     if (request.repo() == null || !configuredProjectId.equals(request.repo())) {
       throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
           "CI project '" + request.repo() + "' does not match the project configured for this project's GitLab CI integration");
     }
-    if (request.workflowRef() == null || request.workflowRef().isBlank()) {
-      throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "No git ref to run the pipeline on");
+    return new CiRunRequest(request.repo(), gitRef(integration, request.workflowRef()), request.inputs());
+  }
+
+  private String gitRef(Integration integration, String requestedRef) {
+    if (requestedRef != null && !requestedRef.isBlank()) {
+      return requestedRef;
     }
+    var configuredRef = stringParam(integration, INTEGRATION_REF_PARAM);
+    return configuredRef == null || configuredRef.isBlank() ? DEFAULT_REF : configuredRef;
+  }
+
+  @Override
+  public String triggerRun(Integration integration, CiRunRequest requested) {
+    var request = resolveRun(integration, requested);
+    var token = requiredParam(integration, TOKEN_PARAM);
+    var configuredProjectId = requiredParam(integration, PROJECT_ID_PARAM);
     var baseUrl = stringParam(integration, BASE_URL_PARAM);
     var effectiveBaseUrl = baseUrl == null || baseUrl.isBlank() ? DEFAULT_BASE_URL : baseUrl;
     var projectId = UriUtils.encodePathSegment(configuredProjectId, StandardCharsets.UTF_8);

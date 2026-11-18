@@ -49,4 +49,21 @@ public interface CiTriggerConnector {
    *         so this can be the page of the workflow)
    */
   String triggerRun(Integration integration, CiRunRequest request);
+
+  /**
+   * Checks that the run could be started and fills in what the integration knows, without starting anything.
+   * <p>
+   * Example: GitLab gets a request without a git ref and an integration that names the ref {@code release}; the
+   * answer is the same request with the ref {@code release}. A request for another project than the integration's
+   * is refused here, so a caller can stop before it records anything that a failed start would have to undo.
+   * <p>
+   * The default is no check: the request is returned as it is.
+   *
+   * @param integration credentials/config for the system (token, base URL)
+   * @param request     where and with what to start the run
+   * @return the request {@link #triggerRun} will start
+   */
+  default CiRunRequest resolveRun(Integration integration, CiRunRequest request) {
+    return request;
+  }
 }

@@ -109,6 +109,56 @@ class CiConnectorTriggerRunTest {
     assertTrue(bodyCaptor.getValue().contains("\"FIX_ROUND_ID\":\"7\""));
   }
 
+  private String gitLabRefSentFor(Map<String, Object> integrationParams, String requestedRef) {
+    var integration = integrationWithParams(integrationParams);
+    when(ciHttpClient.postForStatus(anyString(), anyMap(), anyString())).thenReturn("{}");
+
+    gitLab.triggerRun(integration, fixRunRequest("42", requestedRef));
+
+    var bodyCaptor = ArgumentCaptor.forClass(String.class);
+    verify(ciHttpClient).postForStatus(anyString(), anyMap(), bodyCaptor.capture());
+    return bodyCaptor.getValue();
+  }
+
+  @Test
+  void gitLabTriggerRun_WithoutARefInTheRequestOrTheIntegration_ShouldRunOnMain() {
+    var body = gitLabRefSentFor(Map.of("triggerToken", "glptt", "projectId", "42"), null);
+
+    assertTrue(body.contains("\"ref\":\"main\""));
+  }
+
+  @Test
+  void gitLabTriggerRun_WithoutARefInTheRequest_ShouldRunOnTheRefOfTheIntegration() {
+    var body = gitLabRefSentFor(Map.of("triggerToken", "glptt", "projectId", "42", "ref", "develop"), " ");
+
+    assertTrue(body.contains("\"ref\":\"develop\""));
+  }
+
+  @Test
+  void gitLabTriggerRun_WithARefInTheRequest_ShouldPreferItToTheRefOfTheIntegration() {
+    var body = gitLabRefSentFor(Map.of("triggerToken", "glptt", "projectId", "42", "ref", "develop"), "release");
+
+    assertTrue(body.contains("\"ref\":\"release\""));
+  }
+
+  @Test
+  void gitLabResolveRun_ShouldFillTheRefAndStartNothing() {
+    var integration = integrationWithParams(Map.of("triggerToken", "glptt", "projectId", "42", "ref", "develop"));
+
+    var resolved = gitLab.resolveRun(integration, fixRunRequest("42", null));
+
+    assertEquals("develop", resolved.workflowRef());
+    assertEquals("42", resolved.repo());
+    verify(ciHttpClient, never()).postForStatus(anyString(), anyMap(), anyString());
+  }
+
+  @Test
+  void gitLabResolveRun_WhenTheProjectIsNotTheConfiguredOne_ShouldRefuse() {
+    var integration = integrationWithParams(Map.of("triggerToken", "glptt", "projectId", "42"));
+
+    assertThrows(ReportPortalException.class, () -> gitLab.resolveRun(integration, fixRunRequest("43", "main")));
+  }
+
   @Test
   void gitLabTriggerRun_WhenTheProjectIsNotTheConfiguredOne_ShouldRefuseWithoutCallingGitLab() {
     var integration = integrationWithParams(Map.of("triggerToken", "glptt", "projectId", "42"));

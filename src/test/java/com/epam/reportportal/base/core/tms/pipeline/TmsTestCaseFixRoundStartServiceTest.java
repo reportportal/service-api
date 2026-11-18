@@ -125,6 +125,8 @@ class TmsTestCaseFixRoundStartServiceTest {
     integration.setType(type);
     when(githubConnector.getIntegrationTypeName()).thenReturn("github-actions");
     when(integrationRepository.findAllProjectByGroup(project, IntegrationGroupEnum.AUTOMATION)).thenReturn(List.of(integration));
+    // a connector with nothing to fill in hands the request back
+    lenient().when(githubConnector.resolveRun(any(), any())).thenAnswer(call -> call.getArgument(1));
   }
 
   private void givenTheCaseHasUnsentComments() {
@@ -207,6 +209,39 @@ class TmsTestCaseFixRoundStartServiceTest {
     assertEquals(TmsReviewCommentState.NOT_SENT, unsent.getState());
     assertNull(unsent.getFixRoundId());
     verify(fixRoundRepository).deleteById(7L);
+  }
+
+  @Test
+  void start_WhenTheRunIsRefusedBeforeStarting_ShouldRecordNoRoundAndLeaveTheCommentsAlone() {
+    givenTheCaseHasUnsentComments();
+    givenAnIterationWithCiAndAnIntegration();
+    when(githubConnector.resolveRun(any(), any()))
+        .thenThrow(new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "Wrong CI project"));
+
+    assertThrows(ReportPortalException.class, () -> sut.start(PROJECT_ID, TEST_CASE_ID, USER_ID));
+
+    verify(fixRoundRepository, never()).saveAndFlush(any());
+    verify(githubConnector, never()).triggerRun(any(), any());
+    assertEquals(TmsReviewCommentState.NOT_SENT, unsent.getState());
+  }
+
+  @Test
+  void start_ShouldStartTheJobWithTheRefTheConnectorResolved() {
+    givenTheCaseHasUnsentComments();
+    givenAnIterationWithCiAndAnIntegration();
+    givenTheRoundIsSaved();
+    when(githubConnector.resolveRun(any(), any()))
+        .thenReturn(new CiRunRequest("org/repo", "release", Map.of()));
+    when(githubConnector.triggerRun(any(), any())).thenReturn("url");
+    when(fixRoundRepository.findById(7L)).thenAnswer(call -> Optional.of(new TmsTestCaseFixRound()));
+    when(commentRepository.findByFixRoundId(7L)).thenReturn(List.of());
+
+    sut.start(PROJECT_ID, TEST_CASE_ID, USER_ID);
+
+    var request = ArgumentCaptor.forClass(CiRunRequest.class);
+    verify(githubConnector).triggerRun(any(), request.capture());
+    assertEquals("release", request.getValue().workflowRef());
+    assertEquals("7", request.getValue().inputs().get("fix_round_id"));
   }
 
   @Test

@@ -47,6 +47,7 @@ public class TestCaseReviewContributor implements PipelineStageContributor {
       // the pipeline reports a stage of its own under this key; leave it alone
       return List.of();
     }
+    keepLast(review, stages);
     var uploadPassed = stages.stream()
         .anyMatch(stage -> UPLOAD_KEY.equals(stage.getStageKey())
             && stage.getStatusCategory() == StatusCategory.PASSED);
@@ -107,6 +108,23 @@ public class TestCaseReviewContributor implements PipelineStageContributor {
         .map(ready -> List.of(PipelineAttribute.builder().key("readyNow").label("Ready now")
             .value(ready.getValue()).type(AttributeType.META).valueType(AttributeValueType.NUMBER).build()))
         .orElse(List.of());
+  }
+
+  /**
+   * Puts the review after every stage of the pipeline. The review is created as soon as the iteration exists, so
+   * the stages the pipeline reports later would otherwise come after it.
+   * <p>
+   * Example: Review was created with sequence 1, then Create, Grade and Upload were reported with 2, 3 and 4;
+   * the review moves to 5.
+   */
+  private void keepLast(PipelineStage review, List<PipelineStage> stages) {
+    stages.stream().filter(stage -> stage != review)
+        .map(PipelineStage::getSequence).filter(Objects::nonNull).max(Integer::compare)
+        .ifPresent(lastOfPipeline -> {
+          if (review.getSequence() == null || review.getSequence() <= lastOfPipeline) {
+            review.setSequence(lastOfPipeline + 1);
+          }
+        });
   }
 
   private PipelineStage newReviewStage(PipelineIteration iteration, List<PipelineStage> stages) {

@@ -107,6 +107,18 @@ class TestCaseReviewContributorTest {
     assertSame(iteration, review.getIteration());
   }
 
+  @Test
+  void contribute_ReviewCreatedBeforeThePipelineStages_ShouldMoveReviewAfterThem() {
+    var review = stage("review", 1, StatusCategory.PENDING);
+    review.setOwnedBy(StageOwner.REPORTPORTAL);
+    var stages = List.of(review, stage("create", 2, StatusCategory.PASSED), stage("grade", 3, StatusCategory.PASSED),
+        stage("upload", 4, StatusCategory.RUNNING));
+
+    var result = contributor.contribute(iteration, stages);
+
+    assertEquals(5, result.get(0).getSequence());
+  }
+
   private static void assertSame(Object expected, Object actual) {
     org.junit.jupiter.api.Assertions.assertSame(expected, actual);
   }

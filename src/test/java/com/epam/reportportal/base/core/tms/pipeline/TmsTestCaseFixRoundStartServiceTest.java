@@ -271,6 +271,37 @@ class TmsTestCaseFixRoundStartServiceTest {
   }
 
   @Test
+  void getRounds_ShouldListTheRoundsOfTheCaseLatestFirstWithTheirResultIterationAndWithoutComments() {
+    var second = new TmsTestCaseFixRound();
+    second.setId(8L);
+    second.setRoundNumber(2);
+    second.setStatus(TmsFixRoundStatus.PENDING);
+    var first = new TmsTestCaseFixRound();
+    first.setId(7L);
+    first.setRoundNumber(1);
+    first.setStatus(TmsFixRoundStatus.FAILED);
+    first.setResultIterationId(55L);
+    when(fixRoundRepository.findByProjectIdAndTestCaseIdOrderByRoundNumberDesc(PROJECT_ID, TEST_CASE_ID))
+        .thenReturn(List.of(second, first));
+
+    var rounds = sut.getRounds(PROJECT_ID, TEST_CASE_ID);
+
+    assertEquals(2, rounds.size());
+    assertEquals(2, rounds.get(0).getRoundNumber());
+    assertNull(rounds.get(0).getResultIterationId());
+    assertEquals(55L, rounds.get(1).getResultIterationId());
+    assertNull(rounds.get(0).getComments());
+    assertNull(rounds.get(1).getComments());
+  }
+
+  @Test
+  void getRounds_OfATestCaseThatIsNotInTheProject_ShouldBeNotFound() {
+    var ex = assertThrows(ReportPortalException.class, () -> sut.getRounds(PROJECT_ID, 999L));
+
+    assertEquals(ErrorType.NOT_FOUND.getCode(), ex.getErrorType().getCode());
+  }
+
+  @Test
   void getRound_OfAnotherTestCase_ShouldBeNotFound() {
     var round = new TmsTestCaseFixRound();
     round.setProjectId(PROJECT_ID);

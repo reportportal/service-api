@@ -22,6 +22,11 @@ public interface TmsTestCaseFixRoundRepository extends JpaRepository<TmsTestCase
 
   List<TmsTestCaseFixRound> findByTestCaseIdOrderByRoundNumberAsc(Long testCaseId);
 
+  /**
+   * The rounds of a test case of the project, the latest round first.
+   */
+  List<TmsTestCaseFixRound> findByProjectIdAndTestCaseIdOrderByRoundNumberDesc(Long projectId, Long testCaseId);
+
   @Query("SELECT COALESCE(MAX(p.roundNumber), 0) FROM TmsTestCaseFixRound p WHERE p.testCaseId = :testCaseId")
   int findLastRoundNumber(@Param("testCaseId") Long testCaseId);
 

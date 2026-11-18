@@ -251,6 +251,35 @@ class TmsTestCaseFixRoundServiceTest {
   }
 
   @Test
+  void failRound_WithTheIterationTheAgentReported_ShouldKeepItSoTheTraceCanBeOpened() {
+    when(fixRoundRepository.findByIdForUpdate(FIX_ROUND_ID)).thenReturn(Optional.of(round));
+
+    sut.failRound(FIX_ROUND_ID, "Stage 'Fix' failed", 55L);
+
+    assertEquals(TmsFixRoundStatus.FAILED, round.getStatus());
+    assertEquals(55L, round.getResultIterationId());
+  }
+
+  @Test
+  void failRound_WithoutAnIteration_ShouldLeaveTheResultIterationEmpty() {
+    when(fixRoundRepository.findByIdForUpdate(FIX_ROUND_ID)).thenReturn(Optional.of(round));
+
+    sut.failRound(FIX_ROUND_ID, "The agent did not answer in 30 minutes");
+
+    assertNull(round.getResultIterationId());
+  }
+
+  @Test
+  void failRound_WhenTheRoundAlreadyHasAResultIteration_ShouldKeepIt() {
+    round.setResultIterationId(44L);
+    when(fixRoundRepository.findByIdForUpdate(FIX_ROUND_ID)).thenReturn(Optional.of(round));
+
+    sut.failRound(FIX_ROUND_ID, "Stage 'Fix' failed", 55L);
+
+    assertEquals(44L, round.getResultIterationId());
+  }
+
+  @Test
   void failRound_WhenTheRoundAlreadyEnded_ShouldDoNothing() {
     round.setStatus(TmsFixRoundStatus.FIXED);
     when(fixRoundRepository.findByIdForUpdate(FIX_ROUND_ID)).thenReturn(Optional.of(round));

@@ -106,9 +106,27 @@ public class TmsTestCaseFixRoundService {
    */
   @Transactional
   public void failRound(Long fixRoundId, String reason) {
+    failRound(fixRoundId, reason, null);
+  }
+
+  /**
+   * Ends the round as failed like {@link #failRound(Long, String)} and remembers the iteration the agent reported
+   * for it, so the trace of its Fix stage can still be opened from the round.
+   * <p>
+   * Example: the agent reported iteration #5 for round 7 and its Fix stage failed; the round ends as failed with
+   * {@code resultIterationId = 5}. A round that timed out has no iteration, so it is called with {@code null}.
+   * An iteration already recorded on the round is kept.
+   *
+   * @param resultIterationId the iteration the agent reported for the round, or {@code null} when there is none
+   */
+  @Transactional
+  public void failRound(Long fixRoundId, String reason, Long resultIterationId) {
     var round = fixRoundRepository.findByIdForUpdate(fixRoundId).orElse(null);
     if (round == null || round.getStatus() != TmsFixRoundStatus.PENDING) {
       return;
+    }
+    if (round.getResultIterationId() == null) {
+      round.setResultIterationId(resultIterationId);
     }
     for (var comment : commentRepository.findByFixRoundId(round.getId())) {
       comment.setState(TmsReviewCommentState.NOT_SENT);

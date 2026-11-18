@@ -12,7 +12,8 @@ import org.springframework.stereotype.Component;
  * <p>
  * Example: the agent reported iteration #5 for round 1 of TC103 (attribute {@code fixRoundId = 7}) and its Fix
  * stage fails. The round ends as failed with the reason "Stage Fix failed", the comments of TC103 return to "not
- * sent" and the editor can push again. A failed Grade stage does not count: it does not fail the iteration, and
+ * sent" and the editor can push again. The round also keeps iteration #5 as its {@code resultIterationId}, so the
+ * trace of the failed Fix stage can be opened from the round. A failed Grade stage does not count: it does not fail the iteration, and
  * the round still ends with the fixed version the agent sends ("Fixed - Grade failed").
  */
 @Component
@@ -28,7 +29,8 @@ public class FixRoundOnStageFailed implements PipelineStageReportedHandler {
       return List.of();
     }
     FixRoundIterationSupport.fixRoundId(stage.getIteration())
-        .ifPresent(roundId -> fixRoundService.failRound(roundId, "Stage '" + stage.getName() + "' " + ending(stage.getStatusCategory())));
+        .ifPresent(roundId -> fixRoundService.failRound(roundId,
+            "Stage '" + stage.getName() + "' " + ending(stage.getStatusCategory()), stage.getIteration().getId()));
     return List.of();
   }
 

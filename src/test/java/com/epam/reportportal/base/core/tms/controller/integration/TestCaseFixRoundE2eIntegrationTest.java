@@ -212,6 +212,13 @@ class TestCaseFixRoundE2eIntegrationTest extends BaseMvcTest {
     assertEquals(2, roundComments.size());
     assertEquals("Name the exact toast text", roundComments.get(0).get("text").asText());
 
+    // the history list has the round too, without its comments
+    var history = send(get(reviewUrl("/fix-round")), null, HttpStatus.OK);
+    assertEquals(1, history.size());
+    assertEquals(roundId, history.get(0).get("id").asLong());
+    assertEquals("PENDING", history.get(0).get("status").asText());
+    assertEquals(false, history.get(0).has("comments"));
+
     var iteration = send(post(PIPELINES + "/iteration").header("Idempotency-Key", "fix-round-fix-1"), """
         {"name": "Test case generation", "type": "TEST_CASE_GENERATION",
          "iteration": {"startedAt": "2026-10-20T11:00:00Z", "rerunOfIterationId": %d,

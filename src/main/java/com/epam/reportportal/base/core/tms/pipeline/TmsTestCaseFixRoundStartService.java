@@ -119,6 +119,20 @@ public class TmsTestCaseFixRoundStartService {
     return toRS(round, commentRepository.findByFixRoundId(roundId));
   }
 
+  /**
+   * The history of the fix rounds of a test case, the latest round first, without their comments.
+   * <p>
+   * Example: a case fixed once and now being fixed again returns round 2 (PENDING) then round 1 (FIXED with its
+   * {@code resultIterationId}); the comments of one round are read with {@link #getRound}.
+   */
+  public List<TmsFixRoundRS> getRounds(long projectId, Long testCaseId) {
+    testCaseRepository.findByProjectIdAndId(projectId, testCaseId)
+        .orElseThrow(() -> new ReportPortalException(NOT_FOUND, "Test Case '" + testCaseId + "'"));
+    return fixRoundRepository.findByProjectIdAndTestCaseIdOrderByRoundNumberDesc(projectId, testCaseId).stream()
+        .map(round -> toRS(round, null))
+        .toList();
+  }
+
   private Claimed claim(long projectId, Long testCaseId, Long userId) {
     var testCase = testCaseRepository.findByProjectIdAndId(projectId, testCaseId)
         .orElseThrow(() -> new ReportPortalException(NOT_FOUND, "Test Case '" + testCaseId + "'"));
@@ -226,6 +240,9 @@ public class TmsTestCaseFixRoundStartService {
     return toRS(round, commentRepository.findByFixRoundId(roundId));
   }
 
+  /**
+   * @param comments the comments the round carries, or {@code null} to leave them out (the history list)
+   */
   private TmsFixRoundRS toRS(TmsTestCaseFixRound round, List<TmsTestCaseReviewComment> comments) {
     return TmsFixRoundRS.builder()
         .id(round.getId())
@@ -238,7 +255,7 @@ public class TmsTestCaseFixRoundStartService {
         .finishedAt(round.getFinishedAt())
         .workflowUrl(round.getWorkflowUrl())
         .failureReason(round.getFailureReason())
-        .comments(comments.stream().map(TmsReviewCommentMapper::toRS).toList())
+        .comments(comments == null ? null : comments.stream().map(TmsReviewCommentMapper::toRS).toList())
         .build();
   }
 

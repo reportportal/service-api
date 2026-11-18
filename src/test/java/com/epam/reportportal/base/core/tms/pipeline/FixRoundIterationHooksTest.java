@@ -36,6 +36,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class FixRoundIterationHooksTest {
 
+  private static final Long ITERATION_ID = 5L;
+
   @Mock
   private TmsTestCaseFixRoundService fixRoundService;
   @Mock
@@ -50,6 +52,7 @@ class FixRoundIterationHooksTest {
 
   private static PipelineIteration iterationAnsweringRound(String roundId) {
     var iteration = new PipelineIteration();
+    iteration.setId(ITERATION_ID);
     iteration.setAttributes(new PipelineAttributes(List.of(
         PipelineAttribute.builder().key("fixRoundId").value(roundId).type(AttributeType.NONE).build())));
     return iteration;
@@ -70,7 +73,7 @@ class FixRoundIterationHooksTest {
 
     onStageFailed.onStageReported(new StageReport(1L, new Pipeline(), stage, false));
 
-    verify(fixRoundService).failRound(7L, "Stage 'Fix' failed");
+    verify(fixRoundService).failRound(7L, "Stage 'Fix' failed", ITERATION_ID);
   }
 
   @Test
@@ -80,8 +83,8 @@ class FixRoundIterationHooksTest {
     onStageFailed.onStageReported(new StageReport(1L, new Pipeline(),
         stage(iterationAnsweringRound("8"), StatusCategory.INTERRUPTED, true), false));
 
-    verify(fixRoundService).failRound(7L, "Stage 'Fix' timed out");
-    verify(fixRoundService).failRound(8L, "Stage 'Fix' was interrupted");
+    verify(fixRoundService).failRound(7L, "Stage 'Fix' timed out", ITERATION_ID);
+    verify(fixRoundService).failRound(8L, "Stage 'Fix' was interrupted", ITERATION_ID);
   }
 
   @Test
@@ -90,7 +93,7 @@ class FixRoundIterationHooksTest {
 
     onStageFailed.onStageReported(new StageReport(1L, new Pipeline(), stage, false));
 
-    verify(fixRoundService, never()).failRound(org.mockito.ArgumentMatchers.anyLong(), anyString());
+    verify(fixRoundService, never()).failRound(org.mockito.ArgumentMatchers.anyLong(), anyString(), org.mockito.ArgumentMatchers.any());
   }
 
   @Test
@@ -99,7 +102,7 @@ class FixRoundIterationHooksTest {
 
     onStageFailed.onStageReported(new StageReport(1L, new Pipeline(), stage, false));
 
-    verify(fixRoundService, never()).failRound(org.mockito.ArgumentMatchers.anyLong(), anyString());
+    verify(fixRoundService, never()).failRound(org.mockito.ArgumentMatchers.anyLong(), anyString(), org.mockito.ArgumentMatchers.any());
   }
 
   @Test
@@ -108,7 +111,7 @@ class FixRoundIterationHooksTest {
 
     onStageFailed.onStageReported(new StageReport(1L, new Pipeline(), stage, true));
 
-    verify(fixRoundService, never()).failRound(org.mockito.ArgumentMatchers.anyLong(), anyString());
+    verify(fixRoundService, never()).failRound(org.mockito.ArgumentMatchers.anyLong(), anyString(), org.mockito.ArgumentMatchers.any());
   }
 
   @Test

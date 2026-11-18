@@ -19,6 +19,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -110,6 +111,20 @@ public class TestCaseReviewController {
   public TmsFixRoundRS startFixRound(@PathVariable("projectKey") String projectKey,
       @PathVariable("testCaseId") Long testCaseId, @AuthenticationPrincipal ReportPortalUser user) {
     return fixRoundStartService.start(projectId(user, projectKey), testCaseId, user.getUserId());
+  }
+
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
+  @GetMapping("/review/fix-round")
+  @Operation(summary = "List the fix rounds of a test case",
+      description = "The history of the rounds, the latest first, without their comments (read one round to get "
+          + "them). Each round carries its status, previousIterationId and, once the agent reported an iteration "
+          + "for it (also when its Fix stage failed), resultIterationId, the iteration whose Fix stage holds the "
+          + "trace of the round.")
+  @ApiResponse(responseCode = "200", description = "Successful operation")
+  @ApiResponse(responseCode = "404", description = "Test case not found")
+  public List<TmsFixRoundRS> getFixRounds(@PathVariable("projectKey") String projectKey,
+      @PathVariable("testCaseId") Long testCaseId, @AuthenticationPrincipal ReportPortalUser user) {
+    return fixRoundStartService.getRounds(projectId(user, projectKey), testCaseId);
   }
 
   @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)

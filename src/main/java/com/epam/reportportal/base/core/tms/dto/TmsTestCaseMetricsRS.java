@@ -33,6 +33,17 @@ public class TmsTestCaseMetricsRS {
 
   private List<CriterionScore> criteria;
 
+  /**
+   * The pipeline iteration that produced the version these numbers belong to, e.g. 31 for the "Iteration #1 ↗"
+   * link. After a fix round it is the iteration of that round. {@code null} when no pipeline produced the version.
+   */
+  private Long pipelineIterationId;
+
+  /**
+   * Number of that iteration within its pipeline, e.g. 1 for "Iteration #1".
+   */
+  private Integer pipelineIterationNumber;
+
   private Integer tokensIn;
 
   private Integer tokensOut;

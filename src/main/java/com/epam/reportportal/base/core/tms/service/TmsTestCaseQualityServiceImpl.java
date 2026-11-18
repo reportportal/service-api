@@ -3,9 +3,12 @@ package com.epam.reportportal.base.core.tms.service;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseGenerationMetadataRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseMetricsRS;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseQualityScoreRQ;
+import com.epam.reportportal.base.infrastructure.persistence.dao.aifactory.PipelineIterationRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.tms.PipelineStageTestCaseRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsQualityStandardCriterionRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestCaseGenerationMetadataRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestCaseQualityScoreRepository;
+import com.epam.reportportal.base.infrastructure.persistence.entity.aifactory.PipelineIteration;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsQualityStandardCriterion;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCaseGenerationMetadata;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCaseQualityScore;
@@ -13,8 +16,10 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestC
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -31,6 +36,8 @@ public class TmsTestCaseQualityServiceImpl implements TmsTestCaseQualityService 
   private final TmsTestCaseQualityScoreRepository tmsTestCaseQualityScoreRepository;
   private final TmsTestCaseGenerationMetadataRepository tmsTestCaseGenerationMetadataRepository;
   private final TmsQualityStandardCriterionRepository tmsQualityStandardCriterionRepository;
+  private final PipelineIterationRepository pipelineIterationRepository;
+  private final PipelineStageTestCaseRepository stageTestCaseRepository;
 
   @Override
   public boolean hasAiSignal(List<TmsTestCaseQualityScoreRQ> qualityScores, TmsTestCaseGenerationMetadataRQ generation) {
@@ -148,16 +155,66 @@ public class TmsTestCaseQualityServiceImpl implements TmsTestCaseQualityService 
     var generationByVersionId = tmsTestCaseGenerationMetadataRepository.findByTestCaseVersionIdIn(versionIds).stream()
         .collect(Collectors.toMap(metadata -> metadata.getTestCaseVersion().getId(), Function.identity()));
 
+    var iterationIdByVersionId = new HashMap<Long, Long>();
+    var versionIdsWithoutIteration = new ArrayList<Long>();
+    for (var versionId : versionIds) {
+      var iterationId = iterationIdOf(versionsById.get(versionId), scoresByVersionId.getOrDefault(versionId, List.of()));
+      if (iterationId != null) {
+        iterationIdByVersionId.put(versionId, iterationId);
+      } else if (versionsById.get(versionId).getTestCase() != null) {
+        versionIdsWithoutIteration.add(versionId);
+      }
+    }
+    addCreatingIterations(versionIdsWithoutIteration, versionsById, iterationIdByVersionId);
+    Map<Long, PipelineIteration> iterationsById = iterationIdByVersionId.isEmpty() ? Map.of()
+        : pipelineIterationRepository.findAllById(new HashSet<>(iterationIdByVersionId.values())).stream()
+            .collect(Collectors.toMap(PipelineIteration::getId, Function.identity()));
+
     var result = new HashMap<Long, TmsTestCaseMetricsRS>();
     for (var versionId : versionIds) {
       var metrics = buildMetrics(versionsById.get(versionId),
           scoresByVersionId.getOrDefault(versionId, List.of()),
           generationByVersionId.get(versionId));
       if (metrics != null) {
+        var iterationId = iterationIdByVersionId.get(versionId);
+        var iteration = iterationId == null ? null : iterationsById.get(iterationId);
+        if (iteration != null) {
+          metrics.setPipelineIterationId(iteration.getId());
+          metrics.setPipelineIterationNumber(iteration.getIterationNumber());
+        }
         result.put(versionId, metrics);
       }
     }
     return result;
+  }
+
+  /**
+   * A case is often graded before its iteration reports it, so its version names no iteration; the iteration that
+   * created it is then the one whose stage lists the case (e.g. the Upload stage of Iteration #1).
+   */
+  private void addCreatingIterations(List<Long> versionIds, Map<Long, TmsTestCaseVersion> versionsById,
+      Map<Long, Long> iterationIdByVersionId) {
+    if (versionIds.isEmpty()) {
+      return;
+    }
+    var testCaseIds = versionIds.stream().map(id -> versionsById.get(id).getTestCase().getId()).collect(Collectors.toSet());
+    var iterationIdByTestCaseId = new HashMap<Long, Long>();
+    stageTestCaseRepository.findCreatingIterationIdsByTestCaseIdIn(testCaseIds)
+        .forEach(row -> iterationIdByTestCaseId.put(row.getTestCaseId(), row.getIterationId()));
+    for (var versionId : versionIds) {
+      var iterationId = iterationIdByTestCaseId.get(versionsById.get(versionId).getTestCase().getId());
+      if (iterationId != null) {
+        iterationIdByVersionId.put(versionId, iterationId);
+      }
+    }
+  }
+
+  /**
+   * The iteration the scores point at, else the one that produced the version; null when neither is known.
+   */
+  private static Long iterationIdOf(TmsTestCaseVersion version, List<TmsTestCaseQualityScore> scores) {
+    return scores.stream().map(TmsTestCaseQualityScore::getPipelineIterationId).filter(Objects::nonNull)
+        .findFirst().orElse(version.getPipelineIterationId());
   }
 
   private TmsTestCaseMetricsRS buildMetrics(TmsTestCaseVersion version, List<TmsTestCaseQualityScore> scores,

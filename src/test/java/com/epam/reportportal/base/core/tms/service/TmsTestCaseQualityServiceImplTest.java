@@ -12,7 +12,11 @@ import static org.mockito.Mockito.when;
 
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseGenerationMetadataRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseQualityScoreRQ;
+import com.epam.reportportal.base.infrastructure.persistence.dao.aifactory.PipelineIterationRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.tms.PipelineStageTestCaseRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsQualityStandardCriterionRepository;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCase;
+import com.epam.reportportal.base.infrastructure.persistence.entity.aifactory.PipelineIteration;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestCaseGenerationMetadataRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestCaseQualityScoreRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsQualityStandardCriterion;
@@ -41,6 +45,11 @@ class TmsTestCaseQualityServiceImplTest {
   private TmsTestCaseGenerationMetadataRepository tmsTestCaseGenerationMetadataRepository;
   @Mock
   private TmsQualityStandardCriterionRepository tmsQualityStandardCriterionRepository;
+
+  @Mock
+  private PipelineIterationRepository pipelineIterationRepository;
+  @Mock
+  private PipelineStageTestCaseRepository stageTestCaseRepository;
 
   @InjectMocks
   private TmsTestCaseQualityServiceImpl sut;
@@ -256,6 +265,72 @@ class TmsTestCaseQualityServiceImplTest {
     assertFalse(result.isObsolete());
     assertEquals(1, result.getCriteria().size());
     assertEquals(20L, result.getCriteria().get(0).getCriterionId());
+  }
+
+  @Test
+  void buildMetrics_WhenTheVersionComesFromAPipelineIteration_ShouldNameThatIteration() {
+    version.setPipelineIterationId(31L);
+    var score = new TmsTestCaseQualityScore();
+    score.setTestCaseVersion(version);
+    score.setCriterion(criterion);
+    score.setScore(20);
+    score.setEvaluatedAt(Instant.parse("2026-09-02T00:00:00Z"));
+    score.setPipelineIterationId(31L);
+    var iteration = new PipelineIteration();
+    iteration.setId(31L);
+    iteration.setIterationNumber(1);
+    when(tmsTestCaseQualityScoreRepository.findByTestCaseVersionIdIn(any())).thenReturn(List.of(score));
+    when(tmsTestCaseGenerationMetadataRepository.findByTestCaseVersionIdIn(any())).thenReturn(List.of());
+    when(pipelineIterationRepository.findAllById(any())).thenReturn(List.of(iteration));
+
+    var result = sut.buildMetrics(version);
+
+    assertEquals(31L, result.getPipelineIterationId());
+    assertEquals(1, result.getPipelineIterationNumber());
+  }
+
+  @Test
+  void buildMetrics_WhenTheCaseWasGradedBeforeItsIterationReportedIt_ShouldNameTheIterationThatListsTheCase() {
+    var testCase = new TmsTestCase();
+    testCase.setId(106L);
+    version.setTestCase(testCase);
+    var score = new TmsTestCaseQualityScore();
+    score.setTestCaseVersion(version);
+    score.setCriterion(criterion);
+    score.setScore(20);
+    score.setEvaluatedAt(Instant.parse("2026-09-02T00:00:00Z"));
+    var iteration = new PipelineIteration();
+    iteration.setId(31L);
+    iteration.setIterationNumber(1);
+    var link = org.mockito.Mockito.mock(PipelineStageTestCaseRepository.TestCaseIteration.class);
+    when(link.getTestCaseId()).thenReturn(106L);
+    when(link.getIterationId()).thenReturn(31L);
+    when(tmsTestCaseQualityScoreRepository.findByTestCaseVersionIdIn(any())).thenReturn(List.of(score));
+    when(tmsTestCaseGenerationMetadataRepository.findByTestCaseVersionIdIn(any())).thenReturn(List.of());
+    when(stageTestCaseRepository.findCreatingIterationIdsByTestCaseIdIn(any())).thenReturn(List.of(link));
+    when(pipelineIterationRepository.findAllById(any())).thenReturn(List.of(iteration));
+
+    var result = sut.buildMetrics(version);
+
+    assertEquals(31L, result.getPipelineIterationId());
+    assertEquals(1, result.getPipelineIterationNumber());
+  }
+
+  @Test
+  void buildMetrics_WhenNoPipelineProducedTheVersion_ShouldLeaveTheIterationOut() {
+    var score = new TmsTestCaseQualityScore();
+    score.setTestCaseVersion(version);
+    score.setCriterion(criterion);
+    score.setScore(20);
+    score.setEvaluatedAt(Instant.parse("2026-09-02T00:00:00Z"));
+    when(tmsTestCaseQualityScoreRepository.findByTestCaseVersionIdIn(any())).thenReturn(List.of(score));
+    when(tmsTestCaseGenerationMetadataRepository.findByTestCaseVersionIdIn(any())).thenReturn(List.of());
+
+    var result = sut.buildMetrics(version);
+
+    assertNull(result.getPipelineIterationId());
+    assertNull(result.getPipelineIterationNumber());
+    verify(pipelineIterationRepository, never()).findAllById(any());
   }
 
   @Test

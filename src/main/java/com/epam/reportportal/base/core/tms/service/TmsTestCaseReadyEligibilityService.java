@@ -7,8 +7,10 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.tms.enums.Tm
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -38,6 +40,21 @@ public class TmsTestCaseReadyEligibilityService {
     var blocked = new HashSet<Long>(commentRepository.findTestCaseIdsWithState(testCaseIds, TmsReviewCommentState.NOT_SENT));
     blocked.addAll(fixRoundRepository.findTestCaseIdsWithStatus(testCaseIds, TmsFixRoundStatus.PENDING));
     return blocked;
+  }
+
+  /**
+   * How many unsent review comments each of the given cases has; cases with none are left out.
+   * Example: {@code {106 -> 2}} for TC106 with "2 comments not sent".
+   */
+  public Map<Long, Integer> countUnsentComments(Collection<Long> testCaseIds) {
+    if (testCaseIds.isEmpty()) {
+      return Map.of();
+    }
+    var counts = new HashMap<Long, Integer>();
+    for (var row : commentRepository.countByTestCaseIdInAndState(testCaseIds, TmsReviewCommentState.NOT_SENT)) {
+      counts.put(row.getTestCaseId(), (int) row.getCount());
+    }
+    return counts;
   }
 
   public boolean canBecomeReady(Long testCaseId) {

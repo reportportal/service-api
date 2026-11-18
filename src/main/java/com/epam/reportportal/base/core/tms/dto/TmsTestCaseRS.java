@@ -43,4 +43,10 @@ public class TmsTestCaseRS {
   private TmsTestCaseStatus status;
 
   private TmsTestCaseMetricsRS metrics;
+
+  /**
+   * How many review comments of this case are not sent to the agent yet, e.g. 2 for the "2 comments not sent"
+   * chip. Absent when there are none.
+   */
+  private Integer unsentReviewComments;
 }

@@ -30,6 +30,20 @@ public interface PipelineStageTestCaseRepository extends JpaRepository<PipelineS
   List<Long> findIterationIdsByTestCaseIdIn(@Param("testCaseIds") Collection<Long> testCaseIds);
 
   /**
+   * The iteration that created each of the given test cases: the earliest iteration whose stage lists the case,
+   * e.g. {@code {106 -> 31}} for TC106 uploaded by Iteration #1. Cases no iteration lists are absent.
+   */
+  @Query("SELECT l.testCase.id AS testCaseId, MIN(l.stage.iteration.id) AS iterationId "
+      + "FROM PipelineStageTestCase l WHERE l.testCase.id IN :testCaseIds GROUP BY l.testCase.id")
+  List<TestCaseIteration> findCreatingIterationIdsByTestCaseIdIn(@Param("testCaseIds") Collection<Long> testCaseIds);
+
+  interface TestCaseIteration {
+    Long getTestCaseId();
+
+    Long getIterationId();
+  }
+
+  /**
    * Batched per-iteration test case counts: distinct linked test cases and how many of them are
    * currently {@code READY}. Iterations without links are absent from the result.
    */

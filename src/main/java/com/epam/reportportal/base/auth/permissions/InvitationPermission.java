@@ -122,8 +122,7 @@ public class InvitationPermission implements Permission {
       UserProjectInfo assigningPrj) {
 
     Project prj = projectRepository.findById(assigningPrj.getId())
-        .orElseThrow(() -> new ReportPortalException(ErrorType.ORGANIZATION_NOT_FOUND,
-            assigningPrj.getId()));
+        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_ID_NOT_FOUND, assigningPrj.getId()));
     if (orgUser.getOrganizationRole().equals(OrganizationRole.MEMBER)) {
 
       ProjectUser projectUser = findUserConfigByLogin(prj, rpUser.getUsername());

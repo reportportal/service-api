@@ -135,13 +135,12 @@ dependencies {
     implementation(libs.flyway.database.postgresql) // TODO get rid of
 
     implementation(libs.opendal)
-    // The Docker build stage runs on BUILDPLATFORM and that one jar is published for
-    // both linux/amd64 and linux/arm64. OpenDAL loads /native/<classifier>/libopendal_java.so
-    // for the OS it actually runs on, so both Linux natives have to be in the jar.
-    // osdetector.classifier adds the host library for local macOS runs.
-    runtimeOnly(variantOf(libs.opendal) { classifier("linux-x86_64") })
-    runtimeOnly(variantOf(libs.opendal) { classifier("linux-aarch_64") })
-    runtimeOnly(variantOf(libs.opendal) { classifier(osdetector.classifier) })
+    // OpenDAL loads /native/<classifier>/libopendal_java.* for the OS/arch it runs on. The jar is built once
+    // (Docker BUILDPLATFORM) and must run on Linux and macOS, x86_64 and arm64, so bundle all four natives
+    // into BOOT-INF/lib instead of detecting the build host..
+    ['linux-x86_64', 'linux-aarch_64', 'osx-x86_64', 'osx-aarch_64'].each { nativeClassifier ->
+        runtimeOnly(variantOf(libs.opendal) { classifier(nativeClassifier) })
+    }
 
     // Optional for spring-boot-starter-amqp
     implementation(libs.rabbitmq.http.client)

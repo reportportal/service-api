@@ -280,6 +280,53 @@ class TmsTestCaseFixRoundServiceTest {
   }
 
   @Test
+  void failRoundReportedByJob_ShouldEndTheRoundWithTheReasonOfTheJob() {
+    when(fixRoundRepository.findById(FIX_ROUND_ID)).thenReturn(Optional.of(round));
+    when(fixRoundRepository.findByIdForUpdate(FIX_ROUND_ID)).thenReturn(Optional.of(round));
+    when(commentRepository.findByFixRoundId(FIX_ROUND_ID)).thenReturn(List.of(applied));
+
+    sut.failRoundReportedByJob(PROJECT_ID, TEST_CASE_ID, FIX_ROUND_ID, "The fix job failed, see job 28537725");
+
+    assertEquals(TmsFixRoundStatus.FAILED, round.getStatus());
+    assertEquals("The fix job failed, see job 28537725", round.getFailureReason());
+    assertEquals(TmsReviewCommentState.NOT_SENT, applied.getState());
+  }
+
+  @Test
+  void failRoundReportedByJob_WithoutAReason_ShouldStoreTheDefaultOne() {
+    when(fixRoundRepository.findById(FIX_ROUND_ID)).thenReturn(Optional.of(round));
+    when(fixRoundRepository.findByIdForUpdate(FIX_ROUND_ID)).thenReturn(Optional.of(round));
+
+    sut.failRoundReportedByJob(PROJECT_ID, TEST_CASE_ID, FIX_ROUND_ID, " ");
+
+    assertEquals(TmsTestCaseFixRoundService.JOB_FAILED_REASON, round.getFailureReason());
+  }
+
+  @Test
+  void failRoundReportedByJob_WhenTheRoundAlreadyEnded_ShouldLeaveItAsItIs() {
+    round.setStatus(TmsFixRoundStatus.FIXED);
+    when(fixRoundRepository.findById(FIX_ROUND_ID)).thenReturn(Optional.of(round));
+    when(fixRoundRepository.findByIdForUpdate(FIX_ROUND_ID)).thenReturn(Optional.of(round));
+
+    sut.failRoundReportedByJob(PROJECT_ID, TEST_CASE_ID, FIX_ROUND_ID, "late");
+
+    assertEquals(TmsFixRoundStatus.FIXED, round.getStatus());
+    verify(commentRepository, never()).save(any());
+  }
+
+  @Test
+  void failRoundReportedByJob_ForARoundOfAnotherTestCase_ShouldBeNotFoundAndChangeNothing() {
+    round.setTestCaseId(999L);
+    when(fixRoundRepository.findById(FIX_ROUND_ID)).thenReturn(Optional.of(round));
+
+    var ex = assertThrows(ReportPortalException.class,
+        () -> sut.failRoundReportedByJob(PROJECT_ID, TEST_CASE_ID, FIX_ROUND_ID, "failed"));
+
+    assertEquals(ErrorType.NOT_FOUND.getCode(), ex.getErrorType().getCode());
+    assertEquals(TmsFixRoundStatus.PENDING, round.getStatus());
+  }
+
+  @Test
   void failRound_WhenTheRoundAlreadyEnded_ShouldDoNothing() {
     round.setStatus(TmsFixRoundStatus.FIXED);
     when(fixRoundRepository.findByIdForUpdate(FIX_ROUND_ID)).thenReturn(Optional.of(round));

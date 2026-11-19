@@ -3,6 +3,7 @@ package com.epam.reportportal.base.core.tms.controller;
 import static com.epam.reportportal.base.auth.permissions.Permissions.ALLOWED_TO_EDIT_PROJECT;
 import static com.epam.reportportal.base.auth.permissions.Permissions.ALLOWED_TO_VIEW_PROJECT;
 
+import com.epam.reportportal.base.core.tms.dto.TmsFixRoundFailRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsFixRoundRS;
 import com.epam.reportportal.base.core.tms.dto.TmsReviewCommentRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsReviewCommentRS;
@@ -150,6 +151,23 @@ public class TestCaseReviewController {
       @PathVariable("testCaseId") Long testCaseId, @PathVariable("roundId") Long roundId,
       @RequestBody @Valid TmsFixRoundResultRQ rq, @AuthenticationPrincipal ReportPortalUser user) {
     return fixRoundService.applyResult(projectId(user, projectKey), testCaseId, roundId, rq);
+  }
+
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
+  @PutMapping("/review/fix-round/{roundId}/fail")
+  @Operation(summary = "Report that the fix job of a round failed",
+      description = "Ends the pending round as failed at once instead of after the timeout: the comments return to "
+          + "\"not sent\" and the case can be pushed again. The fix job calls it when it fails, e.g. from an "
+          + "after_script that runs on failure. A round that has already ended is left as it is. The answer is the "
+          + "round as it is now; the optional body carries the reason.")
+  @ApiResponse(responseCode = "200", description = "The fix round as it is now")
+  @ApiResponse(responseCode = "404", description = "Fix round not found")
+  public TmsFixRoundRS failFixRound(@PathVariable("projectKey") String projectKey,
+      @PathVariable("testCaseId") Long testCaseId, @PathVariable("roundId") Long roundId,
+      @RequestBody(required = false) @Valid TmsFixRoundFailRQ rq, @AuthenticationPrincipal ReportPortalUser user) {
+    var projectId = projectId(user, projectKey);
+    fixRoundService.failRoundReportedByJob(projectId, testCaseId, roundId, rq == null ? null : rq.getReason());
+    return fixRoundStartService.getRound(projectId, testCaseId, roundId);
   }
 
   private long projectId(ReportPortalUser user, String projectKey) {

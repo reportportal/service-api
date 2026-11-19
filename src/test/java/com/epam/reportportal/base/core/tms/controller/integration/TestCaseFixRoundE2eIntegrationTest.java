@@ -89,6 +89,7 @@ class TestCaseFixRoundE2eIntegrationTest extends BaseMvcTest {
   private long pipelineId;
   private long firstIterationId;
   private long firstVersionId;
+  private long thirdRoundId;
 
   @Test
   @Transactional(propagation = Propagation.NOT_SUPPORTED)
@@ -102,6 +103,7 @@ class TestCaseFixRoundE2eIntegrationTest extends BaseMvcTest {
     step7_theFixedCaseKeepsItsHistoryAndTheCommentsAreAnswered();
     step8_theIterationsKnowTheRound();
     step9_commentsNeverChangeTheLifecycleAndAFailedRoundGivesTheCommentsBack();
+    step10_aJobThatFailedEarlyEndsItsRoundWithoutWaitingForTheTimeout();
   }
 
   // ------------------------------------------------------------------ step 1
@@ -336,8 +338,34 @@ class TestCaseFixRoundE2eIntegrationTest extends BaseMvcTest {
     assertEquals(2, count("select count(*) from tms_test_case_version where test_case_id = ?", testCaseId),
         "a failed round creates no version");
 
-    send(post(reviewUrl("/fix-round")), null, HttpStatus.OK);
+    var thirdRound = send(post(reviewUrl("/fix-round")), null, HttpStatus.OK);
+    thirdRoundId = thirdRound.get("id").asLong();
     send(delete(reviewUrl("/comment")), null, HttpStatus.CONFLICT);
+  }
+
+  // ------------------------------------------------------------------ step 10
+
+  /**
+   * The job crashed before it reported anything (no iteration for the round), and its after_script says so.
+   */
+  private void step10_aJobThatFailedEarlyEndsItsRoundWithoutWaitingForTheTimeout() throws Exception {
+    var failed = send(put(reviewUrl("/fix-round/" + thirdRoundId + "/fail")),
+        "{\"reason\": \"The fix job failed, see https://git.example/jobs/28537725\"}", HttpStatus.OK);
+    assertEquals("FAILED", failed.get("status").asText());
+
+    var review = send(get(reviewUrl("")), null, HttpStatus.OK);
+    assertFalse(review.get("fixInProgress").asBoolean());
+    assertEquals(1, review.get("unsentCount").asInt(), "the comment of the failed round is not sent again");
+    assertEquals("The fix job failed, see https://git.example/jobs/28537725",
+        jdbcTemplate.queryForObject("select failure_reason from tms_test_case_fix_round where id = ?", String.class,
+            thirdRoundId));
+
+    // calling it again, and with no body, changes nothing
+    var again = send(put(reviewUrl("/fix-round/" + thirdRoundId + "/fail")), null, HttpStatus.OK);
+    assertEquals("FAILED", again.get("status").asText());
+    send(put(reviewUrl("/fix-round/999999/fail")), null, HttpStatus.NOT_FOUND);
+
+    send(post(reviewUrl("/fix-round")), null, HttpStatus.OK);
   }
 
   // ------------------------------------------------------------------ building requests

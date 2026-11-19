@@ -44,6 +44,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class TmsTestCaseFixRoundService {
 
   static final String UNANSWERED_REASON = "The agent did not answer this comment";
+  static final String JOB_FAILED_REASON = "The fix job reported that it failed";
 
   private final TmsTestCaseRepository testCaseRepository;
   private final TmsTestCaseFixRoundRepository fixRoundRepository;
@@ -98,6 +99,24 @@ public class TmsTestCaseFixRoundService {
     }
     eventPublisher.publishEvent(new TmsTestCasesLifecycleChangedEvent(List.of(testCaseId)));
     return testCaseService.getById(projectId, testCaseId);
+  }
+
+  /**
+   * Ends the round as failed because the fix job itself says it failed, without waiting for the timeout. A round
+   * that has already ended is left as it is, so a job that fails after it sent its result changes nothing.
+   * <p>
+   * Example: round 7 of TC103 is pending and the job's {@code after_script} reports "The fix job failed"; the round
+   * ends as failed, the comments are "not sent" again and the editor can push. Called again, or after the result,
+   * it does nothing.
+   *
+   * @param reason why the job failed; a default text is stored when it is empty
+   */
+  @Transactional
+  public void failRoundReportedByJob(long projectId, Long testCaseId, Long fixRoundId, String reason) {
+    fixRoundRepository.findById(fixRoundId)
+        .filter(found -> found.getProjectId().equals(projectId) && found.getTestCaseId().equals(testCaseId))
+        .orElseThrow(() -> new ReportPortalException(NOT_FOUND, "Fix round '" + fixRoundId + "'"));
+    failRound(fixRoundId, reason == null || reason.isBlank() ? JOB_FAILED_REASON : reason);
   }
 
   /**

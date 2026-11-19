@@ -153,6 +153,7 @@ import static com.epam.reportportal.base.infrastructure.persistence.commons.quer
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseCriteriaConstant.CRITERIA_TMS_TEST_CASE_EXTERNAL_ID;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseCriteriaConstant.CRITERIA_TMS_TEST_CASE_FOLDER_ID;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseCriteriaConstant.CRITERIA_TMS_TEST_CASE_ID;
+import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseCriteriaConstant.CRITERIA_TMS_TEST_CASE_ITERATION_ID;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseCriteriaConstant.CRITERIA_TMS_TEST_CASE_NAME;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseCriteriaConstant.CRITERIA_TMS_TEST_CASE_ORIGIN;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseCriteriaConstant.CRITERIA_TMS_TEST_CASE_PLAN_ID;
@@ -1928,6 +1929,25 @@ public enum FilterTarget {
                   Lists.newArrayList(
                       JoinEntity.of(TMS_TEST_PLAN_TEST_CASE, JoinType.LEFT_OUTER_JOIN,
                           TMS_TEST_CASE.ID.eq(TMS_TEST_PLAN_TEST_CASE.TEST_CASE_ID))
+                  ))
+              .get(),
+          // A case belongs to every iteration whose stages are linked to it (a fixed case: the iteration that made
+          // it and the one that fixed it). The joins may repeat a case for each of its stages; the filtered query
+          // groups by the case id, so it is listed once.
+          new CriteriaHolderBuilder()
+              .newBuilder(
+                  CRITERIA_TMS_TEST_CASE_ITERATION_ID,
+                  DSL.field(DSL.name("public", "pipeline_stage", "iteration_id"), Long.class),
+                  Long.class,
+                  Lists.newArrayList(
+                      JoinEntity.of(DSL.table(DSL.name("public", "pipeline_stage_test_case")),
+                          JoinType.LEFT_OUTER_JOIN,
+                          DSL.field(DSL.name("public", "pipeline_stage_test_case", "test_case_id"), Long.class)
+                              .eq(TMS_TEST_CASE.ID)),
+                      JoinEntity.of(DSL.table(DSL.name("public", "pipeline_stage")),
+                          JoinType.LEFT_OUTER_JOIN,
+                          DSL.field(DSL.name("public", "pipeline_stage", "id"), Long.class)
+                              .eq(DSL.field(DSL.name("public", "pipeline_stage_test_case", "stage_id"), Long.class)))
                   ))
               .get(),
           new CriteriaHolderBuilder().newBuilder(

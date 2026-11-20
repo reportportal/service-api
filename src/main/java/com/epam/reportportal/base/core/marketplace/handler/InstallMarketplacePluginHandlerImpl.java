@@ -273,10 +273,12 @@ public class InstallMarketplacePluginHandlerImpl implements InstallMarketplacePl
     var declared = detail.compatibility() == null ? null
         : StringUtils.trimToNull(detail.compatibility().reportportal());
     if (effective == null && ceiling != null && declared != null) {
+      var reason = StringUtils.trimToNull(detail.compatibilityCeilingReason());
       throw new ReportPortalException(ErrorType.MARKETPLACE_COMPATIBILITY_UNKNOWN,
           "the marketplace limited " + registryId + " " + version + " to ReportPortal "
               + plainCeiling(ceiling) + " but didn't send enough details to check it."
-              + " To be safe, it wasn't installed.");
+              + " To be safe, it wasn't installed."
+              + (reason == null ? "" : " Their reason: " + reason));
     }
     if (effective == null) {
       // also a ceiling over an empty author range, which the registry would not accept today

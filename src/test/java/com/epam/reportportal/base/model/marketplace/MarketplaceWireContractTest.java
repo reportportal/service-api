@@ -389,6 +389,18 @@ class MarketplaceWireContractTest {
   }
 
   /**
+   * The registry capped the version but sent no effective range, so there is no verdict: the
+   * ceiling and its reason travel, {@code compatible} is absent, and the row shows no warning.
+   */
+  private static InstalledPluginResource installedCeilingWithoutVerdict() {
+    return new InstalledPluginResource(13L, "xray", "2.0.0", true, "BTS",
+        new MarketplaceEntryResource("plugin-bts-xray", "Xray", "Xray test management.",
+            "Xblend", "public", "official", "2.0.0", null, null, ">=25.1", null, null, null,
+            false, new InstalledCompatibilityResource(null, ">=25.1", "<26.0",
+            "Breaks the launch view on 26.0")));
+  }
+
+  /**
    * A newer version exists and is being withheld, because it does not run on this release.
    *
    * <p>This is the row the verdict was added for. It used to be indistinguishable from
@@ -433,7 +445,7 @@ class MarketplaceWireContractTest {
   private static MarketplaceCatalogueResource catalogue() {
     return new MarketplaceCatalogueResource(online(), uploadAllowed(),
         List.of(installedMatched(), installedClean(), installedUpdateWithheld(),
-            installedCeilinged(), installedRemoved(), installedUnmatched()),
+            installedCeilinged(), installedCeilingWithoutVerdict(), installedRemoved(), installedUnmatched()),
         List.of(
             new AvailablePluginResource("plugin-notify-slack", "Slack", "2.0.0",
                 "Posts a message when a launch finishes", "ReportPortal", null, "NOTIFICATION",

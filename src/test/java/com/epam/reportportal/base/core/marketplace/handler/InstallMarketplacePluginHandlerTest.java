@@ -440,7 +440,7 @@ class InstallMarketplacePluginHandlerTest {
     assertEquals(ErrorType.MARKETPLACE_COMPATIBILITY_UNKNOWN, thrown.getErrorType());
     assertTrue(thrown.getMessage().endsWith("the marketplace limited jira 1.4.2 to ReportPortal"
         + " versions below 27.0 but didn't send enough details to check it. To be safe, it wasn't"
-        + " installed."), thrown.getMessage());
+        + " installed. Their reason: RP 27.0 removes ExtensionPoint X"), thrown.getMessage());
     verifyNoInteractions(pluginBox);
     verify(client, never()).resolveArtifact(anyString(), anyString(), any());
   }

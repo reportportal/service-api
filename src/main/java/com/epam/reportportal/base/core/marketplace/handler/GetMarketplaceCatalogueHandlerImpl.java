@@ -397,8 +397,15 @@ public class GetMarketplaceCatalogueHandlerImpl implements GetMarketplaceCatalog
    */
   private Boolean latestRunsHere(MarketplacePlugin plugin, String latest) {
     var listed = declaredRange(plugin);
-    if (listed != null && !productVersion.satisfies(listed)) {
-      return false;
+    if (listed != null) {
+      // an unreadable range is unknown, not a no: only a range that reads and fails is a no
+      var verdict = productVersion.verdict(listed);
+      if (verdict == null) {
+        return null;
+      }
+      if (!verdict) {
+        return false;
+      }
     }
     var detail = registry.versionDetail(plugin.id(), latest);
     if (detail == null) {
@@ -407,8 +414,11 @@ public class GetMarketplaceCatalogueHandlerImpl implements GetMarketplaceCatalog
     if (detail.blocked()) {
       return false;
     }
-    var runs = productVersion.satisfies(EffectiveRange.of(detail.effectiveCompatibility(),
+    var runs = productVersion.verdict(EffectiveRange.of(detail.effectiveCompatibility(),
         detail.compatibility(), detail.compatibilityCeiling()));
+    if (runs == null) {
+      return null;
+    }
     if (runs) {
       return true;
     }
@@ -425,9 +435,21 @@ public class GetMarketplaceCatalogueHandlerImpl implements GetMarketplaceCatalog
     if (versions == null) {
       return null;
     }
+    // the cached history must agree with the listing that sent us here: a row for the latest that
+    // runs here means the ceiling was cleared since, and an older update would contradict it
+    var disagrees = versions.stream()
+        .filter(Objects::nonNull)
+        .filter(summary -> StringUtils.isNotBlank(summary.version()))
+        .filter(summary -> PluginVersions.compare(summary.version(), latest) == 0)
+        .anyMatch(summary -> !summary.blocked() && runsHere(summary));
+    if (disagrees) {
+      return null;
+    }
     return versions.stream()
         .filter(Objects::nonNull)
         .filter(summary -> StringUtils.isNotBlank(summary.version()))
+        // install refuses a '+' in the version, so an offer carrying build metadata would fail
+        .filter(summary -> !summary.version().contains("+"))
         .filter(summary -> PluginVersions.compare(summary.version(), installedVersion) > 0)
         .filter(summary -> PluginVersions.compare(summary.version(), latest) < 0)
         .filter(summary -> !summary.blocked())

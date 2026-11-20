@@ -1317,4 +1317,64 @@ class GetMarketplaceCatalogueHandlerTest {
     assertEquals("1.6.0-rc.1",
         installedNamed(catalogue, "jira").marketplace().updateAvailable().version());
   }
+
+  private MarketplaceCatalogueResource latestUndecidableWithCompatibleHistory(String listedRange,
+      MarketplaceVersionDetail latestDetail) {
+    handler = newHandler(new ProductVersion("26.1"));
+    when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(
+        List.of(installed(7L, "jira", IntegrationGroupEnum.BTS, "1.4.2", null)));
+    when(client.getCatalogue(null, null)).thenReturn(
+        List.of(registryPluginRequiring("jira", "Jira", "1.6.0", listedRange)));
+    when(client.getVersion("jira", "1.6.0")).thenReturn(latestDetail);
+    when(client.listVersions("jira")).thenReturn(List.of(
+        summary("1.6.0", ">=25.1", null, "<26.0", false),
+        summary("1.5.0", ">=25.1", ">=25.1", null, false),
+        summary("1.4.2", ">=25.1", ">=25.1", null, false)));
+    return handler.getCatalogue(null, null);
+  }
+
+  @Test
+  void anUnreadableListingRangeOffersNothingRatherThanWalkingDown() {
+    var catalogue = latestUndecidableWithCompatibleHistory(">=next",
+        ceilinged("jira", "1.6.0", ">=25.1", ">=25.1", null, null));
+
+    assertNull(installedNamed(catalogue, "jira").marketplace().updateAvailable());
+    verify(client, never()).listVersions("jira");
+  }
+
+  @Test
+  void aCeilingWithNoEffectiveRangeAndNoListingRangeOffersNothingRatherThanWalkingDown() {
+    var catalogue = latestUndecidableWithCompatibleHistory(null,
+        ceilinged("jira", "1.6.0", ">=25.1", null, "<26.0", "r"));
+
+    assertNull(installedNamed(catalogue, "jira").marketplace().updateAvailable());
+    verify(client, never()).listVersions("jira");
+  }
+
+  @Test
+  void aHistoryThatClearsTheListedCeilingOffersNothingRatherThanAnOlderVersion() {
+    handler = newHandler(new ProductVersion("26.1"));
+    when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(
+        List.of(installed(7L, "jira", IntegrationGroupEnum.BTS, "1.4.2", null)));
+    when(client.getCatalogue(null, null)).thenReturn(List.of(
+        registryPluginRequiring("jira", "Jira", "1.6.0", ">=25.1, <26.0")));
+    when(client.listVersions("jira")).thenReturn(List.of(
+        summary("1.6.0", ">=25.1", ">=25.1", null, false),
+        summary("1.5.0", ">=25.1", ">=25.1", null, false),
+        summary("1.4.2", ">=25.1", ">=25.1", null, false)));
+
+    var entry = installedNamed(handler.getCatalogue(null, null), "jira").marketplace();
+
+    assertNull(entry.updateAvailable());
+  }
+
+  @Test
+  void aVersionWithBuildMetadataIsNotOfferedBecauseInstallRefusesIt() {
+    var catalogue = cappedLatestWithHistory(
+        summary("1.5.0+build.5", ">=25.1", ">=25.1", null, false),
+        summary("1.4.5", ">=25.1", ">=25.1", null, false));
+
+    assertEquals("1.4.5",
+        installedNamed(catalogue, "jira").marketplace().updateAvailable().version());
+  }
 }

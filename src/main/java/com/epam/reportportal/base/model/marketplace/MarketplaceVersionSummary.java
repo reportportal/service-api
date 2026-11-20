@@ -27,8 +27,8 @@ import java.time.Instant;
  *
  * <p>A null {@code compatibility} means the entry declares no range — published before the
  * registry recorded one — and that is unknown rather than compatible. {@code
- * effectiveCompatibility} is that range cut by any operator ceiling; it is null only when
- * {@code compatibility} is.
+ * effectiveCompatibility} is that range cut by any operator ceiling; it is null when
+ * {@code compatibility} is, or when the registry predates ceilings.
  */
 public record MarketplaceVersionSummary(
     String version,

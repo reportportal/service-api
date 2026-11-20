@@ -24,8 +24,8 @@ import java.util.List;
  * advisory, sha256 and asset URLs. Unlike plugin detail it has no latestVersion.
  *
  * <p>{@code compatibility} is the author's claim; {@code effectiveCompatibility} is that range
- * cut by any operator ceiling and is null only when {@code compatibility} is. The ceiling and its
- * reason are null when none is set.
+ * cut by any operator ceiling and is null when {@code compatibility} is, or when the registry
+ * predates ceilings. The ceiling and its reason are null when none is set.
  */
 public record MarketplaceVersionDetail(
     String id,

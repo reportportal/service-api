@@ -37,22 +37,25 @@ package com.epam.reportportal.base.model.marketplace.catalogue;
  * @param access          {@code public} or {@code premium}
  * @param tier            trust tier, e.g. {@code official}
  * @param latestVersion   latest version the registry publishes
- * @param updateAvailable newer, compatible, unblocked version, or null
+ * @param updateAvailable newest newer, compatible, unblocked version, or null; below
+ *                        {@code latestVersion} when the latest does not run here
  * @param compatible      whether {@code latestVersion} runs on the release this instance reports,
  *                        or null when that cannot be decided. This is what tells an up-to-date row
- *                        apart from one whose update is being withheld: {@code updateAvailable} is
- *                        null in both cases, and without this the two are identical on the wire.
+ *                        apart from one whose latest update is being withheld: with no older update
+ *                        to offer, {@code updateAvailable} is null in both cases.
  *                        It is about the latest version, unlike {@code advisory} and
  *                        {@code blocked}, which are about the version installed here.
- * @param requires        the range {@code latestVersion} declares, verbatim and for display only.
- *                        A caller shows it to explain why the update is not offered and must not
- *                        parse it to decide anything.
+ * @param requires        the range {@code latestVersion} is judged by, verbatim and for display
+ *                        only: the registry listing's range, already the author's cut by any
+ *                        operator ceiling. A caller shows it to explain why the update is not
+ *                        offered and must not parse it to decide anything.
  * @param advisory        advisory on the installed version, or null
  * @param blocked         block state of the installed version, or null
  * @param removed         registry tombstone, or null
  * @param locked          premium and no licence configured on this instance
- * @param installedCompatibility whether the version installed here runs on this release, or null
- *                        for a removed or unmatched row or one with no recorded version
+ * @param installedCompatibility whether the version installed here runs on this release, or
+ *                               null for a removed or unmatched row or one with no recorded
+ *                               version
  */
 public record MarketplaceEntryResource(
     String pluginId,

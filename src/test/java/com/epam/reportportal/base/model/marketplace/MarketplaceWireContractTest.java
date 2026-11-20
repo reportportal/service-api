@@ -24,6 +24,7 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import com.epam.reportportal.base.core.configs.JacksonConfiguration;
 import com.epam.reportportal.base.model.marketplace.catalogue.AvailablePluginResource;
+import com.epam.reportportal.base.model.marketplace.catalogue.InstalledCompatibilityResource;
 import com.epam.reportportal.base.model.marketplace.catalogue.InstalledPluginResource;
 import com.epam.reportportal.base.model.marketplace.catalogue.InstanceCapabilitiesResource;
 import com.epam.reportportal.base.model.marketplace.catalogue.MarketplaceAdvisoryResource;
@@ -133,7 +134,8 @@ class MarketplaceWireContractTest {
 
       What each one covers:
 
-      - `catalogue.json` — registry online. Installed: matched, unmatched, removed, and one whose
+      - `catalogue.json` — registry online. Installed: matched, unmatched, removed, one held back by an
+        operator ceiling, and one whose
         update is withheld because the newest build does not run on this release. Available: one
         that runs here, one that does not, and a premium row that is locked. Plus an advisory, a
         blocked version and an update that is offered.
@@ -250,6 +252,10 @@ class MarketplaceWireContractTest {
       "installed[].marketplace.blocked.version",
       "installed[].marketplace.compatible",
       "installed[].marketplace.description",
+      "installed[].marketplace.installedCompatibility.ceiling",
+      "installed[].marketplace.installedCompatibility.ceilingReason",
+      "installed[].marketplace.installedCompatibility.compatible",
+      "installed[].marketplace.installedCompatibility.requires",
       "installed[].marketplace.latestVersion",
       "installed[].marketplace.locked",
       "installed[].marketplace.name",
@@ -300,6 +306,8 @@ class MarketplaceWireContractTest {
       "versions[].blocked",
       "versions[].blockedAt",
       "versions[].blockReason",
+      "versions[].ceiling",
+      "versions[].ceilingReason",
       "versions[].compatible",
       "versions[].requires",
       "versions[].publishedAt",
@@ -358,7 +366,7 @@ class MarketplaceWireContractTest {
             "official",
             "1.6.0", new UpdateAvailableResource("1.6.0"), true, ">=25.1", advisory(),
             new MarketplaceBlockedResource("1.5.2", WHEN, "Signed with a revoked key"), null,
-            true));
+            true, new InstalledCompatibilityResource(true, ">=25.1", null, null)));
   }
 
   /** Matched, current, nothing wrong with it — the row every badge rule must leave alone. */
@@ -366,7 +374,19 @@ class MarketplaceWireContractTest {
     return new InstalledPluginResource(8L, "rally", "5.0.0", true, "BTS",
         new MarketplaceEntryResource("plugin-bts-rally", "Rally", "Rally work-item integration.",
             "Broadcom", "public", "official", "5.0.0", null, true, ">=25.1", null, null, null,
-            false));
+            false, new InstalledCompatibilityResource(true, ">=25.1", null, null)));
+  }
+
+  /**
+   * The installed version is cut off below this release by an operator ceiling, so the row warns
+   * even though nothing newer is on offer. The reason is the operator's, verbatim.
+   */
+  private static InstalledPluginResource installedCeilinged() {
+    return new InstalledPluginResource(12L, "zephyr", "3.1.0", true, "BTS",
+        new MarketplaceEntryResource("plugin-bts-zephyr", "Zephyr", "Zephyr test management.",
+            "SmartBear", "public", "official", "3.1.0", null, false, ">=25.1, <26.0", null, null,
+            null, false, new InstalledCompatibilityResource(false, ">=25.1, <26.0", "<26.0",
+            "Breaks the launch view on 26.0")));
   }
 
   /**
@@ -381,7 +401,8 @@ class MarketplaceWireContractTest {
     return new InstalledPluginResource(11L, "sauce-labs", "4.0.0", true, "OTHER",
         new MarketplaceEntryResource("plugin-other-sauce-labs", "Sauce Labs",
             "Pulls a Sauce Labs session recording into a failed test item.", "Sauce Labs",
-            "public", "official", "5.0.0", null, false, ">=26.2", null, null, null, false));
+            "public", "official", "5.0.0", null, false, ">=26.2", null, null, null, false,
+            new InstalledCompatibilityResource(true, ">=25.1", null, null)));
   }
 
   /**
@@ -392,7 +413,7 @@ class MarketplaceWireContractTest {
   private static InstalledPluginResource installedRemoved() {
     return new InstalledPluginResource(9L, "gitlab", "2.1.0", false, "BTS",
         new MarketplaceEntryResource("plugin-bts-gitlab", null, null, null, null, null, null, null,
-            null, null, null, null, removed(), false));
+            null, null, null, null, removed(), false, null));
   }
 
   /**
@@ -413,7 +434,7 @@ class MarketplaceWireContractTest {
   private static MarketplaceCatalogueResource catalogue() {
     return new MarketplaceCatalogueResource(online(), uploadAllowed(),
         List.of(installedMatched(), installedClean(), installedUpdateWithheld(),
-            installedRemoved(), installedUnmatched()),
+            installedCeilinged(), installedRemoved(), installedUnmatched()),
         List.of(
             new AvailablePluginResource("plugin-notify-slack", "Slack", "2.0.0",
                 "Posts a message when a launch finishes", "ReportPortal", null, "NOTIFICATION",
@@ -454,11 +475,15 @@ class MarketplaceWireContractTest {
         // 1.5.2 also carries the advisory it was blocked over: the table shows it on the row it
         // belongs to, which is a different question from whether the plugin is under one
         List.of(
-            new MarketplaceVersionResource("1.6.0", WHEN, false, null, null, true, ">=26.0", null),
+            new MarketplaceVersionResource("1.6.0", WHEN, false, null, null, true, ">=26.0", null,
+                null, null),
+            // a ceiling cuts the author's range and the operator's note rides with it
+            new MarketplaceVersionResource("1.5.9", WHEN, false, null, null, false,
+                ">=25.1, <26.0", "<26.0", "Breaks the launch view on 26.0", null),
             // the blocked row carries when and why: the operator's reason is the one part of a
             // block a reader cannot work out, and the table shows it on the row itself
             new MarketplaceVersionResource("1.5.2", EARLIER, true, EARLIER,
-                "Signed with a revoked key", false, ">=27.0",
+                "Signed with a revoked key", false, ">=27.0", null, null,
                 new MarketplaceAdvisory("high", "CVE-2026-1234 allows remote code execution.",
                     EARLIER))),
         new MarketplaceChangelogResource("1.6.0",
@@ -622,7 +647,7 @@ class MarketplaceWireContractTest {
    * proves only that someone ran the test, while this changes exactly when the wire changes.
    */
   private static final String CONTRACT_HASH =
-      "810734afc56f362f5209d2f48c0c7c39256ae402856cd094277ec404f639dd23";
+      "c2267dd6a2baab54185c3625258d200dd8bb0052730de729b0390a04596932fe";
 
   private static final String HASH_ALGORITHM =
       "SHA-256, hex, over the routes below in the order given: the route on a line of its own,"

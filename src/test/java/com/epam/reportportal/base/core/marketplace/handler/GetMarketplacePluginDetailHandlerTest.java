@@ -337,6 +337,30 @@ class GetMarketplacePluginDetailHandlerTest {
     assertNull(versions.get(1).requires(), "a version declaring no range states none");
   }
 
+  /** A ceiling narrows the range the row is judged by, and the row says why. */
+  @Test
+  void aCeilingDecidesTheVerdictAndTravelsWithItsReason() {
+    when(client.getPlugin("jira")).thenReturn(plugin("jira", "1.6.0", "public"));
+    when(client.listVersions("jira")).thenReturn(List.of(
+        new MarketplaceVersionSummary("1.6.0", WHEN, false, null, null,
+            new MarketplaceCompatibility(">=25.1"), null, new MarketplaceCompatibility(">=25.1, <26.0"),
+            "<26.0", "Breaks the launch view on 26.0"),
+        new MarketplaceVersionSummary("1.5.2", WHEN, false, null, null,
+            new MarketplaceCompatibility(">=25.1"), null, null, null, null)));
+
+    var versions = handler.getPluginDetail("jira").versions();
+
+    assertFalse(versions.get(0).compatible());
+    assertEquals(">=25.1, <26.0", versions.get(0).requires());
+    assertEquals("<26.0", versions.get(0).ceiling());
+    assertEquals("Breaks the launch view on 26.0", versions.get(0).ceilingReason());
+    // an older registry sends no effective range: the author's range decides, and no ceiling shows
+    assertTrue(versions.get(1).compatible());
+    assertEquals(">=25.1", versions.get(1).requires());
+    assertNull(versions.get(1).ceiling());
+    assertNull(versions.get(1).ceilingReason());
+  }
+
   /** The instance not knowing its own release makes every row undecided, not every row bad. */
   @Test
   void anInstanceThatCannotNameItsReleaseDecidesNothing() {

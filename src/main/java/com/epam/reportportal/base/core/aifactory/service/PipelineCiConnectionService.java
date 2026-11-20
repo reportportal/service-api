@@ -572,7 +572,7 @@ public class PipelineCiConnectionService {
       if (!"https".equalsIgnoreCase(uri.getScheme()) || uri.getHost() == null) {
         throw bad("The repository must be an https URL, e.g. https://git.epam.com/EPM-RPP/rp-tests");
       }
-      var path = uri.getPath() == null ? "" : uri.getPath().replaceAll("^(/+)|(/+)$", "");
+      var path = stripSlashes(uri.getPath());
       if (path.endsWith(".git")) {
         path = path.substring(0, path.length() - 4);
       }
@@ -580,6 +580,26 @@ public class PipelineCiConnectionService {
         throw bad("The repository URL must contain the project path, e.g. https://git.epam.com/EPM-RPP/rp-tests");
       }
       return new RepositoryRef("https://" + uri.getAuthority(), path);
+    }
+
+    /**
+     * The text without slashes at its start and end; no regex, so no anchored alternation to get wrong.
+     * <p>
+     * Example: {@code "/EPM-RPP/rp-tests//"} gives {@code "EPM-RPP/rp-tests"}, {@code null} gives {@code ""}.
+     */
+    private static String stripSlashes(String text) {
+      if (text == null) {
+        return "";
+      }
+      var start = 0;
+      var end = text.length();
+      while (start < end && text.charAt(start) == '/') {
+        start++;
+      }
+      while (end > start && text.charAt(end - 1) == '/') {
+        end--;
+      }
+      return text.substring(start, end);
     }
   }
 }

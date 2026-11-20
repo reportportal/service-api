@@ -25,6 +25,7 @@ import static org.mockito.Mockito.when;
 import com.epam.reportportal.base.core.events.domain.tms.TestCaseCreatedEvent;
 import com.epam.reportportal.base.core.events.domain.tms.TestCaseImportedEvent;
 import com.epam.reportportal.base.core.tms.dto.NewTestFolderRQ;
+import com.epam.reportportal.base.core.tms.pipeline.TmsAutomationStateService;
 import com.epam.reportportal.base.core.tms.dto.TmsManualScenarioType;
 import com.epam.reportportal.base.core.tms.dto.TmsRequirementRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsStepsManualScenarioRQ;
@@ -150,6 +151,9 @@ class TmsTestCaseServiceImplTest {
 
   @Mock
   private TmsTestCaseReadyEligibilityService tmsTestCaseReadyEligibilityService;
+
+  @Mock
+  private TmsAutomationStateService tmsAutomationStateService;
 
   @Mock
   private HttpServletResponse response;

@@ -18,6 +18,7 @@ package com.epam.reportportal.base.core.marketplace.handler;
 
 import com.epam.reportportal.base.core.marketplace.CompatibilityRange;
 import com.epam.reportportal.base.core.marketplace.MarketplaceLicence;
+import com.epam.reportportal.base.core.marketplace.EffectiveRange;
 import com.epam.reportportal.base.core.marketplace.MarketplaceRegistryCache;
 import com.epam.reportportal.base.core.marketplace.MarketplaceState;
 import com.epam.reportportal.base.core.marketplace.ProductVersion;
@@ -149,7 +150,8 @@ public class GetMarketplacePluginDetailHandlerImpl implements GetMarketplacePlug
   private MarketplaceVersionResource toVersion(MarketplaceVersionSummary summary) {
     return new MarketplaceVersionResource(summary.version(), summary.publishedAt(),
         summary.blocked(), summary.blockedAt(), summary.blockReason(), compatible(summary),
-        declaredRange(summary), summary.advisory());
+        declaredRange(summary), StringUtils.trimToNull(summary.compatibilityCeiling()),
+        StringUtils.trimToNull(summary.compatibilityCeilingReason()), summary.advisory());
   }
 
   /**
@@ -162,7 +164,7 @@ public class GetMarketplacePluginDetailHandlerImpl implements GetMarketplacePlug
    * install handler refuses them all rather than guessing.
    */
   private static String declaredRange(MarketplaceVersionSummary summary) {
-    return summary.compatibility() == null ? null : summary.compatibility().reportportal();
+    return EffectiveRange.of(summary.effectiveCompatibility(), summary.compatibility());
   }
 
   private Boolean compatible(MarketplaceVersionSummary summary) {

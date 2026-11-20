@@ -51,6 +51,8 @@ package com.epam.reportportal.base.model.marketplace.catalogue;
  * @param blocked         block state of the installed version, or null
  * @param removed         registry tombstone, or null
  * @param locked          premium and no licence configured on this instance
+ * @param installedCompatibility whether the version installed here runs on this release, or null
+ *                        for a removed or unmatched row or one with no recorded version
  */
 public record MarketplaceEntryResource(
     String pluginId,
@@ -66,7 +68,8 @@ public record MarketplaceEntryResource(
     MarketplaceAdvisoryResource advisory,
     MarketplaceBlockedResource blocked,
     MarketplaceRemovedResource removed,
-    boolean locked
+    boolean locked,
+    InstalledCompatibilityResource installedCompatibility
 ) {
 
 }

@@ -16,6 +16,7 @@
 
 package com.epam.reportportal.base.core.marketplace.handler;
 
+import com.epam.reportportal.base.core.marketplace.EffectiveRange;
 import com.epam.reportportal.base.core.marketplace.MarketplaceClient;
 import com.epam.reportportal.base.core.marketplace.MarketplaceLicence;
 import com.epam.reportportal.base.core.marketplace.MarketplaceRegistryCache;
@@ -27,8 +28,10 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.enums.Integr
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationType;
 import com.epam.reportportal.base.model.marketplace.MarketplaceAuthor;
 import com.epam.reportportal.base.model.marketplace.MarketplacePlugin;
+import com.epam.reportportal.base.model.marketplace.MarketplaceVersionDetail;
 import com.epam.reportportal.base.model.marketplace.catalogue.AvailablePluginResource;
 import com.epam.reportportal.base.model.marketplace.catalogue.InstalledPluginResource;
+import com.epam.reportportal.base.model.marketplace.catalogue.InstalledCompatibilityResource;
 import com.epam.reportportal.base.model.marketplace.catalogue.InstanceCapabilitiesResource;
 import com.epam.reportportal.base.model.marketplace.catalogue.MarketplaceCatalogueResource;
 import com.epam.reportportal.base.model.marketplace.catalogue.MarketplaceEntryResource;
@@ -280,7 +283,7 @@ public class GetMarketplaceCatalogueHandlerImpl implements GetMarketplaceCatalog
     // a latest version or a compatibility range from, and a removed plugin is not installable on
     // any release, so the verdict is not withheld here — there is simply nothing to decide
     return new MarketplaceEntryResource(persisted, null, null, null, null, null, null, null, null,
-        null, null, null, MarketplaceState.removed(plugin.tombstone()), false);
+        null, null, null, MarketplaceState.removed(plugin.tombstone()), false, null);
   }
 
   /**
@@ -302,7 +305,27 @@ public class GetMarketplaceCatalogueHandlerImpl implements GetMarketplaceCatalog
         plugin.latestVersion(), updateFor(plugin, installedVersion),
         productVersion.verdict(declaredRange(plugin)), declaredRange(plugin),
         MarketplaceState.advisory(installed), MarketplaceState.blocked(installed), null,
-        locked(plugin.access()));
+        locked(plugin.access()), installedCompatibility(installedVersion, installed));
+  }
+
+  /**
+   * Whether the installed version runs on this release, judged by the range the registry
+   * enforces: the author's range cut by any operator ceiling. Null when nothing was installed to
+   * ask about. A failed read still yields a block, with no verdict in it, so the page can tell
+   * "unknown" from "not asked".
+   */
+  private InstalledCompatibilityResource installedCompatibility(String installedVersion,
+      MarketplaceVersionDetail installed) {
+    if (StringUtils.isBlank(installedVersion)) {
+      return null;
+    }
+    if (installed == null) {
+      return new InstalledCompatibilityResource(null, null, null, null);
+    }
+    var range = EffectiveRange.of(installed.effectiveCompatibility(), installed.compatibility());
+    return new InstalledCompatibilityResource(productVersion.verdict(range), range,
+        StringUtils.trimToNull(installed.compatibilityCeiling()),
+        StringUtils.trimToNull(installed.compatibilityCeilingReason()));
   }
 
   /**
@@ -355,7 +378,7 @@ public class GetMarketplaceCatalogueHandlerImpl implements GetMarketplaceCatalog
     if (detail == null || detail.blocked()) {
       return null;
     }
-    var range = detail.compatibility() == null ? null : detail.compatibility().reportportal();
+    var range = EffectiveRange.of(detail.effectiveCompatibility(), detail.compatibility());
     return productVersion.satisfies(range) ? new UpdateAvailableResource(latest) : null;
   }
 

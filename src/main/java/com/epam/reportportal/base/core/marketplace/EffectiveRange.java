@@ -25,8 +25,10 @@ import org.apache.commons.lang3.StringUtils;
  * when the registry predates ceilings and sends no effective range.
  *
  * <p>A ceiling with no effective range is not that older registry, which never sends a ceiling.
- * It is a registry answering inconsistently, and falling back to the author's range would ignore
- * the ceiling, so the range is unknown.
+ * When the version also declares a range, it is a registry answering inconsistently, and falling
+ * back to the author's range would ignore the ceiling, so the range is unknown. When the author's
+ * range is empty the registry sends a ceiling with no effective range as a matter of course; the
+ * range is unknown there too, because there is nothing to evaluate.
  */
 public final class EffectiveRange {
 

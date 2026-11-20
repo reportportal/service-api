@@ -409,6 +409,20 @@ class InstallMarketplacePluginHandlerTest {
   }
 
   @Test
+  void ceilingOverAnEmptyAuthorRangeSaysTheVersionDeclaresNone() {
+    // the registry sends a ceiling and no effective range when the author's range is empty
+    registryServes(capped(null, null, "<27.0", "RP 27.0 removes ExtensionPoint X"));
+
+    var thrown = installOn("26.4");
+
+    assertEquals(ErrorType.MARKETPLACE_COMPATIBILITY_UNKNOWN, thrown.getErrorType());
+    assertTrue(thrown.getMessage().contains("declares no compatibility range"),
+        thrown.getMessage());
+    assertFalse(thrown.getMessage().contains("capped"), thrown.getMessage());
+    verifyNoInteractions(pluginBox);
+  }
+
+  @Test
   void ceilingWithoutEffectiveRangeIsUnknown() {
     // a registry that predates ceilings never sends one, so the author's range cannot stand in
     registryServes(capped(">=25.1", null, "<27.0", "RP 27.0 removes ExtensionPoint X"));

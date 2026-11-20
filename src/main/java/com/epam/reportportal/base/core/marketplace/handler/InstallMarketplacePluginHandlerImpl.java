@@ -270,11 +270,19 @@ public class InstallMarketplacePluginHandlerImpl implements InstallMarketplacePl
     var ceiling = StringUtils.trimToNull(detail.compatibilityCeiling());
     var effective = EffectiveRange.of(detail.effectiveCompatibility(), detail.compatibility(),
         ceiling);
-    if (effective == null && ceiling != null) {
+    var declared = detail.compatibility() == null ? null
+        : StringUtils.trimToNull(detail.compatibility().reportportal());
+    if (effective == null && ceiling != null && declared != null) {
       throw new ReportPortalException(ErrorType.MARKETPLACE_COMPATIBILITY_UNKNOWN,
           "'" + registryId + ":" + version + "' is capped by the marketplace operator at '"
               + ceiling + "', but the registry sent no effective range, so it is not installed on"
               + " a guess");
+    }
+    if (effective == null) {
+      // also a ceiling over an empty author range: the registry sends no effective range then
+      throw new ReportPortalException(ErrorType.MARKETPLACE_COMPATIBILITY_UNKNOWN,
+          "'" + registryId + ":" + version + "' declares no compatibility range, so it is not"
+              + " installed on a guess");
     }
     if (!productVersion.isKnown()) {
       throw new ReportPortalException(ErrorType.MARKETPLACE_COMPATIBILITY_UNKNOWN,

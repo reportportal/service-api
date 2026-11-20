@@ -361,8 +361,13 @@ public class GetMarketplaceCatalogueHandlerImpl implements GetMarketplaceCatalog
 
   /**
    * The newest version above the installed one that runs on this release and is not blocked, or
-   * null. The latest version is tried first; only when it cannot be offered is the version list
-   * walked, which is one cached request per plugin, since each entry carries its own ranges.
+   * null. The latest version is tried first; only when it is known not to run here is the version
+   * list walked, which is one cached request per plugin, since each entry carries its own ranges.
+   * When the latest cannot be judged, nothing is offered rather than an older version that the
+   * next refresh would replace.
+   *
+   * <p>Invariant: an update below {@code latestVersion} is only offered when the row's
+   * {@code compatible} is not true.
    */
   private UpdateAvailableResource updateFor(MarketplacePlugin plugin, String installedVersion) {
     var latest = plugin.latestVersion();
@@ -370,33 +375,49 @@ public class GetMarketplaceCatalogueHandlerImpl implements GetMarketplaceCatalog
         || PluginVersions.compare(latest, installedVersion) <= 0) {
       return null;
     }
-    if (latestRunsHere(plugin, latest)) {
+    var runs = latestRunsHere(plugin, latest);
+    if (runs == null) {
+      return null;
+    }
+    if (runs) {
       return new UpdateAvailableResource(latest);
     }
     return productVersion.isKnown() ? olderUpdate(plugin.id(), latest, installedVersion) : null;
   }
 
   /**
-   * Whether the latest version can be offered. The listing range is checked first: it lives 60s
-   * against detail's 5m, so a ceiling set a minute ago already shows there, and without this the
-   * row would say "does not run here" while still offering the update from a stale detail. Detail
-   * is still read, because the listing omits the range for a version published before the
-   * registry recorded it, and only detail says whether the version is blocked.
+   * Whether the latest version can be offered: true, false, or null when it cannot be told. The
+   * listing range is checked first: it lives 60s against detail's 5m, so a ceiling set a minute
+   * ago already shows there. Detail is still read, because the listing omits the range for a
+   * version published before the registry recorded it, and only detail says whether the version
+   * is blocked. Null covers detail that could not be read, and a listing that says it runs against
+   * a detail that says it does not (a ceiling cleared inside detail's cache window): the row says
+   * compatible, so an older update would contradict it.
    */
-  private boolean latestRunsHere(MarketplacePlugin plugin, String latest) {
+  private Boolean latestRunsHere(MarketplacePlugin plugin, String latest) {
     var listed = declaredRange(plugin);
     if (listed != null && !productVersion.satisfies(listed)) {
       return false;
     }
     var detail = registry.versionDetail(plugin.id(), latest);
-    if (detail == null || detail.blocked()) {
+    if (detail == null) {
+      return null;
+    }
+    if (detail.blocked()) {
       return false;
     }
-    return productVersion.satisfies(EffectiveRange.of(detail.effectiveCompatibility(),
+    var runs = productVersion.satisfies(EffectiveRange.of(detail.effectiveCompatibility(),
         detail.compatibility(), detail.compatibilityCeiling()));
+    if (runs) {
+      return true;
+    }
+    return listed != null ? null : false;
   }
 
-  /** The newest offerable version strictly between the installed one and the latest. */
+  /**
+   * The newest offerable version strictly between the installed one and the latest. The walk
+   * includes pre-releases, consistent with how the registry picks {@code latestVersion}.
+   */
   private UpdateAvailableResource olderUpdate(String pluginId, String latest,
       String installedVersion) {
     var versions = registry.versions(pluginId);

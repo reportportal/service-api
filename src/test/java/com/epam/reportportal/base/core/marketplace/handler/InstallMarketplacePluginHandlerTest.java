@@ -408,6 +408,34 @@ class InstallMarketplacePluginHandlerTest {
     verifyNoInteractions(pluginBox);
   }
 
+  @Test
+  void ceilingWithoutEffectiveRangeIsUnknown() {
+    // a registry that predates ceilings never sends one, so the author's range cannot stand in
+    registryServes(capped(">=25.1", null, "<27.0", "RP 27.0 removes ExtensionPoint X"));
+
+    var thrown = installOn("26.4");
+
+    assertEquals(ErrorType.MARKETPLACE_COMPATIBILITY_UNKNOWN, thrown.getErrorType());
+    assertTrue(thrown.getMessage().contains("capped by the marketplace operator at '<27.0'"),
+        thrown.getMessage());
+    verifyNoInteractions(pluginBox);
+    verify(client, never()).resolveArtifact(anyString(), anyString(), any());
+  }
+
+  @Test
+  void narrowerEffectiveRangeWithNoCeilingIsNotBlamedOnOne() {
+    // the registry broke its contract: no ceiling, yet effective is narrower than the author's
+    registryServes(capped(">=25.1", ">=25.1, <27.0", null, null));
+
+    var thrown = installOn("27.1");
+
+    assertEquals(ErrorType.MARKETPLACE_PLUGIN_INCOMPATIBLE, thrown.getErrorType());
+    assertTrue(thrown.getMessage().contains("requires '>=25.1, <27.0' and fails <27.0"),
+        thrown.getMessage());
+    assertFalse(thrown.getMessage().contains("capped"), thrown.getMessage());
+    assertFalse(thrown.getMessage().contains("null"), thrown.getMessage());
+  }
+
   // --- premium and licence ----------------------------------------------------------------------
 
   @Test

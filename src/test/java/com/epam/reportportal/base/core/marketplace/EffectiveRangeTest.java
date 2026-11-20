@@ -34,19 +34,27 @@ class EffectiveRangeTest {
 
   @Test
   void theEffectiveRangeWinsOverTheDeclaredOne() {
-    assertEquals(">=25.1, <27.0", EffectiveRange.of(range(">=25.1, <27.0"), range(">=25.1")));
+    assertEquals(">=25.1, <27.0", EffectiveRange.of(range(">=25.1, <27.0"), range(">=25.1"), "<27.0"));
   }
 
   @Test
   void anOldRegistryWithoutAnEffectiveRangeFallsBackToTheDeclaredOne() {
-    assertEquals(">=25.1", EffectiveRange.of(null, range(">=25.1")));
-    assertEquals(">=25.1", EffectiveRange.of(range(null), range(">=25.1")));
-    assertEquals(">=25.1", EffectiveRange.of(range("  "), range(" >=25.1 ")));
+    assertEquals(">=25.1", EffectiveRange.of(null, range(">=25.1"), null));
+    assertEquals(">=25.1", EffectiveRange.of(range(null), range(">=25.1"), null));
+    assertEquals(">=25.1", EffectiveRange.of(range("  "), range(" >=25.1 "), " "));
   }
 
   @Test
   void noRangeAnywhereIsUnknown() {
-    assertNull(EffectiveRange.of(null, null));
-    assertNull(EffectiveRange.of(range(""), range(" ")));
+    assertNull(EffectiveRange.of(null, null, null));
+    assertNull(EffectiveRange.of(range(""), range(" "), null));
+  }
+
+  @Test
+  void aCeilingWithoutAnEffectiveRangeIsUnknownRatherThanTheAuthorsRange() {
+    // only a ceiling-aware registry sends a ceiling, so a missing effective range is not the old
+    // registry fallback
+    assertNull(EffectiveRange.of(null, range(">=25.1"), "<27.0"));
+    assertNull(EffectiveRange.of(range(" "), range(">=25.1"), "<27.0"));
   }
 }

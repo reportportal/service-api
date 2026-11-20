@@ -267,7 +267,15 @@ public class InstallMarketplacePluginHandlerImpl implements InstallMarketplacePl
   private void verifyCompatible(String registryId, String version,
       MarketplaceVersionDetail detail) {
     // The author's range cut by any operator ceiling; the author's alone from an older registry.
-    var effective = EffectiveRange.of(detail.effectiveCompatibility(), detail.compatibility());
+    var ceiling = StringUtils.trimToNull(detail.compatibilityCeiling());
+    var effective = EffectiveRange.of(detail.effectiveCompatibility(), detail.compatibility(),
+        ceiling);
+    if (effective == null && ceiling != null) {
+      throw new ReportPortalException(ErrorType.MARKETPLACE_COMPATIBILITY_UNKNOWN,
+          "'" + registryId + ":" + version + "' is capped by the marketplace operator at '"
+              + ceiling + "', but the registry sent no effective range, so it is not installed on"
+              + " a guess");
+    }
     if (!productVersion.isKnown()) {
       throw new ReportPortalException(ErrorType.MARKETPLACE_COMPATIBILITY_UNKNOWN,
           "the ReportPortal release this instance runs is unknown (rp.product.version is not set),"

@@ -23,6 +23,10 @@ import org.apache.commons.lang3.StringUtils;
  * The ReportPortal range a version is judged by: the registry's {@code effectiveCompatibility}
  * (the author's range narrowed by any operator ceiling), or the author's {@code compatibility}
  * when the registry predates ceilings and sends no effective range.
+ *
+ * <p>A ceiling with no effective range is not that older registry, which never sends a ceiling.
+ * It is a registry answering inconsistently, and falling back to the author's range would ignore
+ * the ceiling, so the range is unknown.
  */
 public final class EffectiveRange {
 
@@ -33,11 +37,16 @@ public final class EffectiveRange {
   /**
    * @param effective the version's {@code effectiveCompatibility}, may be null
    * @param declared  the version's {@code compatibility}, may be null
-   * @return the range to evaluate, or null when neither is present — unknown, not compatible
+   * @param ceiling   the version's {@code compatibilityCeiling}, may be null
+   * @return the range to evaluate, or null when it is unknown — not compatible
    */
-  public static String of(MarketplaceCompatibility effective, MarketplaceCompatibility declared) {
+  public static String of(MarketplaceCompatibility effective, MarketplaceCompatibility declared,
+      String ceiling) {
     if (effective != null && StringUtils.isNotBlank(effective.reportportal())) {
       return effective.reportportal().trim();
+    }
+    if (StringUtils.isNotBlank(ceiling)) {
+      return null;
     }
     return declared == null ? null : StringUtils.trimToNull(declared.reportportal());
   }

@@ -361,6 +361,20 @@ class GetMarketplacePluginDetailHandlerTest {
     assertNull(versions.get(1).ceilingReason());
   }
 
+  @Test
+  void aCeilingWithNoEffectiveRangeLeavesTheRowUndecided() {
+    when(client.getPlugin("jira")).thenReturn(plugin("jira", "1.6.0", "public"));
+    when(client.listVersions("jira")).thenReturn(List.of(
+        new MarketplaceVersionSummary("1.6.0", WHEN, false, null, null,
+            new MarketplaceCompatibility(">=25.1"), null, null, "<26.0", "r")));
+
+    var version = handler.getPluginDetail("jira").versions().get(0);
+
+    assertNull(version.compatible());
+    assertNull(version.requires());
+    assertEquals("<26.0", version.ceiling());
+  }
+
   /** The instance not knowing its own release makes every row undecided, not every row bad. */
   @Test
   void anInstanceThatCannotNameItsReleaseDecidesNothing() {

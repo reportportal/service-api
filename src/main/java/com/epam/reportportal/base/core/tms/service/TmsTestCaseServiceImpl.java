@@ -18,6 +18,7 @@ import com.epam.reportportal.base.core.tms.dto.TmsTestCaseMetricsRS;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCasePreparationForImportResult;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseRS;
+import com.epam.reportportal.base.core.tms.pipeline.TmsAutomationStateService;
 import com.epam.reportportal.base.core.tms.dto.TmsTestFolderRS;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchDeleteTestCasesRQ;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchDuplicateTestCasesRQ;
@@ -100,6 +101,7 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
   private final TmsTestCaseActivityResourceMapper tmsTestCaseActivityResourceMapper;
   private final TmsTestCaseQualityService tmsTestCaseQualityService;
   private final TmsTestCaseReadyEligibilityService tmsTestCaseReadyEligibilityService;
+  private final TmsAutomationStateService tmsAutomationStateService;
 
   private TmsTestFolderService tmsTestFolderService;
   private TmsTestCaseExecutionService tmsTestCaseExecutionService;
@@ -160,6 +162,7 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
             tmsTestCaseExecutionService.getLastTestCaseExecution(testCaseId), metrics)
         : tmsTestCaseMapper.convert(testCase, defaultVersion, metrics);
     withUnsentReviewComments(Collections.singletonList(response));
+    withAutomationState(projectId, Collections.singletonList(response));
     return response;
   }
 
@@ -171,6 +174,16 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
     var unsentByCaseId = tmsTestCaseReadyEligibilityService.countUnsentComments(
         present.stream().map(TmsTestCaseRS::getId).filter(Objects::nonNull).toList());
     present.forEach(response -> response.setUnsentReviewComments(unsentByCaseId.get(response.getId())));
+  }
+
+  /**
+   * Sets {@code automationState} on the given responses; a project without a pipeline keeps it absent.
+   */
+  private void withAutomationState(long projectId, Collection<TmsTestCaseRS> responses) {
+    var present = responses.stream().filter(Objects::nonNull).toList();
+    var states = tmsAutomationStateService.statesFor(projectId,
+        present.stream().map(TmsTestCaseRS::getId).filter(Objects::nonNull).toList());
+    present.forEach(response -> response.setAutomationState(states.get(response.getId())));
   }
 
   @Override
@@ -784,6 +797,7 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
           testCaseIds.getTotalElements()
       );
       withUnsentReviewComments(page.getContent());
+      withAutomationState(projectId, page.getContent());
 
       return PagedResourcesAssembler
           .<TmsTestCaseRS>pageConverter()
@@ -1176,6 +1190,7 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
         (first, ignored) -> first
     ));
     withUnsentReviewComments(responsesById.values());
+    withAutomationState(projectId, responsesById.values());
     return responsesById;
   }
 

@@ -367,7 +367,8 @@ public class GetMarketplaceCatalogueHandlerImpl implements GetMarketplaceCatalog
    * next refresh would replace.
    *
    * <p>Invariant: an update below {@code latestVersion} is only offered when the row's
-   * {@code compatible} is not true.
+   * {@code compatible} is not true, or when the latest is blocked — a window of up to a minute,
+   * since the registry's listing never names a blocked version as latest.
    */
   private UpdateAvailableResource updateFor(MarketplacePlugin plugin, String installedVersion) {
     var latest = plugin.latestVersion();

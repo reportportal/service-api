@@ -279,7 +279,7 @@ public class InstallMarketplacePluginHandlerImpl implements InstallMarketplacePl
               + " a guess");
     }
     if (effective == null) {
-      // also a ceiling over an empty author range: the registry sends no effective range then
+      // also a ceiling over an empty author range, which the registry would not accept today
       throw new ReportPortalException(ErrorType.MARKETPLACE_COMPATIBILITY_UNKNOWN,
           "'" + registryId + ":" + version + "' declares no compatibility range, so it is not"
               + " installed on a guess");

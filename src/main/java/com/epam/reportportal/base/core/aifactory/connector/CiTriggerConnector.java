@@ -1,5 +1,6 @@
 package com.epam.reportportal.base.core.aifactory.connector;
 
+import com.epam.reportportal.base.core.aifactory.enums.CiConnectionReasonCode;
 import com.epam.reportportal.base.infrastructure.persistence.entity.aifactory.PipelineStage;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.Integration;
 
@@ -65,5 +66,22 @@ public interface CiTriggerConnector {
    */
   default CiRunRequest resolveRun(Integration integration, CiRunRequest request) {
     return request;
+  }
+
+  /**
+   * Checks that the CI accepts the integration's credential for its repository, without running anything.
+   * <p>
+   * Example: GitLab does not let a trigger token read the project, so the check asks it to start a pipeline on a
+   * git ref that does not exist: "Reference not found" means the token fits the project, "404" means it does not.
+   * Nothing is created in the CI. The jobs the integration names are not verified.
+   * <p>
+   * The default is "not supported", so a CI type without a check never reports a connection it did not verify.
+   *
+   * @param integration credentials/config for the system (token, repository)
+   * @return the verdict, never null
+   */
+  default CiConnectionCheck checkConnection(Integration integration) {
+    return CiConnectionCheck.failed(CiConnectionReasonCode.UNEXPECTED_RESPONSE,
+        "Connection test is not supported for " + getIntegrationTypeName());
   }
 }

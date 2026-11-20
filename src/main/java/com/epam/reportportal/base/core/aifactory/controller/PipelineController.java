@@ -3,6 +3,9 @@ package com.epam.reportportal.base.core.aifactory.controller;
 import static com.epam.reportportal.base.auth.permissions.Permissions.ALLOWED_TO_EDIT_PROJECT;
 import static com.epam.reportportal.base.auth.permissions.Permissions.ALLOWED_TO_VIEW_PROJECT;
 
+import com.epam.reportportal.base.core.aifactory.dto.PipelineCiConnectionRQ;
+import com.epam.reportportal.base.core.aifactory.dto.PipelineCiConnectionRS;
+import com.epam.reportportal.base.core.aifactory.dto.PipelineCiConnectionTestRS;
 import com.epam.reportportal.base.core.aifactory.dto.PipelineCompareRS;
 import com.epam.reportportal.base.core.aifactory.dto.PipelineIterationDetailRS;
 import com.epam.reportportal.base.core.aifactory.dto.PipelineIterationPatchRQ;
@@ -17,6 +20,7 @@ import com.epam.reportportal.base.core.aifactory.dto.PipelineTraceAttemptRS;
 import com.epam.reportportal.base.core.aifactory.dto.PipelineTraceRQ;
 import com.epam.reportportal.base.core.aifactory.dto.PipelineTraceRS;
 import com.epam.reportportal.base.core.aifactory.enums.StatusCategory;
+import com.epam.reportportal.base.core.aifactory.service.PipelineCiConnectionService;
 import com.epam.reportportal.base.core.aifactory.service.PipelineIterationFilter;
 import com.epam.reportportal.base.core.aifactory.service.PipelineIterationService;
 import com.epam.reportportal.base.core.aifactory.service.PipelineService;
@@ -45,6 +49,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -72,6 +77,7 @@ public class PipelineController {
   private final PipelineIterationService pipelineIterationService;
   private final PipelineStageRetryService pipelineStageRetryService;
   private final PipelineTraceService pipelineTraceService;
+  private final PipelineCiConnectionService pipelineCiConnectionService;
   private final ProjectExtractor projectExtractor;
 
   @GetMapping
@@ -126,6 +132,79 @@ public class PipelineController {
 
     var projectId = projectExtractor.extractMembershipDetails(user, EntityUtils.normalizeId(projectKey)).getProjectId();
     return pipelineService.patchPipelineSettings(projectId, pipelineId, rq);
+  }
+
+  @GetMapping("/{pipelineId}/ci-connection")
+  @ResponseStatus(HttpStatus.OK)
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
+  @Operation(summary = "Get the CI connection of a pipeline (Organization Manager / Administrator)",
+      description = "Repository, branch, jobs, models, environments, state and canStartJobs; the credential is never "
+          + "returned (credentialSaved says whether one is saved). A pipeline without a connection answers 200 with "
+          + "state NOT_CONNECTED. Editors read the safe part, ciConnection {state, canStartJobs}, from the pipeline.")
+  @ApiResponse(responseCode = "403", description = "Not an Organization Manager or Administrator")
+  public PipelineCiConnectionRS getPipelineCiConnection(
+      @PathVariable String projectKey,
+      @PathVariable Long pipelineId,
+      @AuthenticationPrincipal ReportPortalUser user) {
+
+    var membership = projectExtractor.extractMembershipDetails(user, EntityUtils.normalizeId(projectKey));
+    pipelineCiConnectionService.assertCanConfigure(user, membership);
+    return pipelineCiConnectionService.get(membership.getProjectId(), pipelineId);
+  }
+
+  @PutMapping("/{pipelineId}/ci-connection")
+  @ResponseStatus(HttpStatus.OK)
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
+  @Operation(summary = "Save the CI connection of a pipeline (Organization Manager / Administrator)",
+      description = "The first save creates the pipeline's own CI integration. The credential is write only; leave "
+          + "it out to keep the saved one. A save does not change the state: run Test connection afterwards. "
+          + "Answers with the same body as GET.")
+  @ApiResponse(responseCode = "400", description = "Repository is not an https URL, no jobs, empty or duplicate "
+      + "environments, no models for Test case generation")
+  @ApiResponse(responseCode = "403", description = "Not an Organization Manager or Administrator")
+  public PipelineCiConnectionRS putPipelineCiConnection(
+      @PathVariable String projectKey,
+      @PathVariable Long pipelineId,
+      @Valid @RequestBody PipelineCiConnectionRQ rq,
+      @AuthenticationPrincipal ReportPortalUser user) {
+
+    var membership = projectExtractor.extractMembershipDetails(user, EntityUtils.normalizeId(projectKey));
+    pipelineCiConnectionService.assertCanConfigure(user, membership);
+    return pipelineCiConnectionService.save(membership.getProjectId(), pipelineId, rq, user);
+  }
+
+  @DeleteMapping("/{pipelineId}/ci-connection/credential")
+  @ResponseStatus(HttpStatus.OK)
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
+  @Operation(summary = "Remove the saved CI credential (Organization Manager / Administrator)",
+      description = "The state becomes NOT_CONNECTED, so jobs cannot start until a credential is saved and tested.")
+  @ApiResponse(responseCode = "403", description = "Not an Organization Manager or Administrator")
+  public PipelineCiConnectionRS deletePipelineCiCredential(
+      @PathVariable String projectKey,
+      @PathVariable Long pipelineId,
+      @AuthenticationPrincipal ReportPortalUser user) {
+
+    var membership = projectExtractor.extractMembershipDetails(user, EntityUtils.normalizeId(projectKey));
+    pipelineCiConnectionService.assertCanConfigure(user, membership);
+    return pipelineCiConnectionService.deleteCredential(membership.getProjectId(), pipelineId, user);
+  }
+
+  @PostMapping("/{pipelineId}/ci-connection/test")
+  @ResponseStatus(HttpStatus.OK)
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
+  @Operation(summary = "Test the CI connection of a pipeline (Organization Manager / Administrator)",
+      description = "Always answers 200; a failed test is a verdict (state, reasonCode, reason), not an error. "
+          + "GitLab is asked to start a pipeline on a git ref that does not exist, which creates nothing; the jobs "
+          + "named in the connection are not verified. The verdict is kept as the pipeline's state.")
+  @ApiResponse(responseCode = "403", description = "Not an Organization Manager or Administrator")
+  public PipelineCiConnectionTestRS testPipelineCiConnection(
+      @PathVariable String projectKey,
+      @PathVariable Long pipelineId,
+      @AuthenticationPrincipal ReportPortalUser user) {
+
+    var membership = projectExtractor.extractMembershipDetails(user, EntityUtils.normalizeId(projectKey));
+    pipelineCiConnectionService.assertCanConfigure(user, membership);
+    return pipelineCiConnectionService.test(membership.getProjectId(), pipelineId);
   }
 
   @GetMapping("/{pipelineId}/iteration")

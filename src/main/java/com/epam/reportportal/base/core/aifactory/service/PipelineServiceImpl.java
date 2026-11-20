@@ -31,6 +31,7 @@ public class PipelineServiceImpl implements PipelineService {
   private final PipelineIterationRepository pipelineIterationRepository;
   private final PipelineMapper pipelineMapper;
   private final List<PipelineSettingsValidator> settingsValidators;
+  private final PipelineCiConnectionService ciConnectionService;
 
   @Override
   @Transactional(readOnly = true)
@@ -45,6 +46,8 @@ public class PipelineServiceImpl implements PipelineService {
     if (pipelineIds.isEmpty()) {
       return page.map(pipeline -> pipelineMapper.toPipelineRS(pipeline, 0));
     }
+    var ciConnections = page.getContent().stream()
+        .collect(Collectors.toMap(Pipeline::getId, ciConnectionService::summary));
 
     var iterationsCountByPipelineId = pipelineIterationRepository
         .countByPipelineIdIn(pipelineIds)
@@ -54,7 +57,7 @@ public class PipelineServiceImpl implements PipelineService {
             PipelineIterationRepository.PipelineIterationCount::getCount)
         );
     return page.map(pipeline -> pipelineMapper.toPipelineRS(pipeline,
-        iterationsCountByPipelineId.getOrDefault(pipeline.getId(), 0L)));
+        iterationsCountByPipelineId.getOrDefault(pipeline.getId(), 0L), ciConnections.get(pipeline.getId())));
   }
 
   @Override
@@ -66,6 +69,10 @@ public class PipelineServiceImpl implements PipelineService {
   @Transactional
   public PipelineRS patchPipelineSettings(Long projectId, Long pipelineId, PipelineSettingsRQ rq) {
     var pipeline = findPipelineOrThrow(projectId, pipelineId);
+    if (rq.getSettings().containsKey(PipelineCiConnectionService.SETTINGS_KEY)) {
+      throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
+          "'" + PipelineCiConnectionService.SETTINGS_KEY + "' is not a setting; use /ci-connection");
+    }
 
     var settings = new LinkedHashMap<String, Object>(
         pipeline.getSettings() == null ? Map.of() : pipeline.getSettings().getValues());
@@ -92,6 +99,6 @@ public class PipelineServiceImpl implements PipelineService {
 
   private PipelineRS toPipelineRS(Pipeline pipeline) {
     var iterationsCount = pipelineIterationRepository.countByPipelineId(pipeline.getId());
-    return pipelineMapper.toPipelineRS(pipeline, iterationsCount);
+    return pipelineMapper.toPipelineRS(pipeline, iterationsCount, ciConnectionService.summary(pipeline));
   }
 }

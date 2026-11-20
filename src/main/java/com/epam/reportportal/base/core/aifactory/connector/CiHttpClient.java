@@ -81,6 +81,30 @@ public class CiHttpClient implements DisposableBean {
     }
   }
 
+  /**
+   * Like {@link #postForStatus} but an error status is an answer, not a failure: the caller reads the status.
+   * Used to check a connection, where "404" or "400 Reference not found" are exactly what is being looked for.
+   * <p>
+   * Example: a trigger request with a ref that does not exist returns {@code CiHttpResponse(400, "...Reference
+   * not found...")}.
+   *
+   * @throws CiUnreachableException when no answer came at all
+   */
+  public CiHttpResponse postForResponse(String url, Map<String, String> headers, String jsonBody) {
+    validateHttpsUrl(url);
+    var request = new HttpPost(url);
+    headers.forEach(request::setHeader);
+    request.setHeader("Accept", "application/json");
+    request.setEntity(new StringEntity(jsonBody, ContentType.APPLICATION_JSON));
+
+    try (CloseableHttpResponse response = httpClient.execute(request)) {
+      String body = response.getEntity() == null ? "" : EntityUtils.toString(response.getEntity());
+      return new CiHttpResponse(response.getCode(), body);
+    } catch (IOException | ParseException e) {
+      throw new CiUnreachableException("No answer from the CI: " + e.getMessage());
+    }
+  }
+
   private void validateHttpsUrl(String url) {
     try {
       URI uri = new URI(url);

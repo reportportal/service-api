@@ -4,6 +4,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.contains;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -15,7 +18,6 @@ import com.epam.reportportal.base.core.aifactory.dto.PipelineStageRetryRQ;
 import com.epam.reportportal.base.core.aifactory.enums.StageOwner;
 import com.epam.reportportal.base.core.aifactory.enums.StatusCategory;
 import com.epam.reportportal.base.core.aifactory.event.PipelineStageRetryRequestedEvent;
-import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.aifactory.PipelineStageAttemptRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.aifactory.PipelineStageRepository;
 import com.epam.reportportal.base.core.aifactory.model.PipelineExecution;
@@ -54,7 +56,7 @@ class PipelineStageRetryServiceImplTest {
   @Mock
   private PipelineIterationRefresher iterationRefresher;
   @Mock
-  private IntegrationRepository integrationRepository;
+  private PipelineCiConnectionService ciConnectionService;
   @Mock
   private ApplicationEventPublisher eventPublisher;
   @Mock
@@ -73,7 +75,7 @@ class PipelineStageRetryServiceImplTest {
     when(githubConnector.getSupportedExecutorType()).thenReturn("GITHUB_ACTIONS");
 
     sut = new PipelineStageRetryServiceImpl(pipelineStageRepository, pipelineStageAttemptRepository,
-        iterationRefresher, integrationRepository, eventPublisher, List.of(githubConnector), transactionManager);
+        iterationRefresher, ciConnectionService, eventPublisher, List.of(githubConnector), transactionManager);
 
     var project = new Project();
     project.setId(1L);
@@ -242,7 +244,8 @@ class PipelineStageRetryServiceImplTest {
   @Test
   void retryStage_WhenNoEnabledIntegration_ShouldThrowBadRequestWithoutTriggeringConnector() {
     when(pipelineStageRepository.findByIdForUpdate(4L)).thenReturn(Optional.of(stage));
-    when(integrationRepository.findAllProjectByGroup(any(), any())).thenReturn(List.of());
+    when(ciConnectionService.integrationFor(any(), any()))
+        .thenThrow(new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "No enabled integration"));
 
     assertThrows(ReportPortalException.class, () -> sut.retryPipelineIterationStage(1L, 9L, 3L, 4L, null));
 
@@ -250,10 +253,44 @@ class PipelineStageRetryServiceImplTest {
     verify(pipelineStageRepository, never()).save(any());
   }
 
+  @Test
+  void retryStage_WhenThePipelineIsNotConnected_ShouldRefuseBeforeTouchingTheStage() {
+    when(pipelineStageRepository.findByIdForUpdate(4L)).thenReturn(Optional.of(stage));
+    doThrow(new ReportPortalException(ErrorType.CI_NOT_CONNECTED, "CONNECTION_FAILED"))
+        .when(ciConnectionService).assertCanStartJobs(any());
+
+    var thrown = assertThrows(ReportPortalException.class,
+        () -> sut.retryPipelineIterationStage(1L, 9L, 3L, 4L, null));
+
+    assertEquals(ErrorType.CI_NOT_CONNECTED.getCode(), thrown.getErrorType().getCode());
+    verify(githubConnector, never()).triggerStageRerun(any(), any());
+    verify(pipelineStageRepository, never()).save(any());
+  }
+
+  @Test
+  void retryStage_WhenTheCiAcceptsTheStart_ShouldRecordItAsProofOfTheConnection() {
+    stubClaim();
+    when(githubConnector.triggerStageRerun(any(), any())).thenReturn("https://ci/run/1");
+
+    sut.retryPipelineIterationStage(1L, 9L, 3L, 4L, null);
+
+    verify(ciConnectionService).recordJobStart(2L, null);
+  }
+
+  @Test
+  void retryStage_WhenTheCiRefusesTheStart_ShouldRecordTheFailureAndRethrow() {
+    stubClaim();
+    when(githubConnector.triggerStageRerun(any(), any()))
+        .thenThrow(new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "HTTP code: 404"));
+
+    assertThrows(ReportPortalException.class, () -> sut.retryPipelineIterationStage(1L, 9L, 3L, 4L, null));
+
+    verify(ciConnectionService).recordJobStart(eq(2L), contains("404"));
+  }
+
   private void stubClaim() {
     when(pipelineStageRepository.findByIdForUpdate(4L)).thenReturn(Optional.of(stage));
     lenient().when(pipelineStageRepository.findById(4L)).thenReturn(Optional.of(stage));
-    when(integrationRepository.findAllProjectByGroup(any(), any())).thenReturn(List.of(integration));
-    when(githubConnector.getIntegrationTypeName()).thenReturn("github-actions");
+    when(ciConnectionService.integrationFor(any(), any())).thenReturn(integration);
   }
 }

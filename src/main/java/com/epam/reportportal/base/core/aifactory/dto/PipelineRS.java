@@ -27,6 +27,10 @@ public class PipelineRS {
   private List<PipelineAttribute> attributes;
   @Schema(description = "Settings read by the behaviour plugged into the pipeline, e.g. {\"autoReady\": {\"enabled\": true, \"threshold\": 90}}")
   private Map<String, Object> settings;
+  @Schema(description = "Whether the pipeline can start jobs in its CI; the UI disables Push to agent, Retry, Re-run "
+      + "and Automate when canStartJobs is false. The full connection is read by Organization Managers and "
+      + "Administrators from /pipeline/{id}/ci-connection")
+  private PipelineCiConnectionSummaryRS ciConnection;
   @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
   private long iterationsCount;
   private Instant createdAt;

@@ -6,14 +6,11 @@ import com.epam.reportportal.base.core.aifactory.dto.PipelineStageRetryRS;
 import com.epam.reportportal.base.core.aifactory.enums.StageOwner;
 import com.epam.reportportal.base.core.aifactory.enums.StatusCategory;
 import com.epam.reportportal.base.core.aifactory.event.PipelineStageRetryRequestedEvent;
-import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.aifactory.PipelineStageAttemptRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.aifactory.PipelineStageRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.aifactory.PipelineStage;
 import com.epam.reportportal.base.infrastructure.persistence.entity.aifactory.PipelineStageAttempt;
-import com.epam.reportportal.base.infrastructure.persistence.entity.enums.IntegrationGroupEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.Integration;
-import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import java.time.Instant;
@@ -35,7 +32,7 @@ public class PipelineStageRetryServiceImpl implements PipelineStageRetryService 
   private final PipelineStageRepository pipelineStageRepository;
   private final PipelineStageAttemptRepository pipelineStageAttemptRepository;
   private final PipelineIterationRefresher iterationRefresher;
-  private final IntegrationRepository integrationRepository;
+  private final PipelineCiConnectionService ciConnectionService;
   private final ApplicationEventPublisher eventPublisher;
   private final Map<String, CiTriggerConnector> connectorsByType;
   private final TransactionTemplate transactionTemplate;
@@ -43,14 +40,14 @@ public class PipelineStageRetryServiceImpl implements PipelineStageRetryService 
   public PipelineStageRetryServiceImpl(PipelineStageRepository pipelineStageRepository,
       PipelineStageAttemptRepository pipelineStageAttemptRepository,
       PipelineIterationRefresher iterationRefresher,
-      IntegrationRepository integrationRepository,
+      PipelineCiConnectionService ciConnectionService,
       ApplicationEventPublisher eventPublisher,
       List<CiTriggerConnector> connectors,
       PlatformTransactionManager transactionManager) {
     this.pipelineStageRepository = pipelineStageRepository;
     this.pipelineStageAttemptRepository = pipelineStageAttemptRepository;
     this.iterationRefresher = iterationRefresher;
-    this.integrationRepository = integrationRepository;
+    this.ciConnectionService = ciConnectionService;
     this.eventPublisher = eventPublisher;
     this.connectorsByType = connectors
         .stream()
@@ -79,8 +76,10 @@ public class PipelineStageRetryServiceImpl implements PipelineStageRetryService 
       transactionTemplate.executeWithoutResult(
           status -> releaseClaim(stageId, iterationId, projectId, resolved.previousStatus(),
               resolved.previousCategory()));
+      ciConnectionService.recordJobStart(resolved.pipelineId(), String.valueOf(e.getMessage()));
       throw e;
     }
+    ciConnectionService.recordJobStart(resolved.pipelineId(), null);
 
     var comment = rq == null ? null : rq.getComment();
     return transactionTemplate.execute(
@@ -112,13 +111,15 @@ public class PipelineStageRetryServiceImpl implements PipelineStageRetryService 
           "Nothing can run a stage of execution type '" + execution.getExecutorType() + "' again");
     }
 
-    var project = stage.getIteration().getPipeline().getProject();
-    var integration = resolveIntegration(project, connector);
+    var pipeline = stage.getIteration().getPipeline();
+    ciConnectionService.assertCanStartJobs(pipeline);
+    var integration = ciConnectionService.integrationFor(pipeline, connector);
 
     var previousStatus = stage.getStatus();
     var finishedAttempt = PipelineStageAttempt.snapshotOf(stage);
     setStageStatus(stage, PENDING_STATUS, StatusCategory.PENDING);
-    return new ResolvedStageForRetry(stage, integration, connector, previousStatus, category, finishedAttempt);
+    return new ResolvedStageForRetry(stage, pipeline.getId(), integration, connector, previousStatus, category,
+        finishedAttempt);
   }
 
   private void releaseClaim(Long stageId, Long iterationId, Long projectId, String previousStatus,
@@ -166,16 +167,8 @@ public class PipelineStageRetryServiceImpl implements PipelineStageRetryService 
         .orElseThrow(() -> new ReportPortalException(ErrorType.NOT_FOUND, "Pipeline stage '" + stageId + "'"));
   }
 
-  private Integration resolveIntegration(Project project, CiTriggerConnector connector) {
-    var typeName = connector.getIntegrationTypeName();
-    return integrationRepository.findAllProjectByGroup(project, IntegrationGroupEnum.AUTOMATION).stream()
-        .filter(i -> i.isEnabled() && i.getType() != null && typeName.equalsIgnoreCase(i.getType().getName()))
-        .findFirst()
-        .orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
-            "No enabled '" + typeName + "' automation integration configured for this project"));
-  }
-
-  private record ResolvedStageForRetry(PipelineStage stage, Integration integration, CiTriggerConnector connector,
-                                       String previousStatus, StatusCategory previousCategory,
+  private record ResolvedStageForRetry(PipelineStage stage, Long pipelineId, Integration integration,
+                                       CiTriggerConnector connector, String previousStatus,
+                                       StatusCategory previousCategory,
                                        PipelineStageAttempt finishedAttempt) {}
 }

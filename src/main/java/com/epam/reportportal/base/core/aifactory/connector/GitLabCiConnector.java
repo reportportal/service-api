@@ -1,11 +1,13 @@
 package com.epam.reportportal.base.core.aifactory.connector;
 
+import com.epam.reportportal.base.core.aifactory.enums.CiConnectionReasonCode;
 import com.epam.reportportal.base.infrastructure.persistence.entity.aifactory.PipelineStage;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.Integration;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriUtils;
@@ -32,6 +34,8 @@ public class GitLabCiConnector extends AbstractCiTriggerConnector {
   private static final String REF_PARAM = "workflowRef";
   private static final String INTEGRATION_REF_PARAM = "ref";
   private static final String DEFAULT_REF = "main";
+  /** Prefix of the git ref used by the connection test; no branch is ever called like this. */
+  private static final String CHECK_REF_PREFIX = "rp-connection-check-";
 
   private final CiHttpClient ciHttpClient;
   private final ObjectMapper objectMapper;
@@ -127,6 +131,66 @@ public class GitLabCiConnector extends AbstractCiTriggerConnector {
 
     var responseBody = ciHttpClient.postForStatus(url, Collections.emptyMap(), body.toString());
     return extractPipelineUrl(responseBody, effectiveBaseUrl + "/api/v4/projects/" + projectId + "/pipelines");
+  }
+
+  /**
+   * A trigger token cannot read the project or its jobs, so the connection is checked by asking GitLab to start a
+   * pipeline on a git ref that does not exist. GitLab checks the token and the project first and creates nothing:
+   * <ul>
+   *   <li>400 "Reference not found": the token fits the project, connected;</li>
+   *   <li>404 (also 401/403): no such project, or the token does not fit it - GitLab answers the same for both;</li>
+   *   <li>5xx or no answer: unreachable;</li>
+   *   <li>anything else (a 2xx would mean a pipeline was created): unexpected, with status and message.</li>
+   * </ul>
+   * Example: project {@code EPM-RPP/rp-tests} with a good token -> connected; the same with a wrong token ->
+   * {@code REPOSITORY_OR_CREDENTIAL_INVALID}.
+   */
+  @Override
+  public CiConnectionCheck checkConnection(Integration integration) {
+    var token = stringParam(integration, TOKEN_PARAM);
+    var configuredProject = stringParam(integration, PROJECT_ID_PARAM);
+    if (token == null || token.isBlank() || configuredProject == null || configuredProject.isBlank()) {
+      return CiConnectionCheck.failed(CiConnectionReasonCode.NO_CREDENTIAL, "No credential or repository is saved");
+    }
+    var baseUrl = stringParam(integration, BASE_URL_PARAM);
+    var effectiveBaseUrl = baseUrl == null || baseUrl.isBlank() ? DEFAULT_BASE_URL : baseUrl;
+    var url = effectiveBaseUrl + "/api/v4/projects/" + UriUtils.encodePathSegment(configuredProject,
+        StandardCharsets.UTF_8) + "/trigger/pipeline";
+
+    ObjectNode body = objectMapper.createObjectNode();
+    body.put("token", token);
+    body.put("ref", CHECK_REF_PREFIX + UUID.randomUUID());
+
+    CiHttpResponse response;
+    try {
+      response = ciHttpClient.postForResponse(url, Collections.emptyMap(), body.toString());
+    } catch (CiUnreachableException e) {
+      return CiConnectionCheck.failed(CiConnectionReasonCode.UNREACHABLE, e.getMessage());
+    } catch (ReportPortalException e) {
+      return CiConnectionCheck.failed(CiConnectionReasonCode.UNEXPECTED_RESPONSE, e.getMessage());
+    }
+
+    var status = response.status();
+    if (status == 400 && response.body() != null && response.body().contains("Reference not found")) {
+      return CiConnectionCheck.ok();
+    }
+    if (status == 404 || status == 401 || status == 403) {
+      return CiConnectionCheck.failed(CiConnectionReasonCode.REPOSITORY_OR_CREDENTIAL_INVALID,
+          "GitLab does not know this project or does not accept the credential for it (HTTP " + status + ")");
+    }
+    if (status >= 500) {
+      return CiConnectionCheck.failed(CiConnectionReasonCode.UNREACHABLE, "GitLab answered HTTP " + status);
+    }
+    return CiConnectionCheck.failed(CiConnectionReasonCode.UNEXPECTED_RESPONSE,
+        "GitLab answered HTTP " + status + ": " + shortened(response.body(), token));
+  }
+
+  private static String shortened(String text, String secret) {
+    if (text == null) {
+      return "";
+    }
+    var withoutSecret = text.replace(secret, "***");
+    return withoutSecret.length() <= 200 ? withoutSecret : withoutSecret.substring(0, 200) + "...";
   }
 
   /**

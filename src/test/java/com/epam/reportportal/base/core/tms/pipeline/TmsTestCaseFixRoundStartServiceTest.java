@@ -5,6 +5,9 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.contains;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -14,7 +17,7 @@ import static org.mockito.Mockito.when;
 import com.epam.reportportal.base.core.aifactory.connector.CiRunRequest;
 import com.epam.reportportal.base.core.aifactory.connector.CiTriggerConnector;
 import com.epam.reportportal.base.core.aifactory.model.PipelineExecution;
-import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationRepository;
+import com.epam.reportportal.base.core.aifactory.service.PipelineCiConnectionService;
 import com.epam.reportportal.base.infrastructure.persistence.dao.aifactory.PipelineIterationRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.aifactory.PipelineStageRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.PipelineStageTestCaseRepository;
@@ -25,7 +28,6 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.aifactory.Pi
 import com.epam.reportportal.base.infrastructure.persistence.entity.aifactory.PipelineExecutionData;
 import com.epam.reportportal.base.infrastructure.persistence.entity.aifactory.PipelineIteration;
 import com.epam.reportportal.base.infrastructure.persistence.entity.aifactory.PipelineStage;
-import com.epam.reportportal.base.infrastructure.persistence.entity.enums.IntegrationGroupEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.Integration;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationType;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
@@ -71,7 +73,7 @@ class TmsTestCaseFixRoundStartServiceTest {
   @Mock
   private PipelineStageRepository stageRepository;
   @Mock
-  private IntegrationRepository integrationRepository;
+  private PipelineCiConnectionService ciConnectionService;
   @Mock
   private PlatformTransactionManager transactionManager;
   @Mock
@@ -88,7 +90,7 @@ class TmsTestCaseFixRoundStartServiceTest {
     lenient().when(transactionManager.getTransaction(any())).thenReturn(mock(TransactionStatus.class));
     when(githubConnector.getSupportedExecutorType()).thenReturn("GITHUB_ACTIONS");
     sut = new TmsTestCaseFixRoundStartService(testCaseRepository, commentRepository, fixRoundRepository,
-        stageTestCaseRepository, iterationRepository, stageRepository, integrationRepository,
+        stageTestCaseRepository, iterationRepository, stageRepository, ciConnectionService,
         List.of(githubConnector), transactionManager);
 
     aiCase = new TmsTestCase();
@@ -123,8 +125,7 @@ class TmsTestCaseFixRoundStartServiceTest {
     integration = new Integration();
     integration.setEnabled(true);
     integration.setType(type);
-    when(githubConnector.getIntegrationTypeName()).thenReturn("github-actions");
-    when(integrationRepository.findAllProjectByGroup(project, IntegrationGroupEnum.AUTOMATION)).thenReturn(List.of(integration));
+    lenient().when(ciConnectionService.integrationFor(pipeline, githubConnector)).thenReturn(integration);
     // a connector with nothing to fill in hands the request back
     lenient().when(githubConnector.resolveRun(any(), any())).thenAnswer(call -> call.getArgument(1));
   }
@@ -209,6 +210,36 @@ class TmsTestCaseFixRoundStartServiceTest {
     assertEquals(TmsReviewCommentState.NOT_SENT, unsent.getState());
     assertNull(unsent.getFixRoundId());
     verify(fixRoundRepository).deleteById(7L);
+    verify(ciConnectionService).recordJobStart(any(), contains("CI is down"));
+  }
+
+  @Test
+  void start_WhenThePipelineIsNotConnected_ShouldRefuseBeforeRecordingAnyRound() {
+    givenTheCaseHasUnsentComments();
+    givenAnIterationWithCiAndAnIntegration();
+    doThrow(new ReportPortalException(ErrorType.CI_NOT_CONNECTED, "CONNECTION_FAILED"))
+        .when(ciConnectionService).assertCanStartJobs(any());
+
+    var ex = assertThrows(ReportPortalException.class, () -> sut.start(PROJECT_ID, TEST_CASE_ID, USER_ID));
+
+    assertEquals(ErrorType.CI_NOT_CONNECTED.getCode(), ex.getErrorType().getCode());
+    verify(fixRoundRepository, never()).saveAndFlush(any());
+    verify(githubConnector, never()).triggerRun(any(), any());
+    assertEquals(TmsReviewCommentState.NOT_SENT, unsent.getState());
+  }
+
+  @Test
+  void start_WhenTheCiAcceptsTheJob_ShouldRecordItAsProofOfTheConnection() {
+    givenTheCaseHasUnsentComments();
+    givenAnIterationWithCiAndAnIntegration();
+    givenTheRoundIsSaved();
+    when(githubConnector.triggerRun(any(), any())).thenReturn("url");
+    when(fixRoundRepository.findById(7L)).thenAnswer(call -> Optional.of(new TmsTestCaseFixRound()));
+    when(commentRepository.findByFixRoundId(7L)).thenReturn(List.of());
+
+    sut.start(PROJECT_ID, TEST_CASE_ID, USER_ID);
+
+    verify(ciConnectionService).recordJobStart(any(), isNull());
   }
 
   @Test
@@ -297,7 +328,8 @@ class TmsTestCaseFixRoundStartServiceTest {
   void start_WithoutAnEnabledIntegration_ShouldBeRejected() {
     givenTheCaseHasUnsentComments();
     givenAnIterationWithCiAndAnIntegration();
-    integration.setEnabled(false);
+    when(ciConnectionService.integrationFor(any(), any()))
+        .thenThrow(new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "No enabled integration"));
 
     var ex = assertThrows(ReportPortalException.class, () -> sut.start(PROJECT_ID, TEST_CASE_ID, USER_ID));
 

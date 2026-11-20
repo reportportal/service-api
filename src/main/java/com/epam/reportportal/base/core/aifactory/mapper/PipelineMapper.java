@@ -1,5 +1,6 @@
 package com.epam.reportportal.base.core.aifactory.mapper;
 
+import com.epam.reportportal.base.core.aifactory.dto.PipelineCiConnectionSummaryRS;
 import com.epam.reportportal.base.core.aifactory.dto.PipelineIterationDetailRS;
 import com.epam.reportportal.base.core.aifactory.dto.PipelineIterationRefRS;
 import com.epam.reportportal.base.core.aifactory.dto.PipelineIterationSummaryRS;
@@ -16,6 +17,7 @@ import com.epam.reportportal.base.core.aifactory.model.PipelineAttribute;
 import com.epam.reportportal.base.core.aifactory.model.PipelineExecution;
 import com.epam.reportportal.base.core.aifactory.model.PipelineLink;
 import com.epam.reportportal.base.core.aifactory.model.PipelineSection;
+import com.epam.reportportal.base.core.aifactory.service.PipelineCiConnectionService;
 import com.epam.reportportal.base.infrastructure.persistence.entity.aifactory.Pipeline;
 import com.epam.reportportal.base.infrastructure.persistence.entity.aifactory.PipelineAttributes;
 import com.epam.reportportal.base.infrastructure.persistence.entity.aifactory.PipelineRawOutput;
@@ -42,13 +44,33 @@ import org.springframework.stereotype.Component;
 public class PipelineMapper {
 
   public PipelineRS toPipelineRS(Pipeline pipeline, long iterationsCount) {
+    return toPipelineRS(pipeline, iterationsCount, null);
+  }
+
+  /**
+   * The {@code ciConnection} entry of the settings is the backend's own record (integration id, verdict), not a
+   * setting a client reads or writes, so it is left out of {@code settings}; the safe part is {@code ciConnection}.
+   * <p>
+   * Example: settings {@code {"autoReady": {...}, "ciConnection": {"integrationId": 7, ...}}} come out as settings
+   * {@code {"autoReady": {...}}} plus {@code ciConnection {"state": "CONNECTED", "canStartJobs": true}}.
+   */
+  public PipelineRS toPipelineRS(Pipeline pipeline, long iterationsCount, PipelineCiConnectionSummaryRS ciConnection) {
+    Map<String, Object> settings = null;
+    if (pipeline.getSettings() != null) {
+      settings = new java.util.LinkedHashMap<>(pipeline.getSettings().getValues());
+      settings.remove(PipelineCiConnectionService.SETTINGS_KEY);
+      if (settings.isEmpty()) {
+        settings = null;
+      }
+    }
     return PipelineRS.builder()
         .id(pipeline.getId())
         .name(pipeline.getName())
         .type(pipeline.getType())
         .description(pipeline.getDescription())
         .attributes(attributeList(pipeline.getAttributes()))
-        .settings(pipeline.getSettings() == null ? null : pipeline.getSettings().getValues())
+        .settings(settings)
+        .ciConnection(ciConnection)
         .iterationsCount(iterationsCount)
         .createdAt(pipeline.getCreatedAt())
         .build();

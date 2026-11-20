@@ -72,6 +72,7 @@ public class StatusCodeMapping {
       put(ErrorType.PIPELINE_STAGE_RETRY_CONFLICT, HttpStatus.CONFLICT);
       put(ErrorType.IDEMPOTENCY_KEY_CONFLICT, HttpStatus.CONFLICT);
       put(ErrorType.TEST_CASE_REVIEW_CONFLICT, HttpStatus.CONFLICT);
+      put(ErrorType.CI_NOT_CONNECTED, HttpStatus.CONFLICT);
       put(ErrorType.USER_FILTER_ALREADY_EXISTS, HttpStatus.CONFLICT);
       put(ErrorType.ROLE_ALREADY_EXISTS_ERROR, HttpStatus.CONFLICT);
 

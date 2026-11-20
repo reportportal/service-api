@@ -7,18 +7,16 @@ import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorTyp
 import com.epam.reportportal.base.core.aifactory.connector.CiRunRequest;
 import com.epam.reportportal.base.core.aifactory.connector.CiTriggerConnector;
 import com.epam.reportportal.base.core.aifactory.model.PipelineExecution;
+import com.epam.reportportal.base.core.aifactory.service.PipelineCiConnectionService;
 import com.epam.reportportal.base.core.tms.dto.TmsFixRoundRS;
 import com.epam.reportportal.base.core.tms.mapper.TmsReviewCommentMapper;
-import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.aifactory.PipelineIterationRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.aifactory.PipelineStageRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.PipelineStageTestCaseRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestCaseFixRoundRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestCaseRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestCaseReviewCommentRepository;
-import com.epam.reportportal.base.infrastructure.persistence.entity.enums.IntegrationGroupEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.Integration;
-import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCase;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCaseFixRound;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCaseReviewComment;
@@ -65,7 +63,7 @@ public class TmsTestCaseFixRoundStartService {
   private final PipelineStageTestCaseRepository stageTestCaseRepository;
   private final PipelineIterationRepository iterationRepository;
   private final PipelineStageRepository stageRepository;
-  private final IntegrationRepository integrationRepository;
+  private final PipelineCiConnectionService ciConnectionService;
   private final Map<String, CiTriggerConnector> connectorsByType;
   private final TransactionTemplate transactionTemplate;
 
@@ -75,7 +73,7 @@ public class TmsTestCaseFixRoundStartService {
       PipelineStageTestCaseRepository stageTestCaseRepository,
       PipelineIterationRepository iterationRepository,
       PipelineStageRepository stageRepository,
-      IntegrationRepository integrationRepository,
+      PipelineCiConnectionService ciConnectionService,
       List<CiTriggerConnector> connectors,
       PlatformTransactionManager transactionManager) {
     this.testCaseRepository = testCaseRepository;
@@ -84,7 +82,7 @@ public class TmsTestCaseFixRoundStartService {
     this.stageTestCaseRepository = stageTestCaseRepository;
     this.iterationRepository = iterationRepository;
     this.stageRepository = stageRepository;
-    this.integrationRepository = integrationRepository;
+    this.ciConnectionService = ciConnectionService;
     this.connectorsByType = connectors.stream()
         .collect(Collectors.toMap(CiTriggerConnector::getSupportedExecutorType, Function.identity()));
     this.transactionTemplate = new TransactionTemplate(transactionManager);
@@ -104,8 +102,10 @@ public class TmsTestCaseFixRoundStartService {
       workflowUrl = claimed.connector().triggerRun(claimed.integration(), claimed.runRequest());
     } catch (RuntimeException e) {
       transactionTemplate.executeWithoutResult(status -> release(claimed.roundId()));
+      ciConnectionService.recordJobStart(claimed.pipelineId(), String.valueOf(e.getMessage()));
       throw e;
     }
+    ciConnectionService.recordJobStart(claimed.pipelineId(), null);
     return transactionTemplate.execute(status -> recordStarted(claimed.roundId(), workflowUrl));
   }
 
@@ -145,8 +145,9 @@ public class TmsTestCaseFixRoundStartService {
     var previousIterationId = findIterationThatProduced(testCaseId);
     var execution = findCiExecution(previousIterationId);
     var connector = connectorsByType.get(execution.getExecutorType());
-    var project = iterationRepository.findById(previousIterationId).orElseThrow().getPipeline().getProject();
-    var integration = resolveIntegration(project, connector);
+    var pipeline = iterationRepository.findById(previousIterationId).orElseThrow().getPipeline();
+    ciConnectionService.assertCanStartJobs(pipeline);
+    var integration = ciConnectionService.integrationFor(pipeline, connector);
     // Refuse before anything is recorded: a run that cannot start (wrong project, no token) leaves no round behind
     var parameters = execution.getRetryParameters();
     var resolvedRun = connector.resolveRun(integration,
@@ -176,7 +177,7 @@ public class TmsTestCaseFixRoundStartService {
     inputs.put(INPUT_FIX_ROUND_ID, String.valueOf(round.getId()));
     inputs.put(INPUT_PREVIOUS_ITERATION_ID, String.valueOf(previousIterationId));
     var runRequest = new CiRunRequest(resolvedRun.repo(), resolvedRun.workflowRef(), inputs);
-    return new Claimed(round.getId(), connector, integration, runRequest);
+    return new Claimed(round.getId(), pipeline.getId(), connector, integration, runRequest);
   }
 
   private void assertCanStartRound(TmsTestCase testCase) {
@@ -213,15 +214,6 @@ public class TmsTestCaseFixRoundStartService {
         .findFirst()
         .orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR,
             "The pipeline is not connected to CI: none of the stages of its iteration tells where it ran"));
-  }
-
-  private Integration resolveIntegration(Project project, CiTriggerConnector connector) {
-    var typeName = connector.getIntegrationTypeName();
-    return integrationRepository.findAllProjectByGroup(project, IntegrationGroupEnum.AUTOMATION).stream()
-        .filter(i -> i.isEnabled() && i.getType() != null && typeName.equalsIgnoreCase(i.getType().getName()))
-        .findFirst()
-        .orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR,
-            "No enabled '" + typeName + "' automation integration configured for this project"));
   }
 
   /**
@@ -262,6 +254,7 @@ public class TmsTestCaseFixRoundStartService {
         .build();
   }
 
-  private record Claimed(Long roundId, CiTriggerConnector connector, Integration integration, CiRunRequest runRequest) {
+  private record Claimed(Long roundId, Long pipelineId, CiTriggerConnector connector, Integration integration,
+                         CiRunRequest runRequest) {
   }
 }

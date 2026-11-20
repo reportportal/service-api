@@ -5,11 +5,14 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.epam.reportportal.base.core.aifactory.dto.PipelineCiConnectionSummaryRS;
 import com.epam.reportportal.base.core.aifactory.dto.PipelineRS;
+import com.epam.reportportal.base.core.aifactory.enums.CiConnectionState;
 import com.epam.reportportal.base.core.aifactory.dto.PipelineSettingsRQ;
 import com.epam.reportportal.base.core.aifactory.mapper.PipelineMapper;
 import com.epam.reportportal.base.infrastructure.persistence.dao.aifactory.PipelineIterationRepository;
@@ -47,11 +50,16 @@ class PipelineServiceImplTest {
   private PipelineMapper pipelineMapper;
   @Mock
   private PipelineSettingsValidator settingsValidator;
+  @Mock
+  private PipelineCiConnectionService ciConnectionService;
   @Spy
   private List<PipelineSettingsValidator> settingsValidators = new ArrayList<>();
 
   @InjectMocks
   private PipelineServiceImpl sut;
+
+  private static final PipelineCiConnectionSummaryRS CONNECTED =
+      PipelineCiConnectionSummaryRS.builder().state(CiConnectionState.CONNECTED).canStartJobs(true).build();
 
   private Long projectId;
   private Long pipelineId;
@@ -70,13 +78,24 @@ class PipelineServiceImplTest {
     pipeline.setId(pipelineId);
     pipeline.setProject(project);
     pipeline.setName("factory-tc-gen");
+
+    lenient().when(ciConnectionService.summary(pipeline)).thenReturn(CONNECTED);
   }
 
   private void givenPipelineIsSaved(PipelineRS expected) {
     when(pipelineRepository.findById(pipelineId)).thenReturn(Optional.of(pipeline));
     when(pipelineRepository.save(pipeline)).thenReturn(pipeline);
     when(pipelineIterationRepository.countByPipelineId(pipelineId)).thenReturn(0L);
-    when(pipelineMapper.toPipelineRS(pipeline, 0L)).thenReturn(expected);
+    when(pipelineMapper.toPipelineRS(pipeline, 0L, CONNECTED)).thenReturn(expected);
+  }
+
+  @Test
+  void patchSettings_ShouldRefuseTheBackendsOwnCiConnectionRecord() {
+    when(pipelineRepository.findById(pipelineId)).thenReturn(Optional.of(pipeline));
+    var rq = PipelineSettingsRQ.builder().settings(Map.of("ciConnection", Map.of("state", "CONNECTED"))).build();
+
+    assertThrows(ReportPortalException.class, () -> sut.patchPipelineSettings(projectId, pipelineId, rq));
+    verify(pipelineRepository, never()).save(any());
   }
 
   @Test
@@ -163,7 +182,7 @@ class PipelineServiceImplTest {
         .thenReturn(page);
     when(pipelineIterationRepository.countByPipelineIdIn(List.of(pipelineId)))
         .thenReturn(List.of(iterationCount(pipelineId, 3L)));
-    when(pipelineMapper.toPipelineRS(pipeline, 3L)).thenReturn(expectedRS);
+    when(pipelineMapper.toPipelineRS(pipeline, 3L, CONNECTED)).thenReturn(expectedRS);
 
     var result = sut.getPipelines(projectId, null, null, offsetRequest);
 
@@ -178,7 +197,7 @@ class PipelineServiceImplTest {
     when(pipelineRepository.findAll(org.mockito.ArgumentMatchers.<Specification<Pipeline>>any(), any(Pageable.class)))
         .thenReturn(page);
     when(pipelineIterationRepository.countByPipelineIdIn(List.of(pipelineId))).thenReturn(List.of());
-    when(pipelineMapper.toPipelineRS(pipeline, 0L)).thenReturn(expectedRS);
+    when(pipelineMapper.toPipelineRS(pipeline, 0L, CONNECTED)).thenReturn(expectedRS);
 
     var result = sut.getPipelines(projectId, null, null, new OffsetRequest(0, 50));
 
@@ -190,7 +209,7 @@ class PipelineServiceImplTest {
     var expectedRS = PipelineRS.builder().id(pipelineId).build();
     when(pipelineRepository.findById(pipelineId)).thenReturn(Optional.of(pipeline));
     when(pipelineIterationRepository.countByPipelineId(pipelineId)).thenReturn(2L);
-    when(pipelineMapper.toPipelineRS(pipeline, 2L)).thenReturn(expectedRS);
+    when(pipelineMapper.toPipelineRS(pipeline, 2L, CONNECTED)).thenReturn(expectedRS);
 
     var result = sut.getPipeline(projectId, pipelineId);
 

@@ -377,6 +377,11 @@ public enum ErrorType {
   TEST_CASE_REVIEW_CONFLICT(40915, "Test case review conflict. {}"),
 
   /**
+   * The pipeline cannot start jobs because its CI connection is not connected (never tested, failed or incomplete)
+   */
+  CI_NOT_CONNECTED(40916, "The pipeline is not connected to CI. {}"),
+
+  /**
    * Unable remove resource from favorites
    */
   UNABLE_REMOVE_FROM_FAVORITE(4100, "Unable remove resource from favorites. {}"),

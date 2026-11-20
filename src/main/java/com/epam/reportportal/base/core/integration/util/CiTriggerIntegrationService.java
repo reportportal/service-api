@@ -23,6 +23,7 @@ import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import org.springframework.stereotype.Service;
 
 /**
@@ -59,15 +60,28 @@ public class CiTriggerIntegrationService extends BasicIntegrationServiceImpl {
 
   @Override
   public boolean checkConnection(Integration integration) {
+    missingRequiredParam(integration).ifPresent(name -> {
+      throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
+          "Integration parameter '" + name + "' is required for " + integration.getType().getName());
+    });
+    return true;
+  }
+
+  /**
+   * The first parameter the integration's type cannot work without that is missing or blank.
+   * <p>
+   * Example: a {@code gitlab-ci} integration with {@code projectId} but no {@code triggerToken} gives
+   * {@code Optional.of("triggerToken")}; a complete one gives an empty optional.
+   */
+  public static Optional<String> missingRequiredParam(Integration integration) {
     var typeName = integration.getType().getName();
     var params = integration.getParams() == null ? null : integration.getParams().getParams();
     for (var name : REQUIRED_PARAMS.getOrDefault(typeName, List.of())) {
       var value = params == null ? null : params.get(name);
       if (!(value instanceof String text) || text.isBlank()) {
-        throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
-            "Integration parameter '" + name + "' is required for " + typeName);
+        return Optional.of(name);
       }
     }
-    return true;
+    return Optional.empty();
   }
 }

@@ -1369,12 +1369,12 @@ class GetMarketplaceCatalogueHandlerTest {
   }
 
   @Test
-  void aVersionWithBuildMetadataIsNotOfferedBecauseInstallRefusesIt() {
+  void aVersionWithBuildMetadataIsOfferedBecauseInstallAcceptsIt() {
     var catalogue = cappedLatestWithHistory(
         summary("1.5.0+build.5", ">=25.1", ">=25.1", null, false),
         summary("1.4.5", ">=25.1", ">=25.1", null, false));
 
-    assertEquals("1.4.5",
+    assertEquals("1.5.0+build.5",
         installedNamed(catalogue, "jira").marketplace().updateAvailable().version());
   }
 }

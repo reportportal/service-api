@@ -929,6 +929,34 @@ class InstallMarketplacePluginHandlerTest {
   // --- what the caller is allowed to ask for ----------------------------------------------------
 
   @Test
+  void versionWithBuildMetadataInstallsAndKeepsThePlusEverywhere() {
+    var buildVersion = "1.6.0+build.5";
+    when(client.getVersion(PLUGIN_ID, buildVersion))
+        .thenReturn(version("public", ">=25.1", sha256(JAR), false, null));
+    when(client.resolveArtifact(eq(PLUGIN_ID), eq(buildVersion), any()))
+        .thenReturn(new MarketplaceArtifact("https://cdn.example/jira-1.6.0.jar", null));
+    var fileName = ArgumentCaptor.forClass(String.class);
+
+    var result = handler().install(PLUGIN_ID, new MarketplaceInstallRQ(buildVersion), user);
+
+    verify(pluginBox).uploadPlugin(fileName.capture(), any(InputStream.class));
+    assertEquals("jira-1.6.0+build.5.jar", fileName.getValue());
+    assertEquals(buildVersion, result.version());
+    var saved = ArgumentCaptor.forClass(IntegrationType.class);
+    verify(integrationTypeRepository).save(saved.capture());
+    assertEquals(buildVersion, saved.getValue().getDetails().getDetails().get("marketplaceVersion"));
+  }
+
+  @Test
+  void aPlusInThePluginIdIsStillRefused() {
+    var thrown = assertThrows(ReportPortalException.class,
+        () -> handler().install("jira+x", new MarketplaceInstallRQ("1.4.2"), user));
+
+    assertEquals(ErrorType.BAD_REQUEST_ERROR, thrown.getErrorType());
+    verifyNoInteractions(pluginBox);
+  }
+
+  @Test
   void versionThatCouldEscapeThePluginDirectoryIsRefusedBeforeAnyRegistryCall() {
     var thrown = assertThrows(ReportPortalException.class,
         () -> handler().install(PLUGIN_ID, new MarketplaceInstallRQ("../../../etc/passwd"), user));

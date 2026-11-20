@@ -109,7 +109,12 @@ public class ProductVersion {
    * @return true or false when the question can be decided, null when it cannot
    */
   public Boolean verdict(String range) {
-    if (version == null || StringUtils.isBlank(range) || CompatibilityRange.parse(range).isEmpty()) {
+    if (version == null || StringUtils.isBlank(range)) {
+      return null;
+    }
+    if (CompatibilityRange.parse(range).isEmpty()) {
+      LOGGER.warn("Marketplace compatibility range '{}' cannot be read, so its compatibility is"
+          + " unknown.", range);
       return null;
     }
     return satisfies(range);

@@ -135,7 +135,8 @@ class MarketplaceWireContractTest {
       What each one covers:
 
       - `catalogue.json` — registry online. Installed: matched, unmatched, removed, one held back
-        by an operator ceiling, and one whose update is withheld because the newest build does
+        by an operator ceiling, one capped with no published range (ceiling and reason but no
+        verdict and no requires), and one whose update is withheld because the newest build does
         not run on this release. Available: one that runs here, one that does not, and a premium
         row that is locked. Plus an advisory, a blocked version and an update that is offered.
       - `catalogue-offline.json` — registry unreachable: local rows only, no marketplace block on
@@ -389,14 +390,15 @@ class MarketplaceWireContractTest {
   }
 
   /**
-   * The registry capped the version but sent no effective range, so there is no verdict: the
-   * ceiling and its reason travel, {@code compatible} is absent, and the row shows no warning.
+   * The registry capped the version but published no range at all, neither the listing's nor
+   * the detail's, so there is no verdict and no range to show: the ceiling and its reason
+   * travel, {@code compatible} and {@code requires} are absent, and the row shows no warning.
    */
   private static InstalledPluginResource installedCeilingWithoutVerdict() {
     return new InstalledPluginResource(13L, "xray", "2.0.0", true, "BTS",
         new MarketplaceEntryResource("plugin-bts-xray", "Xray", "Xray test management.",
-            "Xblend", "public", "official", "2.0.0", null, null, ">=25.1", null, null, null,
-            false, new InstalledCompatibilityResource(null, ">=25.1", "<26.0",
+            "Xblend", "public", "official", "2.0.0", null, null, null, null, null, null,
+            false, new InstalledCompatibilityResource(null, null, "<26.0",
             "Breaks the launch view on 26.0")));
   }
 

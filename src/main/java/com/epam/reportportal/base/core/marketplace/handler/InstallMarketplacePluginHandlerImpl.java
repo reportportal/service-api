@@ -91,6 +91,14 @@ public class InstallMarketplacePluginHandlerImpl implements InstallMarketplacePl
   private static final Pattern SAFE_IDENTIFIER =
       Pattern.compile("[A-Za-z0-9][A-Za-z0-9._-]{0,126}");
 
+  /**
+   * A version is an identifier that may also carry semver build metadata ({@code 1.6.0+build.5}),
+   * which the registry accepts at publish. A {@code +} is literal in a path segment, which is the
+   * only place the version goes in a registry URL, and in a file name; it never reaches a query.
+   */
+  private static final Pattern SAFE_VERSION =
+      Pattern.compile("[A-Za-z0-9][A-Za-z0-9._+-]{0,126}");
+
   private final MarketplaceClient client;
   private final MarketplaceArtifactFetcher fetcher;
   private final ProductVersion productVersion;
@@ -136,8 +144,8 @@ public class InstallMarketplacePluginHandlerImpl implements InstallMarketplacePl
   public MarketplaceInstallResource install(String registryId, MarketplaceInstallRQ request,
       ReportPortalUser user) {
     var version = request == null ? null : StringUtils.trimToEmpty(request.version());
-    safe(registryId, "plugin id");
-    safe(version, "version");
+    safe(registryId, "plugin id", SAFE_IDENTIFIER);
+    safe(version, "version", SAFE_VERSION);
 
     // 1. What the registry says about this exact version. Not cached: a block or a removal that
     // landed a minute ago has to be seen now, and so does the checksum.
@@ -252,8 +260,8 @@ public class InstallMarketplacePluginHandlerImpl implements InstallMarketplacePl
    * Refuses anything that could name a file outside the plugins directory. Checked before the
    * registry is called, so a probe cannot be turned into a request either.
    */
-  private static void safe(String value, String what) {
-    if (value == null || !SAFE_IDENTIFIER.matcher(value).matches()) {
+  private static void safe(String value, String what, Pattern pattern) {
+    if (value == null || !pattern.matcher(value).matches()) {
       throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
           "marketplace " + what + " '" + value + "'");
     }

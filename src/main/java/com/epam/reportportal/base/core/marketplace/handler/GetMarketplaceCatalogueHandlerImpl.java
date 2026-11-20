@@ -391,9 +391,11 @@ public class GetMarketplaceCatalogueHandlerImpl implements GetMarketplaceCatalog
    * listing range is checked first: it lives 60s against detail's 5m, so a ceiling set a minute
    * ago already shows there. Detail is still read, because the listing omits the range for a
    * version published before the registry recorded it, and only detail says whether the version
-   * is blocked. Null covers detail that could not be read, and a listing that says it runs against
-   * a detail that says it does not (a ceiling cleared inside detail's cache window): the row says
-   * compatible, so an older update would contradict it.
+   * is blocked. Null covers detail that could not be read, an unreadable listing range, an unknown
+   * product version, a detail with no readable effective range (including a listing with no range
+   * and a detail with none either), and a listing that says it runs against a detail that says it
+   * does not (a ceiling cleared inside detail's cache window): the row says compatible, so an
+   * older update would contradict it.
    */
   private Boolean latestRunsHere(MarketplacePlugin plugin, String latest) {
     var listed = declaredRange(plugin);
@@ -448,8 +450,6 @@ public class GetMarketplaceCatalogueHandlerImpl implements GetMarketplaceCatalog
     return versions.stream()
         .filter(Objects::nonNull)
         .filter(summary -> StringUtils.isNotBlank(summary.version()))
-        // install refuses a '+' in the version, so an offer carrying build metadata would fail
-        .filter(summary -> !summary.version().contains("+"))
         .filter(summary -> PluginVersions.compare(summary.version(), installedVersion) > 0)
         .filter(summary -> PluginVersions.compare(summary.version(), latest) < 0)
         .filter(summary -> !summary.blocked())

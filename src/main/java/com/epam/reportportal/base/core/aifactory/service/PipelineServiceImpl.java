@@ -32,10 +32,12 @@ public class PipelineServiceImpl implements PipelineService {
   private final PipelineMapper pipelineMapper;
   private final List<PipelineSettingsValidator> settingsValidators;
   private final PipelineCiConnectionService ciConnectionService;
+  private final PipelineProvisioner pipelineProvisioner;
 
   @Override
   @Transactional(readOnly = true)
   public Page<PipelineRS> getPipelines(Long projectId, String search, String name, OffsetRequest offsetRequest) {
+    pipelineProvisioner.ensureForProject(projectId);
     var page = pipelineRepository.findAll(PipelineSpecifications.pipelinesOfProject(projectId, search, name),
         PipelinePaging.capLimit(offsetRequest, Sort.by("name", "id")));
     var pipelineIds = page

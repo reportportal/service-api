@@ -216,4 +216,26 @@ class TmsAutomationIntegrationTest extends BaseMvcTest {
     mockMvc.perform(get(AUTOMATION + "/environment").with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isBadRequest());
   }
+
+  @Test
+  void start_RefusedForTheCiConnection_ShouldStillLeaveTheTestAutomationPipelineToConfigure() throws Exception {
+    jdbcTemplate.update("update integration set enabled = false where id in (900, 910)");
+
+    automate(List.of(900L)).andExpect(status().isConflict());
+
+    assertEquals(1, count("select count(*) from pipeline where type = 'TEST_AUTOMATION' and project_id = 1"));
+  }
+
+  @Test
+  void pipelineList_ForAProjectWithPipelines_ShouldCreateTheTestAutomationPipelineOnce() throws Exception {
+    assertEquals(0, count("select count(*) from pipeline where type = 'TEST_AUTOMATION' and project_id = 1"));
+
+    for (var i = 0; i < 2; i++) {
+      mockMvc.perform(get("/v1/project/superadmin_personal/pipeline").with(token(oAuthHelper.getSuperadminToken())))
+          .andExpect(status().isOk())
+          .andExpect(jsonPath("$.content[?(@.type == 'TEST_AUTOMATION')].name").value("Test automation"));
+    }
+
+    assertEquals(1, count("select count(*) from pipeline where type = 'TEST_AUTOMATION' and project_id = 1"));
+  }
 }

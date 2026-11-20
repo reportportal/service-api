@@ -228,7 +228,7 @@ class PipelineIntegrationTest extends BaseMvcTest {
         .andExpect(jsonPath("$.page.totalElements").value(0));
     // a blank name is no filter; % is a character, not a wildcard
     mockMvc.perform(get(BASE).param("name", " ").with(token(oAuthHelper.getSuperadminToken())))
-        .andExpect(jsonPath("$.content.length()").value(2));
+        .andExpect(jsonPath("$.content.length()").value(3));
     mockMvc.perform(get(BASE).param("name", "%").with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(jsonPath("$.page.totalElements").value(0));
   }

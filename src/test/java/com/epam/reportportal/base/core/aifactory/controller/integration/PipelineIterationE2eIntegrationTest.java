@@ -210,9 +210,9 @@ class PipelineIterationE2eIntegrationTest extends BaseMvcTest {
   private void step2_pipelinesPageShowsTheRunningIteration() throws Exception {
     var page = send(get(PIPELINES).param("offset", "0").param("limit", "100"), null, HttpStatus.OK);
 
-    var pipeline = page.get("content").get(0);
-    assertEquals(1, page.get("content").size());
-    assertEquals("Test case generation", pipeline.get("name").asText());
+    assertEquals(2, page.get("content").size(), "the Test automation pipeline is provisioned next to it");
+    var pipeline = java.util.stream.StreamSupport.stream(page.get("content").spliterator(), false)
+        .filter(p -> "Test case generation".equals(p.get("name").asText())).findFirst().orElseThrow();
     assertEquals("TEST_CASE_GENERATION", pipeline.get("type").asText());
     assertEquals("EPM-RPP/rp-tests", attribute(pipeline, "repository"));
     assertEquals(1, pipeline.get("iterationsCount").asInt());
@@ -434,7 +434,8 @@ class PipelineIterationE2eIntegrationTest extends BaseMvcTest {
 
   private void step15_whatTheUiReadsNow() throws Exception {
     var page = send(get(PIPELINES), null, HttpStatus.OK);
-    var pipeline = page.get("content").get(0);
+    var pipeline = java.util.stream.StreamSupport.stream(page.get("content").spliterator(), false)
+        .filter(p -> p.get("id").asLong() == pipelineId).findFirst().orElseThrow();
     assertEquals(90, pipeline.get("settings").get("autoReady").get("threshold").asInt());
     assertEquals(1, pipeline.get("iterationsCount").asInt());
 

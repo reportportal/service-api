@@ -19,7 +19,6 @@ import com.epam.reportportal.base.core.tms.dto.TmsAutomationStartRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsAutomationStartRS;
 import com.epam.reportportal.base.core.tms.dto.TmsAutomationStatus;
 import com.epam.reportportal.base.core.tms.service.TmsTestCaseVersionService;
-import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.aifactory.PipelineIterationRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.aifactory.PipelineRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestCaseAutomationRunRepository;
@@ -83,7 +82,7 @@ public class TmsAutomationStartService {
   private final PipelineIterationRepository iterationRepository;
   private final PipelineIterationService iterationService;
   private final PipelineCiConnectionService ciConnectionService;
-  private final ProjectRepository projectRepository;
+  private final TmsAutomationPipelineProvider pipelineProvider;
   private final Map<String, CiTriggerConnector> connectorsByIntegrationType;
   private final TransactionTemplate transactionTemplate;
 
@@ -92,7 +91,7 @@ public class TmsAutomationStartService {
       TmsTestCaseVersionService versionService, TmsAutomationStateService stateService,
       PipelineRepository pipelineRepository, PipelineIterationRepository iterationRepository,
       PipelineIterationService iterationService, PipelineCiConnectionService ciConnectionService,
-      ProjectRepository projectRepository, List<CiTriggerConnector> connectors,
+      TmsAutomationPipelineProvider pipelineProvider, List<CiTriggerConnector> connectors,
       PlatformTransactionManager transactionManager) {
     this.testCaseRepository = testCaseRepository;
     this.fixRoundRepository = fixRoundRepository;
@@ -103,7 +102,7 @@ public class TmsAutomationStartService {
     this.iterationRepository = iterationRepository;
     this.iterationService = iterationService;
     this.ciConnectionService = ciConnectionService;
-    this.projectRepository = projectRepository;
+    this.pipelineProvider = pipelineProvider;
     this.connectorsByIntegrationType = connectors.stream()
         .collect(Collectors.toMap(CiTriggerConnector::getIntegrationTypeName, c -> c, (a, b) -> a));
     this.transactionTemplate = new TransactionTemplate(transactionManager);
@@ -189,7 +188,7 @@ public class TmsAutomationStartService {
       }
     }
 
-    var pipeline = automationPipeline(projectId);
+    var pipeline = pipelineProvider.getOrCreate(projectId);
     // one Automate of the project at a time: the checks below and the records they lead to are one step
     var locked = pipelineRepository.findByIdForUpdate(pipeline.getId()).orElseThrow();
     ciConnectionService.assertCanStartJobs(locked);
@@ -300,19 +299,6 @@ public class TmsAutomationStartService {
   private static boolean isConfirmed(TmsAutomationStartRQ rq, List<Long> needConfirmation) {
     Set<Long> confirmed = rq.getConfirmedTestCaseIds() == null ? Set.of() : new HashSet<>(rq.getConfirmedTestCaseIds());
     return rq.isConfirmReautomate() && confirmed.containsAll(needConfirmation);
-  }
-
-  /**
-   * The Test automation pipeline of the project, created by the first Automate.
-   */
-  private Pipeline automationPipeline(long projectId) {
-    return pipelineRepository.findFirstByProjectIdAndTypeOrderByIdAsc(projectId, PIPELINE_TYPE).orElseGet(() -> {
-      var pipeline = new Pipeline();
-      pipeline.setProject(projectRepository.getReferenceById(projectId));
-      pipeline.setName(PIPELINE_NAME);
-      pipeline.setType(PIPELINE_TYPE);
-      return pipelineRepository.save(pipeline);
-    });
   }
 
   /**

@@ -52,6 +52,8 @@ class PipelineServiceImplTest {
   private PipelineSettingsValidator settingsValidator;
   @Mock
   private PipelineCiConnectionService ciConnectionService;
+  @Mock
+  private PipelineProvisioner pipelineProvisioner;
   @Spy
   private List<PipelineSettingsValidator> settingsValidators = new ArrayList<>();
 

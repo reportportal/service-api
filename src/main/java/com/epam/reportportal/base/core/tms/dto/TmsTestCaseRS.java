@@ -49,4 +49,10 @@ public class TmsTestCaseRS {
    * chip. Absent when there are none.
    */
   private Integer unsentReviewComments;
+
+  /**
+   * Whether the case can be sent to automation and where it is in automation. Absent in projects without a
+   * pipeline.
+   */
+  private TmsAutomationStateRS automationState;
 }

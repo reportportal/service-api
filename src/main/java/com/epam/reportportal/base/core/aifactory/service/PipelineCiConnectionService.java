@@ -14,6 +14,7 @@ import com.epam.reportportal.base.core.events.domain.IntegrationCreatedEvent;
 import com.epam.reportportal.base.core.events.domain.IntegrationUpdatedEvent;
 import com.epam.reportportal.base.core.integration.util.CiTriggerIntegrationService;
 import com.epam.reportportal.base.core.tms.pipeline.TestCaseReviewContributor;
+import com.epam.reportportal.base.core.tms.pipeline.TmsAutomationStartService;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationTypeRepository;
@@ -294,6 +295,19 @@ public class PipelineCiConnectionService {
   }
 
   /**
+   * The environments the pipeline's jobs may run against, the first being the default; empty when the pipeline has
+   * no connection of its own or none are saved.
+   * <p>
+   * Example: a pipeline saved with {@code environments: ["beta5", "qa"]} gives {@code ["beta5", "qa"]}.
+   */
+  @Transactional(readOnly = true)
+  public List<String> environmentsOf(Pipeline pipeline) {
+    return ownedIntegration(pipeline)
+        .map(integration -> stringList(integration.getParams().getParams().get(PARAM_ENVIRONMENTS)))
+        .orElseGet(ArrayList::new);
+  }
+
+  /**
    * Keeps the outcome of a job start: a start that went through proves the connection, a refused one makes it
    * CONNECTION_FAILED until somebody runs "Test connection". Pipelines on the project integration have nowhere to
    * keep it and are left alone.
@@ -403,6 +417,10 @@ public class PipelineCiConnectionService {
     }
     if (generation && (rq.getModels() == null || rq.getModels().isEmpty())) {
       throw bad("A Test case generation pipeline needs at least one model");
+    }
+    if (TmsAutomationStartService.PIPELINE_TYPE.equals(pipeline.getType())
+        && !rq.getJobs().containsKey("automation")) {
+      throw bad("A Test automation pipeline needs the job 'automation'");
     }
     requireDistinctNames("models", rq.getModels());
     requireDistinctNames("environments", rq.getEnvironments());

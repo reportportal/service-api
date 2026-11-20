@@ -17,6 +17,13 @@ public interface PipelineRepository extends JpaRepository<Pipeline, Long>,
   Optional<Pipeline> findByProjectIdAndName(Long projectId, String name);
 
   /**
+   * The pipeline of the given kind in the project, e.g. its Test automation pipeline.
+   */
+  Optional<Pipeline> findFirstByProjectIdAndTypeOrderByIdAsc(Long projectId, String type);
+
+  boolean existsByProjectId(Long projectId);
+
+  /**
    * Locks the pipeline row for the rest of the caller's transaction, serializing
    * concurrent iteration-number assignment for the same pipeline.
    */

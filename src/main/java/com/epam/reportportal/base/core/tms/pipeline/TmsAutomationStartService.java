@@ -204,28 +204,14 @@ public class TmsAutomationStartService {
     }
     var integration = ciConnectionService.integrationFor(locked, connector);
 
-    var fixing = new HashSet<>(fixRoundRepository.findTestCaseIdsWithStatus(ids, TmsFixRoundStatus.PENDING));
-    var latestRuns = stateService.latestRuns(ids);
-    var accepted = new ArrayList<Long>();
-    var skipped = new ArrayList<TmsAutomationSkippedRS>();
-    var needConfirmation = new ArrayList<Long>();
-    for (var id : ids) {
-      var testCase = found.get(id);
-      var reason = skipReason(testCase, fixing.contains(id), TmsAutomationStateService.statusOf(latestRuns.get(id)));
-      if (reason != null) {
-        skipped.add(TmsAutomationSkippedRS.builder().id(id).displayId(testCase.getDisplayId()).reason(reason).build());
-        continue;
-      }
-      accepted.add(id);
-      if (TmsAutomationStateService.statusOf(latestRuns.get(id)) == TmsAutomationStatus.AUTOMATED) {
-        needConfirmation.add(id);
-      }
-    }
+    var triage = triage(ids, found);
+    var accepted = triage.accepted();
+    var skipped = triage.skipped();
     if (accepted.isEmpty()) {
       return new Claim(new NothingEligible(skipped), null);
     }
-    if (!needConfirmation.isEmpty() && !isConfirmed(rq, needConfirmation)) {
-      return new Claim(new ConfirmRequired(needConfirmation), null);
+    if (!triage.needConfirmation().isEmpty() && !isConfirmed(rq, triage.needConfirmation())) {
+      return new Claim(new ConfirmRequired(triage.needConfirmation()), null);
     }
 
     var iteration = iterationService.createPipelineIteration(projectId, userId,
@@ -271,6 +257,35 @@ public class TmsAutomationStartService {
         response));
   }
 
+  /**
+   * Splits the submitted cases into the ones to send, the ones to skip (with the reason) and, among those to send,
+   * the ones already automated that the user has to confirm.
+   * <p>
+   * Example: 42 is Ready and never sent, 43 is Draft, 44 is automated: accepted [42, 44], skipped [43 NOT_READY],
+   * needConfirmation [44].
+   */
+  private Triage triage(List<Long> ids, Map<Long, TmsTestCase> found) {
+    var fixing = new HashSet<>(fixRoundRepository.findTestCaseIdsWithStatus(ids, TmsFixRoundStatus.PENDING));
+    var latestRuns = stateService.latestRuns(ids);
+    var accepted = new ArrayList<Long>();
+    var skipped = new ArrayList<TmsAutomationSkippedRS>();
+    var needConfirmation = new ArrayList<Long>();
+    for (var id : ids) {
+      var testCase = found.get(id);
+      var status = TmsAutomationStateService.statusOf(latestRuns.get(id));
+      var reason = skipReason(testCase, fixing.contains(id), status);
+      if (reason != null) {
+        skipped.add(TmsAutomationSkippedRS.builder().id(id).displayId(testCase.getDisplayId()).reason(reason).build());
+      } else {
+        accepted.add(id);
+        if (status == TmsAutomationStatus.AUTOMATED) {
+          needConfirmation.add(id);
+        }
+      }
+    }
+    return new Triage(accepted, skipped, needConfirmation);
+  }
+
   private static TmsAutomationSkipReason skipReason(TmsTestCase testCase, boolean fixRunning,
       TmsAutomationStatus status) {
     if (testCase.getStatus() != TmsTestCaseStatus.READY) {
@@ -309,6 +324,9 @@ public class TmsAutomationStartService {
   }
 
   private record Claim(Outcome outcome, Claimed claimed) {
+  }
+
+  private record Triage(List<Long> accepted, List<TmsAutomationSkippedRS> skipped, List<Long> needConfirmation) {
   }
 
   private record Claimed(Long pipelineId, Long iterationId, CiTriggerConnector connector, Integration integration,

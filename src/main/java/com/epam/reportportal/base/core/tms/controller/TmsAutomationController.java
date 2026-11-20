@@ -58,18 +58,21 @@ public class TmsAutomationController {
     var projectId = projectExtractor.extractMembershipDetails(user, EntityUtils.normalizeId(projectKey))
         .getProjectId();
     var outcome = automationStartService.start(projectId, user.getUserId(), rq);
-    if (outcome instanceof TmsAutomationStartService.Started started) {
-      return ResponseEntity.status(HttpStatus.ACCEPTED).body(started.response());
-    }
     var body = new LinkedHashMap<String, Object>();
-    if (outcome instanceof TmsAutomationStartService.ConfirmRequired confirm) {
-      body.put("reason", "ALREADY_AUTOMATED_CONFIRM_REQUIRED");
-      body.put("message", "Some test cases are already automated; confirm to automate them again");
-      body.put("testCaseIds", confirm.testCaseIds());
-    } else if (outcome instanceof TmsAutomationStartService.NothingEligible nothing) {
-      body.put("reason", "NO_ELIGIBLE_TEST_CASES");
-      body.put("message", "None of the test cases can be sent to automation");
-      body.put("skipped", nothing.skipped());
+    switch (outcome) {
+      case TmsAutomationStartService.Started(var response) -> {
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(response);
+      }
+      case TmsAutomationStartService.ConfirmRequired(var testCaseIds) -> {
+        body.put("reason", "ALREADY_AUTOMATED_CONFIRM_REQUIRED");
+        body.put("message", "Some test cases are already automated; confirm to automate them again");
+        body.put("testCaseIds", testCaseIds);
+      }
+      case TmsAutomationStartService.NothingEligible(var skipped) -> {
+        body.put("reason", "NO_ELIGIBLE_TEST_CASES");
+        body.put("message", "None of the test cases can be sent to automation");
+        body.put("skipped", skipped);
+      }
     }
     return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
   }

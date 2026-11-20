@@ -348,8 +348,9 @@ public class PipelineCiConnectionService {
         ? Map.<String, Object>of() : integration.getParams().getParams();
     var projectPath = text(params.get(PARAM_PROJECT));
     var baseUrl = text(params.get(PARAM_URL));
+    var effectiveBaseUrl = baseUrl == null ? DEFAULT_BASE_URL : baseUrl;
     return builder
-        .repository(projectPath == null ? null : (baseUrl == null ? DEFAULT_BASE_URL : baseUrl) + "/" + projectPath)
+        .repository(projectPath == null ? null : effectiveBaseUrl + "/" + projectPath)
         .branch(text(params.get(PARAM_REF)) == null ? DEFAULT_BRANCH : text(params.get(PARAM_REF)))
         .credentialSaved(text(params.get(PARAM_TOKEN)) != null)
         .jobs(stringMap(params.get(PARAM_JOBS)))
@@ -423,7 +424,7 @@ public class PipelineCiConnectionService {
       throw bad("A Test automation pipeline needs the job 'automation'");
     }
     requireDistinctNames("models", rq.getModels());
-    requireDistinctNames("environments", rq.getEnvironments());
+    requireDistinctNames(PARAM_ENVIRONMENTS, rq.getEnvironments());
   }
 
   private void requireDistinctNames(String what, List<String> names) {
@@ -489,7 +490,7 @@ public class PipelineCiConnectionService {
   private static CiConnectionState parseState(Object value) {
     try {
       return value == null ? CiConnectionState.NOT_CONNECTED : CiConnectionState.valueOf(value.toString());
-    } catch (IllegalArgumentException e) {
+    } catch (IllegalArgumentException _) {
       return CiConnectionState.NOT_CONNECTED;
     }
   }
@@ -497,7 +498,7 @@ public class PipelineCiConnectionService {
   private static CiConnectionReasonCode parseCode(Object value) {
     try {
       return value == null ? null : CiConnectionReasonCode.valueOf(value.toString());
-    } catch (IllegalArgumentException e) {
+    } catch (IllegalArgumentException _) {
       return null;
     }
   }
@@ -505,7 +506,7 @@ public class PipelineCiConnectionService {
   private static Instant parseInstant(Object value) {
     try {
       return value == null ? null : Instant.parse(value.toString());
-    } catch (RuntimeException e) {
+    } catch (RuntimeException _) {
       return null;
     }
   }
@@ -565,13 +566,13 @@ public class PipelineCiConnectionService {
       URI uri;
       try {
         uri = new URI(repository.trim());
-      } catch (URISyntaxException e) {
+      } catch (URISyntaxException _) {
         throw bad("The repository must be a URL, e.g. https://git.epam.com/EPM-RPP/rp-tests");
       }
       if (!"https".equalsIgnoreCase(uri.getScheme()) || uri.getHost() == null) {
         throw bad("The repository must be an https URL, e.g. https://git.epam.com/EPM-RPP/rp-tests");
       }
-      var path = uri.getPath() == null ? "" : uri.getPath().replaceAll("^/+|/+$", "");
+      var path = uri.getPath() == null ? "" : uri.getPath().replaceAll("^(/+)|(/+)$", "");
       if (path.endsWith(".git")) {
         path = path.substring(0, path.length() - 4);
       }

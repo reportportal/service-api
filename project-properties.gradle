@@ -121,7 +121,8 @@ project.ext {
             (migrationsUrl + '/migrations/231_tms_fix_rounds.up.sql')                                   : 'V231__tms_fix_rounds.up.sql',
             (migrationsUrl + '/migrations/232_pipeline_iteration_summary.up.sql')                       : 'V232__pipeline_iteration_summary.up.sql',
             (migrationsUrl + '/migrations/233_pipeline_stage_trace.up.sql')                             : 'V233__pipeline_stage_trace.up.sql',
-            (migrationsUrl + '/migrations/234_pipeline_stage_trace_event_unit_key.up.sql')              : 'V234__pipeline_stage_trace_event_unit_key.up.sql'
+            (migrationsUrl + '/migrations/234_pipeline_stage_trace_event_unit_key.up.sql')              : 'V234__pipeline_stage_trace_event_unit_key.up.sql',
+            (migrationsUrl + '/migrations/235_tms_automation_runs.up.sql')                              : 'V235__tms_automation_runs.up.sql'
     ]
     excludeTests = ['**/entity/**',
                     '**/aop/**',

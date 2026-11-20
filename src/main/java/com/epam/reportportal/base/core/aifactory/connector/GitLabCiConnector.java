@@ -36,6 +36,9 @@ public class GitLabCiConnector extends AbstractCiTriggerConnector {
   private static final String DEFAULT_REF = "main";
   /** Prefix of the git ref used by the connection test; no branch is ever called like this. */
   private static final String CHECK_REF_PREFIX = "rp-connection-check-";
+  private static final String API_PROJECTS_PATH = "/api/v4/projects/";
+  private static final String TRIGGER_PATH = "/trigger/pipeline";
+  private static final String TOKEN_FIELD = "token";
 
   private final CiHttpClient ciHttpClient;
   private final ObjectMapper objectMapper;
@@ -70,10 +73,10 @@ public class GitLabCiConnector extends AbstractCiTriggerConnector {
     var effectiveBaseUrl = baseUrl == null || baseUrl.isBlank() ? DEFAULT_BASE_URL : baseUrl;
 
     var projectId = UriUtils.encodePathSegment(repo, StandardCharsets.UTF_8);
-    var url = effectiveBaseUrl + "/api/v4/projects/" + projectId + "/trigger/pipeline";
+    var url = effectiveBaseUrl + API_PROJECTS_PATH + projectId + TRIGGER_PATH;
 
     ObjectNode body = objectMapper.createObjectNode();
-    body.put("token", token);
+    body.put(TOKEN_FIELD, token);
     body.put("ref", ref);
     ObjectNode variables = body.putObject("variables");
     variables.put("PIPELINE_STAGE_ID", String.valueOf(stage.getId()));
@@ -82,7 +85,7 @@ public class GitLabCiConnector extends AbstractCiTriggerConnector {
     }
 
     var responseBody = ciHttpClient.postForStatus(url, Collections.emptyMap(), body.toString());
-    var fallbackUrl = effectiveBaseUrl + "/api/v4/projects/" + projectId + "/pipelines";
+    var fallbackUrl = effectiveBaseUrl + API_PROJECTS_PATH + projectId + "/pipelines";
     return extractPipelineUrl(responseBody, fallbackUrl);
   }
 
@@ -121,16 +124,16 @@ public class GitLabCiConnector extends AbstractCiTriggerConnector {
     var baseUrl = stringParam(integration, BASE_URL_PARAM);
     var effectiveBaseUrl = baseUrl == null || baseUrl.isBlank() ? DEFAULT_BASE_URL : baseUrl;
     var projectId = UriUtils.encodePathSegment(configuredProjectId, StandardCharsets.UTF_8);
-    var url = effectiveBaseUrl + "/api/v4/projects/" + projectId + "/trigger/pipeline";
+    var url = effectiveBaseUrl + API_PROJECTS_PATH + projectId + TRIGGER_PATH;
 
     ObjectNode body = objectMapper.createObjectNode();
-    body.put("token", token);
+    body.put(TOKEN_FIELD, token);
     body.put("ref", request.workflowRef());
     ObjectNode variables = body.putObject("variables");
     request.inputs().forEach((name, value) -> variables.put(name.toUpperCase(), value));
 
     var responseBody = ciHttpClient.postForStatus(url, Collections.emptyMap(), body.toString());
-    return extractPipelineUrl(responseBody, effectiveBaseUrl + "/api/v4/projects/" + projectId + "/pipelines");
+    return extractPipelineUrl(responseBody, effectiveBaseUrl + API_PROJECTS_PATH + projectId + "/pipelines");
   }
 
   /**
@@ -154,11 +157,11 @@ public class GitLabCiConnector extends AbstractCiTriggerConnector {
     }
     var baseUrl = stringParam(integration, BASE_URL_PARAM);
     var effectiveBaseUrl = baseUrl == null || baseUrl.isBlank() ? DEFAULT_BASE_URL : baseUrl;
-    var url = effectiveBaseUrl + "/api/v4/projects/" + UriUtils.encodePathSegment(configuredProject,
-        StandardCharsets.UTF_8) + "/trigger/pipeline";
+    var url = effectiveBaseUrl + API_PROJECTS_PATH + UriUtils.encodePathSegment(configuredProject,
+        StandardCharsets.UTF_8) + TRIGGER_PATH;
 
     ObjectNode body = objectMapper.createObjectNode();
-    body.put("token", token);
+    body.put(TOKEN_FIELD, token);
     body.put("ref", CHECK_REF_PREFIX + UUID.randomUUID());
 
     CiHttpResponse response;

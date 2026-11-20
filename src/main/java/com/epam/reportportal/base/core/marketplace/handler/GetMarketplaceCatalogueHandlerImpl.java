@@ -64,6 +64,7 @@ import org.springframework.stereotype.Service;
 public class GetMarketplaceCatalogueHandlerImpl implements GetMarketplaceCatalogueHandler {
 
   private static final String VERSION_KEY = "version";
+  private static final String MARKETPLACE_VERSION_KEY = "marketplaceVersion";
   /** Written by the install path in a later stage; read here whenever it is already there. */
   private static final String MARKETPLACE_PLUGIN_ID_KEY = "marketplacePluginId";
   private static final String PREMIUM = "premium";
@@ -254,8 +255,12 @@ public class GetMarketplaceCatalogueHandlerImpl implements GetMarketplaceCatalog
       boolean registryOnline) {
     var version = detail(type, VERSION_KEY);
     var group = type.getIntegrationGroup() == null ? null : type.getIntegrationGroup().name();
+    // the row shows what the jar reports; the registry is asked about the version it published,
+    // which install persisted because it can carry build metadata the manifest drops
+    var registryVersion = Optional.ofNullable(detail(type, MARKETPLACE_VERSION_KEY))
+        .orElse(version);
     return new InstalledPluginResource(type.getId(), type.getName(), version, type.isEnabled(),
-        group, entryFor(type, match, version, registryOnline));
+        group, entryFor(type, match, registryVersion, registryOnline));
   }
 
   /**

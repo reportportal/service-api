@@ -974,6 +974,40 @@ class GetMarketplaceCatalogueHandlerTest {
   }
 
   @Test
+  void theRegistryIsAskedAboutTheVersionInstallPersistedNotTheManifestOne() {
+    handler = newHandler(new ProductVersion("26.1"));
+    var type = installed(7L, "jira", IntegrationGroupEnum.BTS, "1.6.0", null);
+    type.getDetails().getDetails().put("marketplaceVersion", "1.6.0+build.5");
+    when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(List.of(type));
+    when(client.getCatalogue(null, null)).thenReturn(List.of(
+        registryPlugin("jira", "Jira", "1.6.0+build.5", "bug-tracking", "public")));
+    when(client.getVersion("jira", "1.6.0+build.5")).thenReturn(
+        ceilinged("jira", "1.6.0+build.5", ">=25.1", ">=25.1, <26.0", "<26.0", "r"));
+
+    var row = installedNamed(handler.getCatalogue(null, null), "jira");
+
+    assertEquals("1.6.0", row.version());
+    assertFalse(row.marketplace().installedCompatibility().compatible());
+    assertEquals("<26.0", row.marketplace().installedCompatibility().ceiling());
+    verify(client, never()).getVersion("jira", "1.6.0");
+  }
+
+  @Test
+  void aBlankMarketplaceVersionFallsBackToTheManifestVersion() {
+    handler = newHandler(new ProductVersion("26.1"));
+    var type = installed(7L, "jira", IntegrationGroupEnum.BTS, "1.4.2", null);
+    type.getDetails().getDetails().put("marketplaceVersion", "  ");
+    when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(List.of(type));
+    when(client.getCatalogue(null, null)).thenReturn(List.of(
+        registryPlugin("jira", "Jira", "1.4.2", "bug-tracking", "public")));
+    when(client.getVersion("jira", "1.4.2"))
+        .thenReturn(ceilinged("jira", "1.4.2", ">=25.1", ">=25.1", null, null));
+
+    assertTrue(installedNamed(handler.getCatalogue(null, null), "jira").marketplace()
+        .installedCompatibility().compatible());
+  }
+
+  @Test
   void anInstalledVersionWithNoCeilingRunsHereAndSaysNothingAboutOne() {
     var block = installedCompatibilityOf(
         ceilinged("jira", "1.4.2", ">=25.1", ">=25.1", null, null));

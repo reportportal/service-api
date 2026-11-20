@@ -87,7 +87,7 @@ class GetMarketplacePluginDetailHandlerTest {
     return new MarketplaceVersionDetail(id, "Jira", version, "Tracks issues", null, null,
         "bug-tracking", new MarketplaceCompatibility(">=25.0"), null, "public", null, "official",
         blocked, blocked ? WHEN : null, blocked ? "Signed with a revoked key" : null,
-        advisory, "sha", changelogUrl, screenshotUrls);
+        advisory, "sha", changelogUrl, screenshotUrls, null, null, null);
   }
 
   @Test
@@ -95,8 +95,8 @@ class GetMarketplacePluginDetailHandlerTest {
     when(client.getPlugin("jira")).thenReturn(plugin("jira", "1.6.0", "public"));
     when(client.listVersions("jira")).thenReturn(List.of(
         new MarketplaceVersionSummary("1.5.2", WHEN, true, WHEN, "Signed with a revoked key",
-            null, null),
-        new MarketplaceVersionSummary("1.6.0", WHEN, false, null, null, null, null)));
+            null, null, null, null, null),
+        new MarketplaceVersionSummary("1.6.0", WHEN, false, null, null, null, null, null, null, null)));
     when(client.getVersion("jira", "1.6.0")).thenReturn(version("jira", "1.6.0", null, false, null,
         List.of("https://cdn.rp.io/jira/1.png")));
 
@@ -297,14 +297,14 @@ class GetMarketplacePluginDetailHandlerTest {
     when(client.getPlugin("jira")).thenReturn(plugin("jira", "1.6.0", "public"));
     when(client.listVersions("jira")).thenReturn(List.of(
         new MarketplaceVersionSummary("1.6.0", WHEN, false, null, null,
-            new MarketplaceCompatibility(">=26.0"), null),
+            new MarketplaceCompatibility(">=26.0"), null, null, null, null),
         new MarketplaceVersionSummary("1.5.2", WHEN, false, null, null,
-            new MarketplaceCompatibility(">=27.0"), null),
+            new MarketplaceCompatibility(">=27.0"), null, null, null, null),
         // published before the registry recorded a range
-        new MarketplaceVersionSummary("1.4.0", WHEN, false, null, null, null, null),
+        new MarketplaceVersionSummary("1.4.0", WHEN, false, null, null, null, null, null, null, null),
         // recorded, but not as anything a range parser can read
         new MarketplaceVersionSummary("1.3.0", WHEN, false, null, null,
-            new MarketplaceCompatibility("whenever"), null)));
+            new MarketplaceCompatibility("whenever"), null, null, null, null)));
 
     var verdicts = handler.getPluginDetail("jira").versions().stream()
         .collect(java.util.stream.Collectors.toMap(
@@ -327,8 +327,8 @@ class GetMarketplacePluginDetailHandlerTest {
     when(client.getPlugin("jira")).thenReturn(plugin("jira", "1.6.0", "public"));
     when(client.listVersions("jira")).thenReturn(List.of(
         new MarketplaceVersionSummary("1.6.0", WHEN, false, null, null,
-            new MarketplaceCompatibility(">=27.0"), null),
-        new MarketplaceVersionSummary("1.5.2", WHEN, false, null, null, null, null)));
+            new MarketplaceCompatibility(">=27.0"), null, null, null, null),
+        new MarketplaceVersionSummary("1.5.2", WHEN, false, null, null, null, null, null, null, null)));
 
     var versions = handler.getPluginDetail("jira").versions();
 
@@ -346,7 +346,7 @@ class GetMarketplacePluginDetailHandlerTest {
     when(client.getPlugin("jira")).thenReturn(plugin("jira", "1.6.0", "public"));
     when(client.listVersions("jira")).thenReturn(List.of(
         new MarketplaceVersionSummary("1.6.0", WHEN, false, null, null,
-            new MarketplaceCompatibility(">=26.0"), null)));
+            new MarketplaceCompatibility(">=26.0"), null, null, null, null)));
 
     assertNull(blind.getPluginDetail("jira").versions().get(0).compatible());
   }
@@ -361,7 +361,7 @@ class GetMarketplacePluginDetailHandlerTest {
     when(client.getPlugin("jira")).thenReturn(plugin("jira", "1.6.0", "public"));
     var versions = new java.util.ArrayList<MarketplaceVersionSummary>();
     versions.add(null);
-    versions.add(new MarketplaceVersionSummary("1.6.0", WHEN, false, null, null, null, null));
+    versions.add(new MarketplaceVersionSummary("1.6.0", WHEN, false, null, null, null, null, null, null, null));
     when(client.listVersions("jira")).thenReturn(versions);
 
     var rows = handler.getPluginDetail("jira").versions();
@@ -376,8 +376,8 @@ class GetMarketplacePluginDetailHandlerTest {
     var advisory = new MarketplaceAdvisory("high", "CVE-2026-1234", WHEN);
     when(client.getPlugin("jira")).thenReturn(plugin("jira", "1.6.0", "public"));
     when(client.listVersions("jira")).thenReturn(List.of(
-        new MarketplaceVersionSummary("1.6.0", WHEN, false, null, null, null, advisory),
-        new MarketplaceVersionSummary("1.5.2", WHEN, false, null, null, null, null)));
+        new MarketplaceVersionSummary("1.6.0", WHEN, false, null, null, null, advisory, null, null, null),
+        new MarketplaceVersionSummary("1.5.2", WHEN, false, null, null, null, null, null, null, null)));
 
     var versions = handler.getPluginDetail("jira").versions();
 

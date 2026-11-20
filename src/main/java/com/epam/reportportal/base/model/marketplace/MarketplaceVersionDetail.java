@@ -22,6 +22,10 @@ import java.util.List;
 /**
  * GET /api/v1/plugins/{pluginId}/versions/{version} — manifest fields plus tier, block state,
  * advisory, sha256 and asset URLs. Unlike plugin detail it has no latestVersion.
+ *
+ * <p>{@code compatibility} is the author's claim; {@code effectiveCompatibility} is that range
+ * cut by any operator ceiling and is null only when {@code compatibility} is. The ceiling and its
+ * reason are null when none is set.
  */
 public record MarketplaceVersionDetail(
     String id,
@@ -42,7 +46,10 @@ public record MarketplaceVersionDetail(
     MarketplaceAdvisory advisory,
     String sha256,
     String changelogUrl,
-    List<String> screenshotUrls
+    List<String> screenshotUrls,
+    MarketplaceCompatibility effectiveCompatibility,
+    String compatibilityCeiling,
+    String compatibilityCeilingReason
 ) {
 
 }

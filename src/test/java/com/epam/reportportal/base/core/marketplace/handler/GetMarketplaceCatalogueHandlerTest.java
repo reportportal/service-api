@@ -143,7 +143,7 @@ class GetMarketplaceCatalogueHandlerTest {
       boolean blocked) {
     return new MarketplaceVersionDetail(id, id, version, null, null, null, "bug-tracking",
         new MarketplaceCompatibility(range), null, "public", null, "official", blocked, null,
-        null, null, "sha", null, null);
+        null, null, "sha", null, null, null, null, null);
   }
 
   private InstalledPluginResource installedNamed(MarketplaceCatalogueResource catalogue,
@@ -833,7 +833,7 @@ class GetMarketplaceCatalogueHandlerTest {
       MarketplaceAdvisory advisory, boolean blocked, Instant blockedAt, String blockReason) {
     return new MarketplaceVersionDetail(id, id, version, null, null, null, "bug-tracking",
         new MarketplaceCompatibility(">=25.0"), null, "public", null, "official", blocked,
-        blockedAt, blockReason, advisory, "sha", null, null);
+        blockedAt, blockReason, advisory, "sha", null, null, null, null, null);
   }
 
   @Test

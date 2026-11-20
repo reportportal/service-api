@@ -183,7 +183,7 @@ class InstallMarketplacePluginHandlerTest {
     return new MarketplaceVersionDetail(PLUGIN_ID, "JIRA", "1.4.2", "desc", null, null, null,
         range == null ? null : new MarketplaceCompatibility(range), null, access, null, "official",
         blocked, blocked ? Instant.EPOCH : null, blockReason, null, sha256, null,
-        List.of());
+        List.of(), null, null, null);
   }
 
   private void registryServes(MarketplaceVersionDetail detail) {

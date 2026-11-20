@@ -274,15 +274,15 @@ public class InstallMarketplacePluginHandlerImpl implements InstallMarketplacePl
         : StringUtils.trimToNull(detail.compatibility().reportportal());
     if (effective == null && ceiling != null && declared != null) {
       throw new ReportPortalException(ErrorType.MARKETPLACE_COMPATIBILITY_UNKNOWN,
-          "'" + registryId + ":" + version + "' is capped by the marketplace operator at '"
-              + ceiling + "', but the registry sent no effective range, so it is not installed on"
-              + " a guess");
+          "the marketplace limited " + registryId + " " + version + " to ReportPortal "
+              + plainCeiling(ceiling) + " but didn't send enough details to check it."
+              + " To be safe, it wasn't installed.");
     }
     if (effective == null) {
       // also a ceiling over an empty author range, which the registry would not accept today
       throw new ReportPortalException(ErrorType.MARKETPLACE_COMPATIBILITY_UNKNOWN,
-          "'" + registryId + ":" + version + "' declares no compatibility range, so it is not"
-              + " installed on a guess");
+          registryId + " " + version + " doesn't say which versions of ReportPortal it works with."
+              + " To be safe, it wasn't installed.");
     }
     if (!productVersion.isKnown()) {
       throw new ReportPortalException(ErrorType.MARKETPLACE_COMPATIBILITY_UNKNOWN,
@@ -316,12 +316,26 @@ public class InstallMarketplacePluginHandlerImpl implements InstallMarketplacePl
         .orElse(false);
     if (ceiling != null && authorAllows) {
       var reason = StringUtils.trimToNull(detail.compatibilityCeilingReason());
-      return "this instance runs ReportPortal " + running + ", '" + registryId + ":" + version
-          + "' is capped by the marketplace operator at '" + ceiling + "' (effective range '"
-          + effective + "')" + (reason == null ? ", no reason given" : ": " + reason);
+      return registryId + " " + version + " only works with ReportPortal " + plainCeiling(ceiling)
+          + ", and this server runs " + running + ". The marketplace set this limit."
+          + (reason == null ? "" : " Their reason: " + reason);
     }
     return "this instance runs ReportPortal " + running + ", '" + registryId + ":" + version
         + "' requires '" + effective + "' and fails " + String.join(", ", failed);
+  }
+
+  /**
+   * A ceiling as a reader would say it: {@code <27.0} is "versions below 27.0", {@code <=27.0}
+   * is "27.0 or earlier".
+   */
+  private static String plainCeiling(String ceiling) {
+    if (ceiling.startsWith("<=")) {
+      return ceiling.substring(2).trim() + " or earlier";
+    }
+    if (ceiling.startsWith("<")) {
+      return "versions below " + ceiling.substring(1).trim();
+    }
+    return ceiling;
   }
 
   /**

@@ -320,11 +320,9 @@ class InstallMarketplacePluginHandlerTest {
     var thrown = installOn("27.1");
 
     assertEquals(ErrorType.MARKETPLACE_PLUGIN_INCOMPATIBLE, thrown.getErrorType());
-    assertTrue(thrown.getMessage().contains("capped by the marketplace operator at '<27.0'"),
-        thrown.getMessage());
-    assertTrue(thrown.getMessage().contains("'>=25.1, <27.0'"), thrown.getMessage());
-    assertTrue(thrown.getMessage().endsWith(": RP 27.0 removes ExtensionPoint X"),
-        thrown.getMessage());
+    assertTrue(thrown.getMessage().endsWith("jira 1.4.2 only works with ReportPortal versions"
+        + " below 27.0, and this server runs 27.1. The marketplace set this limit. Their reason:"
+        + " RP 27.0 removes ExtensionPoint X"), thrown.getMessage());
     verifyNoInteractions(pluginBox);
     verify(client, never()).resolveArtifact(anyString(), anyString(), any());
   }
@@ -336,8 +334,18 @@ class InstallMarketplacePluginHandlerTest {
     var thrown = installOn("27.1");
 
     assertEquals(ErrorType.MARKETPLACE_PLUGIN_INCOMPATIBLE, thrown.getErrorType());
-    assertTrue(thrown.getMessage().endsWith("'<27.0' (effective range '>=25.1, <27.0'), no reason"
-        + " given"), thrown.getMessage());
+    assertTrue(thrown.getMessage().endsWith("this server runs 27.1. The marketplace set this"
+        + " limit."), thrown.getMessage());
+  }
+
+  @Test
+  void anInclusiveCeilingReadsAsOrEarlier() {
+    registryServes(capped(">=25.1", ">=25.1, <=26.0", "<=26.0", null));
+
+    var thrown = installOn("26.1");
+
+    assertTrue(thrown.getMessage().contains("only works with ReportPortal 26.0 or earlier,"),
+        thrown.getMessage());
   }
 
   @Test
@@ -357,7 +365,7 @@ class InstallMarketplacePluginHandlerTest {
     assertEquals(ErrorType.MARKETPLACE_PLUGIN_INCOMPATIBLE, thrown.getErrorType());
     assertTrue(thrown.getMessage().contains("requires '>=25.1, <26.0' and fails <26.0"),
         thrown.getMessage());
-    assertFalse(thrown.getMessage().contains("capped"), thrown.getMessage());
+    assertFalse(thrown.getMessage().contains("marketplace set this limit"), thrown.getMessage());
     assertFalse(thrown.getMessage().contains("ExtensionPoint"), thrown.getMessage());
   }
 
@@ -387,7 +395,7 @@ class InstallMarketplacePluginHandlerTest {
     // No author range to be inside of, so the ceiling cannot be shown to be the cause.
     assertEquals(ErrorType.MARKETPLACE_PLUGIN_INCOMPATIBLE, thrown.getErrorType());
     assertTrue(thrown.getMessage().contains("requires '>=25.1, <27.0'"), thrown.getMessage());
-    assertFalse(thrown.getMessage().contains("capped"), thrown.getMessage());
+    assertFalse(thrown.getMessage().contains("marketplace set this limit"), thrown.getMessage());
   }
 
   @Test
@@ -410,15 +418,15 @@ class InstallMarketplacePluginHandlerTest {
 
   @Test
   void ceilingOverAnEmptyAuthorRangeSaysTheVersionDeclaresNone() {
-    // the registry sends a ceiling and no effective range when the author's range is empty
+    // a ceiling over an empty author range, which the registry would not accept today
     registryServes(capped(null, null, "<27.0", "RP 27.0 removes ExtensionPoint X"));
 
     var thrown = installOn("26.4");
 
     assertEquals(ErrorType.MARKETPLACE_COMPATIBILITY_UNKNOWN, thrown.getErrorType());
-    assertTrue(thrown.getMessage().contains("declares no compatibility range"),
-        thrown.getMessage());
-    assertFalse(thrown.getMessage().contains("capped"), thrown.getMessage());
+    assertTrue(thrown.getMessage().endsWith("jira 1.4.2 doesn't say which versions of"
+        + " ReportPortal it works with. To be safe, it wasn't installed."), thrown.getMessage());
+    assertFalse(thrown.getMessage().contains("limited"), thrown.getMessage());
     verifyNoInteractions(pluginBox);
   }
 
@@ -430,8 +438,9 @@ class InstallMarketplacePluginHandlerTest {
     var thrown = installOn("26.4");
 
     assertEquals(ErrorType.MARKETPLACE_COMPATIBILITY_UNKNOWN, thrown.getErrorType());
-    assertTrue(thrown.getMessage().contains("capped by the marketplace operator at '<27.0'"),
-        thrown.getMessage());
+    assertTrue(thrown.getMessage().endsWith("the marketplace limited jira 1.4.2 to ReportPortal"
+        + " versions below 27.0 but didn't send enough details to check it. To be safe, it wasn't"
+        + " installed."), thrown.getMessage());
     verifyNoInteractions(pluginBox);
     verify(client, never()).resolveArtifact(anyString(), anyString(), any());
   }
@@ -446,7 +455,7 @@ class InstallMarketplacePluginHandlerTest {
     assertEquals(ErrorType.MARKETPLACE_PLUGIN_INCOMPATIBLE, thrown.getErrorType());
     assertTrue(thrown.getMessage().contains("requires '>=25.1, <27.0' and fails <27.0"),
         thrown.getMessage());
-    assertFalse(thrown.getMessage().contains("capped"), thrown.getMessage());
+    assertFalse(thrown.getMessage().contains("marketplace set this limit"), thrown.getMessage());
     assertFalse(thrown.getMessage().contains("null"), thrown.getMessage());
   }
 

@@ -186,6 +186,15 @@ class InstallMarketplacePluginHandlerTest {
         List.of(), null, null, null);
   }
 
+  /** A version as a ceiling-aware registry sends it; any argument may be null. */
+  private static MarketplaceVersionDetail capped(String declared, String effective,
+      String ceiling, String reason) {
+    return new MarketplaceVersionDetail(PLUGIN_ID, "JIRA", "1.4.2", "desc", null, null, null,
+        declared == null ? null : new MarketplaceCompatibility(declared), null, "public", null,
+        "official", false, null, null, null, sha256(JAR), null, List.of(),
+        effective == null ? null : new MarketplaceCompatibility(effective), ceiling, reason);
+  }
+
   private void registryServes(MarketplaceVersionDetail detail) {
     when(client.getVersion(PLUGIN_ID, "1.4.2")).thenReturn(detail);
   }
@@ -288,6 +297,114 @@ class InstallMarketplacePluginHandlerTest {
     var thrown = install();
 
     assertEquals(ErrorType.MARKETPLACE_COMPATIBILITY_UNKNOWN, thrown.getErrorType());
+    verifyNoInteractions(pluginBox);
+  }
+
+  // --- the operator ceiling -----------------------------------------------------------------
+
+  private ReportPortalException installOn(String productVersion) {
+    return assertThrows(ReportPortalException.class,
+        () -> handler(productVersion).install(PLUGIN_ID, new MarketplaceInstallRQ("1.4.2"), user));
+  }
+
+  private void installsOn(String productVersion) {
+    publicPluginAt("https://cdn.example/jira-1.4.2.jar");
+    handler(productVersion).install(PLUGIN_ID, new MarketplaceInstallRQ("1.4.2"), user);
+    verify(pluginBox, times(1)).uploadPlugin(anyString(), any(InputStream.class));
+  }
+
+  @Test
+  void ceilingThatExcludesTheRunningReleaseRefusesQuotingTheOperator() {
+    registryServes(capped(">=25.1", ">=25.1, <27.0", "<27.0", "RP 27.0 removes ExtensionPoint X"));
+
+    var thrown = installOn("27.1");
+
+    assertEquals(ErrorType.MARKETPLACE_PLUGIN_INCOMPATIBLE, thrown.getErrorType());
+    assertTrue(thrown.getMessage().contains("capped by the marketplace operator at '<27.0'"),
+        thrown.getMessage());
+    assertTrue(thrown.getMessage().contains("'>=25.1, <27.0'"), thrown.getMessage());
+    assertTrue(thrown.getMessage().endsWith(": RP 27.0 removes ExtensionPoint X"),
+        thrown.getMessage());
+    verifyNoInteractions(pluginBox);
+    verify(client, never()).resolveArtifact(anyString(), anyString(), any());
+  }
+
+  @Test
+  void ceilingWithoutAReasonSaysSoRatherThanQuotingNothing() {
+    registryServes(capped(">=25.1", ">=25.1, <27.0", "<27.0", " "));
+
+    var thrown = installOn("27.1");
+
+    assertEquals(ErrorType.MARKETPLACE_PLUGIN_INCOMPATIBLE, thrown.getErrorType());
+    assertTrue(thrown.getMessage().endsWith("'<27.0' (effective range '>=25.1, <27.0'), no reason"
+        + " given"), thrown.getMessage());
+  }
+
+  @Test
+  void ceilingAboveTheRunningReleaseInstalls() {
+    registryServes(capped(">=25.1", ">=25.1, <27.0", "<27.0", "RP 27.0 removes ExtensionPoint X"));
+
+    installsOn("26.4");
+  }
+
+  @Test
+  void authorRangeThatAlreadyExcludesIsNotBlamedOnTheCeiling() {
+    registryServes(
+        capped(">=25.1, <26.0", ">=25.1, <26.0", "<27.0", "RP 27.0 removes ExtensionPoint X"));
+
+    var thrown = installOn("26.4");
+
+    assertEquals(ErrorType.MARKETPLACE_PLUGIN_INCOMPATIBLE, thrown.getErrorType());
+    assertTrue(thrown.getMessage().contains("requires '>=25.1, <26.0' and fails <26.0"),
+        thrown.getMessage());
+    assertFalse(thrown.getMessage().contains("capped"), thrown.getMessage());
+    assertFalse(thrown.getMessage().contains("ExtensionPoint"), thrown.getMessage());
+  }
+
+  @Test
+  void registryWithoutEffectiveRangeIsJudgedByTheAuthorsRangeAndRefuses() {
+    registryServes(capped(">=25.1, <26.0", null, null, null));
+
+    var thrown = installOn("26.4");
+
+    assertEquals(ErrorType.MARKETPLACE_PLUGIN_INCOMPATIBLE, thrown.getErrorType());
+    assertTrue(thrown.getMessage().contains("requires '>=25.1, <26.0'"), thrown.getMessage());
+  }
+
+  @Test
+  void registryWithoutEffectiveRangeIsJudgedByTheAuthorsRangeAndInstalls() {
+    registryServes(capped(">=25.1, <26.0", null, null, null));
+
+    installsOn("25.2");
+  }
+
+  @Test
+  void effectiveRangeWithoutAnAuthorRangeIsStillEnforced() {
+    registryServes(capped(null, ">=25.1, <27.0", "<27.0", "RP 27.0 removes ExtensionPoint X"));
+
+    var thrown = installOn("27.1");
+
+    // No author range to be inside of, so the ceiling cannot be shown to be the cause.
+    assertEquals(ErrorType.MARKETPLACE_PLUGIN_INCOMPATIBLE, thrown.getErrorType());
+    assertTrue(thrown.getMessage().contains("requires '>=25.1, <27.0'"), thrown.getMessage());
+    assertFalse(thrown.getMessage().contains("capped"), thrown.getMessage());
+  }
+
+  @Test
+  void effectiveRangeWithoutAnAuthorRangeInstallsInsideIt() {
+    registryServes(capped(null, ">=25.1, <27.0", "<27.0", "RP 27.0 removes ExtensionPoint X"));
+
+    installsOn("26.4");
+  }
+
+  @Test
+  void unreadableEffectiveRangeIsUnknownEvenWhenTheAuthorsRangeReads() {
+    registryServes(capped(">=25.1", ">=next", "<27.0", "RP 27.0 removes ExtensionPoint X"));
+
+    var thrown = installOn("26.4");
+
+    assertEquals(ErrorType.MARKETPLACE_COMPATIBILITY_UNKNOWN, thrown.getErrorType());
+    assertTrue(thrown.getMessage().contains("'>=next'"), thrown.getMessage());
     verifyNoInteractions(pluginBox);
   }
 

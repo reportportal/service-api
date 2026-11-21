@@ -37,7 +37,6 @@ import com.epam.reportportal.base.model.Page;
 import com.epam.reportportal.base.model.item.UpdateTestItemRQ;
 import com.epam.reportportal.base.reporting.FinishTestItemRQ;
 import com.epam.reportportal.base.ws.converter.PagedResourcesAssembler;
-import jakarta.persistence.PersistenceException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -54,7 +53,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -388,32 +386,18 @@ public class TmsTestCaseExecutionServiceImpl implements TmsTestCaseExecutionServ
       var testCasesMap = tmsTestCaseService.getByIdsMap(projectId, testCaseIdsInPartition, false);
 
       for (var testCaseId : testCaseIdsInPartition) {
-        try {
-          var testCase = testCasesMap.get(testCaseId);
-          if (testCase == null) {
-            log.warn("Test case {} for project {} not found in batch fetch", testCaseId, projectId);
-            errors.add(new BatchTestCaseOperationError(testCaseId, "Test case does not exist in the project"));
-            continue;
-          }
-
-          // Create execution
-          createExecution(projectId, testCase, launch, suiteItemsByIds, testItemNamesByIds, existingExecutionTestCaseIds);
-          successfulIds.add(testCaseId);
-
-          log.debug("Successfully added test case {} to launch {}", testCaseId, launch.getId());
-
-        } catch (DataAccessException | PersistenceException e) {
-          throw e;
-        } catch (ReportPortalException e) {
-          log.warn("Failed to add test case {} to launch {}: {}", testCaseId, launch.getId(),
-            e.getMessage());
-          errors.add(new BatchTestCaseOperationError(testCaseId, e.getMessage()));
-        } catch (Exception e) {
-          log.error("Unexpected error adding test case {} to launch {}: {}", testCaseId,
-              launch.getId(), e.getMessage(), e);
-          errors.add(new BatchTestCaseOperationError(testCaseId,
-              "Unexpected error: " + e.getMessage()));
+        var testCase = testCasesMap.get(testCaseId);
+        if (testCase == null) {
+          log.warn("Test case {} for project {} not found in batch fetch", testCaseId, projectId);
+          errors.add(new BatchTestCaseOperationError(testCaseId, "Test case does not exist in the project"));
+          continue;
         }
+
+        // Create execution; any failure fails the whole request (one transaction)
+        createExecution(projectId, testCase, launch, suiteItemsByIds, testItemNamesByIds, existingExecutionTestCaseIds);
+        successfulIds.add(testCaseId);
+
+        log.debug("Successfully added test case {} to launch {}", testCaseId, launch.getId());
       }
     }
 

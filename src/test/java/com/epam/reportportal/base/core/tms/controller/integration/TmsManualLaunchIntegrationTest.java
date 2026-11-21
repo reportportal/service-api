@@ -1284,6 +1284,35 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
   }
 
   @Test
+  void batchDeleteTestCaseExecutions_WhenTestItemWasDeleted_ShouldDeleteExecution()
+      throws Exception {
+    // test_item_id is ON DELETE SET NULL: simulate an execution whose test item is gone
+    entityManager.createNativeQuery(
+            "UPDATE tms_test_case_execution SET test_item_id = NULL WHERE id = 10")
+        .executeUpdate();
+    entityManager.clear();
+
+    var batchDeleteRQ = BatchDeleteTestCaseExecutionsRQ.builder()
+        .executionIds(List.of(10L))
+        .build();
+
+    mockMvc.perform(
+            delete("/v1/project/" + SUPERADMIN_PROJECT_KEY
+                + "/launch/manual/200/test-case/execution")
+                .contentType(APPLICATION_JSON)
+                .content(mapper.writeValueAsString(batchDeleteRQ))
+                .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.successCount").value(1))
+        .andExpect(jsonPath("$.failureCount").value(0));
+
+    var remaining = ((Number) entityManager
+        .createNativeQuery("SELECT COUNT(*) FROM tms_test_case_execution WHERE id = 10")
+        .getSingleResult()).longValue();
+    assertThat(remaining).isZero();
+  }
+
+  @Test
   void batchDeleteTestCaseExecutions_SomeNonExistent_ShouldReturnPartialSuccess() throws Exception {
     var batchDeleteRQ = BatchDeleteTestCaseExecutionsRQ.builder()
         .executionIds(List.of(10L, 999L))

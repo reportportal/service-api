@@ -34,6 +34,7 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestIte
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItemResults;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.MembershipDetails;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCaseExecution;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCaseExecutionComment;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.model.item.UpdateTestItemRQ;
@@ -697,6 +698,30 @@ class TmsTestCaseExecutionServiceImplTest {
 
     assertThrows(ReportPortalException.class,
         () -> sut.addTestCasesToLaunch(projectId, launch, List.of(testCaseId1)));
+  }
+
+  // ==================== deleteTestCaseExecutionFromLaunch ====================
+
+  @Test
+  void deleteTestCaseExecutionFromLaunch_WhenTestItemWasDeleted_ShouldDeleteExecutionOnly() {
+    var projectId = 1L;
+    var launchId = 10L;
+    var executionId = 5L;
+    var execution = new TmsTestCaseExecution();
+    execution.setId(executionId);
+    execution.setLaunchId(launchId);
+    execution.setTestItem(null);
+    execution.setExecutionComment(new TmsTestCaseExecutionComment());
+
+    when(tmsTestCaseExecutionRepository.findById(executionId)).thenReturn(Optional.of(execution));
+
+    sut.deleteTestCaseExecutionFromLaunch(projectId, launchId, executionId);
+
+    verify(tmsTestCaseExecutionCommentService)
+        .deleteTestCaseExecutionComment(projectId, launchId, execution);
+    verify(tmsStepExecutionService).deleteStepExecutionsByTestCaseExecution(executionId);
+    verify(tmsTestCaseExecutionRepository).deleteById(executionId);
+    verifyNoInteractions(testItemRepository, testFolderItemService);
   }
 
   // ==================== isTestCaseInLaunch ====================

@@ -76,7 +76,7 @@ public interface GetUserHandler {
   Page<UserResource> getUsers(Filter filter, Pageable pageable,
       MembershipDetails membershipDetails);
 
-  Map<String, UserResource.AssignedProject> getUserProjects(String userName);
+  Map<String, UserResource.AssignedProject> getUserProjects(String userName, ReportPortalUser currentUser);
 
   /**
    * Get page of users with filter

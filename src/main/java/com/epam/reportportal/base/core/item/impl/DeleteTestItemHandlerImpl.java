@@ -65,6 +65,7 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Default implementation of {@link DeleteTestItemHandler}
@@ -73,6 +74,7 @@ import org.springframework.stereotype.Service;
  * @author Andrei_Ramanchuk
  */
 @Service
+@Transactional
 @RequiredArgsConstructor
 public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 
@@ -111,6 +113,7 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
     TestItemPathContext cur = new TestItemPathContext(item.getItemId(),
         item.getLaunchId(), item.getPath());
     testItemStatisticsService.deleteItemStatistics(cur);
+    attachmentRepository.moveForDeletionByItems(itemsForRemove);
     testItemRepository.deleteById(item.getItemId());
 
     launch.setHasRetries(launchRepository.hasRetries(launch.getId()));
@@ -119,7 +122,6 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
             p -> p.setHasChildren(testItemRepository.hasChildren(p.getItemId(), p.getPath())));
 
     logIndexer.indexItemsRemoveAsync(membershipDetails.getProjectId(), itemsForRemove);
-    attachmentRepository.moveForDeletionByItems(itemsForRemove);
 
     return COMPOSE_DELETE_RESPONSE.apply(item.getItemId());
   }
@@ -168,6 +170,9 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 
     idsToDelete.forEach(itemContentRemover::remove);
     logService.deleteLogMessageByTestItemSet(membershipDetails.getProjectId(), removedItems);
+    if (CollectionUtils.isNotEmpty(removedItems)) {
+      attachmentRepository.moveForDeletionByItems(removedItems);
+    }
     testItemRepository.deleteAllByItemIdIn(idsToDelete);
 
     launches.forEach(it -> it.setHasRetries(launchRepository.hasRetries(it.getId())));
@@ -177,7 +182,6 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 
     if (CollectionUtils.isNotEmpty(removedItems)) {
       logIndexer.indexItemsRemoveAsync(membershipDetails.getProjectId(), removedItems);
-      attachmentRepository.moveForDeletionByItems(removedItems);
     }
 
     return idsToDelete.stream().map(COMPOSE_DELETE_RESPONSE).collect(toList());

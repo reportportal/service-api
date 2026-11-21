@@ -54,6 +54,7 @@ import java.util.Objects;
 import java.util.Optional;
 import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Delete Logs handler. Basic implementation of {@link com.epam.reportportal.base.core.log.DeleteLogHandler} interface.
@@ -62,6 +63,7 @@ import org.springframework.stereotype.Service;
  * @author Andrei_Ramanchuk
  */
 @Service
+@Transactional
 public class DeleteLogHandlerImpl implements DeleteLogHandler {
 
   private final LogRepository logRepository;
@@ -97,9 +99,9 @@ public class DeleteLogHandlerImpl implements DeleteLogHandler {
     Log log = validate(logId, user, membershipDetails);
     try {
       logService.deleteLogMessage(membershipDetails.getProjectId(), log.getId());
-      logRepository.delete(log);
       ofNullable(log.getAttachment()).ifPresent(
           attachment -> attachmentRepository.moveForDeletion(attachment.getId()));
+      logRepository.delete(log);
     } catch (Exception exc) {
       throw new ReportPortalException("Error while Log instance deleting.", exc);
     }

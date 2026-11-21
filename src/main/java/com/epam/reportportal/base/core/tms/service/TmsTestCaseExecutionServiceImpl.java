@@ -444,8 +444,6 @@ public class TmsTestCaseExecutionServiceImpl implements TmsTestCaseExecutionServ
     }
 
     var testItem = execution.getTestItem();
-    var suiteItemId = testItem.getParentId();
-    var testItemId = testItem.getItemId();
 
     // Delete associated step executions
     tmsStepExecutionService.deleteStepExecutionsByTestCaseExecution(executionId);
@@ -454,6 +452,14 @@ public class TmsTestCaseExecutionServiceImpl implements TmsTestCaseExecutionServ
     // Delete the execution record
     tmsTestCaseExecutionRepository.deleteById(executionId);
     log.debug("Deleted test case execution: {}", executionId);
+
+    // The test item may already be gone (test_item_id is ON DELETE SET NULL)
+    if (testItem == null) {
+      log.debug("Test case execution: {} has no test item, nothing else to remove", executionId);
+      return;
+    }
+    var suiteItemId = testItem.getParentId();
+    var testItemId = testItem.getItemId();
 
     // Delete the TEST item and all its nested steps (cascade)
     testItemRepository.deleteById(testItemId);

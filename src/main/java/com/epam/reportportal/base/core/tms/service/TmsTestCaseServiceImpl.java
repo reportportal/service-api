@@ -44,6 +44,9 @@ import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalExc
 import com.epam.reportportal.base.model.Page;
 import com.epam.reportportal.base.util.PageableUtils;
 import com.epam.reportportal.base.ws.converter.PagedResourcesAssembler;
+import com.google.common.collect.Lists;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import java.io.IOException;
@@ -79,6 +82,11 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
   private static final String TEST_CASES_NOT_FOUND_BY_IDS = "Test Cases with ids: %s for projectId: %d";
   private static final String TEST_FOLDER_NOT_FOUND_BY_ID =
       "Test Folder with id: %d for project: %d";
+
+  private static final int EXPORT_CHUNK_SIZE = 500;
+
+  @PersistenceContext
+  private EntityManager entityManager;
 
   private final TmsTestCaseMapper tmsTestCaseMapper;
   private final TmsTestCaseRepository tmsTestCaseRepository;
@@ -600,19 +608,36 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
   @Transactional(readOnly = true)
   public void exportToFile(Long projectId, List<Long> testCaseIds, String format,
       boolean includeAttachments, HttpServletResponse response) {
-    List<TmsTestCaseRS> testCases;
+    var exporter = exporterFactory.getExporter(format);
 
+    List<Long> idsToExport;
+    boolean includeLastExecution;
     if (testCaseIds != null && !testCaseIds.isEmpty()) {
-      testCases = testCaseIds.stream()
-          .map(id -> getById(projectId, id))
-          .toList();
+      validateTestCasesExist(projectId, testCaseIds);
+      idsToExport = testCaseIds;
+      includeLastExecution = true;
     } else {
-      testCases = getTestCaseByProjectId(projectId);
+      idsToExport = tmsTestCaseRepository.findIdsByProjectId(projectId);
+      includeLastExecution = false;
     }
-    exporterFactory
-        .getExporter(format)
-        .export(testCases, includeAttachments, response);
 
+    // Loaded and written in chunks (3 queries per chunk); the persistence context is cleared after
+    // each chunk, so memory stays bounded by the chunk size
+    var testCases = Lists.partition(idsToExport, EXPORT_CHUNK_SIZE)
+        .stream()
+        .flatMap(chunk -> loadExportChunk(projectId, chunk, includeLastExecution).stream());
+    exporter.export(testCases, includeAttachments, response);
+  }
+
+  private List<TmsTestCaseRS> loadExportChunk(long projectId, List<Long> chunk,
+      boolean includeLastExecution) {
+    var testCasesById = getByIdsMap(projectId, chunk, includeLastExecution);
+    var testCases = chunk.stream()
+        .map(testCasesById::get)
+        .filter(Objects::nonNull)
+        .toList();
+    entityManager.clear();
+    return testCases;
   }
 
   @Override

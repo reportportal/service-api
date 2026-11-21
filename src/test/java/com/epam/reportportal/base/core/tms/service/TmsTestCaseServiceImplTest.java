@@ -19,6 +19,9 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.when;
 
 import com.epam.reportportal.base.core.events.domain.tms.TestCaseCreatedEvent;
@@ -64,6 +67,7 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestF
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.model.activity.TestCaseActivityResource;
+import jakarta.persistence.EntityManager;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStream;
@@ -74,6 +78,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.LongStream;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -86,6 +92,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
 class TmsTestCaseServiceImplTest {
@@ -143,6 +150,9 @@ class TmsTestCaseServiceImplTest {
 
   @Mock
   private HttpServletResponse response;
+
+  @Mock
+  private EntityManager entityManager;
 
   @InjectMocks
   private TmsTestCaseServiceImpl sut;
@@ -1524,62 +1534,97 @@ class TmsTestCaseServiceImplTest {
   }
 
   @Test
-  void exportToFile_WithSpecificIds_ShouldExportSpecificTestCases() {
-    var testCaseIds = List.of(1L, 2L);
+  void exportToFile_WithSpecificIds_ShouldExportSpecificTestCasesInRequestOrder() {
+    var testCaseIds = List.of(2L, 1L);
     var format = "JSON";
     var includeAttachments = true;
+    var testCase1 = new TmsTestCase();
+    testCase1.setId(1L);
+    var testCase2 = new TmsTestCase();
+    testCase2.setId(2L);
+    var rs1 = new TmsTestCaseRS();
+    rs1.setId(1L);
+    var rs2 = new TmsTestCaseRS();
+    rs2.setId(2L);
+    ReflectionTestUtils.setField(sut, "entityManager", entityManager);
 
-    when(tmsTestCaseRepository.findByProjectIdAndId(projectId, 1L))
-        .thenReturn(Optional.of(testCase));
-    when(tmsTestCaseRepository.findByProjectIdAndId(projectId, 2L))
-        .thenReturn(Optional.of(testCase));
-    when(tmsTestCaseVersionService.getDefaultVersion(1L)).thenReturn(testCaseVersion);
-    when(tmsTestCaseVersionService.getDefaultVersion(2L)).thenReturn(testCaseVersion);
-    when(tmsTestCaseExecutionService.getLastTestCaseExecution(1L)).thenReturn(testCaseExecution);
-    when(tmsTestCaseExecutionService.getLastTestCaseExecution(2L)).thenReturn(testCaseExecution);
-    when(tmsTestCaseMapper.convert(testCase, testCaseVersion, testCaseExecution))
-        .thenReturn(testCaseRS);
     when(exporterFactory.getExporter(format)).thenReturn(exporter);
+    when(tmsTestCaseRepository.findExistingIdsByProjectIdAndIds(projectId, testCaseIds))
+        .thenReturn(testCaseIds);
+    when(tmsTestCaseRepository.findByProjectIdAndIds(projectId, testCaseIds))
+        .thenReturn(List.of(testCase1, testCase2));
+    when(tmsTestCaseVersionService.getDefaultVersions(testCaseIds)).thenReturn(Map.of());
+    when(tmsTestCaseExecutionService.getLastTestCasesExecutionsByTestCaseIds(testCaseIds))
+        .thenReturn(Map.of());
+    when(tmsTestCaseMapper.convert(testCase1, null, null)).thenReturn(rs1);
+    when(tmsTestCaseMapper.convert(testCase2, null, null)).thenReturn(rs2);
+    var exported = new ArrayList<TmsTestCaseRS>();
+    doAnswer(invocation -> {
+      Stream<TmsTestCaseRS> stream = invocation.getArgument(0);
+      stream.forEach(exported::add);
+      return null;
+    }).when(exporter).export(any(), eq(includeAttachments), eq(response));
 
     sut.exportToFile(projectId, testCaseIds, format, includeAttachments, response);
 
-    verify(exporterFactory).getExporter(format);
-    verify(exporter).export(any(List.class), eq(includeAttachments), eq(response));
+    assertEquals(List.of(rs2, rs1), exported);
+    verify(tmsTestCaseRepository, never()).findByProjectIdAndId(anyLong(), anyLong());
+    verify(entityManager).clear();
   }
 
   @Test
-  void exportToFile_WithoutIds_ShouldExportAllTestCases() {
+  void exportToFile_WithUnknownId_ThrowsNotFound() {
+    var testCaseIds = List.of(1L, 999L);
+    when(exporterFactory.getExporter("JSON")).thenReturn(exporter);
+    when(tmsTestCaseRepository.findExistingIdsByProjectIdAndIds(projectId, testCaseIds))
+        .thenReturn(List.of(1L));
+
+    assertThrows(ReportPortalException.class,
+        () -> sut.exportToFile(projectId, testCaseIds, "JSON", false, response));
+
+    verify(exporter, never()).export(any(), anyBoolean(), any());
+  }
+
+  @Test
+  void exportToFile_WithoutIds_ShouldExportAllTestCasesInChunks() {
     var format = "CSV";
     var includeAttachments = false;
-    var testCases = List.of(testCase);
+    var allIds = LongStream.rangeClosed(1, 1200).boxed().toList();
+    ReflectionTestUtils.setField(sut, "entityManager", entityManager);
 
-    when(tmsTestCaseRepository.findByProjectId(projectId)).thenReturn(testCases);
-    when(tmsTestCaseMapper.convert(testCase)).thenReturn(testCaseRS);
     when(exporterFactory.getExporter(format)).thenReturn(exporter);
+    when(tmsTestCaseRepository.findIdsByProjectId(projectId)).thenReturn(allIds);
+    when(tmsTestCaseRepository.findByProjectIdAndIds(eq(projectId), anyList()))
+        .thenAnswer(invocation -> {
+          List<Long> ids = invocation.getArgument(1);
+          return ids.stream().map(id -> {
+            var tc = new TmsTestCase();
+            tc.setId(id);
+            return tc;
+          }).toList();
+        });
+    when(tmsTestCaseVersionService.getDefaultVersions(anyList())).thenReturn(Map.of());
+    when(tmsTestCaseMapper.convert(any(TmsTestCase.class), isNull()))
+        .thenAnswer(invocation -> {
+          var rs = new TmsTestCaseRS();
+          rs.setId(((TmsTestCase) invocation.getArgument(0)).getId());
+          return rs;
+        });
+    var exported = new ArrayList<TmsTestCaseRS>();
+    doAnswer(invocation -> {
+      Stream<TmsTestCaseRS> stream = invocation.getArgument(0);
+      stream.forEach(exported::add);
+      return null;
+    }).when(exporter).export(any(), eq(includeAttachments), eq(response));
 
     sut.exportToFile(projectId, null, format, includeAttachments, response);
 
-    verify(tmsTestCaseRepository).findByProjectId(projectId);
-    verify(exporterFactory).getExporter(format);
-    verify(exporter).export(any(List.class), eq(includeAttachments), eq(response));
-  }
-
-  @Test
-  void exportToFile_WithEmptyIds_ShouldExportAllTestCases() {
-    var emptyIds = Collections.<Long>emptyList();
-    var format = "JSON";
-    var includeAttachments = false;
-    var testCases = List.of(testCase);
-
-    when(tmsTestCaseRepository.findByProjectId(projectId)).thenReturn(testCases);
-    when(tmsTestCaseMapper.convert(testCase)).thenReturn(testCaseRS);
-    when(exporterFactory.getExporter(format)).thenReturn(exporter);
-
-    sut.exportToFile(projectId, emptyIds, format, includeAttachments, response);
-
-    verify(tmsTestCaseRepository).findByProjectId(projectId);
-    verify(exporterFactory).getExporter(format);
-    verify(exporter).export(any(List.class), eq(includeAttachments), eq(response));
+    assertEquals(1200, exported.size());
+    // 1200 ids -> chunks of 500, 500 and 200
+    verify(tmsTestCaseRepository, times(3)).findByProjectIdAndIds(eq(projectId), anyList());
+    verify(tmsTestCaseRepository, never()).findByProjectId(anyLong());
+    verify(entityManager, times(3)).clear();
+    verifyNoInteractions(tmsTestCaseExecutionService);
   }
 
   @Test

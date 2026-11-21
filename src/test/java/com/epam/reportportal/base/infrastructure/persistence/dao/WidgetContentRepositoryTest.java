@@ -649,17 +649,29 @@ class WidgetContentRepositoryTest extends BaseMvcTest {
   }
 
   @Test
-  void productStatusLaunchGroupedWidgetRejectsUnknownContentField() {
+  void productStatusLaunchGroupedWidgetSkipsStaleContentField() {
     Filter filter = buildDefaultTestFilter(1L);
     Sort sort = Sort.by(
         Lists.newArrayList(new Sort.Order(Sort.Direction.DESC, CRITERIA_START_TIME)));
     List<String> contentFields = buildProductStatusContentFields();
-    contentFields.add("unknownField");
+    contentFields.add("staleField");
 
-    ReportPortalException ex = assertThrows(ReportPortalException.class,
-        () -> widgetContentRepository.productStatusGroupedByLaunchesStatistics(filter, contentFields,
-            new LinkedHashMap<>(), sort, false, 10));
-    assertEquals(ErrorType.BAD_REQUEST_ERROR, ex.getErrorType());
+    List<ProductStatusStatisticsContent> result = widgetContentRepository.productStatusGroupedByLaunchesStatistics(
+        filter, contentFields, new LinkedHashMap<>(), sort, false, 10);
+    List<ProductStatusStatisticsContent> expected = widgetContentRepository.productStatusGroupedByLaunchesStatistics(
+        filter, buildProductStatusContentFields(), new LinkedHashMap<>(), sort, false, 10);
+
+    assertFalse(result.isEmpty());
+    assertEquals(expected.size(), result.size());
+    for (int i = 0; i < result.size(); i++) {
+      assertEquals(expected.get(i).getId(), result.get(i).getId());
+      if (result.get(i).getId() != null) { // the last entry is the totals row
+        assertNotNull(result.get(i).getStatus());
+        assertNotNull(result.get(i).getStartTime());
+      }
+      assertEquals(expected.get(i).getStatus(), result.get(i).getStatus());
+      assertEquals(expected.get(i).getValues(), result.get(i).getValues());
+    }
   }
 
   @Test

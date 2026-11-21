@@ -79,6 +79,7 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
   @Override
   @Transactional
   public TmsTestPlanRS create(long projectId, TmsTestPlanRQ testPlanRQ) {
+    verifyMilestoneExistsIfPresent(projectId, testPlanRQ);
     var tmsTestPlan = tmsTestPlanMapper.convertFromRQ(projectId, testPlanRQ);
 
     testPlanRepository.save(tmsTestPlan);
@@ -97,6 +98,7 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
   @Override
   @Transactional
   public TmsTestPlanRS update(long projectId, Long testPlanId, TmsTestPlanRQ testPlanRQ) {
+    verifyMilestoneExistsIfPresent(projectId, testPlanRQ);
     return testPlanRepository.findByIdAndProjectId(testPlanId, projectId)
         .map((var existingTestPlan) -> {
           tmsTestPlanMapper.update(existingTestPlan,
@@ -115,6 +117,7 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
   @Override
   @Transactional
   public TmsTestPlanRS patch(long projectId, Long testPlanId, TmsTestPlanRQ testPlanRQ) {
+    verifyMilestoneExistsIfPresent(projectId, testPlanRQ);
     return testPlanRepository.findByIdAndProjectId(testPlanId, projectId)
         .map((var existingTestPlan) -> {
           tmsTestPlanMapper.patch(existingTestPlan,
@@ -296,6 +299,7 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
         .orElseThrow(() -> new ReportPortalException(
             NOT_FOUND, TMS_TEST_PLAN_NOT_FOUND_BY_ID.formatted(testPlanId, projectId))
         );
+    verifyMilestoneExistsIfPresent(projectId, duplicateTestPlanRQ);
 
     // Duplicate test plan entity
     var duplicatedTestPlan = tmsTestPlanMapper.duplicateTestPlan(originalTestPlan,
@@ -596,6 +600,12 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
     return PagedResourcesAssembler
         .<TmsManualLaunchTestPlanRS>pageConverter()
         .apply(page);
+  }
+
+  private void verifyMilestoneExistsIfPresent(Long projectId, TmsTestPlanRQ testPlanRQ) {
+    if (testPlanRQ != null && testPlanRQ.getMilestoneId() != null) {
+      verifyMilestoneExists(projectId, testPlanRQ.getMilestoneId());
+    }
   }
 
   public void verifyMilestoneExists(Long projectId, Long milestoneId) {

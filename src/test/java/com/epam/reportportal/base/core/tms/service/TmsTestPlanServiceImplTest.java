@@ -173,6 +173,74 @@ class TmsTestPlanServiceImplTest {
   }
 
   @Test
+  void shouldNotCreateTestPlanWithMilestoneOfAnotherProject() {
+    var testPlanRQ = new TmsTestPlanRQ();
+    testPlanRQ.setMilestoneId(milestoneId);
+    when(tmsMilestoneRepository.existsByIdAndProjectId(milestoneId, projectId)).thenReturn(false);
+
+    var exception = assertThrows(ReportPortalException.class,
+        () -> sut.create(projectId, testPlanRQ));
+
+    assertEquals(ErrorType.NOT_FOUND, exception.getErrorType());
+    verify(testPlanRepository, never()).save(any());
+  }
+
+  @Test
+  void shouldCreateTestPlanWithMilestoneOfSameProject() {
+    var testPlanRQ = new TmsTestPlanRQ();
+    testPlanRQ.setMilestoneId(milestoneId);
+    var testPlan = new TmsTestPlan();
+    when(tmsMilestoneRepository.existsByIdAndProjectId(milestoneId, projectId)).thenReturn(true);
+    when(tmsTestPlanMapper.convertFromRQ(projectId, testPlanRQ)).thenReturn(testPlan);
+
+    assertDoesNotThrow(() -> sut.create(projectId, testPlanRQ));
+
+    verify(testPlanRepository).save(testPlan);
+  }
+
+  @Test
+  void shouldNotUpdateTestPlanWithMilestoneOfAnotherProject() {
+    var testPlanRQ = new TmsTestPlanRQ();
+    testPlanRQ.setMilestoneId(milestoneId);
+    when(tmsMilestoneRepository.existsByIdAndProjectId(milestoneId, projectId)).thenReturn(false);
+
+    var exception = assertThrows(ReportPortalException.class,
+        () -> sut.update(projectId, testPlanId, testPlanRQ));
+
+    assertEquals(ErrorType.NOT_FOUND, exception.getErrorType());
+    verify(tmsTestPlanMapper, never()).update(any(), any());
+    verify(testPlanRepository, never()).save(any());
+  }
+
+  @Test
+  void shouldNotPatchTestPlanWithMilestoneOfAnotherProject() {
+    var testPlanRQ = new TmsTestPlanRQ();
+    testPlanRQ.setMilestoneId(milestoneId);
+    when(tmsMilestoneRepository.existsByIdAndProjectId(milestoneId, projectId)).thenReturn(false);
+
+    var exception = assertThrows(ReportPortalException.class,
+        () -> sut.patch(projectId, testPlanId, testPlanRQ));
+
+    assertEquals(ErrorType.NOT_FOUND, exception.getErrorType());
+    verify(tmsTestPlanMapper, never()).patch(any(), any());
+  }
+
+  @Test
+  void shouldNotDuplicateTestPlanIntoMilestoneOfAnotherProject() {
+    var testPlanRQ = new TmsTestPlanRQ();
+    testPlanRQ.setMilestoneId(milestoneId);
+    when(testPlanRepository.findByIdAndProjectId(testPlanId, projectId))
+        .thenReturn(Optional.of(new TmsTestPlan()));
+    when(tmsMilestoneRepository.existsByIdAndProjectId(milestoneId, projectId)).thenReturn(false);
+
+    var exception = assertThrows(ReportPortalException.class,
+        () -> sut.duplicate(membershipDetails, user, testPlanId, testPlanRQ));
+
+    assertEquals(ErrorType.NOT_FOUND, exception.getErrorType());
+    verify(testPlanRepository, never()).save(any());
+  }
+
+  @Test
   void shouldDelete() {
     var projectId = 1L;
     var testPlanId = 2L;

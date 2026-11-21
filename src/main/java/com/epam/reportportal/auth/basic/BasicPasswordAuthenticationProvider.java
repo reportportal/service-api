@@ -56,7 +56,7 @@ public class BasicPasswordAuthenticationProvider extends DaoAuthenticationProvid
 
   @Override
   public Authentication authenticate(Authentication authentication) throws AuthenticationException {
-    if (failureEventHandler.isBlocked(request.get())) {
+    if (failureEventHandler.isBlocked(request.get(), authentication.getName())) {
       throw new ReportPortalException(ErrorType.ADDRESS_LOCKED);
     }
 

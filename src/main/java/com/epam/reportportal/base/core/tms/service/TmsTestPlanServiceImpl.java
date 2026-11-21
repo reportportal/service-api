@@ -526,20 +526,10 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
 
     // Step 2: Add successfully duplicated test cases to the new plan
     if (!duplicationResult.getSuccessTestCaseIds().isEmpty()) {
-      try {
-        var addToPlanResult = addTestCasesToPlan(projectId, newTestPlanId,
-            duplicationResult.getSuccessTestCaseIds());
-        return tmsTestPlanMapper.combineDuplicateTestPlanBatchResults(duplicationResult,
-            addToPlanResult);
-      } catch (Exception e) {
-        // If adding to plan fails completely, mark all duplicated test cases as failed
-        var failedAddResult = tmsTestPlanMapper.createFailedBatchResult(
-            duplicationResult.getSuccessTestCaseIds(),
-            "Failed to add duplicated test case to plan: " + e.getMessage()
-        );
-        return tmsTestPlanMapper.combineDuplicateTestPlanBatchResults(duplicationResult,
-            failedAddResult);
-      }
+      var addToPlanResult = addTestCasesToPlan(projectId, newTestPlanId,
+          duplicationResult.getSuccessTestCaseIds());
+      return tmsTestPlanMapper.combineDuplicateTestPlanBatchResults(duplicationResult,
+          addToPlanResult);
     }
 
     return duplicationResult;

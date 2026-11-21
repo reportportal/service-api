@@ -752,6 +752,33 @@ class TmsTestPlanServiceImplTest {
   }
 
   @Test
+  void shouldFailDuplicateWhenAddingDuplicatedTestCasesToPlanFails() {
+    var duplicateTestPlanRQ = new TmsTestPlanRQ();
+    var originalTestPlan = new TmsTestPlan();
+    originalTestPlan.setId(testPlanId);
+    var duplicatedTestPlan = new TmsTestPlan();
+    duplicatedTestPlan.setId(3L);
+    var duplicationResult = BatchTestCaseOperationResultRS.builder().totalCount(1).successCount(1)
+        .failureCount(0).successTestCaseIds(List.of(30L)).errors(List.of()).build();
+
+    when(testPlanRepository.findByIdAndProjectId(testPlanId, projectId)).thenReturn(Optional.of(originalTestPlan));
+    when(tmsTestPlanMapper.duplicateTestPlan(originalTestPlan, duplicateTestPlanRQ)).thenReturn(duplicatedTestPlan);
+    when(testPlanRepository.save(duplicatedTestPlan)).thenReturn(duplicatedTestPlan);
+    when(tmsTestPlanTestCaseRepository.findTestCaseIdsByTestPlanId(testPlanId)).thenReturn(List.of(10L));
+    when(tmsTestCaseService.duplicateTestCases(membershipDetails, user, List.of(10L))).thenReturn(duplicationResult);
+    when(testPlanRepository.existsByIdAndProject_Id(3L, projectId)).thenReturn(true);
+    when(tmsTestCaseService.getExistingTestCaseIds(projectId, List.of(30L))).thenReturn(List.of(30L));
+    when(tmsTestPlanTestCaseRepository.findTestCaseIdsByTestPlanId(3L)).thenReturn(List.of());
+    when(tmsTestPlanTestCaseRepository.insertTestPlanTestCasesInProject(projectId, 3L, List.of(30L)))
+        .thenThrow(new RuntimeException("Database error"));
+
+    assertThrows(RuntimeException.class,
+        () -> sut.duplicate(membershipDetails, user, testPlanId, duplicateTestPlanRQ));
+    verify(tmsTestPlanMapper, never()).createFailedBatchResult(anyList(), anyString());
+    verify(tmsTestPlanMapper, never()).buildDuplicateTestPlanResponse(any(), any());
+  }
+
+  @Test
   void shouldThrowNotFoundWhenDuplicatingNonExistentTestPlan() {
     var projectId = 1L;
     var testPlanId = 2L;

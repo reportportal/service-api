@@ -74,6 +74,9 @@ import tools.jackson.databind.json.JsonMapper;
 @ExtendWith(MockitoExtension.class)
 public class TmsTestCaseIntegrationTest extends BaseMvcTest {
 
+  private static final String UUID_REGEX =
+      "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}";
+
   private static final String SUPERADMIN_PROJECT_KEY = "superadmin_personal";
   private static final String DEFAULT_PROJECT_KEY = "default_personal";
 
@@ -3299,7 +3302,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     assertEquals(2, requirements.size());
     assertEquals("no-id-1", requirements.get(0)[1]);
     assertEquals("no-id-2", requirements.get(1)[1]);
-    requirements.forEach(r -> assertTrue(UUID.fromString((String) r[0]) != null));
+    requirements.forEach(r -> assertTrue(((String) r[0]).matches(UUID_REGEX)));
     assertNotEquals(requirements.get(0)[0], requirements.get(1)[0]);
   }
 
@@ -3320,7 +3323,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
 
     var requirements = findRequirementsOfTestCase(testCaseId);
     assertEquals(1, requirements.size());
-    assertEquals(36, ((String) requirements.get(0)[0]).length());
+    assertTrue(((String) requirements.get(0)[0]).matches(UUID_REGEX));
   }
 
   @Test
@@ -3358,7 +3361,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     assertEquals(before.get(0)[0], after.get(0)[0]);
     assertEquals(before.get(1)[0], after.get(1)[0]);
     assertEquals("appended", after.get(2)[1]);
-    assertEquals(36, ((String) after.get(2)[0]).length());
+    assertTrue(((String) after.get(2)[0]).matches(UUID_REGEX));
   }
 
   @Test
@@ -3392,7 +3395,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     assertEquals("fresh-1", after.get(0)[1]);
     assertEquals("fresh-2", after.get(1)[1]);
     for (var row : after) {
-      assertEquals(36, ((String) row[0]).length());
+      assertTrue(((String) row[0]).matches(UUID_REGEX));
       assertNotEquals(before.get(0)[0], row[0]);
       assertNotEquals(before.get(1)[0], row[0]);
     }

@@ -14,6 +14,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
+import org.mapstruct.AfterMapping;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -72,7 +73,8 @@ public abstract class TmsMilestoneMapper {
 
   /**
    * Patches TmsMilestone entity with non-null values from TmsMilestoneRQ. Only updates fields that
-   * are not null in the request.
+   * are not null in the request, except {@code startDate} and {@code endDate}, which are cleared
+   * when the request carries them as an explicit {@code null}.
    *
    * @param projectId   project id
    * @param milestoneRQ the milestone request with updates
@@ -87,6 +89,23 @@ public abstract class TmsMilestoneMapper {
   @Mapping(target = "displayId", ignore = true)
   public abstract void patchEntity(Long projectId, TmsMilestoneRQ milestoneRQ,
       @MappingTarget TmsMilestone milestone);
+
+  /**
+   * Clears the dates that the request explicitly set to {@code null}; an absent date is kept.
+   *
+   * @param milestoneRQ the milestone request
+   * @param milestone   the mapped milestone entity
+   */
+  @AfterMapping
+  protected void clearExplicitlyNulledDates(TmsMilestoneRQ milestoneRQ,
+      @MappingTarget TmsMilestone milestone) {
+    if (milestoneRQ.isStartDateSpecified() && milestoneRQ.getStartDate() == null) {
+      milestone.setStartDate(null);
+    }
+    if (milestoneRQ.isEndDateSpecified() && milestoneRQ.getEndDate() == null) {
+      milestone.setEndDate(null);
+    }
+  }
 
   public DuplicateTmsMilestoneRS convertToDuplicateTmsMilestoneRS(TmsMilestone milestone,
       List<DuplicateTmsTestPlanRS> duplicateTestPlansRS) {

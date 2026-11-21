@@ -20,6 +20,10 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.security.GeneralSecurityException;
+import java.security.MessageDigest;
+import java.time.Clock;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.LinkedHashMap;
@@ -29,6 +33,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.oauth2.client.web.AuthorizationRequestRepository;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
@@ -41,6 +47,11 @@ import tools.jackson.databind.json.JsonMapper;
 /**
  * Cookie-based OAuth2AuthorizationRequestRepository for stateless deployments. Stores the authorization request in a
  * short-lived secure cookie instead of the HTTP session, so the callback can be handled by any pod in a cluster.
+ *
+ * <p>The cookie value is {@code base64url(json).base64url(HMAC-SHA256(json))} and the JSON carries an expiry
+ * timestamp, the same scheme as the SAML authentication request cookie. A cookie with a bad signature, a malformed
+ * value or a past expiry is treated as absent, so a client able to set cookies on the host cannot plant a request
+ * (state, redirect URI, nonce, PKCE verifier). The key must be shared by all instances.
  */
 @Slf4j
 public class HttpCookieOAuth2AuthorizationRequestRepository
@@ -49,13 +60,39 @@ public class HttpCookieOAuth2AuthorizationRequestRepository
   private static final String COOKIE_NAME = "oauth2_auth_request";
   private static final int COOKIE_EXPIRE_SECONDS = 180;
 
+  private static final String HMAC_ALGORITHM = "HmacSHA256";
+  private static final char SIGNATURE_SEPARATOR = '.';
+  private static final String EXPIRES_AT = "exp";
+  private static final Base64.Encoder ENCODER = Base64.getUrlEncoder().withoutPadding();
+  private static final Base64.Decoder DECODER = Base64.getUrlDecoder();
+
   private final JsonMapper objectMapper;
   private final boolean enforceHttps;
+  private final SecretKeySpec signingKey;
+  private final Clock clock;
   private final AtomicBoolean secureWarningLogged = new AtomicBoolean(false);
 
-  public HttpCookieOAuth2AuthorizationRequestRepository(JsonMapper objectMapper, boolean enforceHttps) {
+  /**
+   * Creates the repository.
+   *
+   * @param objectMapper JSON mapper for the cookie payload
+   * @param enforceHttps whether to always issue the cookie with the {@code Secure} flag
+   * @param signingKey   HMAC key shared by all instances (at least 32 bytes)
+   */
+  public HttpCookieOAuth2AuthorizationRequestRepository(JsonMapper objectMapper, boolean enforceHttps,
+      byte[] signingKey) {
+    this(objectMapper, enforceHttps, signingKey, Clock.systemUTC());
+  }
+
+  HttpCookieOAuth2AuthorizationRequestRepository(JsonMapper objectMapper, boolean enforceHttps, byte[] signingKey,
+      Clock clock) {
+    if (signingKey == null || signingKey.length < 32) {
+      throw new IllegalArgumentException("OAuth2 authorization request signing key must be at least 32 bytes");
+    }
     this.objectMapper = objectMapper;
     this.enforceHttps = enforceHttps;
+    this.signingKey = new SecretKeySpec(signingKey, HMAC_ALGORITHM);
+    this.clock = clock;
   }
 
   @Override
@@ -82,7 +119,7 @@ public class HttpCookieOAuth2AuthorizationRequestRepository
       cookie.setSecure(enforceHttps || request.isSecure());
       cookie.setAttribute("SameSite", "Lax");
       response.addCookie(cookie);
-    } catch (IOException | JacksonException _) {
+    } catch (IOException | JacksonException | GeneralSecurityException _) {
       log.error("Failed to save OAuth2 authorization request to cookie");
     }
   }
@@ -106,7 +143,7 @@ public class HttpCookieOAuth2AuthorizationRequestRepository
         .map(c -> {
           try {
             return deserialize(c.getValue());
-          } catch (IOException | JacksonException _) {
+          } catch (IOException | GeneralSecurityException | RuntimeException _) {
             log.warn("Failed to deserialize OAuth2 authorization request from cookie");
             return null;
           }
@@ -123,7 +160,8 @@ public class HttpCookieOAuth2AuthorizationRequestRepository
     response.addCookie(deletion);
   }
 
-  private String serialize(OAuth2AuthorizationRequest authorizationRequest) throws IOException {
+  private String serialize(OAuth2AuthorizationRequest authorizationRequest)
+      throws IOException, GeneralSecurityException {
     Map<String, Object> data = new LinkedHashMap<>();
     data.put("grantType", authorizationRequest.getGrantType().getValue());
     data.put("authorizationUri", authorizationRequest.getAuthorizationUri());
@@ -133,15 +171,47 @@ public class HttpCookieOAuth2AuthorizationRequestRepository
     data.put("state", authorizationRequest.getState());
     data.put("additionalParameters", authorizationRequest.getAdditionalParameters());
     data.put("attributes", authorizationRequest.getAttributes());
-    return Base64.getUrlEncoder().encodeToString(objectMapper.writeValueAsBytes(data));
+    data.put(EXPIRES_AT, clock.instant().getEpochSecond() + COOKIE_EXPIRE_SECONDS);
+    String payload = ENCODER.encodeToString(objectMapper.writeValueAsBytes(data));
+    return payload + SIGNATURE_SEPARATOR + ENCODER.encodeToString(sign(payload));
+  }
+
+  private byte[] sign(String payload) throws GeneralSecurityException {
+    Mac mac = Mac.getInstance(HMAC_ALGORITHM);
+    mac.init(signingKey);
+    return mac.doFinal(payload.getBytes(StandardCharsets.US_ASCII));
+  }
+
+  /**
+   * Returns the decoded payload if the signature is valid, otherwise {@code null}.
+   */
+  private byte[] verify(String value) throws GeneralSecurityException {
+    int separator = value.indexOf(SIGNATURE_SEPARATOR);
+    if (separator <= 0 || separator == value.length() - 1) {
+      return null;
+    }
+    String payload = value.substring(0, separator);
+    byte[] signature = DECODER.decode(value.substring(separator + 1));
+    if (!MessageDigest.isEqual(sign(payload), signature)) {
+      return null;
+    }
+    return DECODER.decode(payload);
   }
 
   @SuppressWarnings("unchecked")
-  private OAuth2AuthorizationRequest deserialize(String base64) throws IOException {
-    Map<String, Object> data = objectMapper.readValue(
-        Base64.getUrlDecoder().decode(base64),
-        new TypeReference<Map<String, Object>>() {
-        });
+  private OAuth2AuthorizationRequest deserialize(String value) throws IOException, GeneralSecurityException {
+    byte[] payload = verify(value);
+    if (payload == null) {
+      log.warn("OAuth2 authorization request cookie has an invalid signature");
+      return null;
+    }
+    Map<String, Object> data = objectMapper.readValue(payload, new TypeReference<Map<String, Object>>() {
+    });
+    if (!(data.get(EXPIRES_AT) instanceof Number expiresAt)
+        || expiresAt.longValue() <= clock.instant().getEpochSecond()) {
+      log.debug("OAuth2 authorization request cookie has expired");
+      return null;
+    }
 
     String grantType = (String) data.get("grantType");
     if (!AuthorizationGrantType.AUTHORIZATION_CODE.getValue().equals(grantType)) {

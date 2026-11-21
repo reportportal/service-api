@@ -71,4 +71,20 @@ class ExternalJwtConverterTest {
 
     assertEquals(Set.of("ROLE_ADMINISTRATOR"), convertAuthorities(issuer));
   }
+
+  @Test
+  void disabledUserIsRejected() {
+    when(userDetailsService.loadUserByUsername("user@corp.com")).thenReturn(User.withUsername("user@corp.com")
+        .password("pwd")
+        .disabled(true)
+        .authorities(new SimpleGrantedAuthority("ROLE_USER"))
+        .build());
+    var issuer = new JwtIssuer();
+    issuer.setUsernameClaim("sub");
+    var converter = new ExternalJwtConverter(userDetailsService, tokenBlacklistService, issuer);
+
+    org.junit.jupiter.api.Assertions.assertThrows(
+        org.springframework.security.oauth2.core.OAuth2AuthenticationException.class,
+        () -> converter.convert(adminClaimJwt()));
+  }
 }

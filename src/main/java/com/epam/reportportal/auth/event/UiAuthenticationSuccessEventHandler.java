@@ -56,7 +56,7 @@ public class UiAuthenticationSuccessEventHandler {
 
   /**
    * Handles the UI user signed in event. Updates the last login date for the user and generates a personal project if
-   * the user has no projects. Also, if the user is inactive, it will be activated for SAML authentication.
+   * the user has no projects. Inactive users are refused for every authentication type.
    *
    * @param event the UI user signed in event
    */
@@ -79,17 +79,15 @@ public class UiAuthenticationSuccessEventHandler {
 
   private ReportPortalUser acquireUser(Authentication authentication) {
     if (authentication instanceof Saml2Authentication rpAuth) {
-      userRepository.findByLogin(rpAuth.getName())
-          .filter(user -> !user.getActive())
-          .ifPresent(user -> {
-            user.setActive(true);
-            userRepository.save(user);
-          });
-      return userRepository.findByLogin(rpAuth.getName())
-          .map(user -> ReportPortalUser.userBuilder().fromUser(user))
+      var user = userRepository.findByLogin(rpAuth.getName())
           .orElseThrow(() -> new ReportPortalException(
               ErrorType.USER_NOT_FOUND, rpAuth.getPrincipal()
           ));
+      if (!Boolean.TRUE.equals(user.getActive())) {
+        SecurityContextHolder.clearContext();
+        throw new LockedException("User account is locked");
+      }
+      return ReportPortalUser.userBuilder().fromUser(user);
     } else if (authentication.getPrincipal() instanceof RPOAuth2User ghUser) {
       if (!(ghUser.getReportPortalUser()).isEnabled()) {
         SecurityContextHolder.clearContext();

@@ -29,7 +29,10 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.ServerSettin
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
 import jakarta.inject.Provider;
 import jakarta.servlet.http.HttpServletRequest;
+import java.nio.charset.StandardCharsets;
+import java.security.GeneralSecurityException;
 import java.util.List;
+import javax.crypto.Mac;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import lombok.RequiredArgsConstructor;
@@ -41,6 +44,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.DefaultAuthenticationEventPublisher;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -77,6 +81,8 @@ import tools.jackson.databind.json.JsonMapper;
 public class AuthorizationServerConfig {
 
   private static final String SECRET_KEY = "secret.key";
+  private static final String HMAC_ALGORITHM = "HmacSHA256";
+  private static final String OAUTH_REQUEST_KEY_CONTEXT = "rp-oauth2-authorization-request-v1";
   private final ServerSettingsRepository serverSettingsRepository;
   private final MutableClientRegistrationRepository clientRegistrationRepository;
   private final AuthenticationFailureHandler authenticationFailureHandler;
@@ -96,7 +102,21 @@ public class AuthorizationServerConfig {
 
   @Bean
   public HttpCookieOAuth2AuthorizationRequestRepository cookieAuthorizationRequestRepository(JsonMapper objectMapper) {
-    return new HttpCookieOAuth2AuthorizationRequestRepository(objectMapper, cookieSecureEnforceHttps);
+    return new HttpCookieOAuth2AuthorizationRequestRepository(objectMapper, cookieSecureEnforceHttps,
+        deriveCookieKey(getSecret()));
+  }
+
+  /**
+   * Derives a feature-specific key so the master secret is never used directly for this cookie.
+   */
+  private static byte[] deriveCookieKey(String masterSecret) {
+    try {
+      Mac mac = Mac.getInstance(HMAC_ALGORITHM);
+      mac.init(new SecretKeySpec(masterSecret.getBytes(StandardCharsets.UTF_8), HMAC_ALGORITHM));
+      return mac.doFinal(OAUTH_REQUEST_KEY_CONTEXT.getBytes(StandardCharsets.UTF_8));
+    } catch (GeneralSecurityException e) {
+      throw new IllegalStateException("Cannot derive OAuth2 authorization request cookie key", e);
+    }
   }
 
   @Bean
@@ -138,8 +158,14 @@ public class AuthorizationServerConfig {
    * to plugin-provided providers (e.g. LDAP, Active Directory).
    */
   @Bean
-  public AuthenticationManager loginAuthenticationManager(AuthenticationProvider basicPasswordAuthProvider) {
-    return new ProviderManager(List.of(basicPasswordAuthProvider, delegatingPluginAuthenticationProvider));
+  public AuthenticationManager loginAuthenticationManager(AuthenticationProvider basicPasswordAuthProvider,
+      ApplicationEventPublisher eventPublisher) {
+    ProviderManager manager = new ProviderManager(
+        List.of(basicPasswordAuthProvider, delegatingPluginAuthenticationProvider));
+    // ProviderManager publishes exactly one failure event per rejected login (from the final exception), which feeds
+    // UiAuthenticationFailureEventHandler. The default publisher is a no-op.
+    manager.setAuthenticationEventPublisher(new DefaultAuthenticationEventPublisher(eventPublisher));
+    return manager;
   }
 
   private String getSecret() {
@@ -164,7 +190,6 @@ public class AuthorizationServerConfig {
         .authorizeHttpRequests(auth -> auth
             .requestMatchers(
                 "/oauth/login/**",
-                "/epam/**",
                 "/saml2/**",
                 "/login/**")
             .permitAll()
@@ -194,10 +219,8 @@ public class AuthorizationServerConfig {
   @Order(6)
   public SecurityFilterChain ssoSecurityFilterChain(HttpSecurity http) {
     http
-        .securityMatcher("/sso/me/**", "/sso/internal/**", "/settings/**")
+        .securityMatcher("/sso/me/**")
         .authorizeHttpRequests(auth -> auth
-            .requestMatchers("/settings/**").hasRole("ADMINISTRATOR")
-            .requestMatchers("/sso/internal/**").hasRole("INTERNAL")
             .anyRequest().authenticated())
         .oauth2ResourceServer(oauth2ResourceServerCustomizer())
         .sessionManagement(session -> session

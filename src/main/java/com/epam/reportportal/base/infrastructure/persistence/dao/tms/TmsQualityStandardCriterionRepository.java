@@ -11,6 +11,8 @@ public interface TmsQualityStandardCriterionRepository extends JpaRepository<Tms
 
   List<TmsQualityStandardCriterion> findByStandardIdOrderBySequenceAsc(Long standardId);
 
+  List<TmsQualityStandardCriterion> findAllByStandard_ProjectIdOrderBySequenceAsc(Long projectId);
+
   Optional<TmsQualityStandardCriterion> findByIdAndStandard_ProjectId(Long id, Long projectId);
 
   Optional<TmsQualityStandardCriterion> findByKeyAndStandard_ProjectId(String key, Long projectId);

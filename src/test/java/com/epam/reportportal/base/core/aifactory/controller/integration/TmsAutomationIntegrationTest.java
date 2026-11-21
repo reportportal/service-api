@@ -238,4 +238,21 @@ class TmsAutomationIntegrationTest extends BaseMvcTest {
 
     assertEquals(1, count("select count(*) from pipeline where type = 'TEST_AUTOMATION' and project_id = 1"));
   }
+
+  @Test
+  void environments_WithoutOwnConnection_ShouldFallBackToTheEnvironmentsOfTheProjectIntegration() throws Exception {
+    jdbcTemplate.update("update integration set params = ?::jsonb where id = 910",
+        "{\"params\": {\"projectId\": \"EPM-RPP/rp-tests\", \"triggerToken\": \"gl-test-token\", "
+            + "\"url\": \"https://git.epam.com\", \"environments\": [\"beta5\", \"qa\"]}}");
+    mockMvc.perform(get("/v1/project/superadmin_personal/pipeline").with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk());
+
+    mockMvc.perform(get(AUTOMATION + "/environment").with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.environments[0]").value("beta5"))
+        .andExpect(jsonPath("$.environments[1]").value("qa"))
+        .andExpect(jsonPath("$.default").value("beta5"));
+    automate(List.of(900L), "prod", false, List.of()).andExpect(status().isBadRequest());
+    verify(ciHttpClient, never()).postForStatus(anyString(), anyMap(), anyString());
+  }
 }

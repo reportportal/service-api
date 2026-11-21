@@ -512,6 +512,13 @@ class TmsManualScenarioRequirementServiceImplTest {
     // Verify manual scenario assignment
     savedRequirements.forEach(req ->
         assertThat(req.getManualScenario()).isEqualTo(duplicatedScenario));
+
+    // Copies get fresh ids (the id is the primary key)
+    assertThat(savedRequirements).extracting(TmsManualScenarioRequirement::getId)
+        .doesNotContain("REQ-001", "REQ-002")
+        .doesNotHaveDuplicates();
+    assertThat(savedRequirements).extracting(TmsManualScenarioRequirement::getValue)
+        .containsExactly("Requirement 2", "Requirement 1");
   }
 
   @Test

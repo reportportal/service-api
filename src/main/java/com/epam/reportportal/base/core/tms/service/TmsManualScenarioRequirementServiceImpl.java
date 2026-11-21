@@ -14,6 +14,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -272,6 +273,9 @@ public class TmsManualScenarioRequirementServiceImpl implements
         .sorted(Comparator.comparing(TmsManualScenarioRequirement::getNumber))
         .map(original -> {
           var duplicated = tmsManualScenarioRequirementMapper.duplicate(original);
+          // The id is the table's primary key and an opaque UUID (see the CSV importer and the
+          // sync mapper), so the copy gets a fresh one
+          duplicated.setId(UUID.randomUUID().toString());
           duplicated.setManualScenario(duplicatedScenario);
           return duplicated;
         })

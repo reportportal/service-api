@@ -126,6 +126,41 @@ class UpdateWidgetHandlerImplTest {
   }
 
   @Test
+  void updateWidgetShouldIgnoreServerManagedOptionsFromRequest() throws Exception {
+    // Given
+    ReportPortalUser user = getRpUser("member", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.EDITOR, PROJECT_ID);
+    MembershipDetails projectDetails = extractProjectDetails(user, "test_project");
+    Widget persistedWidget = createComponentHealthCheckWidget();
+    persistedWidget.getWidgetOptions().getOptions().put("viewName", "widget_1_1");
+    persistedWidget.getWidgetOptions().getOptions().put("state", "ready");
+    persistedWidget.getWidgetOptions().getOptions().put("lastRefresh", "2026-01-01");
+
+    WidgetRQ request = createComponentHealthCheckUpdateRequest(Lists.newArrayList("build"));
+    Map<String, Object> requestOptions = request.getContentParameters().getWidgetOptions();
+    requestOptions.put("viewName", "widget_2_7\"; DROP TABLE launch; --");
+    requestOptions.put("state", "created");
+    requestOptions.put("lastRefresh", "2030-01-01");
+    requestOptions.put("minPassingRate", 75);
+
+    when(widgetRepository.findByIdAndProjectId(WIDGET_ID, PROJECT_ID))
+        .thenReturn(Optional.of(persistedWidget));
+    doNothing().when(widgetContentFieldsValidator).validate(any(Widget.class));
+    when(widgetRepository.save(any(Widget.class))).thenAnswer(invocation -> invocation.getArgument(0));
+    when(objectMapper.writeValueAsString(any())).thenReturn("{}");
+
+    // When
+    handler.updateWidget(WIDGET_ID, request, projectDetails, user);
+
+    // Then
+    verify(widgetRepository).save(widgetCaptor.capture());
+    Map<String, Object> savedOptions = widgetCaptor.getValue().getWidgetOptions().getOptions();
+    assertEquals("widget_1_1", savedOptions.get("viewName"));
+    assertEquals("ready", savedOptions.get("state"));
+    assertEquals("2026-01-01", savedOptions.get("lastRefresh"));
+    assertEquals(75, savedOptions.get("minPassingRate"));
+  }
+
+  @Test
   void updateLockedWidgetWithFilterOnlyChangeShouldSucceedForMember() throws Exception {
     // given
     ReportPortalUser user = getRpUser("member", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, PROJECT_ID);

@@ -18,8 +18,14 @@ package com.epam.reportportal.base.core.widget.content.materialized.generator;
 
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
 import com.epam.reportportal.base.infrastructure.persistence.entity.widget.Widget;
+import com.epam.reportportal.base.infrastructure.persistence.entity.widget.WidgetOptions;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -51,6 +57,32 @@ class MaterializedViewNameGeneratorTest {
   @MethodSource("provideData")
   void generate(String expectedName, Widget widget) {
     Assertions.assertEquals(expectedName, generator.generate(widget));
+  }
+
+  @Test
+  void resolveStoredReturnsGeneratedNameWhenStoredNameMatches() {
+    Widget widget = getWidget(2L, 1L);
+    widget.setWidgetOptions(new WidgetOptions(Map.of("viewName", "widget_1_2")));
+
+    Assertions.assertEquals(Optional.of("widget_1_2"), generator.resolveStored(widget));
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"widget_2_2", "widget_1_3", "WIDGET_1_2", "widget_1_2 ",
+      "launch", "widget_1_2; DROP TABLE launch", "(select 1) t", "\"widget_1_2\""})
+  void resolveStoredRejectsForeignOrMalformedName(String storedName) {
+    Widget widget = getWidget(2L, 1L);
+    widget.setWidgetOptions(new WidgetOptions(Map.of("viewName", storedName)));
+
+    Assertions.assertEquals(Optional.empty(), generator.resolveStored(widget));
+  }
+
+  @Test
+  void resolveStoredReturnsEmptyWhenNoViewNameStored() {
+    Widget widget = getWidget(2L, 1L);
+    widget.setWidgetOptions(new WidgetOptions(new HashMap<>()));
+
+    Assertions.assertEquals(Optional.empty(), generator.resolveStored(widget));
   }
 
 }

@@ -16,9 +16,69 @@
 
 package com.epam.reportportal.base.core.events.subscriber.impl.delegate;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.classic.spi.ThrowableProxy;
+import ch.qos.logback.core.read.ListAppender;
+import com.epam.reportportal.base.core.events.domain.item.IssueResolvedEvent;
+import com.epam.reportportal.base.core.events.handler.ConfigurableEventHandler;
+import com.epam.reportportal.base.core.project.config.ProjectConfigProvider;
+import java.util.List;
+import java.util.Map;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.slf4j.LoggerFactory;
+
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 class ProjectConfigDelegatingSubscriberTest {
 
+  private Logger logger;
+  private ListAppender<ILoggingEvent> appender;
+
+  @BeforeEach
+  void setUp() {
+    logger = (Logger) LoggerFactory.getLogger(ProjectConfigDelegatingSubscriber.class);
+    appender = new ListAppender<>();
+    appender.start();
+    logger.addAppender(appender);
+  }
+
+  @AfterEach
+  void tearDown() {
+    logger.detachAppender(appender);
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  void handlerFailureIsLoggedAtWarnWithExceptionAndOtherHandlersStillRun() {
+    ProjectConfigProvider provider = mock(ProjectConfigProvider.class);
+    when(provider.provide(1L)).thenReturn(Map.of());
+    ConfigurableEventHandler<IssueResolvedEvent, Map<String, String>> failing =
+        mock(ConfigurableEventHandler.class);
+    ConfigurableEventHandler<IssueResolvedEvent, Map<String, String>> next =
+        mock(ConfigurableEventHandler.class);
+    RuntimeException failure = new RuntimeException("analyzer is down");
+    doThrow(failure).when(failing).handle(any(), any());
+    IssueResolvedEvent event = new IssueResolvedEvent(3L, 2L, 1L);
+
+    new ProjectConfigDelegatingSubscriber<>(provider, List.of(failing, next)).handleEvent(event);
+
+    verify(next).handle(event, Map.of());
+    assertEquals(1, appender.list.size());
+    ILoggingEvent logged = appender.list.get(0);
+    assertEquals(Level.WARN, logged.getLevel());
+    assertSame(failure, ((ThrowableProxy) logged.getThrowableProxy()).getThrowable());
+  }
 }

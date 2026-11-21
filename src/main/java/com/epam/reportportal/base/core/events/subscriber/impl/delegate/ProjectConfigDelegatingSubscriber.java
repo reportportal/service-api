@@ -54,7 +54,8 @@ public class ProjectConfigDelegatingSubscriber<T extends AbstractEvent<?>> imple
       try {
         h.handle(event, projectConfig);
       } catch (Exception e) {
-        LOGGER.debug("Error while processing event: {}", e.getMessage());
+        LOGGER.warn("Handler {} failed to process event {}", h.getClass().getSimpleName(),
+            event.getClass().getSimpleName(), e);
       }
     });
   }

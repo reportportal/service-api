@@ -117,6 +117,25 @@ public class TmsTestPlanIntegrationTest extends BaseMvcTest {
   }
 
   @Test
+  void getTestPlansSortedAndFilteredByCreatedAtIntegrationTest() throws Exception {
+    mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-plan")
+            .param("offset", "0")
+            .param("limit", "10")
+            .param("sort", "createdAt,desc")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content.length()").value(10));
+
+    mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-plan")
+            .param("offset", "0")
+            .param("limit", "10")
+            .param("filter.ex.updatedAt", "true")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content.length()").value(10));
+  }
+
+  @Test
   void getTestPlansByCriteriaWithSearchIntegrationTest() throws Exception {
     // Test search by name
     mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-plan")

@@ -311,6 +311,14 @@ class Pf4jPluginManagerTest {
   }
 
   @Test
+  void uploadPluginWithPathTraversalInFileName() throws IOException {
+    for (String name : List.of("../evil.jar", "..\\evil.jar", "/etc/evil.jar", "a/b/evil.jar")) {
+      assertThrows(ReportPortalException.class, () -> pluginBox.uploadPlugin(name, fileStream));
+    }
+    verify(pluginLoader, never()).savePlugin(any(), any());
+  }
+
+  @Test
   void getPlugins() {
     when(pluginManager.getPlugins()).thenReturn(Lists.newArrayList(newPlugin));
     when(newPlugin.getPluginId()).thenReturn(NEW_JIRA_PLUGIN_ID);

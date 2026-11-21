@@ -106,6 +106,10 @@ public class TmsManualLaunchServiceImpl implements TmsManualLaunchService {
       CreateTmsManualLaunchRQ request) {
     log.debug("Creating manual launch for project: {}", projectId);
 
+    if (request.getTestPlan() != null && request.getTestPlan().getId() != null) {
+      tmsTestPlanService.verifyTestPlanExists(projectId, request.getTestPlan().getId());
+    }
+
     // Create Launch entity
     var launch = tmsManualLaunchMapper.convertFromCreateTmsManualLaunchRQ(projectId, user, request);
     launch.setLaunchType(LaunchTypeEnum.MANUAL);
@@ -197,7 +201,7 @@ public class TmsManualLaunchServiceImpl implements TmsManualLaunchService {
 
     // Get maps from services
     var userMap = getUserHandler.getUserMap(userIds);
-    var testPlanMap = tmsTestPlanService.getTestPlanMap(testPlanIds);
+    var testPlanMap = tmsTestPlanService.getTestPlanMap(projectId, testPlanIds);
     var testCaseExecutionStatistics =
         tmsTestCaseExecutionService.getTestCaseExecutionStatistic(launchIds);
 
@@ -266,6 +270,10 @@ public class TmsManualLaunchServiceImpl implements TmsManualLaunchService {
         .orElseThrow(() -> new ReportPortalException(
             NOT_FOUND, LAUNCH_NOT_FOUND_BY_ID.formatted(launchId, projectId))
         );
+
+    if (request.getTestPlan() != null && request.getTestPlan().getId() != null) {
+      tmsTestPlanService.verifyTestPlanExists(projectId, request.getTestPlan().getId());
+    }
 
     // Patch launch fields
     tmsManualLaunchMapper.patch(existingLaunch, request);

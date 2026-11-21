@@ -241,6 +241,18 @@ class TmsTestPlanServiceImplTest {
   }
 
   @Test
+  void getTestPlanMap_ShouldOnlyLoadTestPlansOfProject() {
+    var testPlan = new TmsTestPlan();
+    testPlan.setId(testPlanId);
+    when(testPlanRepository.findByProjectIdAndIds(projectId, List.of(testPlanId, 777L)))
+        .thenReturn(List.of(testPlan));
+
+    var result = sut.getTestPlanMap(projectId, List.of(testPlanId, 777L));
+
+    assertEquals(Map.of(testPlanId, testPlan), result);
+  }
+
+  @Test
   void shouldDelete() {
     var projectId = 1L;
     var testPlanId = 2L;

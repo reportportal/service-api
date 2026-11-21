@@ -87,7 +87,8 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
 
     int newIndex;
     if (inputDto.getIndex() != null) {
-      newIndex = inputDto.getIndex();
+      newIndex = clampIndex(inputDto.getIndex(),
+          tmsTestFolderRepository.findMaxIndex(projectId, parentId), 1);
       tmsTestFolderRepository.shiftIndexes(projectId, parentId, newIndex, 1);
     } else {
       var max = tmsTestFolderRepository.findMaxIndex(projectId, parentId);
@@ -928,7 +929,8 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
 
       int newIndex;
       if (targetIndex != null) {
-        newIndex = targetIndex;
+        newIndex = clampIndex(targetIndex,
+            tmsTestFolderRepository.findMaxIndex(projectId, newParentId), 1);
         // Make room in the new parent
         tmsTestFolderRepository.shiftIndexes(projectId, newParentId, newIndex, 1);
       } else {
@@ -938,7 +940,11 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
       }
       folder.setIndex(newIndex);
     } else {
-      // Moving within the same parent
+      // Moving within the same parent: the folder already occupies a slot, so at most max
+      if (targetIndex != null) {
+        targetIndex = clampIndex(targetIndex,
+            tmsTestFolderRepository.findMaxIndex(projectId, newParentId), 0);
+      }
       if (targetIndex != null && targetIndex != oldIndex) {
         if (targetIndex > oldIndex) {
           // Moving down: shift items between (oldIndex+1) and targetIndex by -1
@@ -952,6 +958,15 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
         folder.setIndex(targetIndex);
       }
     }
+  }
+
+  /**
+   * Clamps a client-supplied index to [0, max + extraSlots] so that indexes stay a dense
+   * sequence (negative or far-beyond-the-end values would create gaps).
+   */
+  private static int clampIndex(int index, Integer max, int extraSlots) {
+    var upper = (max == null ? -1 : max) + extraSlots;
+    return Math.max(0, Math.min(index, Math.max(upper, 0)));
   }
 
   private void validateNoCycle(long projectId, Long currentFolderId, Long newParentId) {

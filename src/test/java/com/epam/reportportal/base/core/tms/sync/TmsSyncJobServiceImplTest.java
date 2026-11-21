@@ -87,4 +87,15 @@ class TmsSyncJobServiceImplTest {
     assertEquals(ErrorType.NOT_FOUND, exception.getErrorType());
     verify(tmsSyncJobRepository, never()).save(any(TmsSyncJob.class));
   }
+
+  @Test
+  void executeSync_JobAlreadyClaimedByAnotherExecutor_DoesNothing() {
+    when(tmsSyncJobRepository.claimPendingJob(any(), any())).thenReturn(0);
+
+    sut.executeSync(10L);
+
+    verify(tmsSyncJobRepository, never()).findByIdWithIntegration(any());
+    verify(tmsSyncJobRepository, never()).save(any(TmsSyncJob.class));
+    verify(tmsFolderSyncService, never()).syncFolders(any(), any(), any());
+  }
 }

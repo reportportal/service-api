@@ -22,7 +22,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -31,6 +33,7 @@ import com.epam.reportportal.base.core.events.domain.item.IssueResolvedEvent;
 import com.epam.reportportal.base.core.item.attribute.TestItemAttributeHandlerService;
 import com.epam.reportportal.base.core.item.impl.status.ChangeStatusHandler;
 import com.epam.reportportal.base.core.item.impl.status.StatusChangingStrategy;
+import com.epam.reportportal.base.core.item.repository.TestItemPathContext;
 import com.epam.reportportal.base.core.statistics.TestItemStatisticsService;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IssueEntityRepository;
@@ -40,6 +43,7 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.enums.Status
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.TestItemTypeEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItem;
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItemResults;
+import com.epam.reportportal.base.infrastructure.persistence.entity.item.issue.IssueEntity;
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.issue.IssueGroup;
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.issue.IssueType;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
@@ -49,13 +53,16 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.user.User;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRole;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.reporting.FinishTestItemRQ;
+import com.epam.reportportal.base.reporting.Issue;
 import com.epam.reportportal.base.reporting.OperationCompletionRS;
 import java.time.Instant;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
+import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
@@ -241,5 +248,59 @@ class FinishTestItemHandlerImplTest {
     verify(issueEntityRepository, times(1)).save(any());
     verify(eventPublisher, times(1)).publishEvent(any(IssueResolvedEvent.class));
     verify(statisticsService, times(1)).addStatistics(any(TestItem.class));
+  }
+
+  @Test
+  void refinishWithExplicitIssueRecomputesStatisticsForFinalIssue() {
+    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER,
+        ProjectRole.EDITOR, 1L);
+    TestItem item = new TestItem();
+    item.setItemId(1L);
+    item.setPath("1");
+    TestItemResults results = new TestItemResults();
+    results.setStatus(StatusEnum.INTERRUPTED);
+    item.setItemResults(results);
+    Launch launch = new Launch();
+    launch.setId(1L);
+    launch.setUserId(1L);
+    launch.setProjectId(1L);
+    item.setStartTime(Instant.now().minusSeconds(5L));
+    item.setLaunchId(launch.getId());
+    item.setType(TestItemTypeEnum.STEP);
+    item.setHasStats(true);
+    item.setHasChildren(false);
+    when(launchRepository.findById(1L)).thenReturn(Optional.of(launch));
+    when(testItemRepository.findByUuid("1")).thenReturn(Optional.of(item));
+
+    IssueType productBug = new IssueType();
+    productBug.setLocator("pb001");
+    productBug.setIssueGroup(new IssueGroup());
+    when(issueTypeHandler.defineIssueType(any(), eq("pb001"))).thenReturn(productBug);
+    when(statusChangingStrategyMapping.get(StatusEnum.FAILED)).thenReturn(statusChangingStrategy);
+
+    AtomicReference<IssueEntity> issueSeenByAddStatistics = new AtomicReference<>();
+    doAnswer(invocation -> {
+      TestItem it = invocation.getArgument(0);
+      issueSeenByAddStatistics.set(it.getItemResults().getIssue());
+      return null;
+    }).when(statisticsService).addStatistics(any(TestItem.class));
+
+    FinishTestItemRQ finishExecutionRQ = new FinishTestItemRQ();
+    finishExecutionRQ.setStatus("FAILED");
+    finishExecutionRQ.setEndTime(Instant.now());
+    Issue issue = new Issue();
+    issue.setIssueType("pb001");
+    finishExecutionRQ.setIssue(issue);
+
+    handler.finishTestItem(rpUser, rpUserToMembership(rpUser), "1", finishExecutionRQ);
+
+    // statistics computed by the status-changing strategy (for its TO_INVESTIGATE issue) are dropped
+    // before the issue swap and recomputed afterwards with the final issue
+    InOrder order = inOrder(statusChangingStrategy, statisticsService, issueEntityRepository);
+    order.verify(statusChangingStrategy).changeStatus(any(), eq(StatusEnum.FAILED), any(), eq(false));
+    order.verify(statisticsService).deleteItemStatistics(any(TestItemPathContext.class));
+    order.verify(issueEntityRepository).save(any(IssueEntity.class));
+    order.verify(statisticsService).addStatistics(any(TestItem.class));
+    assertEquals(productBug, issueSeenByAddStatistics.get().getIssueType());
   }
 }

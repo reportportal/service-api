@@ -89,7 +89,8 @@ public abstract class TmsTestCaseExecutionMapper {
         builder.testFolder(
             TmsTestCaseExecutionTestFolderRS.builder()
                 .id(snapshot.getTestFolder().getId())
-                .testItemId(execution.getTestItem().getParentId())
+                .testItemId(execution.getTestItem() != null
+                    ? execution.getTestItem().getParentId() : null)
                 .build()
         );
       }

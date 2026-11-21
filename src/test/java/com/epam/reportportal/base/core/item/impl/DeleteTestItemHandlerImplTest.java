@@ -23,6 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.anyLong;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -50,6 +51,7 @@ import java.util.Collection;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -243,6 +245,9 @@ class DeleteTestItemHandlerImplTest {
 
     verify(itemContentRemover, times(1)).remove(anyLong());
     verify(statisticsService, times(1)).deleteItemStatistics(any(TestItemPathContext.class));
+    InOrder inOrder = inOrder(attachmentRepository, testItemRepository);
+    inOrder.verify(attachmentRepository).moveForDeletionByItems(any());
+    inOrder.verify(testItemRepository).deleteById(item.getItemId());
     assertEquals("Test Item with ID = '1' has been successfully deleted.",
         response.getResultMessage());
 

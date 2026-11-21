@@ -133,7 +133,7 @@ public class Launch implements Serializable {
   @Fetch(FetchMode.JOIN)
   private Set<LaunchStatistics> statistics = Sets.newHashSet();
 
-  @OneToMany(mappedBy = "launch", fetch = FetchType.LAZY, orphanRemoval = true)
+  @OneToMany(mappedBy = "launch", fetch = FetchType.LAZY)
   private Set<Log> logs = Sets.newHashSet();
 
   @Column(name = "approximate_duration")

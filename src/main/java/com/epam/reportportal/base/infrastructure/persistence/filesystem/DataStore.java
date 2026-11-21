@@ -40,6 +40,14 @@ public interface DataStore {
    */
   InputStream loadRange(String filePath, long offset, long length);
 
+  /**
+   * Returns the size of a stored file without reading its content.
+   *
+   * @param filePath file path
+   * @return file size in bytes
+   */
+  long getSize(String filePath);
+
   boolean exists(String filePath);
 
   void delete(String filePath);

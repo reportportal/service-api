@@ -20,8 +20,6 @@ import com.epam.reportportal.base.infrastructure.persistence.binary.DataStoreSer
 import com.epam.reportportal.base.infrastructure.persistence.entity.attachment.Attachment;
 import com.epam.reportportal.base.infrastructure.rules.commons.validation.Suppliers;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
-import java.io.InputStream;
-import java.util.Optional;
 import javax.sql.DataSource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.repository.JobRepository;
@@ -37,7 +35,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.util.StreamUtils;
 
 /**
  * Optional batch to recalculate stored attachment sizes.
@@ -88,11 +85,8 @@ public class AttachmentSizeConfig {
   public ItemProcessor<Attachment, Attachment> processor() {
     return item -> {
       try {
-        Optional<InputStream> file = dataStoreService.load(item.getFileId());
-        try (final InputStream inputStream = file.get()) {
-          item.setFileSize(StreamUtils.copyToByteArray(inputStream).length);
-          return item;
-        }
+        item.setFileSize(dataStoreService.getSize(item.getFileId()));
+        return item;
       } catch (ReportPortalException _) {
         log.debug(Suppliers.formattedSupplier(
             "File with id {} is not presented at the file system. Removing from the database.",

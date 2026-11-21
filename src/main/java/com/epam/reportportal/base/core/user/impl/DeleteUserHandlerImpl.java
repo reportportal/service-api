@@ -24,10 +24,10 @@ import com.epam.reportportal.base.core.events.domain.UnassignUserEvent;
 import com.epam.reportportal.base.core.auth.TokenBlacklistService;
 import com.epam.reportportal.base.core.events.domain.UserDeletedEvent;
 import com.epam.reportportal.base.core.events.domain.UsersDeletedEvent;
+import com.epam.reportportal.base.core.project.DeleteProjectHandler;
 import com.epam.reportportal.base.core.project.settings.notification.ProjectRecipientHandler;
 import com.epam.reportportal.base.core.remover.ContentRemover;
 import com.epam.reportportal.base.core.user.DeleteUserHandler;
-import com.epam.reportportal.base.infrastructure.persistence.binary.UserBinaryDataService;
 import com.epam.reportportal.base.infrastructure.persistence.commons.Predicates;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectRepository;
@@ -70,8 +70,6 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class DeleteUserHandlerImpl implements DeleteUserHandler {
 
-  private final UserBinaryDataService dataStore;
-
   private final UserRepository userRepository;
 
   private final ContentRemover<User> userContentRemover;
@@ -79,6 +77,8 @@ public class DeleteUserHandlerImpl implements DeleteUserHandler {
   private final ProjectRecipientHandler projectRecipientHandler;
 
   private final ProjectRepository projectRepository;
+
+  private final DeleteProjectHandler deleteProjectHandler;
 
   private final OrganizationUserRepository organizationUserRepository;
 
@@ -123,9 +123,8 @@ public class DeleteUserHandlerImpl implements DeleteUserHandler {
       publishUserUnassignEvent(user, project.getId(), project.getOrganizationId());
     });
 
-    publishPersonalOrganizationDeletedEvents(user, loggedInUser);
+    deletePersonalOrganizationProjects(user, loggedInUser);
 
-    dataStore.deleteUserPhoto(user);
     userRepository.delete(user);
     tokenBlacklistService.revokeUserTokens(user);
     sendEmailAboutDeletion(user, loggedInUser);
@@ -207,7 +206,12 @@ public class DeleteUserHandlerImpl implements DeleteUserHandler {
     applicationEventPublisher.publishEvent(new UnassignUserEvent(userActivityResource, orgId));
   }
 
-  private void publishPersonalOrganizationDeletedEvents(User user, ReportPortalUser loggedInUser) {
+  /**
+   * Deletes the projects of the user's personal organization with their content and publishes the
+   * project and organization deleted events. The organization row itself is removed by the database
+   * cascade from the user.
+   */
+  private void deletePersonalOrganizationProjects(User user, ReportPortalUser loggedInUser) {
     boolean isSelfDeletion = loggedInUser.getUserId().equals(user.getId());
     Long actorId = isSelfDeletion ? null : loggedInUser.getUserId();
     String actorLogin = isSelfDeletion ? null : loggedInUser.getUsername();
@@ -220,6 +224,7 @@ public class DeleteUserHandlerImpl implements DeleteUserHandler {
                 applicationEventPublisher.publishEvent(
                     new ProjectDeletedEvent(actorId, actorLogin, project.getId(), project.getName(), null,
                         projectUserIds));
+                deleteProjectHandler.deleteProject(project);
               });
 
           List<Long> orgUserIds = organizationUserRepository.findUserIdsByOrganizationId(org.getId());

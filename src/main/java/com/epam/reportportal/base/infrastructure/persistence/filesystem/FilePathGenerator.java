@@ -21,6 +21,7 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.attachment.A
 import com.epam.reportportal.base.infrastructure.persistence.util.DateTimeProvider;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
+import java.util.regex.Pattern;
 import org.springframework.stereotype.Component;
 
 /**
@@ -30,6 +31,8 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class FilePathGenerator {
+
+  private static final Pattern UNSAFE_PATH_SEGMENT_CHARS = Pattern.compile("[^0-9a-zA-Z_-]");
 
   private final DateTimeProvider dateTimeProvider;
 
@@ -45,7 +48,19 @@ public class FilePathGenerator {
   public String generate(AttachmentMetaInfo metaInfo) {
     LocalDateTime localDateTime = dateTimeProvider.localDateTimeNow();
     String date = localDateTime.getYear() + "-" + localDateTime.getMonthValue();
-    return Paths.get(String.valueOf(metaInfo.getProjectId()), date, metaInfo.getLaunchUuid())
-        .toString();
+    return Paths.get(String.valueOf(metaInfo.getProjectId()), date,
+        sanitizePathSegment(metaInfo.getLaunchUuid())).toString();
+  }
+
+  /**
+   * Makes a client-supplied value (e.g. launch or log UUID) safe to use as a single path segment:
+   * every character other than letters, digits, '_' and '-' is replaced with '_', so the value can
+   * contain neither separators nor "..". Regular UUIDs are returned unchanged.
+   *
+   * @param value Client-supplied value
+   * @return Value safe to use as one path segment, or {@code null} for {@code null}
+   */
+  public static String sanitizePathSegment(String value) {
+    return value == null ? null : UNSAFE_PATH_SEGMENT_CHARS.matcher(value).replaceAll("_");
   }
 }

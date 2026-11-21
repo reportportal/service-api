@@ -31,15 +31,11 @@ import static com.epam.reportportal.base.ws.converter.converters.OrganizationCon
 import com.epam.reportportal.api.model.OrganizationProjectsPage;
 import com.epam.reportportal.api.model.ProjectBase;
 import com.epam.reportportal.api.model.ProjectInfo;
-import com.epam.reportportal.base.core.analyzer.auto.LogIndexer;
-import com.epam.reportportal.base.core.analyzer.auto.client.AnalyzerServiceClient;
 import com.epam.reportportal.base.core.events.domain.ProjectCreatedEvent;
 import com.epam.reportportal.base.core.events.domain.ProjectDeletedEvent;
+import com.epam.reportportal.base.core.project.DeleteProjectHandler;
 import com.epam.reportportal.base.core.project.OrganizationProjectHandler;
-import com.epam.reportportal.base.core.remover.ContentRemover;
-import com.epam.reportportal.base.core.tms.service.TmsAttachmentService;
 import com.epam.reportportal.base.infrastructure.model.ValidationConstraints;
-import com.epam.reportportal.base.infrastructure.persistence.binary.AttachmentBinaryDataService;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Condition;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.FilterCondition;
@@ -47,17 +43,14 @@ import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Qu
 import com.epam.reportportal.base.infrastructure.persistence.dao.AttributeRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.GroupMembershipRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IssueTypeRepository;
-import com.epam.reportportal.base.infrastructure.persistence.dao.LogRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectUserRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.organization.OrganizationRepositoryCustom;
 import com.epam.reportportal.base.infrastructure.persistence.dao.project.OrganizationProjectRepository;
-import com.epam.reportportal.base.infrastructure.persistence.entity.item.issue.IssueType;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.Organization;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationRole;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectAttribute;
-import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectIssueType;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectProfile;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectUtils;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRole;
@@ -89,12 +82,7 @@ public class OrganizationProjectHandlerImpl implements OrganizationProjectHandle
   private final AttributeRepository attributeRepository;
   private final ApplicationEventPublisher applicationEventPublisher;
   private final IssueTypeRepository issueTypeRepository;
-  private final ContentRemover<Project> projectContentRemover;
-  private final LogRepository logRepository;
-  private final AttachmentBinaryDataService attachmentBinaryDataService;
-  private final TmsAttachmentService tmsAttachmentService;
-  private final LogIndexer logIndexer;
-  private final AnalyzerServiceClient analyzerServiceClient;
+  private final DeleteProjectHandler deleteProjectHandler;
   private final GroupMembershipRepository groupMembershipRepository;
 
   @Override
@@ -196,7 +184,7 @@ public class OrganizationProjectHandlerImpl implements OrganizationProjectHandle
         .verify(NOT_FOUND, "Project " + projectId + " not found in organization " + orgId);
 
     List<Long> userIds = projectUserRepository.findUserIdsByProjectId(projectId);
-    deleteProjectWithDependants(project);
+    deleteProjectHandler.deleteProject(project);
 
     publishSpecialProjectDeletedEvent(getPrincipal(), project, userIds);
   }
@@ -213,29 +201,6 @@ public class OrganizationProjectHandlerImpl implements OrganizationProjectHandle
     project.setCreationDate(now);
     project.setUpdatedAt(now);
     return project;
-  }
-
-  private void deleteProjectWithDependants(Project project) {
-    Set<Long> defaultIssueTypeIds = issueTypeRepository.getDefaultIssueTypes()
-        .stream()
-        .map(IssueType::getId)
-        .collect(Collectors.toSet());
-
-    Set<IssueType> issueTypesToRemove = project.getProjectIssueTypes()
-        .stream()
-        .map(ProjectIssueType::getIssueType)
-        .filter(issueType -> !defaultIssueTypeIds.contains(issueType.getId()))
-        .collect(Collectors.toSet());
-
-    projectContentRemover.remove(project);
-    projectRepository.delete(project);
-    issueTypeRepository.deleteAll(issueTypesToRemove);
-    logIndexer.deleteIndex(project.getId());
-    analyzerServiceClient.removeSuggest(project.getId());
-    logRepository.deleteByProjectId(project.getId());
-    attachmentBinaryDataService.deleteAllByProjectId(project.getId());
-    tmsAttachmentService.deleteAllByProjectId(project.getId());
-
   }
 
   private void publishProjectCreatedEvent(ReportPortalUser user, Project project) {

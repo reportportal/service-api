@@ -53,4 +53,22 @@ class FilePathGeneratorTest {
     Assertions.assertThat(pathOne).isEqualTo(
         "1" + File.separator + "2018-5" + File.separator + "271b5881-9a62-4df4-b477-335a96acbe14");
   }
+
+  @Test
+  void generate_keeps_launch_uuid_inside_project_directory() {
+    AttachmentMetaInfo metaInfo = AttachmentMetaInfo.builder().withProjectId(1L)
+        .withLaunchUuid("../../../tmp\\x/y.z").build();
+    when(dateTimeProvider.localDateTimeNow()).thenReturn(LocalDateTime.of(2018, 5, 28, 3, 3));
+
+    String path = new FilePathGenerator(dateTimeProvider).generate(metaInfo);
+
+    Assertions.assertThat(path).isEqualTo(
+        "1" + File.separator + "2018-5" + File.separator + "_________tmp_x_y_z");
+  }
+
+  @Test
+  void sanitize_keeps_custom_uuid_without_separators() {
+    Assertions.assertThat(FilePathGenerator.sanitizePathSegment("my_custom-Launch-42"))
+        .isEqualTo("my_custom-Launch-42");
+  }
 }

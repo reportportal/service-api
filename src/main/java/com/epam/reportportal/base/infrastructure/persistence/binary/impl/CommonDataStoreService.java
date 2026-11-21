@@ -76,4 +76,9 @@ public abstract class CommonDataStoreService implements DataStoreService {
   public Optional<InputStream> loadRange(String fileId, long offset, long length) {
     return ofNullable(dataStore.loadRange(dataEncoder.decode(fileId), offset, length));
   }
+
+  @Override
+  public long getSize(String fileId) {
+    return dataStore.getSize(dataEncoder.decode(fileId));
+  }
 }

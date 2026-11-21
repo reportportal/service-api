@@ -226,6 +226,42 @@ public class TmsTestPlanIntegrationTest extends BaseMvcTest {
   }
 
   @Test
+  void deleteTestPlanClearsTestPlanIdOfItsLaunchesIntegrationTest() throws Exception {
+    mockMvc.perform(delete("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-plan/"
+            + TEST_PLAN_WITH_TEST_CASES_ID)
+            .contentType(MediaType.APPLICATION_JSON)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk());
+
+    var remainingReferences = ((Number) entityManager
+        .createNativeQuery("SELECT COUNT(*) FROM launch WHERE test_plan_id = :testPlanId")
+        .setParameter("testPlanId", TEST_PLAN_WITH_TEST_CASES_ID)
+        .getSingleResult()).longValue();
+    assertEquals(0L, remainingReferences);
+    var launchCount = ((Number) entityManager
+        .createNativeQuery("SELECT COUNT(*) FROM launch WHERE id IN (300, 301, 302)")
+        .getSingleResult()).longValue();
+    assertEquals(3L, launchCount);
+  }
+
+  @Test
+  void insertTestPlanTestCaseInProjectIsGuardedByProjectIntegrationTest() {
+    // wrong project: nothing inserted, no exception
+    assertEquals(0, tmsTestPlanTestCaseRepository.insertTestPlanTestCaseInProject(
+        2L, TEST_PLAN_WITH_TEST_CASES_ID, TEST_CASE_NOT_IN_PLAN_ID));
+    // deleted / missing test plan: nothing inserted, no foreign key violation
+    assertEquals(0, tmsTestPlanTestCaseRepository.insertTestPlanTestCaseInProject(
+        1L, NON_EXISTENT_TEST_PLAN_ID, TEST_CASE_NOT_IN_PLAN_ID));
+    // same project: inserted once, then ignored
+    assertEquals(1, tmsTestPlanTestCaseRepository.insertTestPlanTestCaseInProject(
+        1L, TEST_PLAN_WITH_TEST_CASES_ID, TEST_CASE_NOT_IN_PLAN_ID));
+    assertEquals(0, tmsTestPlanTestCaseRepository.insertTestPlanTestCaseInProject(
+        1L, TEST_PLAN_WITH_TEST_CASES_ID, TEST_CASE_NOT_IN_PLAN_ID));
+    assertTrue(tmsTestPlanTestCaseRepository.findTestCaseIdsByTestPlanId(
+        TEST_PLAN_WITH_TEST_CASES_ID).contains(TEST_CASE_NOT_IN_PLAN_ID));
+  }
+
+  @Test
   void patchTestPlanTest() throws Exception {
     TmsTestPlanAttributeRQ attributQ = new TmsTestPlanAttributeRQ();
     attributQ.setValue("value6");

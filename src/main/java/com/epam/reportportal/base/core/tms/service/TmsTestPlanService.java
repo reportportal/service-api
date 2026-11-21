@@ -27,7 +27,16 @@ public interface TmsTestPlanService extends CrudService<TmsTestPlanRQ, TmsTestPl
   BatchTestCaseOperationResultRS removeTestCasesFromPlan(Long projectId, Long testPlanId,
       @NotEmpty List<Long> testCaseIds);
 
-  boolean addTestCaseToTestPlan(Long testPlanId, Long testCaseId);
+  /**
+   * Adds a test case to a test plan if both belong to the project. Does nothing if the pair is
+   * already present or either id is not found in the project.
+   *
+   * @param projectId  the project ID
+   * @param testPlanId the test plan ID
+   * @param testCaseId the test case ID
+   * @return true if a new association was inserted
+   */
+  boolean addTestCaseToTestPlan(Long projectId, Long testPlanId, Long testCaseId);
 
   boolean removeSingleTestCaseFromPlan(Long testPlanId, Long testCaseId);
 

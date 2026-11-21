@@ -20,8 +20,6 @@ import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestPlan
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.filterable.TmsTestPlanFilterableRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.MembershipDetails;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestPlan;
-import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestPlanExecutionStatistic;
-import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestPlanWithStatistic;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.model.Page;
 import com.epam.reportportal.base.ws.converter.PagedResourcesAssembler;
@@ -31,7 +29,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -88,10 +85,7 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
         testPlanRQ.getAttributes());
 
     return tmsTestPlanMapper.convertTmsTestPlanWithStatisticToRS(
-        TmsTestPlanWithStatistic.of(
-            tmsTestPlan,
-            new TmsTestPlanExecutionStatistic(0, 0) //TODO fix that
-        )
+        tmsTestPlanExecutionService.enrichWithStatistics(tmsTestPlan)
     );
   }
 
@@ -163,13 +157,13 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
         .findByIdsWithAttributes(testPlanIds.getContent()).stream()
         .collect(Collectors.toMap(TmsTestPlan::getId, Function.identity()));
 
-    var orderedTestPlans = testPlanIds
-        .getContent()
-        .stream()
-        .map(testPlans::get)
-        .map(tmsTestPlanExecutionService::enrichWithStatistics)
-        .filter(Objects::nonNull)
-        .toList();
+    var orderedTestPlans = tmsTestPlanExecutionService.enrichWithStatistics(
+        testPlanIds
+            .getContent()
+            .stream()
+            .map(testPlans::get)
+            .toList()
+    );
 
     return PagedResourcesAssembler
         .<TmsTestPlanRS>pageConverter()
@@ -457,12 +451,12 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
         .stream()
         .collect(Collectors.toMap(TmsTestPlan::getId, Function.identity()));
 
-    var orderedTestPlans = testPlanIds
-        .stream()
-        .map(testPlans::get)
-        .map(tmsTestPlanExecutionService::enrichWithStatistics)
-        .filter(Objects::nonNull)
-        .toList();
+    var orderedTestPlans = tmsTestPlanExecutionService.enrichWithStatistics(
+        testPlanIds
+            .stream()
+            .map(testPlans::get)
+            .toList()
+    );
 
     return tmsTestPlanMapper
         .convertTmsTestPlansWithStatisticToRS(orderedTestPlans);
@@ -483,12 +477,12 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
         .stream()
         .collect(Collectors.toMap(TmsTestPlan::getId, Function.identity()));
 
-    var orderedTestPlans = testPlanIds
-        .stream()
-        .map(testPlans::get)
-        .map(tmsTestPlanExecutionService::enrichWithStatistics)
-        .filter(Objects::nonNull)
-        .toList();
+    var orderedTestPlans = tmsTestPlanExecutionService.enrichWithStatistics(
+        testPlanIds
+            .stream()
+            .map(testPlans::get)
+            .toList()
+    );
 
     return tmsTestPlanMapper
         .convertTmsTestPlansWithStatisticToMap(orderedTestPlans);

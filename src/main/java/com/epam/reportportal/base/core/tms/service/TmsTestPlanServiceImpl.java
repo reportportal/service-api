@@ -223,13 +223,9 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
   public BatchTestCaseOperationResultRS removeTestCasesFromPlan(Long projectId, Long testPlanId,
       List<Long> testCaseIds) {
 
-    var tmsTestPlan = testPlanRepository.findByIdAndProjectId(testPlanId, projectId)
-        .orElseThrow(() -> new ReportPortalException(NOT_FOUND,
-            TMS_TEST_PLAN_NOT_FOUND_BY_ID.formatted(testPlanId, projectId))
-        );
+    verifyTestPlanExists(projectId, testPlanId);
 
     var errors = new ArrayList<BatchTestCaseOperationError>();
-    var successCount = 0;
     var totalCount = testCaseIds.size();
 
     // Get test case IDs that are actually in the plan
@@ -237,30 +233,21 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
         tmsTestPlanTestCaseRepository.findTestCaseIdsByTestPlanId(testPlanId)
     );
 
+    var testCaseIdsToRemove = new LinkedHashSet<Long>();
     for (var testCaseId : testCaseIds) {
-      try {
-        // Check if a test case is in the plan
-        if (!testCaseIdsInTestPlan.contains(testCaseId)) {
-          errors.add(new BatchTestCaseOperationError(testCaseId,
-              String.format("Test case with id %s not found in test plan", testCaseId)));
-          continue;
-        }
-
-        // Try to remove a test case
-        if (removeSingleTestCaseFromPlan(testPlanId, testCaseId)) {
-          successCount++;
-          testCaseIdsInTestPlan.remove(testCaseId);
-        } else {
-          errors.add(new BatchTestCaseOperationError(
-              testCaseId, "Failed to remove test case")
-          );
-        }
-      } catch (Exception e) {
-        errors.add(new BatchTestCaseOperationError(testCaseId, e.getMessage()));
+      // Check if a test case is in the plan (a repeated id is not in the plan any more)
+      if (!testCaseIdsInTestPlan.contains(testCaseId) || !testCaseIdsToRemove.add(testCaseId)) {
+        errors.add(new BatchTestCaseOperationError(testCaseId,
+            String.format("Test case with id %s not found in test plan", testCaseId)));
       }
     }
 
-    return tmsTestPlanMapper.convertToRS(totalCount, successCount, errors);
+    if (!testCaseIdsToRemove.isEmpty()) {
+      tmsTestPlanTestCaseRepository.deleteByTestPlanIdAndTestCaseIds(testPlanId,
+          List.copyOf(testCaseIdsToRemove));
+    }
+
+    return tmsTestPlanMapper.convertToRS(totalCount, testCaseIdsToRemove.size(), errors);
   }
 
   @Override
@@ -342,13 +329,6 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
 
     return tmsTestPlanMapper.buildDuplicateTestPlanResponse(duplicatedTestPlan,
         duplicateTestCasesStatistic);
-  }
-
-  @Override
-  @Transactional
-  public boolean removeSingleTestCaseFromPlan(Long testPlanId, Long testCaseId) {
-    return tmsTestPlanTestCaseRepository.deleteByTestPlanIdAndTestCaseId(testPlanId, testCaseId)
-        == 1;
   }
 
   @Override

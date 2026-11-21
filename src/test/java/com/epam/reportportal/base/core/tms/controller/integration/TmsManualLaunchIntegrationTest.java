@@ -52,6 +52,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.jdbc.Sql;
+import org.springframework.test.context.jdbc.Sql.ExecutionPhase;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.json.JsonMapper;
@@ -507,18 +509,29 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
     assertTrue(launch.isEmpty());
   }
 
+  /**
+   * Batch delete runs every launch in its own REQUIRES_NEW transaction, so this test runs without
+   * the test-managed transaction and uses committed data of its own (cleaned up afterwards).
+   */
   @Test
+  @Transactional(propagation = Propagation.NOT_SUPPORTED)
+  @Sql("/db/tms/tms-manual-launch/tms-manual-launch-batch-delete-fill.sql")
+  @Sql(scripts = "/db/tms/tms-manual-launch/tms-manual-launch-batch-delete-clean.sql",
+      executionPhase = ExecutionPhase.AFTER_TEST_METHOD)
   void batchDeleteManualLaunches_InProgress_ShouldSucceed() throws Exception {
-    var batchDeleteRQ = BatchDeleteManualLaunchesRQ.builder().launchIds(List.of(202L)).build();
+    var batchDeleteRQ = BatchDeleteManualLaunchesRQ.builder()
+        .launchIds(List.of(9202L, 99999L)).build();
 
     mockMvc.perform(
             delete("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual")
                 .contentType(APPLICATION_JSON)
                 .content(mapper.writeValueAsString(batchDeleteRQ))
                 .with(token(oAuthHelper.getSuperadminToken())))
-        .andExpect(status().isOk());
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.successCount").value(1))
+        .andExpect(jsonPath("$.failureCount").value(1));
 
-    var launch = launchRepository.findById(202L);
+    var launch = launchRepository.findById(9202L);
     assertTrue(launch.isEmpty());
   }
 

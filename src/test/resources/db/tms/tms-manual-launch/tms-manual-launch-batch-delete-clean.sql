@@ -1,0 +1,1 @@
+DELETE FROM launch WHERE id = 9202;

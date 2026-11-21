@@ -103,12 +103,15 @@ public class MailServiceFactory {
       javaMailProperties.put("mail.smtp.writetimeout", 20000);
       javaMailProperties.put("mail.smtp.connectiontimeout", DEFAULT_CONNECTION_TIMEOUT);
       javaMailProperties.put("mail.smtp.auth", authRequired);
-      javaMailProperties.put("mail.smtp.starttls.enable",
-          authRequired
-              && ofNullable(config.get(EmailSettingsEnum.STAR_TLS_ENABLED.getAttribute())).map(
-              e -> BooleanUtils.toBoolean(
-                  String.valueOf(e))).orElse(false)
-      );
+      boolean starTlsEnabled = authRequired
+          && ofNullable(config.get(EmailSettingsEnum.STAR_TLS_ENABLED.getAttribute())).map(
+          e -> BooleanUtils.toBoolean(
+              String.valueOf(e))).orElse(false);
+      javaMailProperties.put("mail.smtp.starttls.enable", starTlsEnabled);
+      if (starTlsEnabled) {
+        javaMailProperties.put("mail.smtp.starttls.required", true);
+        javaMailProperties.put("mail.smtp.ssl.checkserveridentity", true);
+      }
 
       if (ofNullable(config.get(EmailSettingsEnum.SSL_ENABLED.getAttribute())).map(
               e -> BooleanUtils.toBoolean(String.valueOf(e)))

@@ -76,7 +76,7 @@ public class JsonPluginUploader implements PluginUploader {
     this.integrationTypeRepository = integrationTypeRepository;
     this.objectMapper = objectMapper;
     this.schemaValidator = schemaValidator;
-    this.schemaSource = schemaSource;
+    this.schemaSource = schemaSource.endsWith("/") ? schemaSource : schemaSource + "/";
   }
 
   @Override

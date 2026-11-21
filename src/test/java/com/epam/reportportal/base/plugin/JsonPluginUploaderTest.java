@@ -186,4 +186,20 @@ public class JsonPluginUploaderTest {
     verify(jsonSchemaValidator, never()).validate(any(String.class), any(JsonNode.class));
     verify(integrationTypeRepository, never()).saveAndFlush(any(IntegrationType.class));
   }
+
+  @Test
+  void uploadPluginWithSchemaSourceWithoutTrailingSlashDoesNotAcceptSiblingHost() throws IOException {
+    var uploader = new JsonPluginUploader(integrationTypeRepository, objectMapper, jsonSchemaValidator,
+        "https://schema.reportportal.io");
+    Map<String, Object> manifestMap = new HashMap<>();
+    manifestMap.put("$schema", "https://schema.reportportal.io.evil.example/x.json");
+    manifestMap.put("id", "test-plugin");
+    InputStream manifestStream = new ByteArrayInputStream(objectMapper.writeValueAsString(manifestMap).getBytes());
+
+    var exception = assertThrows(ReportPortalException.class, () ->
+        uploader.uploadPlugin("manifest.json", manifestStream));
+
+    assertEquals(ErrorType.PLUGIN_UPLOAD_ERROR, exception.getErrorType());
+    verify(jsonSchemaValidator, never()).validate(any(String.class), any(JsonNode.class));
+  }
 }

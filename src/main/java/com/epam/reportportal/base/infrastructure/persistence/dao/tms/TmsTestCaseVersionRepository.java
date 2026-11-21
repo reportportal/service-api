@@ -52,7 +52,7 @@ public interface TmsTestCaseVersionRepository extends ReportPortalRepository<Tms
       + "      SELECT tf.id FROM tms_test_folder tf "
       + "      JOIN project p ON tf.project_id = p.id "
       + "      WHERE tf.id = :folderId AND p.id = :projectId "
-      + "      UNION ALL "
+      + "      UNION "
       + "      SELECT tf.id FROM tms_test_folder tf "
       + "      JOIN folder_hierarchy fh ON tf.parent_id = fh.id "
       + "    ) "

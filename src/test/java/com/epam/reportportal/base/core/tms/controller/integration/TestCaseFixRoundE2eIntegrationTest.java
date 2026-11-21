@@ -260,6 +260,9 @@ class TestCaseFixRoundE2eIntegrationTest extends BaseMvcTest {
     assertEquals(secondIterationId, fixed.get("metrics").get("pipelineIterationId").asLong(),
         "after a fix round the case links to the iteration of that round");
     assertEquals("READY", fixed.get("status").asText(), "94 >= 90: promoted by Auto-Ready after the update");
+    assertEquals("AUTO_READY", fixed.get("madeReadyBy").get("type").asText());
+    assertFalse(fixed.get("madeReadyBy").has("user"), "Auto-Ready has no person behind it");
+    assertTrue(fixed.has("madeReadyBy") && fixed.get("madeReadyBy").has("at"));
     assertNotEquals(firstVersionId, fixed.get("defaultVersionId").asLong(), "the fix is a new default version");
     assertEquals(2, fixed.get("manualScenario").get("steps").size());
     send(put(reviewUrl("/fix-round/" + roundId + "/result")),

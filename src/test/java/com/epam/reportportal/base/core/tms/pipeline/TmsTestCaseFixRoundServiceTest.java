@@ -18,6 +18,7 @@ import com.epam.reportportal.base.core.tms.dto.TmsFixRoundResultRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseQualityScoreRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseRS;
 import com.epam.reportportal.base.core.tms.event.TmsTestCasesLifecycleChangedEvent;
+import com.epam.reportportal.base.core.tms.service.TmsTestCaseLifecycleService;
 import com.epam.reportportal.base.core.tms.service.TmsTestCaseQualityService;
 import com.epam.reportportal.base.core.tms.service.TmsTestCaseService;
 import com.epam.reportportal.base.core.tms.service.TmsTestCaseVersionService;
@@ -73,6 +74,9 @@ class TmsTestCaseFixRoundServiceTest {
   private TmsTestCaseService testCaseService;
   @Mock
   private ApplicationEventPublisher eventPublisher;
+
+  @Mock
+  private TmsTestCaseLifecycleService lifecycleService;
 
   @InjectMocks
   private TmsTestCaseFixRoundService sut;

@@ -102,6 +102,7 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
   private final TmsTestCaseQualityService tmsTestCaseQualityService;
   private final TmsTestCaseReadyEligibilityService tmsTestCaseReadyEligibilityService;
   private final TmsAutomationStateService tmsAutomationStateService;
+  private final TmsTestCaseLifecycleService tmsTestCaseLifecycleService;
 
   private TmsTestFolderService tmsTestFolderService;
   private TmsTestCaseExecutionService tmsTestCaseExecutionService;
@@ -163,7 +164,22 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
         : tmsTestCaseMapper.convert(testCase, defaultVersion, metrics);
     withUnsentReviewComments(Collections.singletonList(response));
     withAutomationState(projectId, Collections.singletonList(response));
+    withMadeReadyBy(Collections.singletonList(response));
     return response;
+  }
+
+  /**
+   * Sets {@code madeReadyBy} on the Ready responses; a Draft case, or one made Ready before the history existed,
+   * keeps it absent.
+   */
+  private void withMadeReadyBy(Collection<TmsTestCaseRS> responses) {
+    var ready = responses.stream()
+        .filter(Objects::nonNull)
+        .filter(response -> response.getId() != null
+            && response.getStatus() == com.epam.reportportal.base.core.tms.dto.TmsTestCaseStatus.READY)
+        .toList();
+    var madeReadyBy = tmsTestCaseLifecycleService.madeReadyBy(ready.stream().map(TmsTestCaseRS::getId).toList());
+    ready.forEach(response -> response.setMadeReadyBy(madeReadyBy.get(response.getId())));
   }
 
   /**
@@ -204,9 +220,12 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
     // no "explicit status override" input here (unlike create/patch) - it always defaults DRAFT.
     if (testCase.getOrigin() == TmsTestCaseOrigin.MANUAL
         && tmsTestCaseQualityService.hasAiSignal(rq.getQualityScores(), rq.getGeneration())) {
+      var statusBefore = testCase.getStatus();
       testCase.setOrigin(TmsTestCaseOrigin.AI);
       testCase.setStatus(TmsTestCaseStatus.DRAFT);
       tmsTestCaseRepository.save(testCase);
+      tmsTestCaseLifecycleService.onStatusChanged(testCase, statusBefore,
+          TmsTestCaseLifecycleService.Actor.pipeline("Uploaded by the pipeline"));
       publishLifecycleChanged(List.of(testCase.getId()));
     }
 
@@ -230,8 +249,25 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
       return;
     }
     testCase.setStatus(TmsTestCaseStatus.READY);
+    tmsTestCaseLifecycleService.onStatusChanged(testCase, TmsTestCaseStatus.DRAFT,
+        TmsTestCaseLifecycleService.Actor.autoReady(metrics.getOverallScore(), threshold));
     tmsTestCaseRepository.save(testCase);
     publishLifecycleChanged(List.of(testCaseId));
+  }
+
+  /**
+   * Records a status change made through PUT or PATCH: approving a Draft case is "Approved", any other change of the
+   * status is "Status changed", by the user who made the request.
+   */
+  private void recordStatusChange(TmsTestCase testCase, TmsTestCaseStatus before, ReportPortalUser user) {
+    if (before == testCase.getStatus()) {
+      return;
+    }
+    var reason = before == TmsTestCaseStatus.DRAFT && testCase.getStatus() == TmsTestCaseStatus.READY
+        ? "Approved" : "Status changed";
+    tmsTestCaseLifecycleService.onStatusChanged(testCase, before,
+        TmsTestCaseLifecycleService.Actor.user(user == null ? null : user.getUserId(),
+            user == null ? null : user.getUsername(), reason));
   }
 
   /**
@@ -267,6 +303,8 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
         continue;
       }
       testCase.setStatus(TmsTestCaseStatus.READY);
+      tmsTestCaseLifecycleService.onStatusChanged(testCase, TmsTestCaseStatus.DRAFT,
+          TmsTestCaseLifecycleService.Actor.autoReady(metrics.getOverallScore(), threshold));
       toSave.add(testCase);
     }
     if (!toSave.isEmpty()) {
@@ -330,10 +368,12 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
           var before = tmsTestCaseActivityResourceMapper.buildActivityResource(existingTestCase,
               beforeVersion);
 
+          var statusBefore = existingTestCase.getStatus();
           tmsTestCaseMapper.update(existingTestCase,
               tmsTestCaseMapper.convertFromRQ(projectId, tmsTestCaseRQ,
                   getTestFolderId(projectId, tmsTestCaseRQ.getTestFolderId(),
                       tmsTestCaseRQ.getTestFolder())));
+          recordStatusChange(existingTestCase, statusBefore, user);
 
           tmsTestCaseAttributeService.updateTestCaseAttributes(projectId, existingTestCase,
               tmsTestCaseRQ.getAttributes());
@@ -384,10 +424,12 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
           var before = tmsTestCaseActivityResourceMapper.buildActivityResource(existingTestCase,
               beforeVersion);
 
+          var statusBefore = existingTestCase.getStatus();
           tmsTestCaseMapper.patch(existingTestCase,
               tmsTestCaseMapper.convertFromPatchRQ(projectId, tmsTestCaseRQ,
                   getTestFolderId(projectId, tmsTestCaseRQ.getTestFolderId(),
                       tmsTestCaseRQ.getTestFolder())));
+          recordStatusChange(existingTestCase, statusBefore, user);
 
           tmsTestCaseAttributeService.patchTestCaseAttributes(projectId, existingTestCase,
               tmsTestCaseRQ.getAttributes());
@@ -798,6 +840,7 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
       );
       withUnsentReviewComments(page.getContent());
       withAutomationState(projectId, page.getContent());
+      withMadeReadyBy(page.getContent());
 
       return PagedResourcesAssembler
           .<TmsTestCaseRS>pageConverter()
@@ -1191,6 +1234,7 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
     ));
     withUnsentReviewComments(responsesById.values());
     withAutomationState(projectId, responsesById.values());
+    withMadeReadyBy(responsesById.values());
     return responsesById;
   }
 

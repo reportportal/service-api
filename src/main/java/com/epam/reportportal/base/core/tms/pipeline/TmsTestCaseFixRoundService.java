@@ -6,6 +6,7 @@ import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorTyp
 import com.epam.reportportal.base.core.tms.dto.TmsFixRoundResultRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseRS;
 import com.epam.reportportal.base.core.tms.event.TmsTestCasesLifecycleChangedEvent;
+import com.epam.reportportal.base.core.tms.service.TmsTestCaseLifecycleService;
 import com.epam.reportportal.base.core.tms.service.TmsTestCaseQualityService;
 import com.epam.reportportal.base.core.tms.service.TmsTestCaseService;
 import com.epam.reportportal.base.core.tms.service.TmsTestCaseVersionService;
@@ -53,6 +54,7 @@ public class TmsTestCaseFixRoundService {
   private final TmsTestCaseVersionService versionService;
   private final TmsTestCaseQualityService qualityService;
   private final TmsTestCaseService testCaseService;
+  private final TmsTestCaseLifecycleService lifecycleService;
   private final ApplicationEventPublisher eventPublisher;
 
   /**
@@ -82,11 +84,14 @@ public class TmsTestCaseFixRoundService {
     if (rq.getName() != null && !rq.getName().isBlank()) {
       testCase.setName(rq.getName());
     }
+    var statusBefore = testCase.getStatus();
     // a fixed case always goes back to review, also when it was Ready
     testCase.setStatus(TmsTestCaseStatus.DRAFT);
     testCase.setModifiedByAgent(true);
     testCaseRepository.save(testCase);
 
+    lifecycleService.onStatusChanged(testCase, statusBefore,
+        TmsTestCaseLifecycleService.Actor.agent("Agent fix, round " + round.getRoundNumber()));
     markCommentsAnswered(round, rq.getCommentResults());
 
     round.setStatus(graded ? TmsFixRoundStatus.FIXED : TmsFixRoundStatus.FIXED_GRADE_FAILED);

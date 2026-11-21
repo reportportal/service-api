@@ -55,4 +55,10 @@ public class TmsTestCaseRS {
    * pipeline.
    */
   private TmsAutomationStateRS automationState;
+
+  /**
+   * Who made the case Ready (a person or Auto-Ready) and when; only for a Ready case that has a recorded
+   * promotion.
+   */
+  private TmsMadeReadyByRS madeReadyBy;
 }

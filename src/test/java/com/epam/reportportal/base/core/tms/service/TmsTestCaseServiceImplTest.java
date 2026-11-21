@@ -156,6 +156,9 @@ class TmsTestCaseServiceImplTest {
   private TmsAutomationStateService tmsAutomationStateService;
 
   @Mock
+  private TmsTestCaseLifecycleService tmsTestCaseLifecycleService;
+
+  @Mock
   private HttpServletResponse response;
 
   @InjectMocks

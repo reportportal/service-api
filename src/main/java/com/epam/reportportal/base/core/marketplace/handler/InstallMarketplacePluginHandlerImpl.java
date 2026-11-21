@@ -49,6 +49,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Locale;
+import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -119,6 +120,25 @@ public class InstallMarketplacePluginHandlerImpl implements InstallMarketplacePl
 
   @Override
   public MarketplaceInstallResource install(String registryId, MarketplaceInstallRQ request,
+      ReportPortalUser user) {
+    // Checked before anything happens: the event is published after the install, and a missing
+    // user discovered there would fail a request whose plugin is already active.
+    Objects.requireNonNull(user, "an administrator's install needs the administrator");
+    return activate(registryId, request, user);
+  }
+
+  @Override
+  public MarketplaceInstallResource installUnattended(String registryId,
+      MarketplaceInstallRQ request) {
+    return activate(registryId, request, null);
+  }
+
+  /**
+   * The install itself.
+   *
+   * @param user the administrator, or null when the instance installs on its own
+   */
+  private MarketplaceInstallResource activate(String registryId, MarketplaceInstallRQ request,
       ReportPortalUser user) {
     var version = request == null ? null : StringUtils.trimToEmpty(request.version());
     safe(registryId, "plugin id");
@@ -312,13 +332,16 @@ public class InstallMarketplacePluginHandlerImpl implements InstallMarketplacePl
     return integrationTypeRepository.save(installed);
   }
 
-  /** The event an upload publishes, so existing listeners cannot tell the two apart. */
+  /**
+   * The event an upload publishes, so existing listeners cannot tell the two apart. Without a user
+   * it is the system form the plugin loader publishes at startup: no subject, no activity row.
+   */
   private void publish(IntegrationType installed, ReportPortalUser user) {
     var activity = new PluginActivityResource();
     activity.setId(installed.getId());
     activity.setName(installed.getName());
-    eventPublisher.publishEvent(
-        new PluginUploadedEvent(activity, user.getUserId(), user.getUsername()));
+    eventPublisher.publishEvent(user == null ? new PluginUploadedEvent(activity)
+        : new PluginUploadedEvent(activity, user.getUserId(), user.getUsername()));
   }
 
   /**

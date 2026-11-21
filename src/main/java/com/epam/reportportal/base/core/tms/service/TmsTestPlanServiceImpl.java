@@ -8,6 +8,7 @@ import com.epam.reportportal.base.core.tms.dto.TmsTestCaseInTestPlanRS;
 import com.epam.reportportal.base.core.tms.dto.TmsTestFolderRS;
 import com.epam.reportportal.base.core.tms.dto.TmsTestPlanRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestPlanRS;
+import com.epam.reportportal.base.core.tms.dto.batch.BatchAddTestCasesToPlanRQ;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchTestCaseOperationError;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchTestCaseOperationResultRS;
 import com.epam.reportportal.base.core.tms.mapper.TmsTestPlanMapper;
@@ -34,6 +35,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.ListUtils;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -51,6 +53,7 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
       "Test plan '%s' is not under the specified project.";
   private static final String TMS_MILESTONE_NOT_FOUND_BY_ID =
       "TMS Milestone with id: %d for project: %d";
+  private static final int INSERT_CHUNK_SIZE = 1000;
 
   private final LaunchRepository launchRepository;
   private final TmsTestPlanRepository testPlanRepository;
@@ -62,6 +65,7 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
   private final TmsTestCaseService tmsTestCaseService;
   private final TmsTestPlanExecutionService tmsTestPlanExecutionService;
   private final TmsTestFolderService tmsTestFolderService;
+  private final TmsFolderTestCaseResolver tmsFolderTestCaseResolver;
 
   @Override
   @Transactional(readOnly = true)
@@ -178,7 +182,21 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
   public BatchTestCaseOperationResultRS addTestCasesToPlan(Long projectId, Long testPlanId,
       @NotEmpty List<Long> testCaseIds) {
     verifyTestPlanExists(projectId, testPlanId);
+    return addTestCasesToPlan(projectId, testPlanId, testCaseIds, List.of());
+  }
 
+  @Override
+  @Transactional
+  public BatchTestCaseOperationResultRS addTestCasesToPlan(Long projectId, Long testPlanId,
+      BatchAddTestCasesToPlanRQ request) {
+    verifyTestPlanExists(projectId, testPlanId);
+    var folderTestCaseIds = tmsFolderTestCaseResolver.resolve(projectId, request.getFolderIds());
+    return addTestCasesToPlan(projectId, testPlanId,
+        request.getTestCaseIds() != null ? request.getTestCaseIds() : List.of(), folderTestCaseIds);
+  }
+
+  private BatchTestCaseOperationResultRS addTestCasesToPlan(Long projectId, Long testPlanId,
+      List<Long> testCaseIds, List<Long> folderTestCaseIds) {
     var errors = new ArrayList<BatchTestCaseOperationError>();
     var totalCount = testCaseIds.size();
 
@@ -210,12 +228,30 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
       }
     }
 
-    if (!testCaseIdsToAdd.isEmpty()) {
-      tmsTestPlanTestCaseRepository.insertTestPlanTestCasesInProject(projectId, testPlanId,
-          List.copyOf(testCaseIdsToAdd));
+    // Folder-resolved test cases are added idempotently: those already in the plan count as success
+    var explicitTestCaseIds = new HashSet<>(testCaseIds);
+    var folderTestCaseIdsInTestPlan = new ArrayList<Long>();
+    for (var testCaseId : folderTestCaseIds) {
+      if (explicitTestCaseIds.contains(testCaseId)) {
+        continue;
+      }
+      totalCount++;
+      if (testCaseIdsAreInTestPlan.contains(testCaseId)) {
+        folderTestCaseIdsInTestPlan.add(testCaseId);
+      } else {
+        testCaseIdsToAdd.add(testCaseId);
+      }
     }
 
-    return tmsTestPlanMapper.convertToRS(totalCount, testCaseIdsToAdd.size(), errors);
+    for (var chunk : ListUtils.partition(List.copyOf(testCaseIdsToAdd), INSERT_CHUNK_SIZE)) {
+      tmsTestPlanTestCaseRepository.insertTestPlanTestCasesInProject(projectId, testPlanId, chunk);
+    }
+
+    var successTestCaseIds = new ArrayList<>(testCaseIdsToAdd);
+    successTestCaseIds.addAll(folderTestCaseIdsInTestPlan);
+    var result = tmsTestPlanMapper.convertToRS(totalCount, successTestCaseIds.size(), errors);
+    result.setSuccessTestCaseIds(successTestCaseIds);
+    return result;
   }
 
   @Override

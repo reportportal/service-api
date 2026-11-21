@@ -186,13 +186,17 @@ public class TmsTestPlanController {
    *
    * @param projectKey The key of the project.
    * @param testPlanId The ID of the test plan to add test cases to.
-   * @param addRequest Request containing test case IDs to add to the test plan.
+   * @param addRequest Request containing test case IDs and/or folder IDs to add to the test plan.
    */
   @PostMapping("/{id}/test-case/batch")
   @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @Operation(
       summary = "Add test cases to test plan",
-      description = "Adds multiple test cases to a test plan by their IDs."
+      description = "Adds multiple test cases to a test plan by their IDs and/or the whole subtrees "
+          + "of folders (folderIds). Explicit IDs that are unknown or already in the plan are "
+          + "reported as errors; folder test cases already in the plan count as success. "
+          + "An unknown folder returns 404; folders with more test cases than "
+          + "rp.tms.add-by-folder.max-test-cases (default 5000) return 400."
   )
   @ApiResponse(responseCode = "204", description = "Test cases added to test plan successfully")
   public BatchTestCaseOperationResultRS addTestCasesToPlan(@PathVariable String projectKey,
@@ -204,7 +208,7 @@ public class TmsTestPlanController {
             .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey))
             .getProjectId(),
         testPlanId,
-        addRequest.getTestCaseIds());
+        addRequest);
   }
 
   /**

@@ -1,5 +1,6 @@
 package com.epam.reportportal.base.core.tms.controller.integration;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -389,6 +390,130 @@ public class TmsTestPlanIntegrationTest extends BaseMvcTest {
         .andExpect(jsonPath("$.successCount").exists())
         .andExpect(jsonPath("$.failureCount").exists())
         .andExpect(jsonPath("$.errors").isArray());
+  }
+
+  @Test
+  void addFolderSubtreeToPlanIntegrationTest() throws Exception {
+    // root 90001 > child 90002 > grandchild 90003, 2000 test cases each
+    seedFolderChain(1L, 90001L, 3, 2000, 900001L);
+    // two cases of the child folder are already in the plan: counted as success, not as errors
+    entityManager.createNativeQuery("INSERT INTO tms_test_plan_test_case (test_plan_id, test_case_id) "
+        + "VALUES (4, 902001), (4, 902002)").executeUpdate();
+
+    var addRequest = BatchAddTestCasesToPlanRQ.builder().folderIds(List.of(90002L)).build();
+
+    var result = mockMvc.perform(
+            post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-plan/4/test-case/batch")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(addRequest))
+                .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.totalCount").value(4000))
+        .andExpect(jsonPath("$.successCount").value(4000))
+        .andExpect(jsonPath("$.failureCount").value(0))
+        .andExpect(jsonPath("$.errors").isEmpty())
+        .andExpect(jsonPath("$.successTestCaseIds.length()").value(4000))
+        .andReturn();
+
+    assertTrue(result.getResponse().getContentAsString().contains("902001"));
+    assertEquals(4000L, countPlanTestCasesBetween(4L, 900001L, 906000L));
+    assertEquals(0L, countPlanTestCasesBetween(4L, 900001L, 902000L));
+  }
+
+  @Test
+  void addFolderSubtreeOverLimitToPlanIntegrationTest() throws Exception {
+    seedFolderChain(1L, 90001L, 3, 2000, 900001L);
+    var addRequest = BatchAddTestCasesToPlanRQ.builder().folderIds(List.of(90001L)).build();
+
+    mockMvc.perform(
+            post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-plan/4/test-case/batch")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(addRequest))
+                .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.message").value(containsString(
+            "Folders contain 6000 test cases, the limit per request is 5000")));
+
+    assertEquals(0L, countPlanTestCasesBetween(4L, 900001L, 906000L));
+  }
+
+  @Test
+  void addUnknownOrForeignFolderToPlanIntegrationTest() throws Exception {
+    seedFolderChain(2L, 90010L, 1, 1, 900100L);
+
+    for (var folderId : List.of(99999L, 90010L)) {
+      var addRequest = BatchAddTestCasesToPlanRQ.builder()
+          .testCaseIds(List.of(TEST_CASE_NOT_IN_PLAN_ID))
+          .folderIds(List.of(folderId))
+          .build();
+      mockMvc.perform(
+              post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-plan/4/test-case/batch")
+                  .contentType(MediaType.APPLICATION_JSON)
+                  .content(objectMapper.writeValueAsString(addRequest))
+                  .with(token(oAuthHelper.getSuperadminToken())))
+          .andExpect(status().isNotFound());
+    }
+
+    assertFalse(tmsTestPlanTestCaseRepository.findTestCaseIdsByTestPlanId(4L)
+        .contains(TEST_CASE_NOT_IN_PLAN_ID));
+  }
+
+  @Test
+  void addTestCasesAndFolderToPlanKeepsExplicitIdErrorsIntegrationTest() throws Exception {
+    seedFolderChain(1L, 90001L, 1, 3, 900001L);
+    entityManager.createNativeQuery("INSERT INTO tms_test_plan_test_case (test_plan_id, test_case_id) "
+        + "VALUES (4, 900001)").executeUpdate();
+
+    var addRequest = BatchAddTestCasesToPlanRQ.builder()
+        .testCaseIds(List.of(900001L, NON_EXISTENT_TEST_CASE_ID))
+        .folderIds(List.of(90001L))
+        .build();
+
+    mockMvc.perform(
+            post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-plan/4/test-case/batch")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(addRequest))
+                .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.totalCount").value(4))
+        .andExpect(jsonPath("$.successCount").value(2))
+        .andExpect(jsonPath("$.failureCount").value(2))
+        .andExpect(jsonPath("$.errors.length()").value(2));
+
+    assertEquals(3L, countPlanTestCasesBetween(4L, 900001L, 900003L));
+  }
+
+  private void seedFolderChain(long projectId, long firstFolderId, int folders, int testCasesPerFolder,
+      long firstTestCaseId) {
+    for (int i = 0; i < folders; i++) {
+      long folderId = firstFolderId + i;
+      long fromTestCaseId = firstTestCaseId + (long) i * testCasesPerFolder;
+      entityManager.createNativeQuery("INSERT INTO tms_test_folder (id, name, parent_id, project_id) "
+              + "VALUES (:id, :name, NULLIF(:parentId, 0), :projectId)")
+          .setParameter("id", folderId)
+          .setParameter("name", "Folder " + folderId)
+          .setParameter("parentId", i == 0 ? 0L : folderId - 1)
+          .setParameter("projectId", projectId)
+          .executeUpdate();
+      entityManager.createNativeQuery("INSERT INTO tms_test_case "
+              + "(id, name, test_folder_id, priority, project_id, display_id) "
+              + "SELECT g, 'Folder case ' || g, :folderId, 'MEDIUM', :projectId, 'FB-' || g "
+              + "FROM generate_series(CAST(:fromId AS BIGINT), CAST(:toId AS BIGINT)) g")
+          .setParameter("folderId", folderId)
+          .setParameter("projectId", projectId)
+          .setParameter("fromId", fromTestCaseId)
+          .setParameter("toId", fromTestCaseId + testCasesPerFolder - 1)
+          .executeUpdate();
+    }
+  }
+
+  private long countPlanTestCasesBetween(long testPlanId, long fromTestCaseId, long toTestCaseId) {
+    return ((Number) entityManager.createNativeQuery("SELECT COUNT(*) FROM tms_test_plan_test_case "
+            + "WHERE test_plan_id = :testPlanId AND test_case_id BETWEEN :fromId AND :toId")
+        .setParameter("testPlanId", testPlanId)
+        .setParameter("fromId", fromTestCaseId)
+        .setParameter("toId", toTestCaseId)
+        .getSingleResult()).longValue();
   }
 
   @Test

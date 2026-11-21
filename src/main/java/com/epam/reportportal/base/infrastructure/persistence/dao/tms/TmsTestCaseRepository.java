@@ -232,4 +232,51 @@ public interface TmsTestCaseRepository extends ReportPortalRepository<TmsTestCas
       nativeQuery = true)
   List<Long> findIdsByProjectIdAndTestFolderId(@Param("projectId") Long projectId,
       @Param("testFolderId") Long testFolderId);
+
+  /**
+   * Counts the test cases that belong to the specified folders or any of their subfolders within the
+   * project.
+   *
+   * @param projectId the project ID
+   * @param folderIds the root test folder IDs
+   * @return number of test cases within the folder hierarchies
+   */
+  @Query(value = "WITH RECURSIVE folder_hierarchy AS ("
+      + "  SELECT tf.id FROM tms_test_folder tf "
+      + "  WHERE tf.id IN (:folderIds) AND tf.project_id = :projectId "
+      + "  UNION "
+      + "  SELECT tf.id FROM tms_test_folder tf "
+      + "  JOIN folder_hierarchy fh ON tf.parent_id = fh.id "
+      + "  WHERE tf.project_id = :projectId "
+      + ") "
+      + "SELECT COUNT(*) FROM tms_test_case tc "
+      + "WHERE tc.project_id = :projectId "
+      + "AND tc.test_folder_id IN (SELECT id FROM folder_hierarchy)",
+      nativeQuery = true)
+  long countByProjectIdAndTestFolderIds(@Param("projectId") Long projectId,
+      @Param("folderIds") Collection<Long> folderIds);
+
+  /**
+   * Finds all test case IDs that belong to the specified folders or any of their subfolders within
+   * the project, ordered by ID.
+   *
+   * @param projectId the project ID
+   * @param folderIds the root test folder IDs
+   * @return distinct test case IDs within the folder hierarchies
+   */
+  @Query(value = "WITH RECURSIVE folder_hierarchy AS ("
+      + "  SELECT tf.id FROM tms_test_folder tf "
+      + "  WHERE tf.id IN (:folderIds) AND tf.project_id = :projectId "
+      + "  UNION "
+      + "  SELECT tf.id FROM tms_test_folder tf "
+      + "  JOIN folder_hierarchy fh ON tf.parent_id = fh.id "
+      + "  WHERE tf.project_id = :projectId "
+      + ") "
+      + "SELECT tc.id FROM tms_test_case tc "
+      + "WHERE tc.project_id = :projectId "
+      + "AND tc.test_folder_id IN (SELECT id FROM folder_hierarchy) "
+      + "ORDER BY tc.id",
+      nativeQuery = true)
+  List<Long> findIdsByProjectIdAndTestFolderIds(@Param("projectId") Long projectId,
+      @Param("folderIds") Collection<Long> folderIds);
 }

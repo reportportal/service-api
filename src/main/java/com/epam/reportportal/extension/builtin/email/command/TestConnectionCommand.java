@@ -37,7 +37,7 @@ public class TestConnectionCommand extends AbstractExtensionCommand<Boolean> {
   }
 
   @Override
-  public Boolean executeCommand(Integration integration, PluginCommandRQ pluginCommandRq) {
+  protected Boolean invokeCommand(Integration integration, PluginCommandRQ pluginCommandRq) {
     return emailServerIntegrationService.checkConnection(integration);
   }
 }

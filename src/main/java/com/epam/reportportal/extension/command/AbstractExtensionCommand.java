@@ -98,6 +98,20 @@ public abstract class AbstractExtensionCommand<T> implements ExtensionCommand<T>
     throw new UnsupportedOperationException("Command does not support execution without an integration");
   }
 
+  /**
+   * @return the minimum project role required to execute this command, or {@code null} if not declared
+   */
+  public ProjectRole getMinProjectRole() {
+    return minProjectRole;
+  }
+
+  /**
+   * @return the minimum organization role required to execute this command, or {@code null} if not declared
+   */
+  public OrganizationRole getMinOrgRole() {
+    return minOrgRole;
+  }
+
   @Override
   public T executeCommand(PluginCommandRQ pluginCommandRq) {
     var context = pluginCommandRq.getContext();

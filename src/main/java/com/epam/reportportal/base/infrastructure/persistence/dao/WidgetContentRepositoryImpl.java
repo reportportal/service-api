@@ -182,6 +182,7 @@ import jakarta.annotation.Nullable;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -213,6 +214,7 @@ import org.jooq.SelectQuery;
 import org.jooq.SelectSeekStepN;
 import org.jooq.SortOrder;
 import org.jooq.Table;
+import lombok.extern.slf4j.Slf4j;
 import org.jooq.impl.DSL;
 import org.jooq.util.postgres.PostgresDSL;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -225,6 +227,7 @@ import org.springframework.stereotype.Repository;
  * @author Pavel Bortnik
  */
 @Repository
+@Slf4j
 public class WidgetContentRepositoryImpl implements WidgetContentRepository {
 
   private static final List<JTestItemTypeEnum> HAS_METHOD_OR_CLASS = Arrays.stream(
@@ -882,7 +885,7 @@ public class WidgetContentRepositoryImpl implements WidgetContentRepository {
 
     boolean isAttributePresent = contentFields.remove("attributes");
 
-    List<Field<?>> selectFields = resolveContentFields(filter, contentFields);
+    List<Field<?>> selectFields = resolveContentFields(filter, contentFields, true);
 
     Collections.addAll(selectFields, LAUNCH.ID, fieldName(STATISTICS_TABLE, STATISTICS_COUNTER),
         fieldName(STATISTICS_TABLE, SF_NAME));
@@ -1597,32 +1600,43 @@ public class WidgetContentRepositoryImpl implements WidgetContentRepository {
 
   /**
    * Resolves the non-statistics widget content fields to columns of the filter target. A content field must name a
-   * criteria of the target whose query criteria is a quoted column name; anything else is rejected. The column is
-   * referenced as a jOOQ {@link org.jooq.Name} (never as plain SQL) and aliased to the query criteria, which is the name
-   * the content fetchers read it by.
+   * criteria of the target whose query criteria is a quoted column name. The column is referenced as a jOOQ
+   * {@link org.jooq.Name} (never as plain SQL) and aliased to the query criteria, which is the name the content fetchers
+   * read it by.
    *
    * @param filter        widget filter
    * @param contentFields widget content fields
+   * @param rejectUnknown {@code true} to reject an unknown content field, {@code false} to skip it with a warning (saved
+   *                      widgets may hold stale fields)
    * @return select fields
    */
-  private static List<Field<?>> resolveContentFields(Filter filter, Collection<String> contentFields) {
+  private static List<Field<?>> resolveContentFields(Filter filter, Collection<String> contentFields,
+      boolean rejectUnknown) {
     Map<String, String> criteria = filter.getTarget()
         .getCriteriaHolders()
         .stream()
         .collect(
             Collectors.toMap(CriteriaHolder::getFilterCriteria, CriteriaHolder::getQueryCriteria));
 
-    return contentFields.stream()
-        .filter(cf -> !cf.startsWith(STATISTICS_KEY))
-        .map(cf -> toColumnField(cf, criteria.get(cf)))
-        .collect(Collectors.toList());
+    List<Field<?>> fields = new ArrayList<>();
+    for (String contentField : contentFields) {
+      if (contentField.startsWith(STATISTICS_KEY)) {
+        continue;
+      }
+      String queryCriteria = criteria.get(contentField);
+      if (queryCriteria != null && QUOTED_QUALIFIED_NAME.matcher(queryCriteria).matches()) {
+        fields.add(toColumnField(queryCriteria));
+      } else if (rejectUnknown) {
+        throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
+            Suppliers.formattedSupplier("Unknown table field - '{}'", contentField).get());
+      } else {
+        log.warn("Skipping unknown widget content field '{}' (filter id={})", contentField, filter.getId());
+      }
+    }
+    return fields;
   }
 
-  private static Field<?> toColumnField(String contentField, String queryCriteria) {
-    if (queryCriteria == null || !QUOTED_QUALIFIED_NAME.matcher(queryCriteria).matches()) {
-      throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
-          Suppliers.formattedSupplier("Unknown table field - '{}'", contentField).get());
-    }
+  private static Field<?> toColumnField(String queryCriteria) {
     String[] parts = QUOTED_NAME_PART.matcher(queryCriteria)
         .results()
         .map(match -> match.group(1))
@@ -1633,7 +1647,7 @@ public class WidgetContentRepositoryImpl implements WidgetContentRepository {
   private List<Field<?>> getCommonProductStatusFields(Filter filter,
       Collection<String> contentFields) {
 
-    List<Field<?>> selectFields = resolveContentFields(filter, contentFields);
+    List<Field<?>> selectFields = resolveContentFields(filter, contentFields, false);
 
     Collections.addAll(selectFields,
         LAUNCH.ID,

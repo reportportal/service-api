@@ -184,19 +184,17 @@ public class TmsSyncJobServiceImpl implements TmsSyncJobService {
     log.info("Starting TMS Sync Job: {}", jobId);
 
     var executingJob = transactionTemplate.execute(status -> {
-      var job = tmsSyncJobRepository
-          .findByIdWithIntegration(jobId)
-          .orElse(null);
-      if (job != null && job.getStatus() == TmsSyncStatus.PENDING) {
-        job.setStatus(TmsSyncStatus.IN_PROGRESS);
-        job.setStartedAt(Instant.now());
-        job.setCounters(new SyncCounters(0, 0, 0, 0));
-        if (job.getErrorLog() == null) {
-          job.setErrorLog(new SyncErrorLog(new ArrayList<>()));
-        }
-        return tmsSyncJobRepository.save(job);
+      // Atomic PENDING -> IN_PROGRESS claim: of concurrent executors (Quartz trigger, outbox
+      // poller, other nodes) only the one that updates the row runs the job
+      if (tmsSyncJobRepository.claimPendingJob(jobId, Instant.now()) != 1) {
+        return null;
       }
-      return null;
+      var job = tmsSyncJobRepository.findByIdWithIntegration(jobId).orElseThrow();
+      job.setCounters(new SyncCounters(0, 0, 0, 0));
+      if (job.getErrorLog() == null) {
+        job.setErrorLog(new SyncErrorLog(new ArrayList<>()));
+      }
+      return tmsSyncJobRepository.save(job);
     });
 
     if (executingJob == null) {

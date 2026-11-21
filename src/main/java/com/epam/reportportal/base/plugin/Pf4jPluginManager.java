@@ -57,6 +57,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -82,6 +83,14 @@ public class Pf4jPluginManager implements Pf4jPluginBox {
 
   private static final long MAXIMUM_UPLOADED_PLUGINS = 50;
   private static final long PLUGIN_LIVE_TIME = 2;
+
+  /**
+   * The plugin id and version from an uploaded jar's manifest become part of file system paths and file names, so they
+   * must not carry separators or dot segments. Same allow-list as the marketplace install path; '+' is additionally
+   * allowed in versions (semver build metadata).
+   */
+  private static final Pattern SAFE_PLUGIN_ID = Pattern.compile("[A-Za-z0-9][A-Za-z0-9._-]{0,126}");
+  private static final Pattern SAFE_PLUGIN_VERSION = Pattern.compile("[A-Za-z0-9][A-Za-z0-9._+-]{0,126}");
 
   private final String pluginsDir;
   private final String pluginsTempDir;
@@ -460,10 +469,25 @@ public class Pf4jPluginManager implements Pf4jPluginBox {
       PluginInfo newPluginInfo = pluginLoader.extractPluginInfo(tempPluginPath);
       BusinessRule.expect(validatePluginMetaInfo(newPluginInfo), equalTo(Boolean.TRUE))
           .verify(ErrorType.PLUGIN_UPLOAD_ERROR, "Plugin version should be specified.");
+      validatePluginIdAndVersion(newPluginInfo);
       return newPluginInfo;
     } catch (PluginRuntimeException e) {
       removeUploadingPlugin(fileName);
       throw new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR, e.getMessage());
+    } catch (ReportPortalException e) {
+      deleteTempPlugin(fileName);
+      throw e;
+    }
+  }
+
+  private void validatePluginIdAndVersion(PluginInfo info) {
+    if (info.getId() == null || !SAFE_PLUGIN_ID.matcher(info.getId()).matches()) {
+      throw new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR,
+          "Plugin id in the manifest is not valid: only letters, digits, '.', '_' and '-' are allowed");
+    }
+    if (!SAFE_PLUGIN_VERSION.matcher(info.getVersion()).matches()) {
+      throw new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR,
+          "Plugin version in the manifest is not valid: only letters, digits, '.', '_', '+' and '-' are allowed");
     }
   }
 

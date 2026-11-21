@@ -23,6 +23,7 @@ import com.epam.reportportal.base.infrastructure.persistence.dao.organization.Or
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.PluginTypeEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.Integration;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationType;
+import com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationTypeDetails;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.MembershipDetails;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationRole;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
@@ -216,12 +217,51 @@ public class ExecuteIntegrationHandlerTest {
     verify(command, never()).executeCommand(any(PluginCommandRQ.class));
   }
 
+
+  private void stubPluginAccessType(String pluginName, String accessType) {
+    IntegrationType type = new IntegrationType();
+    type.setName(pluginName);
+    if (accessType != null) {
+      IntegrationTypeDetails details = new IntegrationTypeDetails();
+      details.setDetails(Map.of("accessType", accessType));
+      type.setDetails(details);
+    }
+    when(integrationTypeRepository.findByName(pluginName)).thenReturn(Optional.of(type));
+  }
+
+  @Test
+  @DisplayName("Negative Test. Plugin without public access type is refused")
+  public void executePublicCommandOnNonPublicPluginTest() {
+    final String pluginName = "jira";
+    final String publicCommand = PUBLIC_COMMAND_PREFIX + "testCommand";
+    stubPluginAccessType(pluginName, null);
+
+    ReportPortalException ex = assertThrows(ReportPortalException.class, () ->
+        executeIntegrationHandler.executePublicCommand(pluginName, publicCommand, Collections.emptyMap()));
+
+    assertEquals(ErrorType.ACCESS_DENIED, ex.getErrorType());
+    verifyNoInteractions(pluginBox);
+  }
+
+  @Test
+  @DisplayName("Negative Test. Unknown plugin type is refused")
+  public void executePublicCommandOnUnknownPluginTest() {
+    when(integrationTypeRepository.findByName("ghost")).thenReturn(Optional.empty());
+
+    ReportPortalException ex = assertThrows(ReportPortalException.class, () ->
+        executeIntegrationHandler.executePublicCommand("ghost", PUBLIC_COMMAND_PREFIX + "x", Collections.emptyMap()));
+
+    assertEquals(ErrorType.ACCESS_DENIED, ex.getErrorType());
+    verifyNoInteractions(pluginBox);
+  }
+
   @Test
   @DisplayName("Positive Test. Everything is fine")
   public void executePublicCommandPositiveTest() {
     final String pluginName = "signup";
     final String publicCommand = PUBLIC_COMMAND_PREFIX + "testCommand";
     final Map<String, Object> params = Collections.emptyMap();
+    stubPluginAccessType(pluginName, "public");
 
     CommonPluginCommand<String> commonPluginCommand = mock(CommonPluginCommand.class);
     when(commonPluginCommand.executeCommand(params)).thenReturn("Ok");
@@ -257,6 +297,7 @@ public class ExecuteIntegrationHandlerTest {
     final String pluginName = "signup";
     final String publicCommand = PUBLIC_COMMAND_PREFIX + "testCommand";
     final Map<String, Object> params = Collections.emptyMap();
+    stubPluginAccessType(pluginName, "public");
 
     CommonPluginCommand<String> commonPluginCommand = mock(CommonPluginCommand.class);
     when(commonPluginCommand.executeCommand(params)).thenReturn("Ok");
@@ -279,6 +320,7 @@ public class ExecuteIntegrationHandlerTest {
     final String pluginName = "signup";
     final String publicCommand = PUBLIC_COMMAND_PREFIX + "testCommand";
     final Map<String, Object> params = Collections.emptyMap();
+    stubPluginAccessType(pluginName, "public");
 
     CommonPluginCommand<String> commonPluginCommand = mock(CommonPluginCommand.class);
     when(commonPluginCommand.executeCommand(params)).thenReturn("Ok");

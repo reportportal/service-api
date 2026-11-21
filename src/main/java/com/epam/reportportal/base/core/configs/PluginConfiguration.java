@@ -135,7 +135,7 @@ public class PluginConfiguration {
   @Bean
   public PluginFilesProvider pluginPublicFilesProvider() {
     return new PluginFilesProvider(pluginsResourcesPath, publicFolderQualifier, fileTypeMap(),
-        integrationTypeRepository);
+        integrationTypeRepository, true);
   }
 
   @Bean

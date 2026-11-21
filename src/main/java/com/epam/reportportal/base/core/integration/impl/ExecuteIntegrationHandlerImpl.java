@@ -29,6 +29,8 @@ import com.epam.reportportal.base.core.plugin.PluginBox;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationTypeRepository;
+import com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationType;
+import com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationTypeDetails;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.organization.OrganizationUserRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.PluginTypeEnum;
@@ -73,6 +75,8 @@ public class ExecuteIntegrationHandlerImpl implements ExecuteIntegrationHandler 
   private static final String PROJECT_ID = "projectId";
   private static final String PROJECT_NAME = "projectName";
   private static final String PUBLIC_COMMAND_PREFIX = "public_";
+  private static final String ACCESS_TYPE_KEY = "accessType";
+  private static final String ACCESS_TYPE_PUBLIC = "public";
 
   private final IntegrationRepository integrationRepository;
   private final IntegrationTypeRepository integrationTypeRepository;
@@ -118,6 +122,18 @@ public class ExecuteIntegrationHandlerImpl implements ExecuteIntegrationHandler 
       Map<String, Object> executionParams) {
     BusinessRule.expect(command, c -> c.startsWith(PUBLIC_COMMAND_PREFIX))
         .verify(ACCESS_DENIED, formattedSupplier("Command '{}' is not public.", command).get());
+    // Anonymous callers may only reach plugins that declare the public access type, the same
+    // criterion the public plugin listing uses.
+    boolean publicPlugin = integrationTypeRepository.findByName(pluginName)
+        .map(IntegrationType::getDetails)
+        .map(IntegrationTypeDetails::getDetails)
+        .map(details -> details.get(ACCESS_TYPE_KEY))
+        .map(ACCESS_TYPE_PUBLIC::equals)
+        .orElse(false);
+    if (!publicPlugin) {
+      throw new ReportPortalException(ACCESS_DENIED,
+          formattedSupplier("Plugin '{}' is not public.", pluginName).get());
+    }
     ReportPortalExtensionPoint pluginInstance = pluginBox.getInstance(pluginName,
             ReportPortalExtensionPoint.class)
         .orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR,

@@ -54,6 +54,7 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Default implementation of {@link com.epam.reportportal.base.core.launch.DeleteLaunchHandler}
@@ -63,6 +64,7 @@ import org.springframework.stereotype.Service;
  * @author Pavel Bortnik
  */
 @Service
+@Transactional
 @RequiredArgsConstructor
 public class DeleteLaunchHandlerImpl implements DeleteLaunchHandler {
 
@@ -88,9 +90,9 @@ public class DeleteLaunchHandlerImpl implements DeleteLaunchHandler {
     logIndexer.indexLaunchesRemove(membershipDetails.getProjectId(), Lists.newArrayList(launchId));
     launchContentRemover.remove(launch);
     logService.deleteLogMessageByLaunch(membershipDetails.getProjectId(), launch.getId());
+    attachmentRepository.moveForDeletionByLaunchId(launchId);
     launch.getAttributes().clear();
     launchRepository.delete(launch);
-    attachmentRepository.moveForDeletionByLaunchId(launchId);
 
     eventPublisher.publishEvent(
         new LaunchDeletedEvent(launchActivity, user.getUserId(), user.getUsername(), membershipDetails.getOrgId()));
@@ -126,9 +128,9 @@ public class DeleteLaunchHandlerImpl implements DeleteLaunchHandler {
       logIndexer.indexLaunchesRemove(membershipDetails.getProjectId(), launchIds);
       toDelete.forEach(launchContentRemover::remove);
       logService.deleteLogMessageByLaunchList(membershipDetails.getProjectId(), launchIds);
+      attachmentRepository.moveForDeletionByLaunchIds(launchIds);
       toDelete.forEach(launch -> launch.getAttributes().clear());
       launchRepository.deleteAll(toDelete);
-      attachmentRepository.moveForDeletionByLaunchIds(launchIds);
 
       launchActivities.forEach(launchActivity -> eventPublisher.publishEvent(
           new LaunchDeletedEvent(launchActivity, user.getUserId(), user.getUsername(), membershipDetails.getOrgId())));

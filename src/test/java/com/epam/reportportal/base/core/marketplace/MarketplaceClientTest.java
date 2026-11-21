@@ -167,7 +167,10 @@ class MarketplaceClientTest {
     server.expect(requestTo(BASE_URL + "/api/v1/plugins/jira/versions"))
         .andRespond(withSuccess("""
             {"pluginId":"jira","versions":[
-              {"version":"1.4.2","publishedAt":"2026-08-01T10:00:00Z","blocked":false},
+              {"version":"1.4.2","publishedAt":"2026-08-01T10:00:00Z","blocked":false,
+               "compatibility":{"reportportal":">=25.1, <28.0"},
+               "effectiveCompatibility":{"reportportal":">=25.1, <27.0"},
+               "compatibilityCeiling":"<27.0","compatibilityCeilingReason":"Breaks on 27"},
               {"version":"1.4.1","publishedAt":"2026-07-01T10:00:00Z","blocked":true,
                "blockedAt":"2026-07-20T09:30:00Z","blockReason":"CVE-2026-1"}]}""",
             MediaType.APPLICATION_JSON));
@@ -179,6 +182,12 @@ class MarketplaceClientTest {
     assertTrue(versions.get(1).blocked());
     assertEquals(Instant.parse("2026-07-20T09:30:00Z"), versions.get(1).blockedAt());
     assertEquals("CVE-2026-1", versions.get(1).blockReason());
+    assertEquals(">=25.1, <27.0", versions.get(0).effectiveCompatibility().reportportal());
+    assertEquals("<27.0", versions.get(0).compatibilityCeiling());
+    assertEquals("Breaks on 27", versions.get(0).compatibilityCeilingReason());
+    assertNull(versions.get(1).effectiveCompatibility());
+    assertNull(versions.get(1).compatibilityCeiling());
+    assertNull(versions.get(1).compatibilityCeilingReason());
   }
 
   @Test
@@ -193,7 +202,8 @@ class MarketplaceClientTest {
              "advisory":{"severity":"high","text":"Update now",
                          "attachedAt":"2026-07-19T08:00:00Z"},
              "sha256":"abc123","changelogUrl":"https://cdn/changelog.md",
-             "screenshotUrls":["https://cdn/1.png","https://cdn/2.png"]}""",
+             "screenshotUrls":["https://cdn/1.png","https://cdn/2.png"],
+             "effectiveCompatibility":{"reportportal":">=25.1, <26.0"}}""",
             MediaType.APPLICATION_JSON));
 
     var detail = client.getVersion("jira", "1.4.1");
@@ -206,6 +216,40 @@ class MarketplaceClientTest {
     assertEquals(Instant.parse("2026-07-19T08:00:00Z"), detail.advisory().attachedAt());
     assertEquals("https://cdn/changelog.md", detail.changelogUrl());
     assertEquals(2, detail.screenshotUrls().size());
+    assertEquals(">=25.1, <26.0", detail.effectiveCompatibility().reportportal());
+    assertNull(detail.compatibilityCeiling());
+    assertNull(detail.compatibilityCeilingReason());
+  }
+
+  @Test
+  void versionDetailCeilingIsParsed() {
+    server.expect(requestTo(BASE_URL + "/api/v1/plugins/jira/versions/1.4.2"))
+        .andRespond(withSuccess("""
+            {"id":"jira","name":"Jira","version":"1.4.2","blocked":false,
+             "compatibility":{"reportportal":">=25.1, <28.0"},
+             "effectiveCompatibility":{"reportportal":">=25.1, <27.0"},
+             "compatibilityCeiling":"<27.0","compatibilityCeilingReason":"Breaks on 27"}""",
+            MediaType.APPLICATION_JSON));
+
+    var detail = client.getVersion("jira", "1.4.2");
+
+    assertEquals(">=25.1, <28.0", detail.compatibility().reportportal());
+    assertEquals(">=25.1, <27.0", detail.effectiveCompatibility().reportportal());
+    assertEquals("<27.0", detail.compatibilityCeiling());
+    assertEquals("Breaks on 27", detail.compatibilityCeilingReason());
+  }
+
+  @Test
+  void versionDetailWithoutCompatibilityHasNoEffectiveRange() {
+    server.expect(requestTo(BASE_URL + "/api/v1/plugins/jira/versions/1.0.0"))
+        .andRespond(withSuccess("""
+            {"id":"jira","name":"Jira","version":"1.0.0","blocked":false}""",
+            MediaType.APPLICATION_JSON));
+
+    var detail = client.getVersion("jira", "1.0.0");
+
+    assertNull(detail.compatibility());
+    assertNull(detail.effectiveCompatibility());
   }
 
   @Test

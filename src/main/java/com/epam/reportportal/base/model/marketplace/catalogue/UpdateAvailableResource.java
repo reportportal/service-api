@@ -20,7 +20,8 @@ package com.epam.reportportal.base.model.marketplace.catalogue;
  * A newer version the instance may move to. Present only when it is newer, compatible and not
  * blocked; absent means no update is offered, never that none exists.
  *
- * @param version the registry's latest version
+ * @param version the newest such version: the registry's latest, or an older one when the latest
+ *                does not run here
  */
 public record UpdateAvailableResource(String version) {
 

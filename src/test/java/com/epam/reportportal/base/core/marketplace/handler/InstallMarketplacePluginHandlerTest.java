@@ -183,7 +183,16 @@ class InstallMarketplacePluginHandlerTest {
     return new MarketplaceVersionDetail(PLUGIN_ID, "JIRA", "1.4.2", "desc", null, null, null,
         range == null ? null : new MarketplaceCompatibility(range), null, access, null, "official",
         blocked, blocked ? Instant.EPOCH : null, blockReason, null, sha256, null,
-        List.of());
+        List.of(), null, null, null);
+  }
+
+  /** A version as a ceiling-aware registry sends it; any argument may be null. */
+  private static MarketplaceVersionDetail capped(String declared, String effective,
+      String ceiling, String reason) {
+    return new MarketplaceVersionDetail(PLUGIN_ID, "JIRA", "1.4.2", "desc", null, null, null,
+        declared == null ? null : new MarketplaceCompatibility(declared), null, "public", null,
+        "official", false, null, null, null, sha256(JAR), null, List.of(),
+        effective == null ? null : new MarketplaceCompatibility(effective), ceiling, reason);
   }
 
   private void registryServes(MarketplaceVersionDetail detail) {
@@ -289,6 +298,165 @@ class InstallMarketplacePluginHandlerTest {
 
     assertEquals(ErrorType.MARKETPLACE_COMPATIBILITY_UNKNOWN, thrown.getErrorType());
     verifyNoInteractions(pluginBox);
+  }
+
+  // --- the operator ceiling -----------------------------------------------------------------
+
+  private ReportPortalException installOn(String productVersion) {
+    return assertThrows(ReportPortalException.class,
+        () -> handler(productVersion).install(PLUGIN_ID, new MarketplaceInstallRQ("1.4.2"), user));
+  }
+
+  private void installsOn(String productVersion) {
+    publicPluginAt("https://cdn.example/jira-1.4.2.jar");
+    handler(productVersion).install(PLUGIN_ID, new MarketplaceInstallRQ("1.4.2"), user);
+    verify(pluginBox, times(1)).uploadPlugin(anyString(), any(InputStream.class));
+  }
+
+  @Test
+  void ceilingThatExcludesTheRunningReleaseRefusesQuotingTheOperator() {
+    registryServes(capped(">=25.1", ">=25.1, <27.0", "<27.0", "RP 27.0 removes ExtensionPoint X"));
+
+    var thrown = installOn("27.1");
+
+    assertEquals(ErrorType.MARKETPLACE_PLUGIN_INCOMPATIBLE, thrown.getErrorType());
+    assertTrue(thrown.getMessage().endsWith("jira 1.4.2 only works with ReportPortal versions"
+        + " below 27.0, and this server runs 27.1. The marketplace set this limit. Their reason:"
+        + " RP 27.0 removes ExtensionPoint X"), thrown.getMessage());
+    verifyNoInteractions(pluginBox);
+    verify(client, never()).resolveArtifact(anyString(), anyString(), any());
+  }
+
+  @Test
+  void ceilingWithoutAReasonSaysSoRatherThanQuotingNothing() {
+    registryServes(capped(">=25.1", ">=25.1, <27.0", "<27.0", " "));
+
+    var thrown = installOn("27.1");
+
+    assertEquals(ErrorType.MARKETPLACE_PLUGIN_INCOMPATIBLE, thrown.getErrorType());
+    assertTrue(thrown.getMessage().endsWith("this server runs 27.1. The marketplace set this"
+        + " limit."), thrown.getMessage());
+  }
+
+  @Test
+  void anInclusiveCeilingReadsAsOrEarlier() {
+    registryServes(capped(">=25.1", ">=25.1, <=26.0", "<=26.0", null));
+
+    var thrown = installOn("26.1");
+
+    assertTrue(thrown.getMessage().contains("only works with ReportPortal 26.0 or earlier,"),
+        thrown.getMessage());
+  }
+
+  @Test
+  void ceilingAboveTheRunningReleaseInstalls() {
+    registryServes(capped(">=25.1", ">=25.1, <27.0", "<27.0", "RP 27.0 removes ExtensionPoint X"));
+
+    installsOn("26.4");
+  }
+
+  @Test
+  void authorRangeThatAlreadyExcludesIsNotBlamedOnTheCeiling() {
+    registryServes(
+        capped(">=25.1, <26.0", ">=25.1, <26.0", "<27.0", "RP 27.0 removes ExtensionPoint X"));
+
+    var thrown = installOn("26.4");
+
+    assertEquals(ErrorType.MARKETPLACE_PLUGIN_INCOMPATIBLE, thrown.getErrorType());
+    assertTrue(thrown.getMessage().contains("requires '>=25.1, <26.0' and fails <26.0"),
+        thrown.getMessage());
+    assertFalse(thrown.getMessage().contains("marketplace set this limit"), thrown.getMessage());
+    assertFalse(thrown.getMessage().contains("ExtensionPoint"), thrown.getMessage());
+  }
+
+  @Test
+  void registryWithoutEffectiveRangeIsJudgedByTheAuthorsRangeAndRefuses() {
+    registryServes(capped(">=25.1, <26.0", null, null, null));
+
+    var thrown = installOn("26.4");
+
+    assertEquals(ErrorType.MARKETPLACE_PLUGIN_INCOMPATIBLE, thrown.getErrorType());
+    assertTrue(thrown.getMessage().contains("requires '>=25.1, <26.0'"), thrown.getMessage());
+  }
+
+  @Test
+  void registryWithoutEffectiveRangeIsJudgedByTheAuthorsRangeAndInstalls() {
+    registryServes(capped(">=25.1, <26.0", null, null, null));
+
+    installsOn("25.2");
+  }
+
+  @Test
+  void effectiveRangeWithoutAnAuthorRangeIsStillEnforced() {
+    registryServes(capped(null, ">=25.1, <27.0", "<27.0", "RP 27.0 removes ExtensionPoint X"));
+
+    var thrown = installOn("27.1");
+
+    // No author range to be inside of, so the ceiling cannot be shown to be the cause.
+    assertEquals(ErrorType.MARKETPLACE_PLUGIN_INCOMPATIBLE, thrown.getErrorType());
+    assertTrue(thrown.getMessage().contains("requires '>=25.1, <27.0'"), thrown.getMessage());
+    assertFalse(thrown.getMessage().contains("marketplace set this limit"), thrown.getMessage());
+  }
+
+  @Test
+  void effectiveRangeWithoutAnAuthorRangeInstallsInsideIt() {
+    registryServes(capped(null, ">=25.1, <27.0", "<27.0", "RP 27.0 removes ExtensionPoint X"));
+
+    installsOn("26.4");
+  }
+
+  @Test
+  void unreadableEffectiveRangeIsUnknownEvenWhenTheAuthorsRangeReads() {
+    registryServes(capped(">=25.1", ">=next", "<27.0", "RP 27.0 removes ExtensionPoint X"));
+
+    var thrown = installOn("26.4");
+
+    assertEquals(ErrorType.MARKETPLACE_COMPATIBILITY_UNKNOWN, thrown.getErrorType());
+    assertTrue(thrown.getMessage().contains("'>=next'"), thrown.getMessage());
+    verifyNoInteractions(pluginBox);
+  }
+
+  @Test
+  void ceilingOverAnEmptyAuthorRangeSaysTheVersionDeclaresNone() {
+    // a ceiling over an empty author range, which the registry would not accept today
+    registryServes(capped(null, null, "<27.0", "RP 27.0 removes ExtensionPoint X"));
+
+    var thrown = installOn("26.4");
+
+    assertEquals(ErrorType.MARKETPLACE_COMPATIBILITY_UNKNOWN, thrown.getErrorType());
+    assertTrue(thrown.getMessage().endsWith("jira 1.4.2 doesn't say which versions of"
+        + " ReportPortal it works with. To be safe, it wasn't installed."), thrown.getMessage());
+    assertFalse(thrown.getMessage().contains("limited"), thrown.getMessage());
+    verifyNoInteractions(pluginBox);
+  }
+
+  @Test
+  void ceilingWithoutEffectiveRangeIsUnknown() {
+    // a registry that predates ceilings never sends one, so the author's range cannot stand in
+    registryServes(capped(">=25.1", null, "<27.0", "RP 27.0 removes ExtensionPoint X"));
+
+    var thrown = installOn("26.4");
+
+    assertEquals(ErrorType.MARKETPLACE_COMPATIBILITY_UNKNOWN, thrown.getErrorType());
+    assertTrue(thrown.getMessage().endsWith("the marketplace limited jira 1.4.2 to ReportPortal"
+        + " versions below 27.0 but didn't send enough details to check it. To be safe, it wasn't"
+        + " installed. Their reason: RP 27.0 removes ExtensionPoint X"), thrown.getMessage());
+    verifyNoInteractions(pluginBox);
+    verify(client, never()).resolveArtifact(anyString(), anyString(), any());
+  }
+
+  @Test
+  void narrowerEffectiveRangeWithNoCeilingIsNotBlamedOnOne() {
+    // the registry broke its contract: no ceiling, yet effective is narrower than the author's
+    registryServes(capped(">=25.1", ">=25.1, <27.0", null, null));
+
+    var thrown = installOn("27.1");
+
+    assertEquals(ErrorType.MARKETPLACE_PLUGIN_INCOMPATIBLE, thrown.getErrorType());
+    assertTrue(thrown.getMessage().contains("requires '>=25.1, <27.0' and fails <27.0"),
+        thrown.getMessage());
+    assertFalse(thrown.getMessage().contains("marketplace set this limit"), thrown.getMessage());
+    assertFalse(thrown.getMessage().contains("null"), thrown.getMessage());
   }
 
   // --- premium and licence ----------------------------------------------------------------------
@@ -758,6 +926,34 @@ class InstallMarketplacePluginHandlerTest {
   }
 
   // --- what the caller is allowed to ask for ----------------------------------------------------
+
+  @Test
+  void versionWithBuildMetadataInstallsAndKeepsThePlusEverywhere() {
+    var buildVersion = "1.6.0+build.5";
+    when(client.getVersion(PLUGIN_ID, buildVersion))
+        .thenReturn(version("public", ">=25.1", sha256(JAR), false, null));
+    when(client.resolveArtifact(eq(PLUGIN_ID), eq(buildVersion), any()))
+        .thenReturn(new MarketplaceArtifact("https://cdn.example/jira-1.6.0.jar", null));
+    var fileName = ArgumentCaptor.forClass(String.class);
+
+    var result = handler().install(PLUGIN_ID, new MarketplaceInstallRQ(buildVersion), user);
+
+    verify(pluginBox).uploadPlugin(fileName.capture(), any(InputStream.class));
+    assertEquals("jira-1.6.0+build.5.jar", fileName.getValue());
+    assertEquals(buildVersion, result.version());
+    var saved = ArgumentCaptor.forClass(IntegrationType.class);
+    verify(integrationTypeRepository).save(saved.capture());
+    assertEquals(buildVersion, saved.getValue().getDetails().getDetails().get("marketplaceVersion"));
+  }
+
+  @Test
+  void aPlusInThePluginIdIsStillRefused() {
+    var thrown = assertThrows(ReportPortalException.class,
+        () -> handler().install("jira+x", new MarketplaceInstallRQ("1.4.2"), user));
+
+    assertEquals(ErrorType.BAD_REQUEST_ERROR, thrown.getErrorType());
+    verifyNoInteractions(pluginBox);
+  }
 
   @Test
   void versionThatCouldEscapeThePluginDirectoryIsRefusedBeforeAnyRegistryCall() {

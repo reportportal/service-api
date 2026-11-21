@@ -26,7 +26,9 @@ import java.time.Instant;
  * would answer one request per row.
  *
  * <p>A null {@code compatibility} means the entry declares no range — published before the
- * registry recorded one — and that is unknown rather than compatible.
+ * registry recorded one — and that is unknown rather than compatible. {@code
+ * effectiveCompatibility} is that range cut by any operator ceiling; it is null when
+ * {@code compatibility} is, or when the registry predates ceilings.
  */
 public record MarketplaceVersionSummary(
     String version,
@@ -35,7 +37,10 @@ public record MarketplaceVersionSummary(
     Instant blockedAt,
     String blockReason,
     MarketplaceCompatibility compatibility,
-    MarketplaceAdvisory advisory
+    MarketplaceAdvisory advisory,
+    MarketplaceCompatibility effectiveCompatibility,
+    String compatibilityCeiling,
+    String compatibilityCeilingReason
 ) {
 
 }

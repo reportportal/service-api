@@ -18,6 +18,7 @@ package com.epam.reportportal.base.core.marketplace.handler;
 
 import com.epam.reportportal.base.core.events.domain.PluginUploadedEvent;
 import com.epam.reportportal.base.core.marketplace.CompatibilityRange;
+import com.epam.reportportal.base.core.marketplace.EffectiveRange;
 import com.epam.reportportal.base.core.marketplace.MarketplaceArtifactFetcher;
 import com.epam.reportportal.base.core.marketplace.MarketplaceClient;
 import com.epam.reportportal.base.core.marketplace.MarketplaceLicence;
@@ -52,6 +53,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.HexFormat;
+import java.util.List;
 import java.util.Locale;
 import java.util.regex.Pattern;
 import org.apache.commons.lang3.StringUtils;
@@ -88,6 +90,14 @@ public class InstallMarketplacePluginHandlerImpl implements InstallMarketplacePl
    */
   private static final Pattern SAFE_IDENTIFIER =
       Pattern.compile("[A-Za-z0-9][A-Za-z0-9._-]{0,126}");
+
+  /**
+   * A version is an identifier that may also carry semver build metadata ({@code 1.6.0+build.5}),
+   * which the registry accepts at publish. A {@code +} is literal in a path segment, which is the
+   * only place the version goes in a registry URL, and in a file name; it never reaches a query.
+   */
+  private static final Pattern SAFE_VERSION =
+      Pattern.compile("[A-Za-z0-9][A-Za-z0-9._+-]{0,126}");
 
   private final MarketplaceClient client;
   private final MarketplaceArtifactFetcher fetcher;
@@ -134,8 +144,8 @@ public class InstallMarketplacePluginHandlerImpl implements InstallMarketplacePl
   public MarketplaceInstallResource install(String registryId, MarketplaceInstallRQ request,
       ReportPortalUser user) {
     var version = request == null ? null : StringUtils.trimToEmpty(request.version());
-    safe(registryId, "plugin id");
-    safe(version, "version");
+    safe(registryId, "plugin id", SAFE_IDENTIFIER);
+    safe(version, "version", SAFE_VERSION);
 
     // 1. What the registry says about this exact version. Not cached: a block or a removal that
     // landed a minute ago has to be seen now, and so does the checksum.
@@ -250,8 +260,8 @@ public class InstallMarketplacePluginHandlerImpl implements InstallMarketplacePl
    * Refuses anything that could name a file outside the plugins directory. Checked before the
    * registry is called, so a probe cannot be turned into a request either.
    */
-  private static void safe(String value, String what) {
-    if (value == null || !SAFE_IDENTIFIER.matcher(value).matches()) {
+  private static void safe(String value, String what, Pattern pattern) {
+    if (value == null || !pattern.matcher(value).matches()) {
       throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
           "marketplace " + what + " '" + value + "'");
     }
@@ -264,25 +274,78 @@ public class InstallMarketplacePluginHandlerImpl implements InstallMarketplacePl
    */
   private void verifyCompatible(String registryId, String version,
       MarketplaceVersionDetail detail) {
-    var declared = detail.compatibility() == null ? null : detail.compatibility().reportportal();
+    // The author's range cut by any operator ceiling; the author's alone from an older registry.
+    var ceiling = StringUtils.trimToNull(detail.compatibilityCeiling());
+    var effective = EffectiveRange.of(detail.effectiveCompatibility(), detail.compatibility(),
+        ceiling);
+    var declared = detail.compatibility() == null ? null
+        : StringUtils.trimToNull(detail.compatibility().reportportal());
+    if (effective == null && ceiling != null && declared != null) {
+      var reason = StringUtils.trimToNull(detail.compatibilityCeilingReason());
+      throw new ReportPortalException(ErrorType.MARKETPLACE_COMPATIBILITY_UNKNOWN,
+          "the marketplace limited " + registryId + " " + version + " to ReportPortal "
+              + plainCeiling(ceiling) + " but didn't send enough details to check it."
+              + " To be safe, it wasn't installed."
+              + (reason == null ? "" : " Their reason: " + reason));
+    }
+    if (effective == null) {
+      // also a ceiling over an empty author range, which the registry would not accept today
+      throw new ReportPortalException(ErrorType.MARKETPLACE_COMPATIBILITY_UNKNOWN,
+          registryId + " " + version + " doesn't say which versions of ReportPortal it works with."
+              + " To be safe, it wasn't installed.");
+    }
     if (!productVersion.isKnown()) {
       throw new ReportPortalException(ErrorType.MARKETPLACE_COMPATIBILITY_UNKNOWN,
           "the ReportPortal release this instance runs is unknown (rp.product.version is not set),"
-              + " so '" + registryId + ":" + version + "' cannot be checked against its declared"
-              + " range '" + declared + "'");
+              + " so '" + registryId + ":" + version + "' cannot be checked against its"
+              + " compatibility range '" + effective + "'");
     }
-    var range = CompatibilityRange.parse(declared);
+    var range = CompatibilityRange.parse(effective);
     if (range.isEmpty()) {
       throw new ReportPortalException(ErrorType.MARKETPLACE_COMPATIBILITY_UNKNOWN,
-          "'" + registryId + ":" + version + "' declares the compatibility range '" + declared
+          "'" + registryId + ":" + version + "' has the compatibility range '" + effective
               + "', which cannot be read, so it is not installed on a guess");
     }
     var failed = range.get().failedBounds(productVersion.value());
     if (!failed.isEmpty()) {
       throw new ReportPortalException(ErrorType.MARKETPLACE_PLUGIN_INCOMPATIBLE,
-          "this instance runs ReportPortal " + productVersion.value() + ", '" + registryId + ":"
-              + version + "' requires '" + declared + "' and fails " + String.join(", ", failed));
+          incompatible(registryId, version, detail, effective, failed));
     }
+  }
+
+  /**
+   * Names the ceiling and quotes the operator only when the ceiling is what refused: the running
+   * release is inside the author's range but outside the effective one.
+   */
+  private String incompatible(String registryId, String version, MarketplaceVersionDetail detail,
+      String effective, List<String> failed) {
+    var running = productVersion.value();
+    var ceiling = StringUtils.trimToNull(detail.compatibilityCeiling());
+    var declared = detail.compatibility() == null ? null : detail.compatibility().reportportal();
+    var authorAllows = CompatibilityRange.parse(declared).map(r -> r.matches(running))
+        .orElse(false);
+    if (ceiling != null && authorAllows) {
+      var reason = StringUtils.trimToNull(detail.compatibilityCeilingReason());
+      return registryId + " " + version + " only works with ReportPortal " + plainCeiling(ceiling)
+          + ", and this server runs " + running + ". The marketplace set this limit."
+          + (reason == null ? "" : " Their reason: " + reason);
+    }
+    return "this instance runs ReportPortal " + running + ", '" + registryId + ":" + version
+        + "' requires '" + effective + "' and fails " + String.join(", ", failed);
+  }
+
+  /**
+   * A ceiling as a reader would say it: {@code <27.0} is "versions below 27.0", {@code <=27.0}
+   * is "27.0 or earlier".
+   */
+  private static String plainCeiling(String ceiling) {
+    if (ceiling.startsWith("<=")) {
+      return ceiling.substring(2).trim() + " or earlier";
+    }
+    if (ceiling.startsWith("<")) {
+      return "versions below " + ceiling.substring(1).trim();
+    }
+    return ceiling;
   }
 
   /**

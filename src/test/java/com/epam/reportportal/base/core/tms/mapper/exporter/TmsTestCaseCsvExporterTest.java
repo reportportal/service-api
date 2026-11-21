@@ -49,7 +49,7 @@ class TmsTestCaseCsvExporterTest {
     var mockResponse = new MockHttpServletResponse();
 
     // When
-    csvExporter.export(testCases, false, mockResponse);
+    csvExporter.export(testCases.stream(), false, mockResponse);
 
     // Then
     var content = mockResponse.getContentAsString();
@@ -70,7 +70,7 @@ class TmsTestCaseCsvExporterTest {
     var mockResponse = new MockHttpServletResponse();
 
     // When
-    csvExporter.export(emptyList, false, mockResponse);
+    csvExporter.export(emptyList.stream(), false, mockResponse);
 
     // Then
     var content = mockResponse.getContentAsString();
@@ -89,7 +89,7 @@ class TmsTestCaseCsvExporterTest {
     var mockResponse = new MockHttpServletResponse();
 
     // When
-    csvExporter.export(testCases, false, mockResponse);
+    csvExporter.export(testCases.stream(), false, mockResponse);
 
     // Then
     var content = mockResponse.getContentAsString();

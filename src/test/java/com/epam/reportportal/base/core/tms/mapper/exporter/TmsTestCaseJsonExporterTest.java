@@ -38,7 +38,7 @@ class TmsTestCaseJsonExporterTest {
     var mockResponse = new MockHttpServletResponse();
 
     // When
-    jsonExporter.export(testCases, false, mockResponse);
+    jsonExporter.export(testCases.stream(), false, mockResponse);
 
     // Then
     var content = mockResponse.getContentAsString();
@@ -61,7 +61,7 @@ class TmsTestCaseJsonExporterTest {
     var mockResponse = new MockHttpServletResponse();
 
     // When
-    jsonExporter.export(testCases, true, mockResponse);
+    jsonExporter.export(testCases.stream(), true, mockResponse);
 
     // Then
     assertThat(mockResponse.getHeader("Content-Disposition"))
@@ -75,7 +75,7 @@ class TmsTestCaseJsonExporterTest {
     var mockResponse = new MockHttpServletResponse();
 
     // When
-    jsonExporter.export(emptyList, false, mockResponse);
+    jsonExporter.export(emptyList.stream(), false, mockResponse);
 
     // Then
     var content = mockResponse.getContentAsString();

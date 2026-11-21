@@ -5,7 +5,7 @@ import com.epam.reportportal.base.core.tms.dto.TmsTestCaseRS;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
+import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.apache.commons.csv.CSVFormat;
@@ -27,7 +27,8 @@ public class TmsTestCaseCsvExporter implements TmsTestCaseExporter {
 
   @Override
   @SneakyThrows
-  public void export(List<TmsTestCaseRS> testCases, boolean includeAttachments, HttpServletResponse response) {
+  public void export(Stream<TmsTestCaseRS> testCases, boolean includeAttachments,
+      HttpServletResponse response) {
     configureHttpResponse(response);
 
     try (var writer = new OutputStreamWriter(response.getOutputStream(), StandardCharsets.UTF_8);
@@ -35,7 +36,7 @@ public class TmsTestCaseCsvExporter implements TmsTestCaseExporter {
             .setHeader(CSV_HEADERS)
             .build())) {
 
-      for (var testCase : testCases) {
+      for (var testCase : (Iterable<TmsTestCaseRS>) testCases::iterator) {
         csvPrinter.printRecord(
             testCase.getId(),
             testCase.getName(),

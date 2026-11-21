@@ -312,9 +312,9 @@ public abstract class TmsTestFolderMapper {
     if (existing == null) {
       folder.setProject(project);
       folder.setExternalId(remoteFolder.getId());
-      if (index != null) {
-        folder.setIndex(index);
-      }
+    }
+    if (index != null) {
+      folder.setIndex(index);
     }
 
     folder.setName(remoteFolder.getName());

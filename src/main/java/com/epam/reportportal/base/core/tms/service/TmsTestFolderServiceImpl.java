@@ -31,6 +31,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -86,7 +87,8 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
 
     int newIndex;
     if (inputDto.getIndex() != null) {
-      newIndex = inputDto.getIndex();
+      newIndex = clampIndex(inputDto.getIndex(),
+          tmsTestFolderRepository.findMaxIndex(projectId, parentId), 1);
       tmsTestFolderRepository.shiftIndexes(projectId, parentId, newIndex, 1);
     } else {
       var max = tmsTestFolderRepository.findMaxIndex(projectId, parentId);
@@ -420,7 +422,8 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
         targetParentFolderId,
         inputDto.getIndex(),
         folderStatistics,
-        testCaseStatistics
+        testCaseStatistics,
+        new HashSet<>()
     );
 
     var testCaseCount = tmsTestFolderRepository.countTestCasesByFolderId(
@@ -751,6 +754,8 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
    * @param targetParentFolderId The ID of the parent folder for the duplicate
    * @param folderStatistics     Statistics collector for folder duplication
    * @param testCaseStatistics   Statistics collector for test case duplication
+   * @param visitedFolderIds     IDs of source folders already duplicated and of created copies
+   *                             (guards against a parent cycle and copying a copy)
    * @return The duplicated folder entity
    */
   private TmsTestFolder duplicateFolderHierarchy(
@@ -761,71 +766,67 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
       Long targetParentFolderId,
       Integer targetIndex,
       FolderDuplicationStatistics folderStatistics,
-      TestCaseDuplicationStatistics testCaseStatistics) {
+      TestCaseDuplicationStatistics testCaseStatistics,
+      Set<Long> visitedFolderIds) {
 
-    try {
-      var projectId = membershipDetails.getProjectId();
-      TmsTestFolder targetParentFolder = null;
-      if (nonNull(targetParentFolderId)) {
-        targetParentFolder = getEntityById(projectId, targetParentFolderId);
-      }
-
-      var uniqueName = generateUniqueFolderName(
-          projectId, targetName, targetParentFolderId
-      );
-
-      var duplicatedFolder = tmsTestFolderMapper.duplicateTestFolder(
-          sourceFolder,
-          targetParentFolder
-      );
-      duplicatedFolder.setName(uniqueName);
-      duplicatedFolder.setSubFolders(new ArrayList<>());
-
-      if (targetIndex != null) {
-        duplicatedFolder.setIndex(targetIndex);
-      } else {
-        var max = tmsTestFolderRepository.findMaxIndex(projectId, targetParentFolderId);
-        duplicatedFolder.setIndex(max != null ? max + 1 : 0);
-      }
-
-      duplicatedFolder = tmsTestFolderRepository.save(duplicatedFolder);
-      folderStatistics.addSuccess(duplicatedFolder.getId());
-
-      duplicateTestCasesInFolder(
-          membershipDetails,
-          user,
-          sourceFolder,
-          duplicatedFolder,
-          testCaseStatistics
-      );
-
-      if (CollectionUtils.isNotEmpty(sourceFolder.getSubFolders())) {
-        for (var subFolder : sourceFolder.getSubFolders()) {
-          try {
-            var duplicatedSubFolder = duplicateFolderHierarchy(
-                membershipDetails,
-                user,
-                subFolder,
-                subFolder.getName() + "-copy",
-                duplicatedFolder.getId(),
-                subFolder.getIndex(),
-                folderStatistics,
-                testCaseStatistics
-            );
-            duplicatedFolder.getSubFolders().add(duplicatedSubFolder);
-          } catch (Exception e) {
-            folderStatistics.addError(subFolder.getId(), e.getMessage());
-          }
-        }
-      }
-      return duplicatedFolder;
-    } catch (Exception e) {
-      folderStatistics.addError(sourceFolder.getId(), e.getMessage());
-      throw new ReportPortalException(
-          ErrorType.BAD_REQUEST_ERROR,
-          "Failed to duplicate folder: " + e.getMessage()
-      );
+    visitedFolderIds.add(sourceFolder.getId());
+    // All-or-nothing: a failure anywhere in the hierarchy fails the whole request
+    var projectId = membershipDetails.getProjectId();
+    TmsTestFolder targetParentFolder = null;
+    if (nonNull(targetParentFolderId)) {
+      targetParentFolder = getEntityById(projectId, targetParentFolderId);
     }
+
+    var uniqueName = generateUniqueFolderName(
+        projectId, targetName, targetParentFolderId
+    );
+
+    var duplicatedFolder = tmsTestFolderMapper.duplicateTestFolder(
+        sourceFolder,
+        targetParentFolder
+    );
+    duplicatedFolder.setName(uniqueName);
+    duplicatedFolder.setSubFolders(new ArrayList<>());
+
+    if (targetIndex != null) {
+      duplicatedFolder.setIndex(targetIndex);
+    } else {
+      var max = tmsTestFolderRepository.findMaxIndex(projectId, targetParentFolderId);
+      duplicatedFolder.setIndex(max != null ? max + 1 : 0);
+    }
+
+    duplicatedFolder = tmsTestFolderRepository.save(duplicatedFolder);
+    visitedFolderIds.add(duplicatedFolder.getId());
+    folderStatistics.addSuccess(duplicatedFolder.getId());
+
+    duplicateTestCasesInFolder(
+        membershipDetails,
+        user,
+        sourceFolder,
+        duplicatedFolder,
+        testCaseStatistics
+    );
+
+    if (CollectionUtils.isNotEmpty(sourceFolder.getSubFolders())) {
+      for (var subFolder : List.copyOf(sourceFolder.getSubFolders())) {
+        if (visitedFolderIds.contains(subFolder.getId())) {
+          continue;
+        }
+        var duplicatedSubFolder = duplicateFolderHierarchy(
+            membershipDetails,
+            user,
+            subFolder,
+            subFolder.getName() + "-copy",
+            duplicatedFolder.getId(),
+            subFolder.getIndex(),
+            folderStatistics,
+            testCaseStatistics,
+            visitedFolderIds
+        );
+        duplicatedFolder.getSubFolders().add(duplicatedSubFolder);
+      }
+    }
+    return duplicatedFolder;
   }
 
   private String generateUniqueFolderName(long projectId, String baseName, Long parentFolderId) {
@@ -854,16 +855,11 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
       return;
     }
 
-    try {
-      var duplicateTestCasesResult = tmsTestCaseService.duplicateTestCases(
-          membershipDetails, user, targetFolder, testCaseIds
-      );
+    var duplicateTestCasesResult = tmsTestCaseService.duplicateTestCases(
+        membershipDetails, user, targetFolder, testCaseIds
+    );
 
-      testCaseStatistics.merge(duplicateTestCasesResult);
-
-    } catch (Exception e) {
-      testCaseIds.forEach(id -> testCaseStatistics.addError(id, e.getMessage()));
-    }
+    testCaseStatistics.merge(duplicateTestCasesResult);
   }
 
   private Long findOrCreateFolder(Long projectId, Long parentId, String folderName) {
@@ -917,7 +913,8 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
 
       int newIndex;
       if (targetIndex != null) {
-        newIndex = targetIndex;
+        newIndex = clampIndex(targetIndex,
+            tmsTestFolderRepository.findMaxIndex(projectId, newParentId), 1);
         // Make room in the new parent
         tmsTestFolderRepository.shiftIndexes(projectId, newParentId, newIndex, 1);
       } else {
@@ -927,7 +924,11 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
       }
       folder.setIndex(newIndex);
     } else {
-      // Moving within the same parent
+      // Moving within the same parent: the folder already occupies a slot, so at most max
+      if (targetIndex != null) {
+        targetIndex = clampIndex(targetIndex,
+            tmsTestFolderRepository.findMaxIndex(projectId, newParentId), 0);
+      }
       if (targetIndex != null && targetIndex != oldIndex) {
         if (targetIndex > oldIndex) {
           // Moving down: shift items between (oldIndex+1) and targetIndex by -1
@@ -941,6 +942,15 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
         folder.setIndex(targetIndex);
       }
     }
+  }
+
+  /**
+   * Clamps a client-supplied index to [0, max + extraSlots] so that indexes stay a dense
+   * sequence (negative or far-beyond-the-end values would create gaps).
+   */
+  private static int clampIndex(int index, Integer max, int extraSlots) {
+    var upper = (max == null ? -1 : max) + extraSlots;
+    return Math.max(0, Math.min(index, Math.max(upper, 0)));
   }
 
   private void validateNoCycle(long projectId, Long currentFolderId, Long newParentId) {

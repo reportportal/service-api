@@ -19,6 +19,9 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.when;
 
 import com.epam.reportportal.base.core.events.domain.tms.TestCaseCreatedEvent;
@@ -49,7 +52,9 @@ import com.epam.reportportal.base.core.tms.mapper.factory.TmsTestCaseExporterFac
 import com.epam.reportportal.base.core.tms.mapper.factory.TmsTestCaseImporterFactory;
 import com.epam.reportportal.base.core.tms.mapper.importer.TmsTestCaseImporter;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
+import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Condition;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
+import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.FilterCondition;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestCaseRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestPlanTestCaseRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.filterable.TmsTestCaseFilterableRepository;
@@ -62,6 +67,7 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestF
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.model.activity.TestCaseActivityResource;
+import jakarta.persistence.EntityManager;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStream;
@@ -72,9 +78,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.LongStream;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -83,6 +92,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
 class TmsTestCaseServiceImplTest {
@@ -140,6 +150,9 @@ class TmsTestCaseServiceImplTest {
 
   @Mock
   private HttpServletResponse response;
+
+  @Mock
+  private EntityManager entityManager;
 
   @InjectMocks
   private TmsTestCaseServiceImpl sut;
@@ -1521,62 +1534,97 @@ class TmsTestCaseServiceImplTest {
   }
 
   @Test
-  void exportToFile_WithSpecificIds_ShouldExportSpecificTestCases() {
-    var testCaseIds = List.of(1L, 2L);
+  void exportToFile_WithSpecificIds_ShouldExportSpecificTestCasesInRequestOrder() {
+    var testCaseIds = List.of(2L, 1L);
     var format = "JSON";
     var includeAttachments = true;
+    var testCase1 = new TmsTestCase();
+    testCase1.setId(1L);
+    var testCase2 = new TmsTestCase();
+    testCase2.setId(2L);
+    var rs1 = new TmsTestCaseRS();
+    rs1.setId(1L);
+    var rs2 = new TmsTestCaseRS();
+    rs2.setId(2L);
+    ReflectionTestUtils.setField(sut, "entityManager", entityManager);
 
-    when(tmsTestCaseRepository.findByProjectIdAndId(projectId, 1L))
-        .thenReturn(Optional.of(testCase));
-    when(tmsTestCaseRepository.findByProjectIdAndId(projectId, 2L))
-        .thenReturn(Optional.of(testCase));
-    when(tmsTestCaseVersionService.getDefaultVersion(1L)).thenReturn(testCaseVersion);
-    when(tmsTestCaseVersionService.getDefaultVersion(2L)).thenReturn(testCaseVersion);
-    when(tmsTestCaseExecutionService.getLastTestCaseExecution(1L)).thenReturn(testCaseExecution);
-    when(tmsTestCaseExecutionService.getLastTestCaseExecution(2L)).thenReturn(testCaseExecution);
-    when(tmsTestCaseMapper.convert(testCase, testCaseVersion, testCaseExecution))
-        .thenReturn(testCaseRS);
     when(exporterFactory.getExporter(format)).thenReturn(exporter);
+    when(tmsTestCaseRepository.findExistingIdsByProjectIdAndIds(projectId, testCaseIds))
+        .thenReturn(testCaseIds);
+    when(tmsTestCaseRepository.findByProjectIdAndIds(projectId, testCaseIds))
+        .thenReturn(List.of(testCase1, testCase2));
+    when(tmsTestCaseVersionService.getDefaultVersions(testCaseIds)).thenReturn(Map.of());
+    when(tmsTestCaseExecutionService.getLastTestCasesExecutionsByTestCaseIds(testCaseIds))
+        .thenReturn(Map.of());
+    when(tmsTestCaseMapper.convert(testCase1, null, null)).thenReturn(rs1);
+    when(tmsTestCaseMapper.convert(testCase2, null, null)).thenReturn(rs2);
+    var exported = new ArrayList<TmsTestCaseRS>();
+    doAnswer(invocation -> {
+      Stream<TmsTestCaseRS> stream = invocation.getArgument(0);
+      stream.forEach(exported::add);
+      return null;
+    }).when(exporter).export(any(), eq(includeAttachments), eq(response));
 
     sut.exportToFile(projectId, testCaseIds, format, includeAttachments, response);
 
-    verify(exporterFactory).getExporter(format);
-    verify(exporter).export(any(List.class), eq(includeAttachments), eq(response));
+    assertEquals(List.of(rs2, rs1), exported);
+    verify(tmsTestCaseRepository, never()).findByProjectIdAndId(anyLong(), anyLong());
+    verify(entityManager).clear();
   }
 
   @Test
-  void exportToFile_WithoutIds_ShouldExportAllTestCases() {
+  void exportToFile_WithUnknownId_ThrowsNotFound() {
+    var testCaseIds = List.of(1L, 999L);
+    when(exporterFactory.getExporter("JSON")).thenReturn(exporter);
+    when(tmsTestCaseRepository.findExistingIdsByProjectIdAndIds(projectId, testCaseIds))
+        .thenReturn(List.of(1L));
+
+    assertThrows(ReportPortalException.class,
+        () -> sut.exportToFile(projectId, testCaseIds, "JSON", false, response));
+
+    verify(exporter, never()).export(any(), anyBoolean(), any());
+  }
+
+  @Test
+  void exportToFile_WithoutIds_ShouldExportAllTestCasesInChunks() {
     var format = "CSV";
     var includeAttachments = false;
-    var testCases = List.of(testCase);
+    var allIds = LongStream.rangeClosed(1, 1200).boxed().toList();
+    ReflectionTestUtils.setField(sut, "entityManager", entityManager);
 
-    when(tmsTestCaseRepository.findByProjectId(projectId)).thenReturn(testCases);
-    when(tmsTestCaseMapper.convert(testCase)).thenReturn(testCaseRS);
     when(exporterFactory.getExporter(format)).thenReturn(exporter);
+    when(tmsTestCaseRepository.findIdsByProjectId(projectId)).thenReturn(allIds);
+    when(tmsTestCaseRepository.findByProjectIdAndIds(eq(projectId), anyList()))
+        .thenAnswer(invocation -> {
+          List<Long> ids = invocation.getArgument(1);
+          return ids.stream().map(id -> {
+            var tc = new TmsTestCase();
+            tc.setId(id);
+            return tc;
+          }).toList();
+        });
+    when(tmsTestCaseVersionService.getDefaultVersions(anyList())).thenReturn(Map.of());
+    when(tmsTestCaseMapper.convert(any(TmsTestCase.class), isNull()))
+        .thenAnswer(invocation -> {
+          var rs = new TmsTestCaseRS();
+          rs.setId(((TmsTestCase) invocation.getArgument(0)).getId());
+          return rs;
+        });
+    var exported = new ArrayList<TmsTestCaseRS>();
+    doAnswer(invocation -> {
+      Stream<TmsTestCaseRS> stream = invocation.getArgument(0);
+      stream.forEach(exported::add);
+      return null;
+    }).when(exporter).export(any(), eq(includeAttachments), eq(response));
 
     sut.exportToFile(projectId, null, format, includeAttachments, response);
 
-    verify(tmsTestCaseRepository).findByProjectId(projectId);
-    verify(exporterFactory).getExporter(format);
-    verify(exporter).export(any(List.class), eq(includeAttachments), eq(response));
-  }
-
-  @Test
-  void exportToFile_WithEmptyIds_ShouldExportAllTestCases() {
-    var emptyIds = Collections.<Long>emptyList();
-    var format = "JSON";
-    var includeAttachments = false;
-    var testCases = List.of(testCase);
-
-    when(tmsTestCaseRepository.findByProjectId(projectId)).thenReturn(testCases);
-    when(tmsTestCaseMapper.convert(testCase)).thenReturn(testCaseRS);
-    when(exporterFactory.getExporter(format)).thenReturn(exporter);
-
-    sut.exportToFile(projectId, emptyIds, format, includeAttachments, response);
-
-    verify(tmsTestCaseRepository).findByProjectId(projectId);
-    verify(exporterFactory).getExporter(format);
-    verify(exporter).export(any(List.class), eq(includeAttachments), eq(response));
+    assertEquals(1200, exported.size());
+    // 1200 ids -> chunks of 500, 500 and 200
+    verify(tmsTestCaseRepository, times(3)).findByProjectIdAndIds(eq(projectId), anyList());
+    verify(tmsTestCaseRepository, never()).findByProjectId(anyLong());
+    verify(entityManager, times(3)).clear();
+    verifyNoInteractions(tmsTestCaseExecutionService);
   }
 
   @Test
@@ -2409,7 +2457,7 @@ class TmsTestCaseServiceImplTest {
   }
 
   @Test
-  void duplicateTestCases_WithSomeFailures_ShouldReturnPartialResult() {
+  void duplicateTestCases_WithSomeFailures_FailsWholeRequest() {
     var testCaseIds = Arrays.asList(1L, 2L);
 
     var originalTestCase1 = new TmsTestCase();
@@ -2422,11 +2470,6 @@ class TmsTestCaseServiceImplTest {
     duplicatedTestCase1.setName("Test Case 1-copy");
 
     var originalVersion = new TmsTestCaseVersion();
-    var duplicatedVersion = new TmsTestCaseVersion();
-
-    var expectedResult = new BatchTestCaseOperationResultRS();
-    expectedResult.setSuccessTestCaseIds(List.of(11L));
-    expectedResult.setErrors(new ArrayList<>());
 
     when(tmsTestCaseRepository.findByProjectIdAndId(projectId, 1L))
         .thenReturn(Optional.of(originalTestCase1));
@@ -2436,18 +2479,11 @@ class TmsTestCaseServiceImplTest {
     when(tmsTestCaseMapper.duplicateTestCase(originalTestCase1, testFolder))
         .thenReturn(duplicatedTestCase1);
     when(tmsTestCaseRepository.save(duplicatedTestCase1)).thenReturn(duplicatedTestCase1);
-    when(tmsTestCaseVersionService.duplicateDefaultVersion(duplicatedTestCase1, originalVersion))
-        .thenReturn(duplicatedVersion);
-    when(tmsTestCaseMapper.toBatchOperationResult(eq(List.of(11L)), anyList()))
-        .thenReturn(expectedResult);
 
-    var result = sut.duplicateTestCases(membershipDetails, user, testCaseIds);
+    assertThrows(ReportPortalException.class,
+        () -> sut.duplicateTestCases(membershipDetails, user, testCaseIds));
 
-    assertNotNull(result);
-    assertEquals(1, result.getSuccessTestCaseIds().size());
-    assertEquals(11L, result.getSuccessTestCaseIds().getFirst());
-    verify(tmsTestCaseRepository).save(duplicatedTestCase1);
-    verify(tmsTestCaseMapper).toBatchOperationResult(eq(List.of(11L)), anyList());
+    verify(tmsTestCaseMapper, never()).toBatchOperationResult(anyList(), anyList());
   }
 
   @Test
@@ -2753,33 +2789,23 @@ class TmsTestCaseServiceImplTest {
   }
 
   @Test
-  void duplicateTestCases_WithTargetFolder_NonExistentTestCase_ShouldRecordError() {
+  void duplicateTestCases_WithTargetFolder_NonExistentTestCase_ThrowsNotFound() {
     var testCaseIds = List.of(999L);
     var targetFolder = new TmsTestFolder();
     targetFolder.setId(10L);
 
     when(tmsTestCaseRepository.findByProjectIdAndId(projectId, 999L))
         .thenReturn(Optional.empty());
-    when(tmsTestCaseMapper.toBatchOperationResult(eq(Collections.emptyList()), anyList()))
-        .thenReturn(BatchTestCaseOperationResultRS.builder()
-            .successTestCaseIds(Collections.emptyList())
-            .errors(List.of(new BatchTestCaseOperationError(999L,
-                "Failed to duplicate test case: Test Case with id: 999 for project: 1")))
-            .build());
 
-    var result = sut.duplicateTestCases(membershipDetails, user, targetFolder, testCaseIds);
+    assertThrows(ReportPortalException.class,
+        () -> sut.duplicateTestCases(membershipDetails, user, targetFolder, testCaseIds));
 
-    assertNotNull(result);
-    assertTrue(result.getSuccessTestCaseIds().isEmpty());
-    assertEquals(1, result.getErrors().size());
-    assertEquals(999L, result.getErrors().get(0).getTestCaseId());
-    verify(tmsTestCaseRepository).findByProjectIdAndId(projectId, 999L);
     verify(tmsTestCaseRepository, never()).save(any());
-    verify(tmsTestCaseMapper).toBatchOperationResult(eq(Collections.emptyList()), anyList());
+    verify(tmsTestCaseMapper, never()).toBatchOperationResult(anyList(), anyList());
   }
 
   @Test
-  void duplicateTestCases_WithTargetFolder_PartialFailure_ShouldContinueAndRecordErrors() {
+  void duplicateTestCases_WithTargetFolder_PartialFailure_StopsAtFirstFailure() {
     var testCaseIds = Arrays.asList(1L, 999L, 2L);
     var targetFolder = new TmsTestFolder();
     targetFolder.setId(10L);
@@ -2790,61 +2816,26 @@ class TmsTestCaseServiceImplTest {
     originalTestCase1.setName("Test Case 1");
     originalTestCase1.setTestFolder(testFolder);
 
-    var originalTestCase2 = new TmsTestCase();
-    originalTestCase2.setId(2L);
-    originalTestCase2.setName("Test Case 2");
-    originalTestCase2.setTestFolder(testFolder);
-
     var duplicatedTestCase1 = new TmsTestCase();
     duplicatedTestCase1.setId(11L);
     duplicatedTestCase1.setName("Test Case 1-copy");
 
-    var duplicatedTestCase2 = new TmsTestCase();
-    duplicatedTestCase2.setId(12L);
-    duplicatedTestCase2.setName("Test Case 2-copy");
-
     var originalVersion1 = new TmsTestCaseVersion();
-    var originalVersion2 = new TmsTestCaseVersion();
-    var duplicatedVersion1 = new TmsTestCaseVersion();
-    var duplicatedVersion2 = new TmsTestCaseVersion();
 
     when(tmsTestCaseRepository.findByProjectIdAndId(projectId, 1L))
         .thenReturn(Optional.of(originalTestCase1));
     when(tmsTestCaseRepository.findByProjectIdAndId(projectId, 999L))
         .thenReturn(Optional.empty());
-    when(tmsTestCaseRepository.findByProjectIdAndId(projectId, 2L))
-        .thenReturn(Optional.of(originalTestCase2));
     when(tmsTestCaseVersionService.getDefaultVersion(1L)).thenReturn(originalVersion1);
-    when(tmsTestCaseVersionService.getDefaultVersion(2L)).thenReturn(originalVersion2);
     when(tmsTestCaseMapper.duplicateTestCase(originalTestCase1, targetFolder))
         .thenReturn(duplicatedTestCase1);
-    when(tmsTestCaseMapper.duplicateTestCase(originalTestCase2, targetFolder))
-        .thenReturn(duplicatedTestCase2);
     when(tmsTestCaseRepository.save(duplicatedTestCase1)).thenReturn(duplicatedTestCase1);
-    when(tmsTestCaseRepository.save(duplicatedTestCase2)).thenReturn(duplicatedTestCase2);
-    when(tmsTestCaseVersionService.duplicateDefaultVersion(duplicatedTestCase1, originalVersion1))
-        .thenReturn(duplicatedVersion1);
-    when(tmsTestCaseVersionService.duplicateDefaultVersion(duplicatedTestCase2, originalVersion2))
-        .thenReturn(duplicatedVersion2);
-    when(tmsTestCaseMapper.toBatchOperationResult(eq(Arrays.asList(11L, 12L)), anyList()))
-        .thenReturn(BatchTestCaseOperationResultRS.builder()
-            .successTestCaseIds(Arrays.asList(11L, 12L))
-            .errors(List.of(new BatchTestCaseOperationError(999L,
-                "Failed to duplicate test case: Test Case with id: 999 for project: 1")))
-            .build());
 
-    var result = sut.duplicateTestCases(membershipDetails, user, targetFolder, testCaseIds);
+    assertThrows(ReportPortalException.class,
+        () -> sut.duplicateTestCases(membershipDetails, user, targetFolder, testCaseIds));
 
-    assertNotNull(result);
-    assertEquals(2, result.getSuccessTestCaseIds().size());
-    assertEquals(1, result.getErrors().size());
-    assertEquals(999L, result.getErrors().get(0).getTestCaseId());
-    verify(tmsTestCaseRepository).findByProjectIdAndId(projectId, 1L);
-    verify(tmsTestCaseRepository).findByProjectIdAndId(projectId, 999L);
-    verify(tmsTestCaseRepository).findByProjectIdAndId(projectId, 2L);
-    verify(tmsTestCaseRepository).save(duplicatedTestCase1);
-    verify(tmsTestCaseRepository).save(duplicatedTestCase2);
-    verify(tmsTestCaseMapper).toBatchOperationResult(eq(Arrays.asList(11L, 12L)), anyList());
+    verify(tmsTestCaseRepository, never()).findByProjectIdAndId(projectId, 2L);
+    verify(tmsTestCaseMapper, never()).toBatchOperationResult(anyList(), anyList());
   }
 
   @Test
@@ -2912,38 +2903,25 @@ class TmsTestCaseServiceImplTest {
   }
 
   @Test
-  void duplicateTestCases_WithTargetFolder_AllFail_ShouldReturnAllErrors() {
+  void duplicateTestCases_WithTargetFolder_AllFail_ThrowsOnFirst() {
     var testCaseIds = Arrays.asList(998L, 999L);
     var targetFolder = new TmsTestFolder();
     targetFolder.setId(10L);
 
     when(tmsTestCaseRepository.findByProjectIdAndId(projectId, 998L))
         .thenReturn(Optional.empty());
-    when(tmsTestCaseRepository.findByProjectIdAndId(projectId, 999L))
-        .thenReturn(Optional.empty());
-    when(tmsTestCaseMapper.toBatchOperationResult(eq(Collections.emptyList()), anyList()))
-        .thenReturn(BatchTestCaseOperationResultRS.builder()
-            .successTestCaseIds(Collections.emptyList())
-            .errors(Arrays.asList(
-                new BatchTestCaseOperationError(998L,
-                    "Failed to duplicate test case: Test Case with id: 998 for project: 1"),
-                new BatchTestCaseOperationError(999L,
-                    "Failed to duplicate test case: Test Case with id: 999 for project: 1")))
-            .build());
 
-    var result = sut.duplicateTestCases(membershipDetails, user, targetFolder, testCaseIds);
+    assertThrows(ReportPortalException.class,
+        () -> sut.duplicateTestCases(membershipDetails, user, targetFolder, testCaseIds));
 
-    assertNotNull(result);
-    assertTrue(result.getSuccessTestCaseIds().isEmpty());
-    assertEquals(2, result.getErrors().size());
     verify(tmsTestCaseRepository).findByProjectIdAndId(projectId, 998L);
-    verify(tmsTestCaseRepository).findByProjectIdAndId(projectId, 999L);
+    verify(tmsTestCaseRepository, never()).findByProjectIdAndId(projectId, 999L);
     verify(tmsTestCaseRepository, never()).save(any());
-    verify(tmsTestCaseMapper).toBatchOperationResult(eq(Collections.emptyList()), anyList());
+    verify(tmsTestCaseMapper, never()).toBatchOperationResult(anyList(), anyList());
   }
 
   @Test
-  void duplicateTestCases_WithTargetFolder_SaveException_ShouldRecordError() {
+  void duplicateTestCases_WithTargetFolder_SaveException_Propagates() {
     var testCaseIds = List.of(1L);
     var targetFolder = new TmsTestFolder();
     targetFolder.setId(10L);
@@ -2966,26 +2944,17 @@ class TmsTestCaseServiceImplTest {
         .thenReturn(duplicatedTestCase);
     when(tmsTestCaseRepository.save(duplicatedTestCase))
         .thenThrow(new RuntimeException("Database error"));
-    when(tmsTestCaseMapper.toBatchOperationResult(eq(Collections.emptyList()), anyList()))
-        .thenReturn(BatchTestCaseOperationResultRS.builder()
-            .successTestCaseIds(Collections.emptyList())
-            .errors(List.of(new BatchTestCaseOperationError(1L,
-                "Failed to duplicate test case: Database error")))
-            .build());
 
-    var result = sut.duplicateTestCases(membershipDetails, user, targetFolder, testCaseIds);
+    assertThrows(RuntimeException.class,
+        () -> sut.duplicateTestCases(membershipDetails, user, targetFolder, testCaseIds));
 
-    assertNotNull(result);
-    assertTrue(result.getSuccessTestCaseIds().isEmpty());
-    assertEquals(1, result.getErrors().size());
-    assertEquals(1L, result.getErrors().get(0).getTestCaseId());
     verify(tmsTestCaseRepository).save(duplicatedTestCase);
     verify(tmsTestCaseVersionService, never()).duplicateDefaultVersion(any(), any());
-    verify(tmsTestCaseMapper).toBatchOperationResult(eq(Collections.emptyList()), anyList());
+    verify(tmsTestCaseMapper, never()).toBatchOperationResult(anyList(), anyList());
   }
 
   @Test
-  void duplicateTestCases_WithTargetFolder_VersionDuplicationException_ShouldRecordError() {
+  void duplicateTestCases_WithTargetFolder_VersionDuplicationException_Propagates() {
     var testCaseIds = List.of(1L);
     var targetFolder = new TmsTestFolder();
     targetFolder.setId(10L);
@@ -3009,25 +2978,17 @@ class TmsTestCaseServiceImplTest {
     when(tmsTestCaseRepository.save(duplicatedTestCase)).thenReturn(duplicatedTestCase);
     when(tmsTestCaseVersionService.duplicateDefaultVersion(duplicatedTestCase, originalVersion))
         .thenThrow(new RuntimeException("Version duplication failed"));
-    when(tmsTestCaseMapper.toBatchOperationResult(eq(Collections.emptyList()), anyList()))
-        .thenReturn(BatchTestCaseOperationResultRS.builder()
-            .successTestCaseIds(Collections.emptyList())
-            .errors(List.of(new BatchTestCaseOperationError(1L,
-                "Failed to duplicate test case: Version duplication failed")))
-            .build());
 
-    var result = sut.duplicateTestCases(membershipDetails, user, targetFolder, testCaseIds);
+    assertThrows(RuntimeException.class,
+        () -> sut.duplicateTestCases(membershipDetails, user, targetFolder, testCaseIds));
 
-    assertNotNull(result);
-    assertTrue(result.getSuccessTestCaseIds().isEmpty());
-    assertEquals(1, result.getErrors().size());
     verify(tmsTestCaseRepository).save(duplicatedTestCase);
     verify(tmsTestCaseVersionService).duplicateDefaultVersion(duplicatedTestCase, originalVersion);
-    verify(tmsTestCaseMapper).toBatchOperationResult(eq(Collections.emptyList()), anyList());
+    verify(tmsTestCaseMapper, never()).toBatchOperationResult(anyList(), anyList());
   }
 
   @Test
-  void duplicateTestCases_WithTargetFolder_AttributeDuplicationException_ShouldRecordError() {
+  void duplicateTestCases_WithTargetFolder_AttributeDuplicationException_Propagates() {
     var testCaseIds = List.of(1L);
     var targetFolder = new TmsTestFolder();
     targetFolder.setId(10L);
@@ -3057,23 +3018,15 @@ class TmsTestCaseServiceImplTest {
     doThrow(new RuntimeException("Attribute duplication failed"))
         .when(tmsTestCaseAttributeService)
         .duplicateTestCaseAttributes(originalTestCase, duplicatedTestCase);
-    when(tmsTestCaseMapper.toBatchOperationResult(eq(Collections.emptyList()), anyList()))
-        .thenReturn(BatchTestCaseOperationResultRS.builder()
-            .successTestCaseIds(Collections.emptyList())
-            .errors(List.of(new BatchTestCaseOperationError(1L,
-                "Failed to duplicate test case: Attribute duplication failed")))
-            .build());
 
-    var result = sut.duplicateTestCases(membershipDetails, user, targetFolder, testCaseIds);
+    assertThrows(RuntimeException.class,
+        () -> sut.duplicateTestCases(membershipDetails, user, targetFolder, testCaseIds));
 
-    assertNotNull(result);
-    assertTrue(result.getSuccessTestCaseIds().isEmpty());
-    assertEquals(1, result.getErrors().size());
     verify(tmsTestCaseRepository).save(duplicatedTestCase);
     verify(tmsTestCaseVersionService).duplicateDefaultVersion(duplicatedTestCase, originalVersion);
     verify(tmsTestCaseAttributeService)
         .duplicateTestCaseAttributes(originalTestCase, duplicatedTestCase);
-    verify(tmsTestCaseMapper).toBatchOperationResult(eq(Collections.emptyList()), anyList());
+    verify(tmsTestCaseMapper, never()).toBatchOperationResult(anyList(), anyList());
   }
 
   @Test
@@ -3158,76 +3111,6 @@ class TmsTestCaseServiceImplTest {
   }
 
   @Test
-  void duplicateTestCases_WithTargetFolder_MixedSuccessAndFailure_ShouldReturnBothResults() {
-    var testCaseIds = Arrays.asList(1L, 999L, 2L, 998L);
-    var targetFolder = new TmsTestFolder();
-    targetFolder.setId(10L);
-
-    var originalTestCase1 = new TmsTestCase();
-    originalTestCase1.setId(1L);
-    originalTestCase1.setName("Test Case 1");
-    originalTestCase1.setTestFolder(testFolder);
-
-    var originalTestCase2 = new TmsTestCase();
-    originalTestCase2.setId(2L);
-    originalTestCase2.setName("Test Case 2");
-    originalTestCase2.setTestFolder(testFolder);
-
-    var duplicatedTestCase1 = new TmsTestCase();
-    duplicatedTestCase1.setId(11L);
-
-    var duplicatedTestCase2 = new TmsTestCase();
-    duplicatedTestCase2.setId(12L);
-
-    var originalVersion1 = new TmsTestCaseVersion();
-    var originalVersion2 = new TmsTestCaseVersion();
-    var duplicatedVersion1 = new TmsTestCaseVersion();
-    var duplicatedVersion2 = new TmsTestCaseVersion();
-
-    when(tmsTestCaseRepository.findByProjectIdAndId(projectId, 1L))
-        .thenReturn(Optional.of(originalTestCase1));
-    when(tmsTestCaseRepository.findByProjectIdAndId(projectId, 999L))
-        .thenReturn(Optional.empty());
-    when(tmsTestCaseRepository.findByProjectIdAndId(projectId, 2L))
-        .thenReturn(Optional.of(originalTestCase2));
-    when(tmsTestCaseRepository.findByProjectIdAndId(projectId, 998L))
-        .thenReturn(Optional.empty());
-    when(tmsTestCaseVersionService.getDefaultVersion(1L)).thenReturn(originalVersion1);
-    when(tmsTestCaseVersionService.getDefaultVersion(2L)).thenReturn(originalVersion2);
-    when(tmsTestCaseMapper.duplicateTestCase(originalTestCase1, targetFolder))
-        .thenReturn(duplicatedTestCase1);
-    when(tmsTestCaseMapper.duplicateTestCase(originalTestCase2, targetFolder))
-        .thenReturn(duplicatedTestCase2);
-    when(tmsTestCaseRepository.save(any(TmsTestCase.class)))
-        .thenAnswer(invocation -> invocation.getArgument(0));
-    when(tmsTestCaseVersionService.duplicateDefaultVersion(duplicatedTestCase1, originalVersion1))
-        .thenReturn(duplicatedVersion1);
-    when(tmsTestCaseVersionService.duplicateDefaultVersion(duplicatedTestCase2, originalVersion2))
-        .thenReturn(duplicatedVersion2);
-    when(tmsTestCaseMapper.toBatchOperationResult(eq(Arrays.asList(11L, 12L)), anyList()))
-        .thenReturn(BatchTestCaseOperationResultRS.builder()
-            .successTestCaseIds(Arrays.asList(11L, 12L))
-            .errors(Arrays.asList(
-                new BatchTestCaseOperationError(999L,
-                    "Failed to duplicate test case: Test Case with id: 999 for project: 1"),
-                new BatchTestCaseOperationError(998L,
-                    "Failed to duplicate test case: Test Case with id: 998 for project: 1")))
-            .build());
-
-    var result = sut.duplicateTestCases(membershipDetails, user, targetFolder, testCaseIds);
-
-    assertNotNull(result);
-    assertEquals(2, result.getSuccessTestCaseIds().size());
-    assertEquals(2, result.getErrors().size());
-    verify(tmsTestCaseRepository).findByProjectIdAndId(projectId, 1L);
-    verify(tmsTestCaseRepository).findByProjectIdAndId(projectId, 999L);
-    verify(tmsTestCaseRepository).findByProjectIdAndId(projectId, 2L);
-    verify(tmsTestCaseRepository).findByProjectIdAndId(projectId, 998L);
-    verify(tmsTestCaseRepository, times(2)).save(any(TmsTestCase.class));
-    verify(tmsTestCaseMapper).toBatchOperationResult(eq(Arrays.asList(11L, 12L)), anyList());
-  }
-
-  @Test
   void duplicateTestCases_WithTargetFolder_SingleTestCase_Success() {
     var testCaseIds = List.of(1L);
     var targetFolder = new TmsTestFolder();
@@ -3302,6 +3185,35 @@ class TmsTestCaseServiceImplTest {
     verify(tmsTestCaseExecutionService).findLastExecutionsByTestCaseIdsAndTestPlanId(
         testCaseIds, testPlanId);
     verify(tmsManualLaunchService).getEntitiesByIds(eq(projectId), anyList());
+  }
+
+  @Test
+  void getTestCasesInTestPlan_CallerSuppliedProjectAndPlanIds_AreReplacedByServerValues() {
+    var callerFilter = Filter.builder()
+        .withTarget(TmsTestCase.class)
+        .withCondition(new FilterCondition(Condition.EQUALS, false, "999", "projectId"))
+        .withCondition(new FilterCondition(Condition.EQUALS, false, "777", "testPlanId"))
+        .withCondition(new FilterCondition(Condition.CONTAINS, false, "password", "name"))
+        .build();
+    when(tmsTestCaseFilterableRepository.findIdsByFilter(any(Filter.class), eq(pageable)))
+        .thenReturn(new PageImpl<Long>(Collections.emptyList(), pageable, 0));
+
+    sut.getTestCasesInTestPlan(projectId, testPlanId, callerFilter, pageable);
+
+    var captor = ArgumentCaptor.forClass(Filter.class);
+    verify(tmsTestCaseFilterableRepository).findIdsByFilter(captor.capture(), eq(pageable));
+    var conditions = captor.getValue().getFilterConditions().stream()
+        .map(FilterCondition.class::cast)
+        .toList();
+    assertEquals(List.of(String.valueOf(projectId)), conditions.stream()
+        .filter(c -> "projectId".equals(c.getSearchCriteria()))
+        .map(FilterCondition::getValue)
+        .toList());
+    assertEquals(List.of(String.valueOf(testPlanId)), conditions.stream()
+        .filter(c -> "testPlanId".equals(c.getSearchCriteria()))
+        .map(FilterCondition::getValue)
+        .toList());
+    assertTrue(conditions.stream().anyMatch(c -> "name".equals(c.getSearchCriteria())));
   }
 
   @Test

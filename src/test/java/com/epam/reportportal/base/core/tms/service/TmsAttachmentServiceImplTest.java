@@ -7,10 +7,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -22,10 +20,6 @@ import com.epam.reportportal.base.core.tms.dto.UploadAttachmentRS;
 import com.epam.reportportal.base.core.tms.mapper.TmsAttachmentMapper;
 import com.epam.reportportal.base.infrastructure.persistence.binary.tms.TmsAttachmentDataStoreService;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsAttachmentRepository;
-import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsManualScenarioPreconditionsAttachmentRepository;
-import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsStepAttachmentRepository;
-import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestCaseExecutionCommentAttachmentRepository;
-import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTextManualScenarioAttachmentRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.FeatureFlag;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsAttachment;
 import com.epam.reportportal.base.infrastructure.persistence.util.FeatureFlagHandler;
@@ -44,11 +38,14 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.web.multipart.MultipartFile;
 
 @ExtendWith(MockitoExtension.class)
@@ -67,16 +64,7 @@ class TmsAttachmentServiceImplTest {
   private TmsAttachmentPersistenceService tmsAttachmentPersistenceService;
 
   @Mock
-  private TmsStepAttachmentRepository tmsStepAttachmentRepository;
-
-  @Mock
-  private TmsTextManualScenarioAttachmentRepository tmsTextManualScenarioAttachmentRepository;
-
-  @Mock
-  private TmsManualScenarioPreconditionsAttachmentRepository tmsManualScenarioPreconditionsAttachmentRepository;
-
-  @Mock
-  private TmsTestCaseExecutionCommentAttachmentRepository tmsTestCaseExecutionCommentAttachmentRepository;
+  private PlatformTransactionManager transactionManager;
 
   @Mock
   private FeatureFlagHandler featureFlagHandler;
@@ -260,17 +248,18 @@ class TmsAttachmentServiceImplTest {
   @Test
   void deleteAttachment_ShouldSucceed_WhenAttachmentExists() {
     // Given attachment exists in repository
+    attachment.setThumbnailPath("thumb-1");
     when(tmsAttachmentRepository.findByIdAndProjectId(attachmentId, PROJECT_ID)).thenReturn(Optional.of(attachment));
-    doNothing().when(tmsAttachmentDataStoreService).delete(fileId);
-    doNothing().when(tmsAttachmentRepository).deleteById(attachmentId);
 
     // When deleting existing attachment
     sut.deleteAttachment(PROJECT_ID, attachmentId);
 
-    // Then attachment should be deleted from both data store and repository
-    verify(tmsAttachmentRepository).findByIdAndProjectId(attachmentId, PROJECT_ID);
-    verify(tmsAttachmentDataStoreService).delete(fileId);
-    verify(tmsAttachmentRepository).deleteById(attachmentId);
+    // Then the DB row is deleted first and the binaries afterwards
+    var inOrder = Mockito.inOrder(tmsAttachmentRepository, tmsAttachmentDataStoreService);
+    inOrder.verify(tmsAttachmentRepository).delete(attachment);
+    inOrder.verify(tmsAttachmentRepository).flush();
+    inOrder.verify(tmsAttachmentDataStoreService).delete(fileId);
+    inOrder.verify(tmsAttachmentDataStoreService).delete("thumb-1");
   }
 
   @Test
@@ -287,23 +276,34 @@ class TmsAttachmentServiceImplTest {
 
     verify(tmsAttachmentRepository).findByIdAndProjectId(attachmentId, PROJECT_ID);
     verifyNoInteractions(tmsAttachmentDataStoreService);
-    verify(tmsAttachmentRepository, never()).deleteById(attachmentId);
+    verify(tmsAttachmentRepository, never()).delete(any(TmsAttachment.class));
   }
 
   @Test
-  void deleteAttachment_ShouldThrowException_WhenDataStoreDeleteFails() {
-    // Given attachment exists but data store delete operation fails
+  void deleteAttachment_ShouldKeepBinary_WhenAttachmentIsStillReferenced() {
+    // Given attachment is still linked: the FK violation surfaces on flush
+    when(tmsAttachmentRepository.findByIdAndProjectId(attachmentId, PROJECT_ID)).thenReturn(Optional.of(attachment));
+    doThrow(new DataIntegrityViolationException("fk")).when(tmsAttachmentRepository).flush();
+
+    // When/Then a client error is returned and the binary is untouched
+    var exception = assertThrows(ReportPortalException.class,
+        () -> sut.deleteAttachment(PROJECT_ID, attachmentId));
+
+    assertEquals(ErrorType.BAD_REQUEST_ERROR, exception.getErrorType());
+    verifyNoInteractions(tmsAttachmentDataStoreService);
+  }
+
+  @Test
+  void deleteAttachment_ShouldSucceed_WhenDataStoreDeleteFails() {
+    // Given the row is deleted but the binary delete fails
     when(tmsAttachmentRepository.findByIdAndProjectId(attachmentId, PROJECT_ID)).thenReturn(Optional.of(attachment));
     doThrow(new RuntimeException("Delete failed")).when(tmsAttachmentDataStoreService)
         .delete(fileId);
 
-    // When/Then exception should be thrown when data store delete fails
-    var exception = assertThrows(ReportPortalException.class,
-        () -> sut.deleteAttachment(PROJECT_ID, attachmentId));
+    // When/Then the deletion still succeeds (an orphaned binary is only logged)
+    sut.deleteAttachment(PROJECT_ID, attachmentId);
 
-    assertEquals(ErrorType.UNCLASSIFIED_REPORT_PORTAL_ERROR, exception.getErrorType());
-
-    verify(tmsAttachmentRepository).findByIdAndProjectId(attachmentId, PROJECT_ID);
+    verify(tmsAttachmentRepository).delete(attachment);
     verify(tmsAttachmentDataStoreService).delete(fileId);
   }
 
@@ -351,19 +351,19 @@ class TmsAttachmentServiceImplTest {
     expiredAttachment2.setId(2L);
     expiredAttachment2.setPathToFile("path2");
 
-    var expiredAttachments = Arrays.asList(expiredAttachment1, expiredAttachment2);
-
     when(tmsAttachmentRepository.findExpiredAttachments(any(Instant.class)))
-        .thenReturn(expiredAttachments);
+        .thenReturn(Arrays.asList(expiredAttachment1, expiredAttachment2));
+    when(tmsAttachmentRepository.deleteIfExpired(any(), any(Instant.class))).thenReturn(1);
 
     // When cleaning up expired attachments
     sut.cleanupExpiredAttachments();
 
-    // Then expired attachments should be cleaned up from both data store and repository
-    verify(tmsAttachmentRepository).findExpiredAttachments(any(Instant.class));
-    verify(tmsAttachmentDataStoreService).delete("path1");
-    verify(tmsAttachmentDataStoreService).delete("path2");
-    verify(tmsAttachmentRepository).deleteByIds(Arrays.asList(1L, 2L));
+    // Then each row is deleted, then its binary
+    var inOrder = Mockito.inOrder(tmsAttachmentRepository, tmsAttachmentDataStoreService);
+    inOrder.verify(tmsAttachmentRepository).deleteIfExpired(eq(1L), any(Instant.class));
+    inOrder.verify(tmsAttachmentDataStoreService).delete("path1");
+    inOrder.verify(tmsAttachmentRepository).deleteIfExpired(eq(2L), any(Instant.class));
+    inOrder.verify(tmsAttachmentDataStoreService).delete("path2");
   }
 
   @Test
@@ -378,7 +378,7 @@ class TmsAttachmentServiceImplTest {
     // Then no cleanup operations should be performed
     verify(tmsAttachmentRepository).findExpiredAttachments(any(Instant.class));
     verifyNoInteractions(tmsAttachmentDataStoreService);
-    verify(tmsAttachmentRepository, never()).deleteByIds(anyList());
+    verify(tmsAttachmentRepository, never()).deleteIfExpired(any(), any());
   }
 
   @Test
@@ -390,6 +390,7 @@ class TmsAttachmentServiceImplTest {
 
     when(tmsAttachmentRepository.findExpiredAttachments(any(Instant.class)))
         .thenReturn(List.of(expiredAttachment));
+    when(tmsAttachmentRepository.deleteIfExpired(eq(1L), any(Instant.class))).thenReturn(1);
     doThrow(new RuntimeException("File delete failed")).when(tmsAttachmentDataStoreService)
         .delete("path1");
 
@@ -397,9 +398,37 @@ class TmsAttachmentServiceImplTest {
     sut.cleanupExpiredAttachments();
 
     // Then cleanup should continue despite file delete error
-    verify(tmsAttachmentRepository).findExpiredAttachments(any(Instant.class));
+    verify(tmsAttachmentRepository).deleteIfExpired(eq(1L), any(Instant.class));
     verify(tmsAttachmentDataStoreService).delete("path1");
-    verify(tmsAttachmentRepository).deleteByIds(List.of(1L));
+  }
+
+  @Test
+  void cleanupExpiredAttachments_ReferencedOrRelinkedAttachment_DoesNotStopOthers() {
+    // Given attachment 1 fails on the FK, attachment 2 was linked meanwhile (no longer expired)
+    var referenced = new TmsAttachment();
+    referenced.setId(1L);
+    referenced.setPathToFile("path1");
+    var relinked = new TmsAttachment();
+    relinked.setId(2L);
+    relinked.setPathToFile("path2");
+    var expired = new TmsAttachment();
+    expired.setId(3L);
+    expired.setPathToFile("path3");
+
+    when(tmsAttachmentRepository.findExpiredAttachments(any(Instant.class)))
+        .thenReturn(List.of(referenced, relinked, expired));
+    when(tmsAttachmentRepository.deleteIfExpired(eq(1L), any(Instant.class)))
+        .thenThrow(new DataIntegrityViolationException("fk"));
+    when(tmsAttachmentRepository.deleteIfExpired(eq(2L), any(Instant.class))).thenReturn(0);
+    when(tmsAttachmentRepository.deleteIfExpired(eq(3L), any(Instant.class))).thenReturn(1);
+
+    // When cleaning up expired attachments
+    sut.cleanupExpiredAttachments();
+
+    // Then only the binary of the actually deleted row is removed
+    verify(tmsAttachmentDataStoreService, never()).delete("path1");
+    verify(tmsAttachmentDataStoreService, never()).delete("path2");
+    verify(tmsAttachmentDataStoreService).delete("path3");
   }
 
   @Test
@@ -617,189 +646,17 @@ class TmsAttachmentServiceImplTest {
   }
 
   @Test
-  void setExpirationForUnusedAttachments_ShouldSetExpiration_WhenUnusedAttachmentsExist() {
-    // Given unused attachments exist in repository
-    var unusedAttachment1 = new TmsAttachment();
-    unusedAttachment1.setId(1L);
+  void setExpirationForUnusedAttachments_ShouldRunOneSetBasedUpdate() {
+    when(tmsAttachmentRepository.setExpirationForUnusedAttachments(any(Instant.class)))
+        .thenReturn(2);
+    var before = Instant.now();
 
-    var unusedAttachment2 = new TmsAttachment();
-    unusedAttachment2.setId(2L);
-
-    var usedAttachment = new TmsAttachment();
-    usedAttachment.setId(3L);
-
-    var attachmentsWithoutTtl = Arrays.asList(unusedAttachment1, unusedAttachment2, usedAttachment);
-
-    when(tmsAttachmentRepository.findAttachmentsWithoutTtl()).thenReturn(attachmentsWithoutTtl);
-    when(tmsStepAttachmentRepository.findAllAttachmentIds()).thenReturn(List.of(3L));
-    when(tmsTextManualScenarioAttachmentRepository.findAllAttachmentIds()).thenReturn(
-        Collections.emptyList());
-    when(tmsManualScenarioPreconditionsAttachmentRepository.findAllAttachmentIds()).thenReturn(
-        Collections.emptyList());
-    when(tmsTestCaseExecutionCommentAttachmentRepository.findAllAttachmentIds()).thenReturn(
-        Collections.emptyList());
-    when(tmsAttachmentRepository.setExpirationForAttachments(anyList(),
-        any(Instant.class))).thenReturn(2);
-
-    // When setting expiration for unused attachments
     sut.setExpirationForUnusedAttachments();
 
-    // Then expiration should be set only for unused attachments
-    verify(tmsAttachmentRepository).findAttachmentsWithoutTtl();
-    verify(tmsStepAttachmentRepository).findAllAttachmentIds();
-    verify(tmsTextManualScenarioAttachmentRepository).findAllAttachmentIds();
-    verify(tmsManualScenarioPreconditionsAttachmentRepository).findAllAttachmentIds();
-    verify(tmsTestCaseExecutionCommentAttachmentRepository).findAllAttachmentIds();
-
-    var idsCaptor = ArgumentCaptor.forClass(List.class);
     var instantCaptor = ArgumentCaptor.forClass(Instant.class);
-    verify(tmsAttachmentRepository).setExpirationForAttachments(idsCaptor.capture(),
-        instantCaptor.capture());
-
-    var capturedIds = idsCaptor.getValue();
-    assertEquals(2, capturedIds.size());
-    assertTrue(capturedIds.contains(1L));
-    assertTrue(capturedIds.contains(2L));
-    assertFalse(capturedIds.contains(3L)); // Used attachment should not be included
-
-    assertNotNull(instantCaptor.getValue());
-  }
-
-  @Test
-  void setExpirationForUnusedAttachments_ShouldDoNothing_WhenNoAttachmentsWithoutTtl() {
-    // Given no attachments without TTL exist
-    when(tmsAttachmentRepository.findAttachmentsWithoutTtl()).thenReturn(Collections.emptyList());
-
-    // When setting expiration for unused attachments
-    sut.setExpirationForUnusedAttachments();
-
-    // Then no expiration setting operations should be performed
-    verify(tmsAttachmentRepository).findAttachmentsWithoutTtl();
-    verifyNoInteractions(tmsStepAttachmentRepository);
-    verifyNoInteractions(tmsTextManualScenarioAttachmentRepository);
-    verifyNoInteractions(tmsManualScenarioPreconditionsAttachmentRepository);
-    verifyNoInteractions(tmsTestCaseExecutionCommentAttachmentRepository);
-    verify(tmsAttachmentRepository, never()).setExpirationForAttachments(anyList(),
-        any(Instant.class));
-  }
-
-  @Test
-  void setExpirationForUnusedAttachments_ShouldDoNothing_WhenAllAttachmentsAreUsed() {
-    // Given all attachments are used in various scenarios
-    var usedAttachment1 = new TmsAttachment();
-    usedAttachment1.setId(1L);
-
-    var usedAttachment2 = new TmsAttachment();
-    usedAttachment2.setId(2L);
-
-    var attachmentsWithoutTtl = Arrays.asList(usedAttachment1, usedAttachment2);
-
-    when(tmsAttachmentRepository.findAttachmentsWithoutTtl()).thenReturn(attachmentsWithoutTtl);
-    when(tmsStepAttachmentRepository.findAllAttachmentIds()).thenReturn(Arrays.asList(1L, 2L));
-    when(tmsTextManualScenarioAttachmentRepository.findAllAttachmentIds()).thenReturn(
-        Collections.emptyList());
-    when(tmsManualScenarioPreconditionsAttachmentRepository.findAllAttachmentIds()).thenReturn(
-        Collections.emptyList());
-    when(tmsTestCaseExecutionCommentAttachmentRepository.findAllAttachmentIds()).thenReturn(
-        Collections.emptyList());
-
-    // When setting expiration for unused attachments
-    sut.setExpirationForUnusedAttachments();
-
-    // Then no expiration should be set as all attachments are used
-    verify(tmsAttachmentRepository).findAttachmentsWithoutTtl();
-    verify(tmsStepAttachmentRepository).findAllAttachmentIds();
-    verify(tmsTextManualScenarioAttachmentRepository).findAllAttachmentIds();
-    verify(tmsManualScenarioPreconditionsAttachmentRepository).findAllAttachmentIds();
-    verify(tmsTestCaseExecutionCommentAttachmentRepository).findAllAttachmentIds();
-    verify(tmsAttachmentRepository, never()).setExpirationForAttachments(anyList(),
-        any(Instant.class));
-  }
-
-  @Test
-  void setExpirationForUnusedAttachments_ShouldHandleMixedUsageCorrectly() {
-    // Given mixed usage scenario - some attachments used in different tables, some not used
-    var attachment1 = new TmsAttachment();
-    attachment1.setId(1L);
-
-    var attachment2 = new TmsAttachment();
-    attachment2.setId(2L);
-
-    var attachment3 = new TmsAttachment();
-    attachment3.setId(3L);
-
-    var attachmentsWithoutTtl = Arrays.asList(attachment1, attachment2, attachment3);
-
-    when(tmsAttachmentRepository.findAttachmentsWithoutTtl()).thenReturn(attachmentsWithoutTtl);
-    when(tmsStepAttachmentRepository.findAllAttachmentIds()).thenReturn(List.of(1L));
-    when(tmsTextManualScenarioAttachmentRepository.findAllAttachmentIds()).thenReturn(
-        List.of(2L));
-    when(tmsManualScenarioPreconditionsAttachmentRepository.findAllAttachmentIds()).thenReturn(
-        Collections.emptyList());
-    when(tmsTestCaseExecutionCommentAttachmentRepository.findAllAttachmentIds()).thenReturn(
-        Collections.emptyList());
-    when(tmsAttachmentRepository.setExpirationForAttachments(anyList(),
-        any(Instant.class))).thenReturn(1);
-
-    // When setting expiration for unused attachments
-    sut.setExpirationForUnusedAttachments();
-
-    // Then expiration should be set only for genuinely unused attachment
-    verify(tmsStepAttachmentRepository).findAllAttachmentIds();
-    verify(tmsTextManualScenarioAttachmentRepository).findAllAttachmentIds();
-    verify(tmsManualScenarioPreconditionsAttachmentRepository).findAllAttachmentIds();
-    verify(tmsTestCaseExecutionCommentAttachmentRepository).findAllAttachmentIds();
-
-    var idsCaptor = ArgumentCaptor.forClass(List.class);
-    verify(tmsAttachmentRepository).setExpirationForAttachments(idsCaptor.capture(),
-        any(Instant.class));
-
-    var capturedIds = idsCaptor.getValue();
-    assertEquals(1, capturedIds.size());
-    assertTrue(capturedIds.contains(3L));
-    assertFalse(capturedIds.contains(1L)); // Used in step attachments
-    assertFalse(capturedIds.contains(2L)); // Used in text scenario attachments
-  }
-
-  @Test
-  void setExpirationForUnusedAttachments_ShouldHandleOverlappingUsage() {
-    // Given overlapping usage scenario - same attachment referenced in multiple tables
-    var attachment1 = new TmsAttachment();
-    attachment1.setId(1L);
-
-    var attachment2 = new TmsAttachment();
-    attachment2.setId(2L);
-
-    var attachmentsWithoutTtl = Arrays.asList(attachment1, attachment2);
-
-    when(tmsAttachmentRepository.findAttachmentsWithoutTtl()).thenReturn(attachmentsWithoutTtl);
-    when(tmsStepAttachmentRepository.findAllAttachmentIds()).thenReturn(List.of(1L));
-    when(tmsTextManualScenarioAttachmentRepository.findAllAttachmentIds()).thenReturn(
-        List.of(1L)); // Same ID in multiple tables
-    when(tmsManualScenarioPreconditionsAttachmentRepository.findAllAttachmentIds()).thenReturn(
-        Collections.emptyList());
-    when(tmsTestCaseExecutionCommentAttachmentRepository.findAllAttachmentIds()).thenReturn(
-        Collections.emptyList());
-    when(tmsAttachmentRepository.setExpirationForAttachments(anyList(),
-        any(Instant.class))).thenReturn(1);
-
-    // When setting expiration for unused attachments
-    sut.setExpirationForUnusedAttachments();
-
-    // Then expiration should be set only for attachment not used in any table
-    verify(tmsStepAttachmentRepository).findAllAttachmentIds();
-    verify(tmsTextManualScenarioAttachmentRepository).findAllAttachmentIds();
-    verify(tmsManualScenarioPreconditionsAttachmentRepository).findAllAttachmentIds();
-    verify(tmsTestCaseExecutionCommentAttachmentRepository).findAllAttachmentIds();
-
-    var idsCaptor = ArgumentCaptor.forClass(List.class);
-    verify(tmsAttachmentRepository).setExpirationForAttachments(idsCaptor.capture(),
-        any(Instant.class));
-
-    var capturedIds = idsCaptor.getValue();
-    assertEquals(1, capturedIds.size());
-    assertTrue(capturedIds.contains(2L));
-    assertFalse(capturedIds.contains(1L)); // Used in multiple tables
+    verify(tmsAttachmentRepository).setExpirationForUnusedAttachments(instantCaptor.capture());
+    assertFalse(instantCaptor.getValue().isBefore(before.plus(Duration.ofHours(24))));
+    verify(tmsAttachmentRepository, never()).findAttachmentsWithoutTtl();
   }
 
   @Test

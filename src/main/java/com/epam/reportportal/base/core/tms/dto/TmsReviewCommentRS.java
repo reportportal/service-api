@@ -33,6 +33,11 @@ public class TmsReviewCommentRS {
 
   private Long authorId;
 
+  /**
+   * The author with a name to show; absent when the user no longer exists.
+   */
+  private TmsUserRS author;
+
   private Instant createdAt;
 
   private TmsReviewCommentState state;

@@ -18,6 +18,8 @@ import com.epam.reportportal.base.core.aifactory.connector.CiRunRequest;
 import com.epam.reportportal.base.core.aifactory.connector.CiTriggerConnector;
 import com.epam.reportportal.base.core.aifactory.model.PipelineExecution;
 import com.epam.reportportal.base.core.aifactory.service.PipelineCiConnectionService;
+import com.epam.reportportal.base.core.tms.mapper.TmsReviewCommentAssembler;
+import com.epam.reportportal.base.infrastructure.persistence.dao.UserRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.aifactory.PipelineIterationRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.aifactory.PipelineStageRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.PipelineStageTestCaseRepository;
@@ -91,6 +93,7 @@ class TmsTestCaseFixRoundStartServiceTest {
     when(githubConnector.getSupportedExecutorType()).thenReturn("GITHUB_ACTIONS");
     sut = new TmsTestCaseFixRoundStartService(testCaseRepository, commentRepository, fixRoundRepository,
         stageTestCaseRepository, iterationRepository, stageRepository, ciConnectionService,
+        new TmsReviewCommentAssembler(mock(UserRepository.class)),
         List.of(githubConnector), transactionManager);
 
     aiCase = new TmsTestCase();

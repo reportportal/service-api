@@ -31,14 +31,26 @@ public interface TmsTestPlanTestCaseRepository extends
   )
   void deleteAllByTestCaseIds(@Param("testCaseIds") List<Long> testCaseIds);
 
+  /**
+   * Adds the test cases of the project to the test plan in one statement. Test cases of other
+   * projects and test cases already in the plan are skipped. The caller must verify that the test
+   * plan belongs to the project.
+   *
+   * @param projectId   the project ID
+   * @param testPlanId  the test plan ID
+   * @param testCaseIds the test case IDs
+   * @return number of inserted rows
+   */
   @Modifying
   @Query(value = """
       INSERT INTO tms_test_plan_test_case (test_plan_id, test_case_id)
-      SELECT :testPlanId, t.test_case_id
-      FROM (VALUES(:#{#testCaseIds})) AS t(test_case_id)
+      SELECT :testPlanId, tc.id
+      FROM tms_test_case tc
+      WHERE tc.id IN (:testCaseIds) AND tc.project_id = :projectId
+      ON CONFLICT (test_plan_id, test_case_id) DO NOTHING
       """, nativeQuery = true)
-  void batchInsertTestPlanTestCases(@Param("testPlanId") Long testPlanId,
-      @Param("testCaseIds") List<Long> testCaseIds);
+  int insertTestPlanTestCasesInProject(@Param("projectId") Long projectId,
+      @Param("testPlanId") Long testPlanId, @Param("testCaseIds") List<Long> testCaseIds);
 
   /**
    * Deletes all test plan-test case associations for the specified test case.

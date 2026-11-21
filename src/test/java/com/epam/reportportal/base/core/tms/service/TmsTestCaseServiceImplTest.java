@@ -49,7 +49,9 @@ import com.epam.reportportal.base.core.tms.mapper.factory.TmsTestCaseExporterFac
 import com.epam.reportportal.base.core.tms.mapper.factory.TmsTestCaseImporterFactory;
 import com.epam.reportportal.base.core.tms.mapper.importer.TmsTestCaseImporter;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
+import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Condition;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
+import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.FilterCondition;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestCaseRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestPlanTestCaseRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.filterable.TmsTestCaseFilterableRepository;
@@ -75,6 +77,7 @@ import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -3302,6 +3305,35 @@ class TmsTestCaseServiceImplTest {
     verify(tmsTestCaseExecutionService).findLastExecutionsByTestCaseIdsAndTestPlanId(
         testCaseIds, testPlanId);
     verify(tmsManualLaunchService).getEntitiesByIds(eq(projectId), anyList());
+  }
+
+  @Test
+  void getTestCasesInTestPlan_CallerSuppliedProjectAndPlanIds_AreReplacedByServerValues() {
+    var callerFilter = Filter.builder()
+        .withTarget(TmsTestCase.class)
+        .withCondition(new FilterCondition(Condition.EQUALS, false, "999", "projectId"))
+        .withCondition(new FilterCondition(Condition.EQUALS, false, "777", "testPlanId"))
+        .withCondition(new FilterCondition(Condition.CONTAINS, false, "password", "name"))
+        .build();
+    when(tmsTestCaseFilterableRepository.findIdsByFilter(any(Filter.class), eq(pageable)))
+        .thenReturn(new PageImpl<Long>(Collections.emptyList(), pageable, 0));
+
+    sut.getTestCasesInTestPlan(projectId, testPlanId, callerFilter, pageable);
+
+    var captor = ArgumentCaptor.forClass(Filter.class);
+    verify(tmsTestCaseFilterableRepository).findIdsByFilter(captor.capture(), eq(pageable));
+    var conditions = captor.getValue().getFilterConditions().stream()
+        .map(FilterCondition.class::cast)
+        .toList();
+    assertEquals(List.of(String.valueOf(projectId)), conditions.stream()
+        .filter(c -> "projectId".equals(c.getSearchCriteria()))
+        .map(FilterCondition::getValue)
+        .toList());
+    assertEquals(List.of(String.valueOf(testPlanId)), conditions.stream()
+        .filter(c -> "testPlanId".equals(c.getSearchCriteria()))
+        .map(FilterCondition::getValue)
+        .toList());
+    assertTrue(conditions.stream().anyMatch(c -> "name".equals(c.getSearchCriteria())));
   }
 
   @Test

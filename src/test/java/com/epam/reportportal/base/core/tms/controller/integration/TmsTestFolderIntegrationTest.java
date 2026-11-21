@@ -449,6 +449,38 @@ class TmsTestFolderIntegrationTest extends BaseMvcTest {
   }
 
   @Test
+  void getFoldersByCriteriaWithForeignProjectIdFilterReturnsOnlyOwnFolders() throws Exception {
+    entityManager.createNativeQuery(
+        "INSERT INTO tms_test_folder (id, project_id, \"name\", \"index\") "
+            + "VALUES (900, 2, 'foreign_folder', 0)").executeUpdate();
+
+    mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/folder")
+            .param("filter.eq.projectId", "2")
+            .param("size", "500")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content[?(@.id == 900)]").isEmpty())
+        .andExpect(jsonPath("$.content[?(@.id == 3)]").isNotEmpty());
+  }
+
+  @Test
+  void getFoldersByCriteriaWithForeignTestPlanIdReturnsNothing() throws Exception {
+    entityManager.createNativeQuery(
+        "INSERT INTO tms_test_plan (id, \"name\", project_id, display_id) "
+            + "VALUES (900, 'foreign_plan', 2, 'TP-900')").executeUpdate();
+    // A test case of this project linked into the foreign plan (polluted membership)
+    entityManager.createNativeQuery(
+        "INSERT INTO tms_test_plan_test_case (test_plan_id, test_case_id) VALUES (900, 100)")
+        .executeUpdate();
+
+    mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/folder")
+            .param("filter.eq.testPlanId", "900")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content.length()").value(0));
+  }
+
+  @Test
   void getFoldersByCriteriaWithInvalidTestPlanIdIntegrationTest() throws Exception {
     mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/folder")
             .param("filter.eq.testPlanId", "invalid")

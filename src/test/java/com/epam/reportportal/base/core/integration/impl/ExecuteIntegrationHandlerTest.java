@@ -1,25 +1,48 @@
 package com.epam.reportportal.base.core.integration.impl;
 
+import static com.epam.reportportal.base.ReportPortalUserUtil.getRpUser;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import com.epam.reportportal.api.model.PluginCommandContext;
+import com.epam.reportportal.api.model.PluginCommandRQ;
 import com.epam.reportportal.base.core.integration.ExecuteIntegrationHandler;
 import com.epam.reportportal.base.core.plugin.PluginBox;
+import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationTypeRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.organization.OrganizationUserRepository;
+import com.epam.reportportal.base.infrastructure.persistence.entity.enums.PluginTypeEnum;
+import com.epam.reportportal.base.infrastructure.persistence.entity.integration.Integration;
+import com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationType;
+import com.epam.reportportal.base.infrastructure.persistence.entity.organization.MembershipDetails;
+import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationRole;
+import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
+import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectRole;
+import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRole;
+import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
+import com.epam.reportportal.base.util.ProjectExtractor;
 import com.epam.reportportal.extension.CommonPluginCommand;
 import com.epam.reportportal.extension.ReportPortalExtensionPoint;
 import com.epam.reportportal.extension.builtin.BuiltinCommandResolver;
+import com.epam.reportportal.extension.command.ExtensionCommand;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 public class ExecuteIntegrationHandlerTest {
 
@@ -29,9 +52,169 @@ public class ExecuteIntegrationHandlerTest {
   private final IntegrationTypeRepository integrationTypeRepository = mock(IntegrationTypeRepository.class);
   private final BuiltinCommandResolver builtinCommandResolver = mock(BuiltinCommandResolver.class);
   private final PluginBox pluginBox = mock(PluginBox.class);
+  private final ProjectRepository projectRepository = mock(ProjectRepository.class);
+  private final ProjectExtractor projectExtractor = mock(ProjectExtractor.class);
+  private final OrganizationUserRepository organizationUserRepository = mock(OrganizationUserRepository.class);
 
   private final ExecuteIntegrationHandler executeIntegrationHandler = new ExecuteIntegrationHandlerImpl(
-      integrationRepository, integrationTypeRepository, builtinCommandResolver, pluginBox);
+      integrationRepository, integrationTypeRepository, builtinCommandResolver, pluginBox, projectRepository,
+      projectExtractor, organizationUserRepository);
+
+  private static final String EMAIL = "email";
+  private static final String TEST_CONNECTION = "testConnection";
+  private static final Long INTEGRATION_ID = 5L;
+  private static final Long PROJECT_ID = 10L;
+  private static final Long ORG_ID = 1L;
+
+  @AfterEach
+  void tearDown() {
+    SecurityContextHolder.clearContext();
+  }
+
+  private ReportPortalUser authenticate(UserRole role) {
+    ReportPortalUser user = getRpUser("user", role, OrganizationRole.MEMBER, ProjectRole.VIEWER, PROJECT_ID);
+    SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(user, null));
+    return user;
+  }
+
+  private ExtensionCommand<Object> mockBuiltinCommand(Integration integration) {
+    ExtensionCommand<Object> command = mock(ExtensionCommand.class);
+    when(integrationTypeRepository.existsByPluginTypeAndName(PluginTypeEnum.BUILT_IN, EMAIL)).thenReturn(true);
+    when(builtinCommandResolver.resolve(EMAIL, TEST_CONNECTION)).thenReturn((ExtensionCommand) command);
+    when(integrationRepository.findById(INTEGRATION_ID)).thenReturn(Optional.of(integration));
+    return command;
+  }
+
+  private static Integration integration(String typeName, Long projectId, Long orgId) {
+    IntegrationType type = new IntegrationType();
+    type.setName(typeName);
+    Integration integration = new Integration();
+    integration.setId(INTEGRATION_ID);
+    integration.setType(type);
+    integration.setOrganizationId(orgId);
+    if (projectId != null) {
+      Project project = new Project();
+      project.setId(projectId);
+      integration.setProject(project);
+    }
+    return integration;
+  }
+
+  private void mockProject() {
+    Project project = new Project();
+    project.setId(PROJECT_ID);
+    project.setKey("project-key");
+    project.setOrganizationId(ORG_ID);
+    when(projectRepository.findById(PROJECT_ID)).thenReturn(Optional.of(project));
+  }
+
+  private static MembershipDetails membership(OrganizationRole orgRole, ProjectRole projectRole) {
+    MembershipDetails details = new MembershipDetails();
+    details.setOrgId(ORG_ID);
+    details.setOrgRole(orgRole);
+    details.setProjectId(PROJECT_ID);
+    details.setProjectRole(projectRole);
+    return details;
+  }
+
+  private static PluginCommandRQ request(PluginCommandContext context) {
+    return new PluginCommandRQ().context(context);
+  }
+
+  @Test
+  void extensionCommandOnForeignProjectIntegrationIsDenied() {
+    ReportPortalUser user = authenticate(UserRole.USER);
+    Integration integration = integration(EMAIL, PROJECT_ID, null);
+    ExtensionCommand<Object> command = mockBuiltinCommand(integration);
+    mockProject();
+    when(projectExtractor.findMembershipDetails(user, "project-key")).thenReturn(Optional.empty());
+
+    ReportPortalException ex = assertThrows(ReportPortalException.class,
+        () -> executeIntegrationHandler.executeExtensionCommand(EMAIL, TEST_CONNECTION,
+            request(new PluginCommandContext().integrationId(INTEGRATION_ID))));
+
+    assertEquals(ErrorType.ACCESS_DENIED, ex.getErrorType());
+    verify(command, never()).executeCommand(any(Integration.class), any(PluginCommandRQ.class));
+  }
+
+  @Test
+  void extensionCommandWithContextProjectNotMatchingIntegrationIsDenied() {
+    authenticate(UserRole.ADMINISTRATOR);
+    ExtensionCommand<Object> command = mockBuiltinCommand(integration(EMAIL, PROJECT_ID, null));
+
+    ReportPortalException ex = assertThrows(ReportPortalException.class,
+        () -> executeIntegrationHandler.executeExtensionCommand(EMAIL, TEST_CONNECTION,
+            request(new PluginCommandContext().integrationId(INTEGRATION_ID).projectId(99L))));
+
+    assertEquals(ErrorType.ACCESS_DENIED, ex.getErrorType());
+    verify(command, never()).executeCommand(any(Integration.class), any(PluginCommandRQ.class));
+  }
+
+  @Test
+  void extensionCommandWithoutDeclaredRoleRequiresProjectEditor() {
+    ReportPortalUser user = authenticate(UserRole.USER);
+    ExtensionCommand<Object> command = mockBuiltinCommand(integration(EMAIL, PROJECT_ID, null));
+    mockProject();
+    when(projectExtractor.findMembershipDetails(user, "project-key"))
+        .thenReturn(Optional.of(membership(OrganizationRole.MEMBER, ProjectRole.VIEWER)));
+
+    PluginCommandRQ rq = request(new PluginCommandContext().integrationId(INTEGRATION_ID));
+    ReportPortalException ex = assertThrows(ReportPortalException.class,
+        () -> executeIntegrationHandler.executeExtensionCommand(EMAIL, TEST_CONNECTION, rq));
+    assertEquals(ErrorType.ACCESS_DENIED, ex.getErrorType());
+
+    when(projectExtractor.findMembershipDetails(user, "project-key"))
+        .thenReturn(Optional.of(membership(OrganizationRole.MEMBER, ProjectRole.EDITOR)));
+    executeIntegrationHandler.executeExtensionCommand(EMAIL, TEST_CONNECTION, rq);
+    verify(command).executeCommand(any(Integration.class), any(PluginCommandRQ.class));
+  }
+
+  @Test
+  void extensionCommandOnForeignOrganizationIntegrationIsDenied() {
+    ReportPortalUser user = authenticate(UserRole.USER);
+    ExtensionCommand<Object> command = mockBuiltinCommand(integration(EMAIL, null, ORG_ID));
+    when(organizationUserRepository.findByUserIdAndOrganization_Id(user.getUserId(), ORG_ID))
+        .thenReturn(Optional.empty());
+
+    ReportPortalException ex = assertThrows(ReportPortalException.class,
+        () -> executeIntegrationHandler.executeExtensionCommand(EMAIL, TEST_CONNECTION,
+            request(new PluginCommandContext().integrationId(INTEGRATION_ID))));
+
+    assertEquals(ErrorType.ACCESS_DENIED, ex.getErrorType());
+    verify(command, never()).executeCommand(any(Integration.class), any(PluginCommandRQ.class));
+  }
+
+  @Test
+  void extensionCommandWithIntegrationOfAnotherPluginIsRejected() {
+    authenticate(UserRole.ADMINISTRATOR);
+    ExtensionCommand<Object> command = mockBuiltinCommand(integration("jira", PROJECT_ID, null));
+
+    ReportPortalException ex = assertThrows(ReportPortalException.class,
+        () -> executeIntegrationHandler.executeExtensionCommand(EMAIL, TEST_CONNECTION,
+            request(new PluginCommandContext().integrationId(INTEGRATION_ID))));
+
+    assertEquals(ErrorType.INTEGRATION_NOT_FOUND, ex.getErrorType());
+    verify(command, never()).executeCommand(any(Integration.class), any(PluginCommandRQ.class));
+  }
+
+  @Test
+  void commonExtensionCommandOnForeignProjectIsDenied() {
+    ReportPortalUser user = authenticate(UserRole.USER);
+    when(integrationTypeRepository.existsByPluginTypeAndName(PluginTypeEnum.BUILT_IN, "jira")).thenReturn(false);
+    ExtensionCommand<Object> command = mock(ExtensionCommand.class);
+    ReportPortalExtensionPoint pluginInstance = mock(ReportPortalExtensionPoint.class);
+    when(pluginInstance.getCommonExtensionCommand("search")).thenReturn((ExtensionCommand) command);
+    when(pluginBox.getInstance("jira", ReportPortalExtensionPoint.class)).thenReturn(Optional.of(pluginInstance));
+    mockProject();
+    when(projectExtractor.findMembershipDetails(user, "project-key")).thenReturn(Optional.empty());
+
+    PluginCommandRQ rq = new PluginCommandRQ().putArgumentsItem("projectId", PROJECT_ID);
+    ReportPortalException ex = assertThrows(ReportPortalException.class,
+        () -> executeIntegrationHandler.executeExtensionCommand("jira", "search", rq));
+
+    assertEquals(ErrorType.ACCESS_DENIED, ex.getErrorType());
+    verify(command, never()).executeCommand(any(PluginCommandRQ.class));
+  }
 
   @Test
   @DisplayName("Positive Test. Everything is fine")

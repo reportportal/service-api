@@ -136,6 +136,27 @@ class AnalysisResultHandlerTest {
   }
 
   @Test
+  void processResultsSkipsItemsWithoutIssueAndAppliesTheRest() {
+    Long launchId = 1L;
+    Long projectId = 1L;
+
+    List<TestItem> items = testItemsTI(2, launchId);
+    items.get(0).getItemResults().setIssue(null);
+
+    when(testItemRepository.findAllById(any())).thenReturn(items);
+    when(launchRepository.findById(launchId)).thenReturn(Optional.of(launch(launchId, projectId)));
+    when(projectService.findProjectById(projectId)).thenReturn(project(projectId));
+    when(issueTypeHandler.defineIssueType(eq(projectId), eq(PRODUCT_BUG.getLocator())))
+        .thenReturn(productBug().getIssueType());
+
+    analysisResultHandler.processResults(analyzedItems(2), "test-analyzer");
+
+    verify(testItemRepository, times(1)).save(items.get(1));
+    verify(testItemRepository, never()).save(items.get(0));
+    verify(defectUpdateStatisticsService).saveAutoAnalyzedDefectStatistics(0, 1, 0, projectId);
+  }
+
+  @Test
   void processResultsIgnoresEmptyBatch() {
     analysisResultHandler.processResults(Collections.emptyList(), "test-analyzer");
 

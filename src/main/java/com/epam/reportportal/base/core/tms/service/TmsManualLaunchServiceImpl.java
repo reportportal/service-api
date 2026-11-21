@@ -44,6 +44,7 @@ import com.epam.reportportal.base.ws.converter.PagedResourcesAssembler;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -427,29 +428,24 @@ public class TmsManualLaunchServiceImpl implements TmsManualLaunchService {
     List<BatchDeleteTestCaseExecutionError> errors = new ArrayList<>();
     var executionIds = request.getExecutionIds();
 
+    // Verify executions exist and belong to launch
+    var executionIdsInLaunch = new HashSet<>(
+        tmsTestCaseExecutionService.findExecutionIdsInLaunch(executionIds, launchId)
+    );
+
     for (var executionId : executionIds) {
-      try {
-        // Verify execution exists and belongs to launch
-        if (!tmsTestCaseExecutionService.existsByTestCaseExecutionIdAndLaunchId(executionId,
-            launchId)) {
-          errors.add(new BatchDeleteTestCaseExecutionError(
-              executionId,
-              "Test case execution not found in launch " + launchId
-          ));
-          continue;
-        }
-
-        tmsTestCaseExecutionService.deleteTestCaseExecutionFromLaunch(projectId, launchId,
-            executionId);
-        successExecutionIds.add(executionId);
-
-      } catch (Exception e) {
-        log.error("Failed to delete execution {} from launch {}", executionId, launchId, e);
+      // A repeated id is reported as not found: it is deleted by its first occurrence
+      if (!executionIdsInLaunch.remove(executionId)) {
         errors.add(new BatchDeleteTestCaseExecutionError(
             executionId,
-            e.getMessage()
+            "Test case execution not found in launch " + launchId
         ));
+        continue;
       }
+
+      tmsTestCaseExecutionService.deleteTestCaseExecutionFromLaunch(projectId, launchId,
+          executionId);
+      successExecutionIds.add(executionId);
     }
 
     return tmsManualLaunchMapper.convertToBatchDeleteExecutionsResponse(

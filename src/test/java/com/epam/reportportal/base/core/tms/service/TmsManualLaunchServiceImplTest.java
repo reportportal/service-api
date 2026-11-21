@@ -8,6 +8,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -28,6 +30,7 @@ import com.epam.reportportal.base.core.tms.dto.TmsManualLaunchTestPlanRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseExecutionCommentRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseExecutionCommentRS;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchDeleteManualLaunchesRQ;
+import com.epam.reportportal.base.core.tms.dto.batch.BatchDeleteTestCaseExecutionsRQ;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchTestCaseOperationResultRS;
 import com.epam.reportportal.base.core.tms.mapper.TmsManualLaunchMapper;
 import com.epam.reportportal.base.core.user.GetUserHandler;
@@ -315,6 +318,40 @@ class TmsManualLaunchServiceImplTest {
     verify(testItemService).deleteByLaunchId(projectId, launchId);
     verify(tmsManualLaunchAttributeService).deleteAllByLaunchId(launchId);
     verify(deleteLaunchHandler).deleteLaunch(launchId, membershipDetails, user);
+  }
+
+  @Test
+  void batchDeleteTestCaseExecutions_ShouldCheckAllIdsWithOneQueryAndReportMissing() {
+    var rq = new BatchDeleteTestCaseExecutionsRQ();
+    rq.setExecutionIds(List.of(1L, 2L, 1L));
+    when(launchRepository.existsByIdAndProjectId(launchId, projectId)).thenReturn(true);
+    when(tmsTestCaseExecutionService.findExecutionIdsInLaunch(List.of(1L, 2L, 1L), launchId))
+        .thenReturn(List.of(1L));
+
+    sut.batchDeleteTestCaseExecutions(projectId, launchId, rq);
+
+    verify(tmsTestCaseExecutionService).deleteTestCaseExecutionFromLaunch(projectId, launchId, 1L);
+    verify(tmsTestCaseExecutionService, never())
+        .deleteTestCaseExecutionFromLaunch(projectId, launchId, 2L);
+    verify(tmsTestCaseExecutionService, never()).existsByTestCaseExecutionIdAndLaunchId(any(), any());
+    verify(tmsManualLaunchMapper).convertToBatchDeleteExecutionsResponse(
+        eq(List.of(1L, 2L, 1L)), eq(List.of(1L)), argThat(errors -> errors.size() == 2));
+  }
+
+  @Test
+  void batchDeleteTestCaseExecutions_WhenDeleteFails_ShouldPropagateException() {
+    var rq = new BatchDeleteTestCaseExecutionsRQ();
+    rq.setExecutionIds(List.of(1L, 2L));
+    when(launchRepository.existsByIdAndProjectId(launchId, projectId)).thenReturn(true);
+    when(tmsTestCaseExecutionService.findExecutionIdsInLaunch(List.of(1L, 2L), launchId))
+        .thenReturn(List.of(1L, 2L));
+    doThrow(new RuntimeException("Database error")).when(tmsTestCaseExecutionService)
+        .deleteTestCaseExecutionFromLaunch(projectId, launchId, 1L);
+
+    assertThrows(RuntimeException.class,
+        () -> sut.batchDeleteTestCaseExecutions(projectId, launchId, rq));
+    verify(tmsTestCaseExecutionService, never())
+        .deleteTestCaseExecutionFromLaunch(projectId, launchId, 2L);
   }
 
   // -------------------------------------------------------------------------

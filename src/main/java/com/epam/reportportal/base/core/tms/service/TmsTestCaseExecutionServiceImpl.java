@@ -770,6 +770,15 @@ public class TmsTestCaseExecutionServiceImpl implements TmsTestCaseExecutionServ
   }
 
   @Override
+  @Transactional(readOnly = true)
+  public List<Long> findExecutionIdsInLaunch(List<Long> executionIds, Long launchId) {
+    if (executionIds.isEmpty()) {
+      return List.of();
+    }
+    return tmsTestCaseExecutionRepository.findIdsByIdInAndLaunchId(executionIds, launchId);
+  }
+
+  @Override
   @Transactional
   public TmsTestCaseExecutionCommentRS putTestCaseExecutionComment(Long projectId, Long launchId,
       Long executionId, TmsTestCaseExecutionCommentRQ request) {

@@ -32,9 +32,13 @@ import com.epam.reportportal.base.util.JsonSchemaValidator;
 import com.epam.reportportal.base.ws.converter.builders.IntegrationTypeBuilder;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.Arrays;
 import java.util.Map;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import tools.jackson.core.JacksonException;
 import tools.jackson.core.type.TypeReference;
@@ -52,6 +56,7 @@ public class JsonPluginUploader implements PluginUploader {
   private final IntegrationTypeRepository integrationTypeRepository;
   private final JsonMapper objectMapper;
   private final JsonSchemaValidator schemaValidator;
+  private final String schemaSource;
 
   /**
    * Constructor for JsonPluginUploader.
@@ -59,16 +64,19 @@ public class JsonPluginUploader implements PluginUploader {
    * @param integrationTypeRepository Repository for integration types
    * @param objectMapper              Object mapper for JSON processing
    * @param schemaValidator           Validator for JSON schema
+   * @param schemaSource              Prefix every manifest {@code $schema} must start with
    */
   @Autowired
   public JsonPluginUploader(
       IntegrationTypeRepository integrationTypeRepository,
       JsonMapper objectMapper,
-      JsonSchemaValidator schemaValidator
+      JsonSchemaValidator schemaValidator,
+      @Value("${rp.schema.source}") String schemaSource
   ) {
     this.integrationTypeRepository = integrationTypeRepository;
     this.objectMapper = objectMapper;
     this.schemaValidator = schemaValidator;
+    this.schemaSource = schemaSource;
   }
 
   @Override
@@ -106,6 +114,7 @@ public class JsonPluginUploader implements PluginUploader {
         .orElseThrow(() -> new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR,
             Suppliers.formattedSupplier("Schema location is not specified in manifest"))
         ).toString();
+    checkSchemaLocation(schemaLocation);
 
     var validationMessages = schemaValidator.validate(
         schemaLocation, objectMapper.valueToTree(manifest)
@@ -117,6 +126,21 @@ public class JsonPluginUploader implements PluginUploader {
           validationMessages
       ));
     }
+  }
+
+  private void checkSchemaLocation(String schemaLocation) {
+    try {
+      var uri = new URI(schemaLocation);
+      var hasDotSegments = Arrays.asList(String.valueOf(uri.getPath()).split("/")).contains("..")
+          || schemaLocation.toLowerCase().contains("%2e");
+      if (schemaLocation.startsWith(schemaSource) && !hasDotSegments) {
+        return;
+      }
+    } catch (URISyntaxException ignored) {
+      // handled below as an invalid location
+    }
+    throw new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR, Suppliers.formattedSupplier(
+        "Manifest $schema must start with '{}'", schemaSource));
   }
 
   private IntegrationType buildIntegrationType(Map<String, Object> manifest) {

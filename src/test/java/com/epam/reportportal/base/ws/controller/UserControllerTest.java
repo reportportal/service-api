@@ -316,6 +316,18 @@ class UserControllerTest extends BaseMvcTest {
   }
 
   @Test
+  void getUserProjectsOfAnotherUserIsForbidden() throws Exception {
+    mockMvc.perform(get(USERS_URL + "default/projects").with(token(oAuthHelper.getCustomerToken())))
+        .andExpect(status().isForbidden());
+  }
+
+  @Test
+  void getUserProjectsByAdministrator() throws Exception {
+    mockMvc.perform(get(USERS_URL + "default/projects").with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk());
+  }
+
+  @Test
   void getMyself() throws Exception {
     mockMvc.perform(get(USERS_URL).with(token(oAuthHelper.getDefaultToken())))
         .andExpect(status().isOk());

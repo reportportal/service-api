@@ -218,11 +218,12 @@ public class UserController {
   }
 
   @Transactional(readOnly = true)
-  @GetMapping(value = "/{userName}/projects")
+  @GetMapping(value = "/{login}/projects")
   @ResponseStatus(OK)
-  public Map<String, UserResource.AssignedProject> getUserProjects(@PathVariable String userName,
+  @PreAuthorize(ALLOWED_TO_EDIT_USER)
+  public Map<String, UserResource.AssignedProject> getUserProjects(@PathVariable String login,
       @AuthenticationPrincipal ReportPortalUser currentUser) {
-    return getUserHandler.getUserProjects(userName);
+    return getUserHandler.getUserProjects(login);
   }
 
   @Transactional(readOnly = true)

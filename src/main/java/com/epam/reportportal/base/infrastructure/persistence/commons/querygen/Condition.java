@@ -47,6 +47,7 @@ import java.util.Arrays;
 import java.util.Objects;
 import java.util.Optional;
 import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.jooq.Field;
 import org.jooq.Operator;
 import org.jooq.impl.DSL;
@@ -209,7 +210,11 @@ public enum Condition {
     @Override
     public org.jooq.Condition toCondition(FilterCondition filter, CriteriaHolder criteriaHolder) {
       if (criteriaHolder.getQueryCriteria().equals(criteriaHolder.getAggregateCriteria())) {
-        return field(criteriaHolder.getAggregateCriteria()).isNotNull();
+        // Only an explicit "false" means "does not exist"; any other value (e.g. ids sent with
+        // negation by existing clients) keeps meaning "exists".
+        boolean notExists = "false".equalsIgnoreCase(StringUtils.trim(filter.getValue()));
+        return notExists ? field(criteriaHolder.getAggregateCriteria()).isNull()
+            : field(criteriaHolder.getAggregateCriteria()).isNotNull();
       } else {
         boolean exists = BooleanUtils.toBoolean(filter.getValue());
         Field<Integer> aggregatedCount = DSL.coalesce(

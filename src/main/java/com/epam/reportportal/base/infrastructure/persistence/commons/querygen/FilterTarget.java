@@ -191,6 +191,7 @@ import static com.epam.reportportal.base.infrastructure.persistence.commons.quer
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestPlanCriteriaConstant.CRITERIA_TMS_TEST_PLAN_CREATED_AT;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestPlanCriteriaConstant.CRITERIA_TMS_TEST_PLAN_DESCRIPTION;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestPlanCriteriaConstant.CRITERIA_TMS_TEST_PLAN_ID;
+import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestPlanCriteriaConstant.CRITERIA_TMS_TEST_PLAN_MILESTONE_ID;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestPlanCriteriaConstant.CRITERIA_TMS_TEST_PLAN_NAME;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestPlanCriteriaConstant.CRITERIA_TMS_TEST_PLAN_PROJECT_ID;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestPlanCriteriaConstant.CRITERIA_TMS_TEST_PLAN_SEARCH;
@@ -2012,6 +2013,8 @@ public enum FilterTarget {
               Instant.class).get(),
           new CriteriaHolderBuilder().newBuilder(CRITERIA_TMS_TEST_PLAN_PROJECT_ID, TMS_TEST_PLAN.PROJECT_ID,
               Long.class).get(),
+          new CriteriaHolderBuilder().newBuilder(CRITERIA_TMS_TEST_PLAN_MILESTONE_ID, TMS_TEST_PLAN.MILESTONE_ID,
+              Long.class).get(),
           new CriteriaHolderBuilder().newBuilder(
               CRITERIA_TMS_TEST_PLAN_SEARCH,
               TMS_TEST_PLAN.SEARCH_VECTOR,
@@ -2025,7 +2028,8 @@ public enum FilterTarget {
           TMS_TEST_PLAN.ID,
           TMS_TEST_PLAN.NAME,
           TMS_TEST_PLAN.DESCRIPTION,
-          TMS_TEST_PLAN.PROJECT_ID
+          TMS_TEST_PLAN.PROJECT_ID,
+          TMS_TEST_PLAN.MILESTONE_ID
       );
     }
 

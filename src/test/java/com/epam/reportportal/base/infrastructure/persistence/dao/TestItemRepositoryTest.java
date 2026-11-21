@@ -880,6 +880,51 @@ class TestItemRepositoryTest extends BaseMvcTest {
   }
 
   @Test
+  void accumulateStatisticsByLaunchAndItemFiltersRestrictedToSelectedLaunches() {
+    Filter itemFilter = Filter.builder()
+        .withTarget(TestItem.class)
+        .withCondition(new FilterCondition(Condition.EQUALS, false, "STEP", CRITERIA_TYPE))
+        .build();
+
+    Set<Statistics> projectStatistics = testItemRepository.accumulateStatisticsByFilter(false,
+        projectLaunchFilter(1L), itemFilter, PageRequest.of(0, 100));
+    assertFalse(projectStatistics.isEmpty());
+    assertTrue(projectStatistics.stream().allMatch(s -> s.getCounter() > 0));
+
+    Filter otherLaunchFilter = projectLaunchFilter(1L);
+    otherLaunchFilter.withCondition(new FilterCondition(Condition.EQUALS, false, "2", CRITERIA_ID));
+    assertTrue(testItemRepository.accumulateStatisticsByFilter(false, otherLaunchFilter,
+        itemFilter, PageRequest.of(0, 100)).isEmpty());
+  }
+
+  @Test
+  void accumulateStatisticsByLaunchAndItemFiltersIgnoresLaunchOfAnotherProject() {
+    // launch 1 belongs to project 1; caller is scoped to project 2 and names launch 1 explicitly
+    Filter itemFilter = Filter.builder()
+        .withTarget(TestItem.class)
+        .withCondition(new FilterCondition(Condition.EQUALS, false, "1", CRITERIA_LAUNCH_ID))
+        .build();
+    assertFalse(testItemRepository.accumulateStatisticsByFilter(itemFilter).isEmpty(),
+        "precondition: launch 1 has statistics");
+
+    Set<Statistics> statistics = testItemRepository.accumulateStatisticsByFilter(false,
+        projectLaunchFilter(2L), itemFilter, PageRequest.of(0, 100));
+    assertTrue(statistics.isEmpty());
+
+    Set<Statistics> latestStatistics = testItemRepository.accumulateStatisticsByFilter(true,
+        projectLaunchFilter(2L), itemFilter, PageRequest.of(0, 100));
+    assertTrue(latestStatistics.isEmpty());
+  }
+
+  private static Filter projectLaunchFilter(Long projectId) {
+    return Filter.builder()
+        .withTarget(Launch.class)
+        .withCondition(new FilterCondition(Condition.EQUALS, false, String.valueOf(projectId),
+            CRITERIA_PROJECT_ID))
+        .build();
+  }
+
+  @Test
   void accumulateStatisticsByFilterNotFromBaseline() {
     Filter itemFilter = Filter.builder()
         .withTarget(TestItem.class)

@@ -91,7 +91,7 @@ class TmsTestPlanExecutionServiceImplTest {
     when(tmsTestPlanStatisticsRepository.getExecutionStatisticsByTestPlanIds(List.of(testPlanId)))
         .thenReturn(List.of());
     when(tmsTestPlanExecutionMapper.createEmptyStatistics())
-        .thenReturn(new TmsTestPlanExecutionStatistic(0, 0));
+        .thenReturn(TmsTestPlanExecutionStatistic.builder().total(0L).covered(0L).build());
 
     var result = sut.getStatisticsForTestPlan(testPlanId);
 
@@ -115,7 +115,7 @@ class TmsTestPlanExecutionServiceImplTest {
     when(tmsTestPlanStatisticsRepository.getExecutionStatisticsByTestPlanIds(ids))
         .thenReturn(List.of(row(1L, 10, 5), row(2L, 3, 3)));
     when(tmsTestPlanExecutionMapper.createEmptyStatistics())
-        .thenReturn(new TmsTestPlanExecutionStatistic(0, 0));
+        .thenReturn(TmsTestPlanExecutionStatistic.builder().total(0L).covered(0L).build());
 
     var result = sut.getStatisticsForTestPlans(ids);
 

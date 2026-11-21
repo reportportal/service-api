@@ -44,7 +44,10 @@ public class TmsTestPlanExecutionServiceImpl implements TmsTestPlanExecutionServ
         .stream()
         .collect(Collectors.toMap(
             TmsTestPlanStatisticByTestPlan::getTestPlanId,
-            row -> new TmsTestPlanExecutionStatistic(row.getTotal(), row.getCovered())
+            row -> TmsTestPlanExecutionStatistic.builder()
+                .total(row.getTotal())
+                .covered(row.getCovered())
+                .build()
         ));
 
     return testPlanIds

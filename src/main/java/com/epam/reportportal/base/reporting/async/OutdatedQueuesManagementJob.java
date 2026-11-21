@@ -21,6 +21,8 @@ import static com.epam.reportportal.base.reporting.async.config.ReportingTopolog
 import static com.epam.reportportal.base.reporting.async.config.ReportingTopologyConfiguration.REPORTING_QUEUE_PREFIX;
 
 import com.rabbitmq.http.client.Client;
+import com.rabbitmq.http.client.HttpClientException;
+import com.rabbitmq.http.client.domain.DeleteQueueParameters;
 import com.rabbitmq.http.client.domain.QueueInfo;
 import java.time.Duration;
 import java.time.Instant;
@@ -107,17 +109,35 @@ public class OutdatedQueuesManagementJob {
     return Duration.between(since, now).compareTo(gracePeriod) >= 0;
   }
 
-  private void release(QueueInfo queue) {
-    String queueName = queue.getName();
+  private void release(QueueInfo listed) {
+    String queueName = listed.getName();
     try {
+      // the list may be up to a minute old: the owner could have reconnected since
+      QueueInfo queue = managementClient.getQueue(vhost, queueName);
+      if (queue == null) {
+        withoutConsumersSince.remove(queueName);
+        return;
+      }
+      if (queue.getConsumerCount() > 0) {
+        log.info("Reporting queue '{}' got consumers again, leaving it in place", queueName);
+        withoutConsumersSince.remove(queueName);
+        return;
+      }
       managementClient.unbindQueue(vhost, queueName, REPORTING_EXCHANGE, DEFAULT_QUEUE_ROUTING_KEY);
       if (queue.getMessagesReady() > 0) {
         shovelService.republishToReportingExchange(queueName);
       } else {
         shovelService.removeShovel(queueName);
-        managementClient.deleteQueue(vhost, queueName);
+        managementClient.deleteQueue(vhost, queueName, new DeleteQueueParameters(true, true));
         withoutConsumersSince.remove(queueName);
         log.info("Removed outdated reporting queue '{}'", queueName);
+      }
+    } catch (HttpClientException e) {
+      if (e.status() == 400 || e.status() == 412) {
+        log.info("Outdated reporting queue '{}' is not empty or in use any more, retrying next run",
+            queueName);
+      } else {
+        log.warn("Unable to clean up outdated reporting queue '{}'", queueName, e);
       }
     } catch (Exception e) {
       log.warn("Unable to clean up outdated reporting queue '{}'", queueName, e);

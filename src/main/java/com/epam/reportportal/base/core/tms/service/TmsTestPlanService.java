@@ -38,8 +38,6 @@ public interface TmsTestPlanService extends CrudService<TmsTestPlanRQ, TmsTestPl
    */
   boolean addTestCaseToTestPlan(Long projectId, Long testPlanId, Long testCaseId);
 
-  boolean removeSingleTestCaseFromPlan(Long testPlanId, Long testCaseId);
-
   DuplicateTmsTestPlanRS duplicate(MembershipDetails membershipDetails, ReportPortalUser user, Long testPlanId,
       TmsTestPlanRQ duplicateTestPlanRQ);
 

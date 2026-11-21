@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
@@ -71,6 +72,7 @@ public class DataStoreClient implements DataStore {
     if (filePath == null) {
       return "";
     }
+    validatePath(filePath);
     StoredFile storedFile = getStoredFile(filePath);
     try {
       byte[] data = inputStream.readAllBytes();
@@ -89,6 +91,7 @@ public class DataStoreClient implements DataStore {
       log.error("Unable to find file");
       throw new ReportPortalException(ErrorType.UNABLE_TO_LOAD_BINARY_DATA, "Unable to find file");
     }
+    validatePath(filePath);
     StoredFile storedFile = getStoredFile(filePath);
     String fullPath = getFullPath(storedFile);
     try {
@@ -106,6 +109,7 @@ public class DataStoreClient implements DataStore {
       log.error("Unable to find file");
       throw new ReportPortalException(ErrorType.UNABLE_TO_LOAD_BINARY_DATA, "Unable to find file");
     }
+    validatePath(filePath);
     if (offset < 0 || length < 0) {
       throw new ReportPortalException(ErrorType.INCORRECT_REQUEST,
           "Range offset and length must be non-negative");
@@ -146,6 +150,7 @@ public class DataStoreClient implements DataStore {
     if (filePath == null) {
       return;
     }
+    validatePath(filePath);
     StoredFile storedFile = getStoredFile(filePath);
     String fullPath = getFullPath(storedFile);
     try {
@@ -184,6 +189,19 @@ public class DataStoreClient implements DataStore {
     } catch (Exception e) {
       log.error("Unable to delete container '{}'", bucket, e);
       throw new ReportPortalException(ErrorType.INCORRECT_REQUEST, "Unable to delete container");
+    }
+  }
+
+  /**
+   * Rejects keys that could resolve outside the storage root: absolute keys and keys with a ".."
+   * segment. Backslashes are treated as separators too.
+   */
+  private void validatePath(String filePath) {
+    String normalized = filePath.replace('\\', '/');
+    if (normalized.startsWith(PATH_DELIMITER) || Arrays.asList(normalized.split(PATH_DELIMITER))
+        .contains("..")) {
+      log.error("Rejected file path '{}'", filePath);
+      throw new ReportPortalException(ErrorType.INCORRECT_REQUEST, "Invalid file path");
     }
   }
 

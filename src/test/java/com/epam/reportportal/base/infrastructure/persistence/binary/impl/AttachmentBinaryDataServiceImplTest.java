@@ -19,7 +19,9 @@ package com.epam.reportportal.base.infrastructure.persistence.binary.impl;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.matches;
 import static org.mockito.ArgumentMatchers.same;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -39,6 +41,7 @@ import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.multipart.MultipartFile;
@@ -87,13 +90,12 @@ class AttachmentBinaryDataServiceImplTest {
 
     when(file.getContentType()).thenReturn(null);
     when(file.getInputStream()).thenReturn(detectionStream, storageStream);
-    when(file.getName()).thenReturn("attachment");
     when(file.getSize()).thenReturn((long) content.length);
     when(contentTypeResolver.detectContentType(same(detectionStream))).thenReturn("image/png");
     when(filePathGenerator.generate(metaInfo)).thenReturn("generated/path");
     when(featureFlagHandler.isEnabled(FeatureFlag.SINGLE_BUCKET)).thenReturn(false);
-    when(dataStoreService.save("generated/path/log-uuid-attachment.png", storageStream))
-        .thenReturn("file-id");
+    when(dataStoreService.save(matches("generated/path/log-uuid-[0-9a-f-]{36}\\.png"),
+        same(storageStream))).thenReturn("file-id");
 
     Optional<BinaryDataMetaInfo> result = service.saveAttachment(metaInfo, file);
 
@@ -103,5 +105,31 @@ class AttachmentBinaryDataServiceImplTest {
     assertEquals(content.length, result.orElseThrow().getFileSize());
     verify(file, times(2)).getInputStream();
     verify(dataStoreService).save(any(), same(storageStream));
+  }
+
+  @Test
+  void saveAttachmentIgnoresPartNameAndSanitisesLogUuidInStorageKey() throws Exception {
+    byte[] content = "attachment content".getBytes();
+    InputStream storageStream = new ByteArrayInputStream(content);
+    AttachmentMetaInfo metaInfo = AttachmentMetaInfo.builder()
+        .withProjectId(1L)
+        .withLogUuid("../../../tmp/evil")
+        .build();
+
+    when(file.getContentType()).thenReturn("image/png");
+    when(file.getInputStream()).thenReturn(storageStream);
+    lenient().when(file.getName()).thenReturn("a/../../../../tmp/evil");
+    when(file.getSize()).thenReturn((long) content.length);
+    when(filePathGenerator.generate(metaInfo)).thenReturn("generated/path");
+    when(featureFlagHandler.isEnabled(FeatureFlag.SINGLE_BUCKET)).thenReturn(false);
+    when(dataStoreService.save(any(), same(storageStream))).thenReturn("file-id");
+
+    service.saveAttachment(metaInfo, file);
+
+    var pathCaptor = ArgumentCaptor.forClass(String.class);
+    verify(dataStoreService).save(pathCaptor.capture(), same(storageStream));
+    assertTrue(pathCaptor.getValue()
+            .matches("generated/path/_________tmp_evil-[0-9a-f-]{36}\\.png"),
+        pathCaptor.getValue());
   }
 }

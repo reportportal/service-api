@@ -25,7 +25,9 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.user.User;
 public interface UserMutationService {
 
   /**
-   * Updates user email with validation and duplicate checking.
+   * Updates user email (and login) with validation and duplicate checking. Rejected when the current request is not
+   * authenticated by a JWT (for example by an API key) and when a user changes the email of their own non-INTERNAL
+   * account. On success all tokens previously issued to the user are revoked.
    *
    * @param user     the user entity to update
    * @param rawEmail the new email address (will be normalized)

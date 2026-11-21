@@ -20,6 +20,7 @@ import static com.epam.reportportal.base.ReportPortalUserUtil.getRpUser;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -35,18 +36,27 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.user.User;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRole;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 
 @ExtendWith(MockitoExtension.class)
 class UserMutationServiceImplTest {
@@ -89,6 +99,112 @@ class UserMutationServiceImplTest {
   @Nested
   @DisplayName("updateEmail")
   class UpdateEmail {
+
+    @BeforeEach
+    void authenticateWithJwt() {
+      // getRpUser always yields userId=1; give the target a different id so adminEditor edits another user.
+      user.setId(10L);
+      var jwt = Jwt.withTokenValue("token").header("alg", "HS256").subject("user@example.com").build();
+      SecurityContextHolder.getContext().setAuthentication(new JwtAuthenticationToken(jwt));
+    }
+
+    @AfterEach
+    void clearSecurityContext() {
+      SecurityContextHolder.clearContext();
+    }
+
+    private ReportPortalUser selfEditor() {
+      return editorWithId(UserRole.USER, user.getId());
+    }
+
+    private ReportPortalUser editorWithId(UserRole role, Long userId) {
+      return ReportPortalUser.userBuilder()
+          .withUserName("user@example.com")
+          .withPassword("test")
+          .withAuthorities(Collections.emptySet())
+          .withUserId(userId)
+          .withEmail("user@example.com")
+          .withUserRole(role)
+          .withOrganizationDetails(new java.util.HashMap<>())
+          .build();
+    }
+
+    @Test
+    @DisplayName("Should let an internal user change their own email and revoke tokens issued for the old login")
+    void updateEmailWhenSelfInternalShouldUpdateAndRevokeTokensOfOldLogin() {
+      when(userRepository.findByEmail("new@example.com")).thenReturn(Optional.empty());
+      when(projectRepository.findUserProjects("user@example.com")).thenReturn(Collections.emptyList());
+      List<String> revokedLogins = new ArrayList<>();
+      doAnswer(inv -> revokedLogins.add(((User) inv.getArgument(0)).getLogin()))
+          .when(tokenBlacklistService).revokeUserTokens(user);
+
+      userMutationService.updateEmail(user, "new@example.com", selfEditor());
+
+      assertThat(user.getEmail()).isEqualTo("new@example.com");
+      assertThat(user.getLogin()).isEqualTo("new@example.com");
+      assertThat(revokedLogins).containsExactly("user@example.com");
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = UserType.class, names = "INTERNAL", mode = EnumSource.Mode.EXCLUDE)
+    @DisplayName("Should reject a self-service email change of an externally managed account")
+    void updateEmailWhenSelfExternalShouldThrow(UserType type) {
+      user.setUserType(type);
+
+      assertThatThrownBy(() -> userMutationService.updateEmail(user, "new@example.com", selfEditor()))
+          .isInstanceOf(ReportPortalException.class)
+          .hasMessageContaining("externally managed");
+
+      assertThat(user.getEmail()).isEqualTo("user@example.com");
+      verify(tokenBlacklistService, never()).revokeUserTokens(any());
+    }
+
+    @Test
+    @DisplayName("Should reject an administrator changing the email of their own externally managed account")
+    void updateEmailWhenAdminSelfExternalShouldThrow() {
+      user.setUserType(UserType.SAML);
+      var adminSelf = editorWithId(UserRole.ADMINISTRATOR, user.getId());
+
+      assertThatThrownBy(() -> userMutationService.updateEmail(user, "new@example.com", adminSelf))
+          .isInstanceOf(ReportPortalException.class)
+          .hasMessageContaining("externally managed");
+    }
+
+    @Test
+    @DisplayName("Should reject an email change authenticated by an API key")
+    void updateEmailWhenApiKeyAuthenticationShouldThrow() {
+      var apiKeyPrincipal = selfEditor();
+      SecurityContextHolder.getContext().setAuthentication(
+          new UsernamePasswordAuthenticationToken(apiKeyPrincipal, null, apiKeyPrincipal.getAuthorities()));
+
+      assertThatThrownBy(() -> userMutationService.updateEmail(user, "new@example.com", apiKeyPrincipal))
+          .isInstanceOf(ReportPortalException.class)
+          .hasMessageContaining("API key");
+
+      assertThat(user.getEmail()).isEqualTo("user@example.com");
+      verify(userRepository, never()).findByEmail(any());
+      verify(tokenBlacklistService, never()).revokeUserTokens(any());
+    }
+
+    @Test
+    @DisplayName("Should reject an administrator's email change of another user authenticated by an API key")
+    void updateEmailWhenAdminApiKeyAuthenticationShouldThrow() {
+      SecurityContextHolder.getContext().setAuthentication(
+          new UsernamePasswordAuthenticationToken(adminEditor, null, adminEditor.getAuthorities()));
+
+      assertThatThrownBy(() -> userMutationService.updateEmail(user, "new@example.com", adminEditor))
+          .isInstanceOf(ReportPortalException.class)
+          .hasMessageContaining("API key");
+    }
+
+    @Test
+    @DisplayName("Should reject an email change without an authentication")
+    void updateEmailWhenNoAuthenticationShouldThrow() {
+      SecurityContextHolder.clearContext();
+
+      assertThatThrownBy(() -> userMutationService.updateEmail(user, "new@example.com", adminEditor))
+          .isInstanceOf(ReportPortalException.class);
+    }
 
     @Test
     @DisplayName("Should allow admin to change external user email")
@@ -140,6 +256,7 @@ class UserMutationServiceImplTest {
           () -> userMutationService.updateEmail(user, "new@example.com", adminEditor))
           .isInstanceOf(ReportPortalException.class)
           .hasMessageContaining("already exists");
+      verify(tokenBlacklistService, never()).revokeUserTokens(any());
     }
 
     @Test
@@ -162,6 +279,7 @@ class UserMutationServiceImplTest {
 
       assertThat(user.getEmail()).isEqualTo("new@example.com");
       assertThat(user.getLogin()).isEqualTo("new@example.com");
+      verify(tokenBlacklistService).revokeUserTokens(user);
     }
   }
 

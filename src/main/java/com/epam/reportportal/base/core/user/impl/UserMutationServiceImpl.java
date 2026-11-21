@@ -20,6 +20,7 @@ import static com.epam.reportportal.base.infrastructure.model.ValidationConstrai
 import static com.epam.reportportal.base.infrastructure.model.ValidationConstraints.MIN_USER_NAME_LENGTH;
 import static com.epam.reportportal.base.infrastructure.model.ValidationConstraints.USER_FULL_NAME_REGEXP;
 import static com.epam.reportportal.base.infrastructure.rules.commons.validation.BusinessRule.expect;
+import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.ACCESS_DENIED;
 import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.BAD_REQUEST_ERROR;
 import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.USER_ALREADY_EXISTS;
 import static com.epam.reportportal.base.util.email.EmailRulesValidator.NORMALIZE_EMAIL;
@@ -42,7 +43,10 @@ import java.util.regex.Pattern;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
 
 /**
@@ -68,7 +72,11 @@ public class UserMutationServiceImpl implements UserMutationService {
       return;
     }
 
+    verifyEmailChangeAllowed(user, editor);
     checkEmailUniqueness(email);
+
+    // Revoke while the user still carries the old login: issued JWTs use it as their subject.
+    tokenBlacklistService.revokeUserTokens(user);
 
     List<Project> userProjects = projectRepository.findUserProjects(user.getLogin());
     userProjects.forEach(
@@ -82,6 +90,34 @@ public class UserMutationServiceImpl implements UserMutationService {
     } catch (Exception exp) {
       throw new ReportPortalException("PROJECT update exception while USER editing.", exp);
     }
+  }
+
+  /**
+   * Email equals login, so changing it is an account-recovery-sensitive operation. Until the change is confirmed by a
+   * link sent to the new address, it is allowed only from an interactive (JWT) session, and a user may change their own
+   * email only when the account is managed by ReportPortal itself ({@link UserType#INTERNAL}); accounts provisioned by
+   * SAML, LDAP, SCIM, UPSA and other identity providers get their email from that provider. Administrators may still
+   * change the email of other users of any type.
+   */
+  private void verifyEmailChangeAllowed(User user, ReportPortalUser editor) {
+    expect(isInteractiveSession(), Boolean.TRUE::equals)
+        .verify(ACCESS_DENIED, "Email cannot be changed with an API key. Sign in to change it.");
+
+    boolean selfService = editor == null || editor.getUserId() == null || editor.getUserId().equals(user.getId());
+    if (selfService) {
+      expect(user.getUserType(), UserType.INTERNAL::equals)
+          .verify(ACCESS_DENIED, "Email of an externally managed account cannot be changed by its owner.");
+    }
+  }
+
+  /**
+   * API keys authenticate as {@code UsernamePasswordAuthenticationToken} (see
+   * {@code ApiKeyReportPortalUserConverter}); both ReportPortal and external IdP access tokens authenticate as
+   * {@link JwtAuthenticationToken}. Anything other than a JWT is treated as non-interactive.
+   */
+  private static boolean isInteractiveSession() {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    return authentication instanceof JwtAuthenticationToken;
   }
 
   @Override

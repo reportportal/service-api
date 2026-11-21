@@ -21,9 +21,11 @@ import static com.epam.reportportal.base.core.user.impl.CreateUserHandlerImpl.IN
 import static com.epam.reportportal.base.infrastructure.persistence.commons.Predicates.equalTo;
 import static com.epam.reportportal.base.infrastructure.rules.commons.validation.BusinessRule.expect;
 import static com.epam.reportportal.base.infrastructure.rules.commons.validation.Suppliers.formattedSupplier;
+import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.ACCESS_DENIED;
 import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.BAD_REQUEST_ERROR;
 import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.INCORRECT_REQUEST;
 import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.NOT_FOUND;
+import static com.epam.reportportal.base.model.settings.SettingsKeyConstants.SERVER_USERS_SSO;
 import static com.epam.reportportal.base.util.ControllerUtils.safeParseLong;
 import static com.epam.reportportal.base.util.SecurityContextUtils.getPrincipal;
 import static com.epam.reportportal.base.util.email.EmailRulesValidator.NORMALIZE_EMAIL;
@@ -44,10 +46,12 @@ import com.epam.reportportal.base.core.user.PasswordPolicyService;
 import com.epam.reportportal.base.core.user.UserInvitationService;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectUserRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.ServerSettingsRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.UserCreationBidRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.UserRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.organization.OrganizationRepositoryCustom;
 import com.epam.reportportal.base.infrastructure.persistence.entity.Metadata;
+import com.epam.reportportal.base.infrastructure.persistence.entity.ServerSettings;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationRole;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectRole;
@@ -61,6 +65,7 @@ import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.ws.converter.converters.InvitationConverter;
 import jakarta.servlet.http.HttpServletRequest;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
@@ -68,6 +73,7 @@ import java.util.Map;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -95,6 +101,11 @@ public class UserInvitationHandler {
   private final UserInvitationService userInvitationService;
   private final LinkGenerator linkGenerator;
   private final PasswordPolicyService passwordPolicyService;
+  private final ServerSettingsRepository settingsRepository;
+
+  // Kept in sync with the expiresAt reported at creation (UserInvitationServiceImpl) and CleanExpiredCreationBidsJob.
+  @Value("${rp.invitation.bid.ttl:PT24H}")
+  private Duration invitationBidTtl;
 
   /**
    * Sends invitation for external user or assigns existing user on organizations and projects.
@@ -141,13 +152,25 @@ public class UserInvitationHandler {
   public Invitation activate(InvitationActivation invitationActivation, String invitationId) {
     UserCreationBid bid = userCreationBidRepository
         .findByUuidAndType(invitationId, INTERNAL_BID_TYPE)
+        .filter(found -> !isExpired(found))
         .orElseThrow(() -> new ReportPortalException(INCORRECT_REQUEST,
             "Impossible to register user. UUID expired or already registered."));
 
-    passwordPolicyService.validate(invitationActivation.getPassword());
+    if (isSsoEnabled()) {
+      throw new ReportPortalException(ACCESS_DENIED, "Cannot accept invitation if SSO enabled.");
+    }
 
-    var createdUser = saveUser(invitationActivation, bid);
-    publishUserCreatedEvent(createdUser);
+    var email = NORMALIZE_EMAIL.apply(bid.getEmail());
+    var existingUser = userRepository.findByEmail(email);
+    User createdUser;
+    if (existingUser.isPresent()) {
+      createdUser = existingUser.get();
+      verifyExistingAccountOwnership(createdUser, invitationActivation.getPassword());
+    } else {
+      passwordPolicyService.validate(invitationActivation.getPassword());
+      createdUser = createUser(invitationActivation, email);
+      publishUserCreatedEvent(createdUser);
+    }
 
     assignOrganizationsAndProjects(createdUser, bid.getMetadata(), bid.getInvitingUser());
     userCreationBidRepository.deleteByUuid(bid.getUuid());
@@ -226,27 +249,51 @@ public class UserInvitationHandler {
         : ProjectRole.valueOf(projectRole);
   }
 
-  private User saveUser(InvitationActivation activationRq, UserCreationBid bid) {
-    var email = NORMALIZE_EMAIL.apply(bid.getEmail());
+  /**
+   * An account that already holds the invited address at activation time did not hold it when the invitation was
+   * issued (invitation creation assigns existing accounts directly instead of issuing a bid), so it was created or
+   * re-addressed afterwards. The invitation's assignments are attached to it only when the person activating proves
+   * they own it with its current password: this keeps the case of a second invitation to an already activated address
+   * working, while an account re-addressed to the invitee's email by someone else does not receive the invitation.
+   */
+  private void verifyExistingAccountOwnership(User existingUser, String password) {
+    boolean owner = existingUser.getUserType() == UserType.INTERNAL
+        && existingUser.getPassword() != null
+        && password != null
+        && passwordEncoder.matches(password, existingUser.getPassword());
+    if (!owner) {
+      throw new ReportPortalException(ACCESS_DENIED,
+          "An account with this email already exists. Enter its current password to accept the invitation,"
+              + " or ask the inviter to add the existing account.");
+    }
+  }
 
-    return userRepository.findByEmail(email)
-        .orElseGet(() -> {
-          var user = new User();
-          user.setLogin(email);
-          user.setEmail(email);
-          user.setUuid(UUID.randomUUID());
-          user.setFullName(activationRq.getFullName());
-          user.setActive(Boolean.TRUE);
-          user.setRole(UserRole.USER);
-          user.setUserType(UserType.valueOf("INTERNAL"));
-          user.setExpired(false);
-          Map<String, Object> meta = new HashMap<>();
-          meta.put(USER_LAST_LOGIN, Instant.now().toEpochMilli());
-          user.setMetadata(new Metadata(meta));
-          ofNullable(activationRq.getPassword())
-              .ifPresent(password -> user.setPassword(passwordEncoder.encode(password)));
-          return userRepository.save(user);
-        });
+  private User createUser(InvitationActivation activationRq, String email) {
+    var user = new User();
+    user.setLogin(email);
+    user.setEmail(email);
+    user.setUuid(UUID.randomUUID());
+    user.setFullName(activationRq.getFullName());
+    user.setActive(Boolean.TRUE);
+    user.setRole(UserRole.USER);
+    user.setUserType(UserType.INTERNAL);
+    user.setExpired(false);
+    Map<String, Object> meta = new HashMap<>();
+    meta.put(USER_LAST_LOGIN, Instant.now().toEpochMilli());
+    user.setMetadata(new Metadata(meta));
+    ofNullable(activationRq.getPassword())
+        .ifPresent(password -> user.setPassword(passwordEncoder.encode(password)));
+    return userRepository.save(user);
+  }
+
+  private boolean isExpired(UserCreationBid bid) {
+    Instant issuedAt = bid.getLastModified();
+    return issuedAt == null || issuedAt.plus(invitationBidTtl).isBefore(Instant.now());
+  }
+
+  private boolean isSsoEnabled() {
+    return settingsRepository.findByKey(SERVER_USERS_SSO).map(ServerSettings::getValue)
+        .map(Boolean::parseBoolean).orElse(false);
   }
 
   private void publishUserCreatedEvent(User createdUser) {

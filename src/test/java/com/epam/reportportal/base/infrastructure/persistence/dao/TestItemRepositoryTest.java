@@ -87,6 +87,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.apache.commons.collections4.CollectionUtils;
 import org.assertj.core.util.Lists;
 import org.assertj.core.util.Sets;
@@ -492,67 +493,67 @@ class TestItemRepositoryTest extends BaseMvcTest {
   }
 
   @Test
-  void streamIdsByNotHasChildrenAndLaunchIdAndStatus() {
+  void findIdsByNotHasChildrenAndLaunchIdAndStatus() {
 
     List<Long> itemIds = testItemRepository.findIdsByNotHasChildrenAndLaunchIdAndStatus(1L,
-        StatusEnum.FAILED, 1, 0L);
-    Assertions.assertEquals(1, itemIds.size());
-
-    itemIds = testItemRepository.findIdsByNotHasChildrenAndLaunchIdAndStatus(1L, StatusEnum.FAILED,
-        1, 1L);
-    Assertions.assertEquals(1, itemIds.size());
-
-    itemIds = testItemRepository.findIdsByNotHasChildrenAndLaunchIdAndStatus(1L, StatusEnum.FAILED,
-        2, 0L);
-    Assertions.assertEquals(2, itemIds.size());
+        StatusEnum.FAILED);
+    Assertions.assertEquals(expectedIds(false, ""), itemIds);
+    Assertions.assertFalse(itemIds.isEmpty());
   }
 
   @Test
-  void streamIdsByHasChildrenAndLaunchIdAndStatusOrderedByPathLevel() {
+  void findIdsByHasChildrenAndLaunchIdAndStatusOrderedByPathLevel() {
 
     List<Long> itemIds = testItemRepository.findIdsByHasChildrenAndLaunchIdAndStatusOrderedByPathLevel(
-        1L, StatusEnum.FAILED, 1, 0L);
-    Assertions.assertEquals(1, itemIds.size());
-
-    itemIds = testItemRepository.findIdsByHasChildrenAndLaunchIdAndStatusOrderedByPathLevel(1L,
-        StatusEnum.FAILED, 3, 1L);
-    Assertions.assertEquals(2, itemIds.size());
-
-    itemIds = testItemRepository.findIdsByHasChildrenAndLaunchIdAndStatusOrderedByPathLevel(1L,
-        StatusEnum.FAILED, 3, 0L);
-    Assertions.assertEquals(3, itemIds.size());
+        1L, StatusEnum.FAILED);
+    Assertions.assertEquals(Set.copyOf(expectedIds(true, "")), Set.copyOf(itemIds));
+    Assertions.assertFalse(itemIds.isEmpty());
+    assertDeepestFirst(itemIds);
   }
 
   @Test
-  void streamIdsByNotHasChildrenAndParentPathAndStatus() {
+  void findIdsByNotHasChildrenAndLaunchIdAndParentPathAndStatus() {
 
-    List<Long> itemIds = testItemRepository.findIdsByNotHasChildrenAndParentPathAndStatus("1.2",
-        StatusEnum.FAILED, 1, 0L);
-    Assertions.assertEquals(1, itemIds.size());
+    List<Long> itemIds = testItemRepository.findIdsByNotHasChildrenAndLaunchIdAndParentPathAndStatus(
+        1L, "1.2", StatusEnum.FAILED);
+    Assertions.assertEquals(expectedIds(false, "1.2."), itemIds);
+    Assertions.assertFalse(itemIds.isEmpty());
 
-    itemIds = testItemRepository.findIdsByNotHasChildrenAndParentPathAndStatus("1.2",
-        StatusEnum.FAILED, 1, 1L);
-    Assertions.assertEquals(1, itemIds.size());
-
-    itemIds = testItemRepository.findIdsByNotHasChildrenAndParentPathAndStatus("1.2",
-        StatusEnum.FAILED, 2, 0L);
-    Assertions.assertEquals(2, itemIds.size());
+    itemIds = testItemRepository.findIdsByNotHasChildrenAndLaunchIdAndParentPathAndStatus(
+        -1L, "1.2", StatusEnum.FAILED);
+    Assertions.assertTrue(itemIds.isEmpty());
   }
 
   @Test
-  void streamIdsByHasChildrenAndParentPathAndStatusOrderedByPathLevel() {
+  void findIdsByHasChildrenAndLaunchIdAndParentPathAndStatusOrderedByPathLevel() {
 
-    List<Long> itemIds = testItemRepository.findIdsByHasChildrenAndParentPathAndStatusOrderedByPathLevel(
-        "1", StatusEnum.FAILED, 1, 0L);
-    Assertions.assertEquals(1, itemIds.size());
+    List<Long> itemIds = testItemRepository.findIdsByHasChildrenAndLaunchIdAndParentPathAndStatusOrderedByPathLevel(
+        1L, "1", StatusEnum.FAILED);
+    Assertions.assertEquals(Set.copyOf(expectedIds(true, "1.")), Set.copyOf(itemIds));
+    Assertions.assertFalse(itemIds.isEmpty());
+    assertDeepestFirst(itemIds);
 
-    itemIds = testItemRepository.findIdsByHasChildrenAndParentPathAndStatusOrderedByPathLevel("1",
-        StatusEnum.FAILED, 1, 1L);
-    Assertions.assertEquals(1, itemIds.size());
+    itemIds = testItemRepository.findIdsByHasChildrenAndLaunchIdAndParentPathAndStatusOrderedByPathLevel(
+        -1L, "1", StatusEnum.FAILED);
+    Assertions.assertTrue(itemIds.isEmpty());
+  }
 
-    itemIds = testItemRepository.findIdsByHasChildrenAndParentPathAndStatusOrderedByPathLevel("1",
-        StatusEnum.FAILED, 2, 0L);
-    Assertions.assertEquals(2, itemIds.size());
+  private List<Long> expectedIds(boolean hasChildren, String pathPrefix) {
+    return testItemRepository.findTestItemsByLaunchId(1L).stream()
+        .filter(item -> item.isHasChildren() == hasChildren)
+        .filter(item -> item.getPath().startsWith(pathPrefix))
+        .filter(item -> item.getItemResults().getStatus() == StatusEnum.FAILED)
+        .map(TestItem::getItemId)
+        .sorted()
+        .toList();
+  }
+
+  private void assertDeepestFirst(List<Long> itemIds) {
+    Map<Long, Integer> levels = testItemRepository.findAllById(itemIds).stream()
+        .collect(Collectors.toMap(TestItem::getItemId, item -> item.getPath().split("\\.").length));
+    for (int i = 1; i < itemIds.size(); i++) {
+      Assertions.assertTrue(levels.get(itemIds.get(i - 1)) >= levels.get(itemIds.get(i)));
+    }
   }
 
   @Test

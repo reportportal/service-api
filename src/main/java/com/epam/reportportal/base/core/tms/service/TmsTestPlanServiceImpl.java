@@ -27,6 +27,7 @@ import jakarta.validation.constraints.NotEmpty;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -179,7 +180,6 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
     verifyTestPlanExists(projectId, testPlanId);
 
     var errors = new ArrayList<BatchTestCaseOperationError>();
-    var successCount = 0;
     var totalCount = testCaseIds.size();
 
     // Get existing test case IDs for the project
@@ -192,37 +192,30 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
         tmsTestPlanTestCaseRepository.findTestCaseIdsByTestPlanId(testPlanId)
     );
 
+    var testCaseIdsToAdd = new LinkedHashSet<Long>();
     for (var testCaseId : testCaseIds) {
-      try {
-        // Check if a test case exists
-        if (!existingTestCaseIds.contains(testCaseId)) {
-          errors.add(new BatchTestCaseOperationError(testCaseId,
-              String.format("Test case with id %s not found", testCaseId)));
-          continue;
-        }
+      // Check if a test case exists
+      if (!existingTestCaseIds.contains(testCaseId)) {
+        errors.add(new BatchTestCaseOperationError(testCaseId,
+            String.format("Test case with id %s not found", testCaseId)));
+        continue;
+      }
 
-        // Check if already added to the plan
-        if (testCaseIdsAreInTestPlan.contains(testCaseId)) {
-          errors.add(new BatchTestCaseOperationError(
-              testCaseId,
-              String.format("Test case with id %s already exists in test plan", testCaseId)
-          ));
-          continue;
-        }
-
-        // Try to add a test case
-        if (addTestCaseToTestPlan(projectId, testPlanId, testCaseId)) {
-          successCount++;
-          testCaseIdsAreInTestPlan.add(testCaseId);
-        } else {
-          errors.add(new BatchTestCaseOperationError(testCaseId, "Failed to add test case"));
-        }
-      } catch (Exception e) {
-        errors.add(new BatchTestCaseOperationError(testCaseId, e.getMessage()));
+      // Check if already added to the plan (or requested twice)
+      if (testCaseIdsAreInTestPlan.contains(testCaseId) || !testCaseIdsToAdd.add(testCaseId)) {
+        errors.add(new BatchTestCaseOperationError(
+            testCaseId,
+            String.format("Test case with id %s already exists in test plan", testCaseId)
+        ));
       }
     }
 
-    return tmsTestPlanMapper.convertToRS(totalCount, successCount, errors);
+    if (!testCaseIdsToAdd.isEmpty()) {
+      tmsTestPlanTestCaseRepository.insertTestPlanTestCasesInProject(projectId, testPlanId,
+          List.copyOf(testCaseIdsToAdd));
+    }
+
+    return tmsTestPlanMapper.convertToRS(totalCount, testCaseIdsToAdd.size(), errors);
   }
 
   @Override

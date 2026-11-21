@@ -474,8 +474,6 @@ class TmsTestPlanServiceImplTest {
     when(testPlanRepository.existsByIdAndProject_Id(testPlanId, projectId)).thenReturn(true);
     when(tmsTestCaseService.getExistingTestCaseIds(projectId, testCaseIds)).thenReturn(List.of(10L, 20L, 30L));
     when(tmsTestPlanTestCaseRepository.findTestCaseIdsByTestPlanId(testPlanId)).thenReturn(List.of(10L));
-    when(tmsTestPlanTestCaseRepository.insertTestPlanTestCaseInProject(projectId, testPlanId, 20L)).thenReturn(1);
-    when(tmsTestPlanTestCaseRepository.insertTestPlanTestCaseInProject(projectId, testPlanId, 30L)).thenReturn(1);
     when(tmsTestPlanMapper.convertToRS(anyInt(), anyInt(), anyList())).thenReturn(expectedResult);
 
     var result = sut.addTestCasesToPlan(projectId, testPlanId, testCaseIds);
@@ -484,6 +482,8 @@ class TmsTestPlanServiceImplTest {
     verify(testPlanRepository).existsByIdAndProject_Id(testPlanId, projectId);
     verify(tmsTestCaseService).getExistingTestCaseIds(projectId, testCaseIds);
     verify(tmsTestPlanTestCaseRepository).findTestCaseIdsByTestPlanId(testPlanId);
+    verify(tmsTestPlanTestCaseRepository)
+        .insertTestPlanTestCasesInProject(projectId, testPlanId, List.of(20L, 30L));
     verify(tmsTestPlanMapper).convertToRS(eq(3), eq(2), anyList());
   }
 
@@ -498,13 +498,29 @@ class TmsTestPlanServiceImplTest {
     when(testPlanRepository.existsByIdAndProject_Id(testPlanId, projectId)).thenReturn(true);
     when(tmsTestCaseService.getExistingTestCaseIds(projectId, testCaseIds)).thenReturn(List.of(10L));
     when(tmsTestPlanTestCaseRepository.findTestCaseIdsByTestPlanId(testPlanId)).thenReturn(List.of());
-    when(tmsTestPlanTestCaseRepository.insertTestPlanTestCaseInProject(projectId, testPlanId, 10L)).thenReturn(1);
     when(tmsTestPlanMapper.convertToRS(anyInt(), anyInt(), anyList())).thenReturn(expectedResult);
 
     var result = sut.addTestCasesToPlan(projectId, testPlanId, testCaseIds);
 
     assertNotNull(result);
+    verify(tmsTestPlanTestCaseRepository)
+        .insertTestPlanTestCasesInProject(projectId, testPlanId, List.of(10L));
     verify(tmsTestPlanMapper).convertToRS(eq(2), eq(1), anyList());
+  }
+
+  @Test
+  void shouldReportDuplicateIdsAndPropagateInsertFailureWhenAddTestCasesToPlan() {
+    var testCaseIds = List.of(10L, 10L);
+
+    when(testPlanRepository.existsByIdAndProject_Id(testPlanId, projectId)).thenReturn(true);
+    when(tmsTestCaseService.getExistingTestCaseIds(projectId, testCaseIds)).thenReturn(List.of(10L));
+    when(tmsTestPlanTestCaseRepository.findTestCaseIdsByTestPlanId(testPlanId)).thenReturn(List.of());
+    when(tmsTestPlanTestCaseRepository.insertTestPlanTestCasesInProject(projectId, testPlanId, List.of(10L)))
+        .thenThrow(new RuntimeException("Database error"));
+
+    assertThrows(RuntimeException.class,
+        () -> sut.addTestCasesToPlan(projectId, testPlanId, testCaseIds));
+    verify(tmsTestPlanMapper, never()).convertToRS(anyInt(), anyInt(), anyList());
   }
 
   @Test
@@ -578,6 +594,7 @@ class TmsTestPlanServiceImplTest {
     var result = sut.addTestCasesToPlan(projectId, testPlanId, testCaseIds);
 
     assertNotNull(result);
+    verify(tmsTestPlanTestCaseRepository, never()).insertTestPlanTestCasesInProject(any(), any(), any());
     verify(tmsTestPlanMapper).convertToRS(eq(0), eq(0), anyList());
   }
 
@@ -713,7 +730,7 @@ class TmsTestPlanServiceImplTest {
     when(tmsTestCaseService.duplicateTestCases(membershipDetails, user, originalTestCaseIds)).thenReturn(duplicationResult);
     when(tmsTestCaseService.getExistingTestCaseIds(projectId, duplicatedTestCaseIds)).thenReturn(duplicatedTestCaseIds);
     when(tmsTestPlanTestCaseRepository.findTestCaseIdsByTestPlanId(3L)).thenReturn(List.of());
-    when(tmsTestPlanTestCaseRepository.insertTestPlanTestCaseInProject(eq(projectId), eq(3L), anyLong())).thenReturn(1);
+    when(tmsTestPlanTestCaseRepository.insertTestPlanTestCasesInProject(projectId, 3L, duplicatedTestCaseIds)).thenReturn(2);
     when(testPlanRepository.existsByIdAndProject_Id(3L, projectId)).thenReturn(true);
     when(tmsTestPlanMapper.convertToRS(anyInt(), anyInt(), anyList())).thenReturn(addToPlanResult);
     when(tmsTestPlanMapper.combineDuplicateTestPlanBatchResults(duplicationResult, addToPlanResult)).thenReturn(combinedResult);

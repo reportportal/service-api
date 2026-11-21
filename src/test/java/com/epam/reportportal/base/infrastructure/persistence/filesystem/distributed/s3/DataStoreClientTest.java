@@ -20,6 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.AdditionalMatchers.aryEq;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -37,6 +38,7 @@ import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
 import org.apache.opendal.Metadata;
@@ -162,8 +164,8 @@ class DataStoreClientTest {
   }
 
   @ParameterizedTest
-  @ValueSource(strings = {"prj/../x", "../x", "/etc/passwd", "prj/2024-1/..", "prj\\..\\x",
-      "\\x"})
+  @ValueSource(strings = {"prj/../x", "../x", "/../x", "prj/2024-1/..", "prj\\..\\x",
+      "\\..\\x"})
   @DisplayName("Save, load, load range and delete reject keys escaping the storage root")
   void rejectsTraversalKeys(String filePath) {
     when(featureFlagHandler.isEnabled(FeatureFlag.SINGLE_BUCKET)).thenReturn(false);
@@ -174,6 +176,21 @@ class DataStoreClientTest {
     assertThrows(ReportPortalException.class, () -> dataStoreClient.loadRange(filePath, 0, 1));
     assertThrows(ReportPortalException.class, () -> dataStoreClient.delete(filePath));
     verifyNoInteractions(operator);
+  }
+
+  @ParameterizedTest
+  @ValueSource(booleans = {false, true})
+  @DisplayName("Leading slashes are stripped so absolute keys resolve to the same object")
+  void stripsLeadingSlashes(boolean singleBucket) {
+    when(featureFlagHandler.isEnabled(FeatureFlag.SINGLE_BUCKET)).thenReturn(singleBucket);
+    String expected = singleBucket ? "etc/passwd" : BUCKET_PREFIX + "etc" + BUCKET_POSTFIX + "/passwd";
+
+    dataStoreClient.delete("/etc/passwd");
+    dataStoreClient.delete("//etc/passwd");
+    dataStoreClient.delete("\\etc\\passwd");
+    dataStoreClient.delete("etc/passwd");
+
+    verify(operator, times(4)).delete(expected);
   }
 
   @Test
@@ -208,6 +225,38 @@ class DataStoreClientTest {
           missing.readAllBytes();
         }
       });
+    }
+  }
+
+  @ParameterizedTest
+  @ValueSource(booleans = {false, true})
+  @DisplayName("Filesystem store: absolute and relative forms of a key address the same object inside the root")
+  void filesystemAbsoluteKeyRoundTrip(boolean singleBucket, @TempDir Path root) throws Exception {
+    when(featureFlagHandler.isEnabled(FeatureFlag.SINGLE_BUCKET)).thenReturn(singleBucket);
+    try (Operator fsOperator = Operator.of("fs", Map.of("root", root.toString()))) {
+      var client = new DataStoreClient(fsOperator, BUCKET_PREFIX, BUCKET_POSTFIX,
+          DEFAULT_BUCKET_NAME, featureFlagHandler);
+      byte[] content = "x-content".getBytes();
+      client.save("x/y", new ByteArrayInputStream(content));
+      try (InputStream loaded = client.load("/x/y")) {
+        assertArrayEquals(content, loaded.readAllBytes());
+      }
+
+      // salt-style absolute path, as rp.integration.salt.path=/data/keystore would produce
+      String saltPath = "/data/keystore/secret-integration-salt";
+      byte[] salt = "salt".getBytes();
+      client.save(saltPath, new ByteArrayInputStream(salt));
+      assertEquals(salt.length, client.getSize(saltPath));
+      try (InputStream loaded = client.load(saltPath)) {
+        assertArrayEquals(salt, loaded.readAllBytes());
+      }
+      try (InputStream loaded = client.load("data/keystore/secret-integration-salt")) {
+        assertArrayEquals(salt, loaded.readAllBytes());
+      }
+      try (var files = Files.walk(root)) {
+        assertEquals(2, files.filter(Files::isRegularFile)
+            .peek(file -> assertTrue(file.startsWith(root))).count());
+      }
     }
   }
 }

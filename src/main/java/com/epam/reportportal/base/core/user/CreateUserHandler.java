@@ -46,7 +46,7 @@ public interface CreateUserHandler {
    * Create restore password bid
    *
    * @param rq      Restore RQ
-   * @param baseUrl App Base URL for reset URL to be built
+   * @param baseUrl App Base URL for reset URL to be built, or {@code null} when it cannot be trusted (no e-mail is sent)
    * @return Operation result
    */
   OperationCompletionRS createRestorePasswordBid(RestorePasswordRQ rq, String baseUrl);

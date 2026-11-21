@@ -66,6 +66,14 @@ class InvitationControllerTest extends BaseMvcTest {
   @Autowired
   ProjectUserRepository projectUserRepository;
 
+  @Test
+  void createInvitationAnonymousIsUnauthorized() throws Exception {
+    mockMvc.perform(post(INVITATIONS_ENDPOINT)
+            .contentType(APPLICATION_JSON)
+            .content(objectMapper.writeValueAsBytes(new InvitationRequest().email("anonymous@example.com"))))
+        .andExpect(status().isUnauthorized());
+  }
+
   @ParameterizedTest
   @CsvSource(value = {
       "MANAGER|EDITOR|1",

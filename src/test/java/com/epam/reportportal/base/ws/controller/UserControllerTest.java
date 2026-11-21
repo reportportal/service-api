@@ -36,6 +36,7 @@ import com.epam.reportportal.api.model.SearchCriteriaSearchCriteriaInner;
 import com.epam.reportportal.base.core.user.ApiKeyHandler;
 import com.epam.reportportal.base.infrastructure.model.ValidationConstraints;
 import com.epam.reportportal.base.infrastructure.persistence.dao.UserRepository;
+import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRole;
 import com.epam.reportportal.base.model.ApiKeyRQ;
 import com.epam.reportportal.base.model.Page;
 import com.epam.reportportal.base.model.user.ChangePasswordRQ;
@@ -311,7 +312,22 @@ class UserControllerTest extends BaseMvcTest {
 
   @Test
   void getUserProjects() throws Exception {
-    mockMvc.perform(get(USERS_URL + "default/projects").with(token(oAuthHelper.getDefaultToken())))
+    mockMvc.perform(get(USERS_URL + DEFAULT_USERNAME + "/projects").with(token(oAuthHelper.getDefaultToken())))
+        .andExpect(status().isOk());
+  }
+
+  @Test
+  @Sql("/db/user/user-viewer.sql")
+  void getUserProjectsOfAnotherUserIsForbidden() throws Exception {
+    String otherUserToken = oAuthHelper.createAccessToken("customeremail@domain.com", "1q2w3e", UserRole.USER);
+    mockMvc.perform(get(USERS_URL + DEFAULT_USERNAME + "/projects").with(token(otherUserToken)))
+        .andExpect(status().isForbidden());
+  }
+
+  @Test
+  @Sql("/db/user/user-viewer.sql")
+  void getUserProjectsOfAnotherUserByAdministrator() throws Exception {
+    mockMvc.perform(get(USERS_URL + "customeremail@domain.com/projects").with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk());
   }
 

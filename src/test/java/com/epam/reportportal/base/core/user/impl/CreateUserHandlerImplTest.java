@@ -23,6 +23,7 @@ import static com.epam.reportportal.base.core.user.impl.CreateUserHandlerImpl.EM
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -88,6 +89,7 @@ class CreateUserHandlerImplTest {
   @BeforeEach
   void setUp() {
     ReflectionTestUtils.setField(handler, "restorePasswordBidTtl", Duration.ofHours(24));
+    ReflectionTestUtils.setField(handler, "restorePasswordCooldown", Duration.ofSeconds(60));
   }
 
   @Test
@@ -267,6 +269,54 @@ class CreateUserHandlerImplTest {
     verify(restorePasswordBidRepository).save(any(RestorePasswordBid.class));
     verify(emailService).sendRestorePasswordEmail(eq("Password recovery"),
         eq(new String[]{"internal@example.com"}), any(), any());
+  }
+
+  @Test
+  void restorePasswordWithUntrustedBaseUrlShouldNotSendEmail() {
+    var user = new User();
+    user.setEmail("internal@example.com");
+    user.setUserType(UserType.INTERNAL);
+    when(userRepository.findByEmail("internal@example.com")).thenReturn(Optional.of(user));
+
+    var rs = handler.createRestorePasswordBid(restoreRq("internal@example.com"), null);
+
+    assertEquals(EMAIL_HAS_BEEN_SENT, rs.getResultMessage());
+    verifyNoInteractions(restorePasswordBidRepository, emailServiceFactory);
+  }
+
+  @Test
+  void restorePasswordWithinCooldownShouldNotCreateBidOrSendEmail() {
+    var user = new User();
+    user.setEmail("internal@example.com");
+    user.setUserType(UserType.INTERNAL);
+    when(userRepository.findByEmail("internal@example.com")).thenReturn(Optional.of(user));
+    var existingBid = new RestorePasswordBid();
+    existingBid.setLastModifiedDate(Instant.now().minusSeconds(10));
+    when(restorePasswordBidRepository.findByEmail("internal@example.com")).thenReturn(Optional.of(existingBid));
+
+    var rs = handler.createRestorePasswordBid(restoreRq("internal@example.com"), "http://rp/");
+
+    assertEquals(EMAIL_HAS_BEEN_SENT, rs.getResultMessage());
+    verify(restorePasswordBidRepository, never()).deleteByEmail(any());
+    verify(restorePasswordBidRepository, never()).save(any());
+    verifyNoInteractions(emailServiceFactory);
+  }
+
+  @Test
+  void restorePasswordAfterCooldownShouldReplaceBidAndSendEmail() {
+    var user = new User();
+    user.setEmail("internal@example.com");
+    user.setUserType(UserType.INTERNAL);
+    when(userRepository.findByEmail("internal@example.com")).thenReturn(Optional.of(user));
+    var existingBid = new RestorePasswordBid();
+    existingBid.setLastModifiedDate(Instant.now().minusSeconds(120));
+    when(restorePasswordBidRepository.findByEmail("internal@example.com")).thenReturn(Optional.of(existingBid));
+    when(emailServiceFactory.getDefaultEmailService(true)).thenReturn(emailService);
+
+    handler.createRestorePasswordBid(restoreRq("internal@example.com"), "http://rp/");
+
+    verify(restorePasswordBidRepository).deleteByEmail("internal@example.com");
+    verify(restorePasswordBidRepository).save(any(RestorePasswordBid.class));
   }
 
   private static RestorePasswordRQ restoreRq(String email) {

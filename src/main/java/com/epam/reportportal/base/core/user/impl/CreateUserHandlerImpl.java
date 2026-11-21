@@ -88,6 +88,9 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
   @Value("${rp.restore.password.bid.ttl:PT24H}")
   private Duration restorePasswordBidTtl;
 
+  @Value("${rp.restore.password.cooldown:PT60S}")
+  private Duration restorePasswordCooldown;
+
   @Override
   public InstanceUser createUser(NewUserRequest request, ReportPortalUser creator,
       String basicUrl) {
@@ -122,6 +125,21 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
     if (user.get().getUserType() != UserType.INTERNAL) {
       log.info("Password recovery requested for non-internal user id={}, type={}; skipped",
           user.get().getId(), user.get().getUserType());
+      return new OperationCompletionRS(EMAIL_HAS_BEEN_SENT);
+    }
+
+    if (baseUrl == null) {
+      log.warn("Password recovery requested for user id={} from an untrusted host; e-mail not sent", user.get().getId());
+      return new OperationCompletionRS(EMAIL_HAS_BEEN_SENT);
+    }
+
+    boolean recentlyRequested = restorePasswordBidRepository.findByEmail(email)
+        .map(RestorePasswordBid::getLastModified)
+        .map(issuedAt -> issuedAt.plus(restorePasswordCooldown).isAfter(Instant.now()))
+        .orElse(false);
+    if (recentlyRequested) {
+      log.info("Password recovery for user id={} was requested less than {} ago; e-mail not sent",
+          user.get().getId(), restorePasswordCooldown);
       return new OperationCompletionRS(EMAIL_HAS_BEEN_SENT);
     }
 

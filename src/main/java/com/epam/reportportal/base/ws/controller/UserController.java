@@ -188,7 +188,8 @@ public class UserController {
   @Operation(summary = "Create a restore password request")
   public OperationCompletionRS restorePassword(@RequestBody @Validated RestorePasswordRQ rq,
       HttpServletRequest request) {
-    return createUserMessageHandler.createRestorePasswordBid(rq, linkGenerator.composeBaseUrl(request));
+    return createUserMessageHandler.createRestorePasswordBid(rq,
+        linkGenerator.composeTrustedBaseUrl(request).orElse(null));
   }
 
   @Transactional
@@ -222,7 +223,7 @@ public class UserController {
   @ResponseStatus(OK)
   public Map<String, UserResource.AssignedProject> getUserProjects(@PathVariable String userName,
       @AuthenticationPrincipal ReportPortalUser currentUser) {
-    return getUserHandler.getUserProjects(userName);
+    return getUserHandler.getUserProjects(userName, currentUser);
   }
 
   @Transactional(readOnly = true)

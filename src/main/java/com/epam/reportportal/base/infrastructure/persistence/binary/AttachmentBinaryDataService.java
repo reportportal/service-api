@@ -49,6 +49,4 @@ public interface AttachmentBinaryDataService {
   BinaryData loadForStreaming(AttachmentStreamMetadata metadata, long offset, long length);
 
   void delete(String fileId);
-
-  void deleteAllByProjectId(Long projectId);
 }

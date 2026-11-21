@@ -44,7 +44,6 @@ import java.nio.file.Paths;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -220,18 +219,6 @@ public class AttachmentBinaryDataServiceImpl implements AttachmentBinaryDataServ
       dataStoreService.delete(fileId);
       attachmentRepository.findByFileId(fileId).ifPresent(attachmentRepository::delete);
     }
-  }
-
-  @Override
-  public void deleteAllByProjectId(Long projectId) {
-    if (featureFlagHandler.isEnabled(FeatureFlag.SINGLE_BUCKET)) {
-      dataStoreService.deleteAll(
-          attachmentRepository.findAllByProjectId(projectId).stream().map(Attachment::getFileId)
-              .collect(Collectors.toList()), projectId.toString());
-    } else {
-      dataStoreService.deleteContainer(projectId.toString());
-    }
-    attachmentRepository.deleteAllByProjectId(projectId);
   }
 
   private String resolveContentType(MultipartFile file) throws IOException {

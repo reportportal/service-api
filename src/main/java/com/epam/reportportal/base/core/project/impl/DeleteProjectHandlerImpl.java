@@ -28,11 +28,12 @@ import com.epam.reportportal.base.core.analyzer.auto.impl.AnalyzerUtils;
 import com.epam.reportportal.base.core.events.domain.ProjectBulkDeletedEvent;
 import com.epam.reportportal.base.core.events.domain.ProjectDeletedEvent;
 import com.epam.reportportal.base.core.events.domain.ProjectIndexEvent;
+import com.epam.reportportal.base.core.log.LogService;
 import com.epam.reportportal.base.core.project.DeleteProjectHandler;
 import com.epam.reportportal.base.core.remover.ContentRemover;
 import com.epam.reportportal.base.core.tms.service.TmsAttachmentService;
-import com.epam.reportportal.base.infrastructure.persistence.binary.AttachmentBinaryDataService;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
+import com.epam.reportportal.base.infrastructure.persistence.dao.AttachmentRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IssueTypeRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.LogRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectRepository;
@@ -90,7 +91,9 @@ public class DeleteProjectHandlerImpl implements DeleteProjectHandler {
 
   private final LogRepository logRepository;
 
-  private final AttachmentBinaryDataService attachmentBinaryDataService;
+  private final AttachmentRepository attachmentRepository;
+
+  private final LogService logService;
 
   private final TmsAttachmentService tmsAttachmentService;
 
@@ -184,7 +187,8 @@ public class DeleteProjectHandlerImpl implements DeleteProjectHandler {
         "Project index with key = '" + projectKey + "' is successfully deleted.");
   }
 
-  private OperationCompletionRS deleteProject(Project project) {
+  @Override
+  public OperationCompletionRS deleteProject(Project project) {
     Set<Long> defaultIssueTypeIds =
         issueTypeRepository.getDefaultIssueTypes().stream().map(IssueType::getId)
             .collect(Collectors.toSet());
@@ -196,7 +200,8 @@ public class DeleteProjectHandlerImpl implements DeleteProjectHandler {
     logIndexer.deleteIndexAsync(project.getId());
     analyzerServiceClient.removeSuggest(project.getId());
     logRepository.deleteByProjectId(project.getId());
-    attachmentBinaryDataService.deleteAllByProjectId(project.getId());
+    logService.deleteLogMessageByProject(project.getId());
+    attachmentRepository.moveForDeletionByProjectId(project.getId());
     tmsAttachmentService.deleteAllByProjectId(project.getId());
     projectContentRemover.remove(project);
     projectRepository.delete(project);

@@ -22,6 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -31,10 +32,11 @@ import com.epam.reportportal.base.core.analyzer.auto.client.AnalyzerServiceClien
 import com.epam.reportportal.base.core.analyzer.auto.impl.AnalyzerStatusCache;
 import com.epam.reportportal.base.core.events.domain.ProjectDeletedEvent;
 import com.epam.reportportal.base.core.events.domain.ProjectIndexEvent;
+import com.epam.reportportal.base.core.log.LogService;
 import com.epam.reportportal.base.core.remover.ContentRemover;
 import com.epam.reportportal.base.core.tms.service.TmsAttachmentService;
-import com.epam.reportportal.base.infrastructure.persistence.binary.AttachmentBinaryDataService;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
+import com.epam.reportportal.base.infrastructure.persistence.dao.AttachmentRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IssueTypeRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.LogRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectRepository;
@@ -58,6 +60,7 @@ import java.util.Optional;
 import org.mockito.ArgumentCaptor;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -97,7 +100,10 @@ class DeleteProjectHandlerImplTest {
   private LogRepository logRepository;
 
   @Mock
-  private AttachmentBinaryDataService attachmentBinaryDataService;
+  private AttachmentRepository attachmentRepository;
+
+  @Mock
+  private LogService logService;
 
   @Mock
   private TmsAttachmentService tmsAttachmentService;
@@ -241,6 +247,10 @@ class DeleteProjectHandlerImplTest {
     verify(projectContentRemover, times(1)).remove(project);
     verify(logIndexer, times(1)).deleteIndexAsync(projectId);
     verify(analyzerServiceClient, times(1)).removeSuggest(projectId);
+    verify(logService, times(1)).deleteLogMessageByProject(projectId);
+    InOrder inOrder = inOrder(attachmentRepository, projectRepository);
+    inOrder.verify(attachmentRepository, times(1)).moveForDeletionByProjectId(projectId);
+    inOrder.verify(projectRepository, times(1)).delete(project);
 
     ArgumentCaptor<ProjectDeletedEvent> eventCaptor =
         ArgumentCaptor.forClass(ProjectDeletedEvent.class);

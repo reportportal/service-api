@@ -332,6 +332,14 @@ public interface TestItemRepository extends ReportPortalRepository<TestItem, Lon
   Optional<TestItem> findByUuid(String uuid);
 
   /**
+   * Checks whether a test item with the provided uuid exists (unique index lookup).
+   *
+   * @param uuid {@link TestItem#getUuid()}
+   * @return true if the item exists
+   */
+  boolean existsByUuid(String uuid);
+
+  /**
    * Finds {@link TestItem#getItemId()} by {@link TestItem#getUuid()} and sets a lock on the found 'item' row in the
    * database. Required for fetching 'item' from the concurrent environment to provide synchronization between dependant
    * entities

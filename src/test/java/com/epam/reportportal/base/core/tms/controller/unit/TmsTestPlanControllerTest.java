@@ -511,6 +511,15 @@ public class TmsTestPlanControllerTest {
   }
 
   @Test
+  void addTestCasesToPlanWithNullFolderIdTest() throws Exception {
+    mockMvc.perform(post("/v1/project/{projectKey}/tms/test-plan/{testPlanId}/test-case/batch",
+            projectKey, 6L)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("{\"folderIds\":[null]}"))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
   void addTestCasesToPlanWithPartialSuccessTest() throws Exception {
     // Given
     Long testPlanId = 9L;

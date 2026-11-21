@@ -24,7 +24,6 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestP
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.model.Page;
 import com.epam.reportportal.base.ws.converter.PagedResourcesAssembler;
-import jakarta.validation.constraints.NotEmpty;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -177,10 +176,8 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
                 testPlanIds.getTotalElements()));
   }
 
-  @Override
-  @Transactional
-  public BatchTestCaseOperationResultRS addTestCasesToPlan(Long projectId, Long testPlanId,
-      @NotEmpty List<Long> testCaseIds) {
+  private BatchTestCaseOperationResultRS addTestCasesToPlan(Long projectId, Long testPlanId,
+      List<Long> testCaseIds) {
     verifyTestPlanExists(projectId, testPlanId);
     return addTestCasesToPlan(projectId, testPlanId, testCaseIds, List.of());
   }

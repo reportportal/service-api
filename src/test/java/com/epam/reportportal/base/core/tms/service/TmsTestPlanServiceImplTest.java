@@ -482,7 +482,8 @@ class TmsTestPlanServiceImplTest {
     when(tmsTestPlanTestCaseRepository.findTestCaseIdsByTestPlanId(testPlanId)).thenReturn(List.of(10L));
     when(tmsTestPlanMapper.convertToRS(anyInt(), anyInt(), anyList())).thenReturn(expectedResult);
 
-    var result = sut.addTestCasesToPlan(projectId, testPlanId, testCaseIds);
+    var result = sut.addTestCasesToPlan(projectId, testPlanId,
+        BatchAddTestCasesToPlanRQ.builder().testCaseIds(testCaseIds).build());
 
     assertNotNull(result);
     verify(testPlanRepository).existsByIdAndProject_Id(testPlanId, projectId);
@@ -506,7 +507,8 @@ class TmsTestPlanServiceImplTest {
     when(tmsTestPlanTestCaseRepository.findTestCaseIdsByTestPlanId(testPlanId)).thenReturn(List.of());
     when(tmsTestPlanMapper.convertToRS(anyInt(), anyInt(), anyList())).thenReturn(expectedResult);
 
-    var result = sut.addTestCasesToPlan(projectId, testPlanId, testCaseIds);
+    var result = sut.addTestCasesToPlan(projectId, testPlanId,
+        BatchAddTestCasesToPlanRQ.builder().testCaseIds(testCaseIds).build());
 
     assertNotNull(result);
     verify(tmsTestPlanTestCaseRepository)
@@ -525,7 +527,8 @@ class TmsTestPlanServiceImplTest {
         .thenThrow(new RuntimeException("Database error"));
 
     assertThrows(RuntimeException.class,
-        () -> sut.addTestCasesToPlan(projectId, testPlanId, testCaseIds));
+        () -> sut.addTestCasesToPlan(projectId, testPlanId,
+        BatchAddTestCasesToPlanRQ.builder().testCaseIds(testCaseIds).build()));
     verify(tmsTestPlanMapper, never()).convertToRS(anyInt(), anyInt(), anyList());
   }
 
@@ -537,7 +540,8 @@ class TmsTestPlanServiceImplTest {
 
     when(testPlanRepository.existsByIdAndProject_Id(testPlanId, projectId)).thenReturn(false);
 
-    var exception = assertThrows(ReportPortalException.class, () -> sut.addTestCasesToPlan(projectId, testPlanId, testCaseIds));
+    var exception = assertThrows(ReportPortalException.class, () -> sut.addTestCasesToPlan(projectId, testPlanId,
+        BatchAddTestCasesToPlanRQ.builder().testCaseIds(testCaseIds).build()));
 
     assertEquals(ErrorType.NOT_FOUND, exception.getErrorType());
     verify(testPlanRepository).existsByIdAndProject_Id(testPlanId, projectId);
@@ -698,7 +702,8 @@ class TmsTestPlanServiceImplTest {
     when(tmsTestPlanTestCaseRepository.findTestCaseIdsByTestPlanId(testPlanId)).thenReturn(List.of());
     when(tmsTestPlanMapper.convertToRS(anyInt(), anyInt(), anyList())).thenReturn(expectedResult);
 
-    var result = sut.addTestCasesToPlan(projectId, testPlanId, testCaseIds);
+    var result = sut.addTestCasesToPlan(projectId, testPlanId,
+        BatchAddTestCasesToPlanRQ.builder().testCaseIds(testCaseIds).build());
 
     assertNotNull(result);
     verify(tmsTestPlanTestCaseRepository, never()).insertTestPlanTestCasesInProject(any(), any(), any());

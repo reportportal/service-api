@@ -23,8 +23,6 @@ public interface TmsTestPlanService extends CrudService<TmsTestPlanRQ, TmsTestPl
 
   Page<TmsTestPlanRS> getByCriteria(Long projectId, Filter filter, Pageable pageable);
 
-  BatchTestCaseOperationResultRS addTestCasesToPlan(Long projectId, Long testPlanId, @NotEmpty List<Long> testCaseIds);
-
   /**
    * Adds the explicit test cases and the whole subtrees of the given folders to a test plan. Explicit
    * IDs report "not found" / "already exists" errors per ID; folder-resolved test cases already in

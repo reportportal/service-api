@@ -3,6 +3,7 @@ package com.epam.reportportal.base.core.tms.dto.batch;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.AssertTrue;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.util.List;
 import lombok.AllArgsConstructor;
@@ -21,7 +22,7 @@ public class BatchAddTestCasesToPlanRQ {
 
   @Size(max = 100)
   @Schema(description = "Folders whose whole subtree of test cases is added")
-  private List<Long> folderIds;
+  private List<@NotNull Long> folderIds;
 
   @JsonIgnore
   @Schema(hidden = true)

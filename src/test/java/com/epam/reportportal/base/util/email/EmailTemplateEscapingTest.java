@@ -75,6 +75,24 @@ class EmailTemplateEscapingTest {
   }
 
   @Test
+  void emailChangeConfirmationRendersLinkAndEscapesLogin() {
+    String html = engine.merge("email-change-confirm-template.ftl",
+        Map.of("login", "a<b>@x.com", "url", "http://rp.example.com#login?confirmEmail=abc&x=1"));
+    assertTrue(html.contains("href=\"http://rp.example.com#login?confirmEmail=abc&amp;x=1\""));
+    assertTrue(html.contains("a&lt;b&gt;@x.com"));
+    assertFalse(html.contains("a<b>@x.com"));
+  }
+
+  @Test
+  void emailChangeNoticeEscapesNewEmail() {
+    String html = engine.merge("email-change-notice-template.ftl",
+        Map.of("login", "user@x.com", "new_email", "\"><a href=\"http://evil\">x</a>@x.com"));
+    assertTrue(html.contains("user@x.com"));
+    assertFalse(html.contains("<a href=\"http://evil\">"));
+    assertTrue(html.contains("&quot;&gt;&lt;a href=&quot;http://evil&quot;&gt;x&lt;/a&gt;@x.com"));
+  }
+
+  @Test
   void plainValuesInOtherTemplatesAreEscapedToo() {
     String html = engine.merge("create-user-template.ftl",
         Map.of("login", "a<i>", "password", "p&\"w", "url", "http://rp"));

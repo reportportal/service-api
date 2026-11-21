@@ -27,14 +27,17 @@ import static org.mockito.Mockito.when;
 
 import com.epam.reportportal.base.core.auth.TokenBlacklistService;
 import com.epam.reportportal.base.core.events.domain.ChangeUserTypeEvent;
+import com.epam.reportportal.base.core.user.impl.EmailChangeConfirmationService.PendingEmailChange;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.UserRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationRole;
+import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectRole;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.User;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRole;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserType;
+import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -75,6 +78,9 @@ class UserMutationServiceImplTest {
 
   @Mock
   private PasswordEncoder passwordEncoder;
+
+  @Mock
+  private EmailChangeConfirmationService emailChangeConfirmationService;
 
   @InjectMocks
   private UserMutationServiceImpl userMutationService;
@@ -130,19 +136,42 @@ class UserMutationServiceImplTest {
     }
 
     @Test
-    @DisplayName("Should let an internal user change their own email and revoke tokens issued for the old login")
-    void updateEmailWhenSelfInternalShouldUpdateAndRevokeTokensOfOldLogin() {
+    @DisplayName("Should record a pending change instead of changing the email when an internal user changes their own")
+    void updateEmailWhenSelfInternalShouldRequestConfirmation() {
       when(userRepository.findByEmail("new@example.com")).thenReturn(Optional.empty());
-      when(projectRepository.findUserProjects("user@example.com")).thenReturn(Collections.emptyList());
-      List<String> revokedLogins = new ArrayList<>();
-      doAnswer(inv -> revokedLogins.add(((User) inv.getArgument(0)).getLogin()))
-          .when(tokenBlacklistService).revokeUserTokens(user);
 
-      userMutationService.updateEmail(user, "new@example.com", selfEditor());
+      userMutationService.updateEmail(user, "New@Example.com", selfEditor());
 
-      assertThat(user.getEmail()).isEqualTo("new@example.com");
-      assertThat(user.getLogin()).isEqualTo("new@example.com");
-      assertThat(revokedLogins).containsExactly("user@example.com");
+      verify(emailChangeConfirmationService).requestChange(user, "new@example.com");
+      assertThat(user.getEmail()).isEqualTo("user@example.com");
+      assertThat(user.getLogin()).isEqualTo("user@example.com");
+      verify(tokenBlacklistService, never()).revokeUserTokens(any());
+      verify(projectRepository, never()).saveAll(any());
+    }
+
+    @Test
+    @DisplayName("Should require confirmation when an administrator changes their own email")
+    void updateEmailWhenAdminSelfShouldRequestConfirmation() {
+      when(userRepository.findByEmail("new@example.com")).thenReturn(Optional.empty());
+
+      userMutationService.updateEmail(user, "new@example.com", editorWithId(UserRole.ADMINISTRATOR, user.getId()));
+
+      verify(emailChangeConfirmationService).requestChange(user, "new@example.com");
+      assertThat(user.getEmail()).isEqualTo("user@example.com");
+      verify(tokenBlacklistService, never()).revokeUserTokens(any());
+    }
+
+    @Test
+    @DisplayName("Should not record a pending change for an email that is already taken")
+    void updateEmailWhenSelfAndDuplicateShouldThrowWithoutRequest() {
+      var existingUser = new User();
+      existingUser.setId(99L);
+      when(userRepository.findByEmail("new@example.com")).thenReturn(Optional.of(existingUser));
+
+      assertThatThrownBy(() -> userMutationService.updateEmail(user, "new@example.com", selfEditor()))
+          .isInstanceOf(ReportPortalException.class)
+          .hasMessageContaining("already exists");
+      verify(emailChangeConfirmationService, never()).requestChange(any(), any());
     }
 
     @ParameterizedTest
@@ -280,6 +309,129 @@ class UserMutationServiceImplTest {
       assertThat(user.getEmail()).isEqualTo("new@example.com");
       assertThat(user.getLogin()).isEqualTo("new@example.com");
       verify(tokenBlacklistService).revokeUserTokens(user);
+      verify(emailChangeConfirmationService, never()).requestChange(any(), any());
+    }
+  }
+
+  @Nested
+  @DisplayName("confirmEmailChange")
+  class ConfirmEmailChange {
+
+    private static final String TOKEN = "3f1c1a52-1c2e-4a4b-9a7e-0d5b8c0e9f11";
+
+    private PendingEmailChange pending() {
+      return new PendingEmailChange(TOKEN, user.getId(), "user@example.com", "new@example.com");
+    }
+
+    @Test
+    @DisplayName("Should apply the change, revoke tokens of the old login and remove the pending change")
+    void confirmShouldApplyEmailAndRevokeTokensOfOldLogin() {
+      Project project = new Project();
+      when(emailChangeConfirmationService.findPending(TOKEN)).thenReturn(Optional.of(pending()));
+      when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+      when(userRepository.findByEmail("new@example.com")).thenReturn(Optional.empty());
+      when(projectRepository.findUserProjects("user@example.com")).thenReturn(List.of(project));
+      List<String> revokedLogins = new ArrayList<>();
+      doAnswer(inv -> revokedLogins.add(((User) inv.getArgument(0)).getLogin()))
+          .when(tokenBlacklistService).revokeUserTokens(user);
+
+      User result = userMutationService.confirmEmailChange(TOKEN);
+
+      assertThat(result).isSameAs(user);
+      assertThat(user.getEmail()).isEqualTo("new@example.com");
+      assertThat(user.getLogin()).isEqualTo("new@example.com");
+      assertThat(revokedLogins).containsExactly("user@example.com");
+      verify(projectRepository).saveAll(List.of(project));
+      verify(emailChangeConfirmationService).completeChange(user.getId());
+    }
+
+    @Test
+    @DisplayName("Should reject an unknown, used or expired token with 400")
+    void confirmWhenTokenUnknownShouldThrowIncorrectRequest() {
+      when(emailChangeConfirmationService.findPending(TOKEN)).thenReturn(Optional.empty());
+
+      assertThatThrownBy(() -> userMutationService.confirmEmailChange(TOKEN))
+          .isInstanceOf(ReportPortalException.class)
+          .hasMessageContaining("Email change link is invalid or expired")
+          .extracting(e -> ((ReportPortalException) e).getErrorType())
+          .isEqualTo(ErrorType.INCORRECT_REQUEST);
+      verify(tokenBlacklistService, never()).revokeUserTokens(any());
+    }
+
+    @Test
+    @DisplayName("Should reject the token when the user no longer exists")
+    void confirmWhenUserMissingShouldThrowIncorrectRequest() {
+      when(emailChangeConfirmationService.findPending(TOKEN)).thenReturn(Optional.of(pending()));
+      when(userRepository.findById(user.getId())).thenReturn(Optional.empty());
+
+      assertThatThrownBy(() -> userMutationService.confirmEmailChange(TOKEN))
+          .isInstanceOf(ReportPortalException.class)
+          .extracting(e -> ((ReportPortalException) e).getErrorType())
+          .isEqualTo(ErrorType.INCORRECT_REQUEST);
+    }
+
+    @Test
+    @DisplayName("Should reject the token when the email was changed another way after it was issued")
+    void confirmWhenEmailChangedMeanwhileShouldThrowIncorrectRequest() {
+      user.setEmail("admin-set@example.com");
+      user.setLogin("admin-set@example.com");
+      when(emailChangeConfirmationService.findPending(TOKEN)).thenReturn(Optional.of(pending()));
+      when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+
+      assertThatThrownBy(() -> userMutationService.confirmEmailChange(TOKEN))
+          .isInstanceOf(ReportPortalException.class)
+          .extracting(e -> ((ReportPortalException) e).getErrorType())
+          .isEqualTo(ErrorType.INCORRECT_REQUEST);
+      assertThat(user.getEmail()).isEqualTo("admin-set@example.com");
+      verify(emailChangeConfirmationService, never()).completeChange(any());
+    }
+
+    @Test
+    @DisplayName("Should answer 409 when the new email was taken in the meantime")
+    void confirmWhenEmailTakenShouldThrowUserAlreadyExists() {
+      var existingUser = new User();
+      existingUser.setId(99L);
+      when(emailChangeConfirmationService.findPending(TOKEN)).thenReturn(Optional.of(pending()));
+      when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+      when(userRepository.findByEmail("new@example.com")).thenReturn(Optional.of(existingUser));
+
+      assertThatThrownBy(() -> userMutationService.confirmEmailChange(TOKEN))
+          .isInstanceOf(ReportPortalException.class)
+          .extracting(e -> ((ReportPortalException) e).getErrorType())
+          .isEqualTo(ErrorType.USER_ALREADY_EXISTS);
+      assertThat(user.getEmail()).isEqualTo("user@example.com");
+      verify(tokenBlacklistService, never()).revokeUserTokens(any());
+      verify(emailChangeConfirmationService, never()).completeChange(any());
+    }
+
+    @Test
+    @DisplayName("Should refuse when the account has been deactivated")
+    void confirmWhenUserInactiveShouldThrowAccessDenied() {
+      user.setActive(false);
+      when(emailChangeConfirmationService.findPending(TOKEN)).thenReturn(Optional.of(pending()));
+      when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+
+      assertThatThrownBy(() -> userMutationService.confirmEmailChange(TOKEN))
+          .isInstanceOf(ReportPortalException.class)
+          .extracting(e -> ((ReportPortalException) e).getErrorType())
+          .isEqualTo(ErrorType.ACCESS_DENIED);
+      assertThat(user.getEmail()).isEqualTo("user@example.com");
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = UserType.class, names = "INTERNAL", mode = EnumSource.Mode.EXCLUDE)
+    @DisplayName("Should refuse when the account is no longer INTERNAL")
+    void confirmWhenUserNotInternalShouldThrowAccessDenied(UserType type) {
+      user.setUserType(type);
+      when(emailChangeConfirmationService.findPending(TOKEN)).thenReturn(Optional.of(pending()));
+      when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+
+      assertThatThrownBy(() -> userMutationService.confirmEmailChange(TOKEN))
+          .isInstanceOf(ReportPortalException.class)
+          .extracting(e -> ((ReportPortalException) e).getErrorType())
+          .isEqualTo(ErrorType.ACCESS_DENIED);
+      assertThat(user.getEmail()).isEqualTo("user@example.com");
+      verify(tokenBlacklistService, never()).revokeUserTokens(any());
     }
   }
 

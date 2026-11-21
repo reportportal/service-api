@@ -295,6 +295,66 @@ public class EmailService extends JavaMailSenderImpl {
   }
 
   /**
+   * Email with the link confirming a self-service email change, sent to the new address.
+   *
+   * @param subject    Letter's subject
+   * @param recipients Letter's recipients (the new address)
+   * @param url        Confirmation link
+   * @param login      User's current login
+   */
+  public void sendEmailChangeConfirmation(
+      final String subject, final String[] recipients, final String url, final String login) {
+    MimeMessagePreparator preparator =
+        mimeMessage -> {
+          MimeMessageHelper message = new MimeMessageHelper(mimeMessage, true, "utf-8");
+          message.setSubject(subject);
+          message.setTo(recipients);
+
+          setFrom(message);
+
+          Map<String, Object> email = new HashMap<>();
+          email.put("login", login);
+          email.put("url", getUrl(url));
+          String text = templateEngine.merge("email-change-confirm-template.ftl", email);
+          message.setText(text, true);
+
+          message.addInline("restore-password.png", emailTemplateResource("restore-password.png"));
+          attachSocialImages(message);
+        };
+    this.send(preparator);
+  }
+
+  /**
+   * Notice that a change of the account's email was requested, sent to the current address.
+   *
+   * @param subject    Letter's subject
+   * @param recipients Letter's recipients (the current address)
+   * @param newEmail   The requested new address
+   * @param login      User's current login
+   */
+  public void sendEmailChangeRequestedNotice(
+      final String subject, final String[] recipients, final String newEmail, final String login) {
+    MimeMessagePreparator preparator =
+        mimeMessage -> {
+          MimeMessageHelper message = new MimeMessageHelper(mimeMessage, true, "utf-8");
+          message.setSubject(subject);
+          message.setTo(recipients);
+
+          setFrom(message);
+
+          Map<String, Object> email = new HashMap<>();
+          email.put("login", login);
+          email.put("new_email", newEmail);
+          String text = templateEngine.merge("email-change-notice-template.ftl", email);
+          message.setText(text, true);
+
+          message.addInline("illustration.png", emailTemplateResource("illustration.png"));
+          attachSocialImages(message);
+        };
+    this.send(preparator);
+  }
+
+  /**
    * Sends a confirmation email to the user after changing the password.
    *
    * @param subject    the subject of the email

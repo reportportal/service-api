@@ -134,7 +134,8 @@ public class UserInvitationHandler {
    * @return the invitation corresponding to the given ID
    */
   public Invitation getInvitation(String invitationId) {
-    var bid = userCreationBidRepository.findById(invitationId)
+    // Typed lookup: the same table also holds pending email changes (EmailChangeConfirmationService).
+    var bid = userCreationBidRepository.findByUuidAndType(invitationId, INTERNAL_BID_TYPE)
         .orElseThrow(() -> new ReportPortalException(ErrorType.NOT_FOUND, "User invitation id"));
 
     var invitation = InvitationConverter.TO_INVITATION.apply(bid);

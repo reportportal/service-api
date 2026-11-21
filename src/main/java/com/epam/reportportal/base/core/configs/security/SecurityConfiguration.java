@@ -100,6 +100,7 @@ public class SecurityConfiguration {
                 "/v1/users/password/reset",
                 "/v1/users/password/reset/*",
                 "/v1/users/password/restore",
+                "/v1/users/email/confirm",
                 "/v1/plugin/public/**",
                 "/v1/public/**",
                 "/v1/public/integration/grafana/**",

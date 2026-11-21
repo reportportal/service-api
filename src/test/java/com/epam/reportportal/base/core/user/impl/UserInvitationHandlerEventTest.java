@@ -129,6 +129,27 @@ class UserInvitationHandlerEventTest {
   }
 
   @Test
+  void getInvitationShouldNotExposePendingEmailChange() {
+    when(userCreationBidRepository.findByUuidAndType(BID_UUID, INTERNAL_BID_TYPE)).thenReturn(Optional.empty());
+
+    var exception = assertThrows(ReportPortalException.class, () -> handler.getInvitation(BID_UUID));
+
+    assertEquals(ErrorType.NOT_FOUND, exception.getErrorType());
+    verify(userCreationBidRepository, never()).findById(anyString());
+  }
+
+  @Test
+  void activateShouldNotAcceptPendingEmailChangeToken() {
+    when(userCreationBidRepository.findByUuidAndType(BID_UUID, INTERNAL_BID_TYPE)).thenReturn(Optional.empty());
+
+    var exception = assertThrows(ReportPortalException.class,
+        () -> handler.activate(new InvitationActivation(), BID_UUID));
+
+    assertEquals(ErrorType.INCORRECT_REQUEST, exception.getErrorType());
+    verify(userCreationBidRepository, never()).deleteByUuid(anyString());
+  }
+
+  @Test
   void activateInvitationWithProjectShouldPublishAssignUserToOrgAndProjectEvents() {
     // given
     InvitationActivation activation = new InvitationActivation();

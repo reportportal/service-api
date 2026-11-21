@@ -39,6 +39,17 @@ public interface UserCreationBidRepository extends ReportPortalRepository<UserCr
   @Query(value = "DELETE FROM UserCreationBid u WHERE  u.lastModified < :date")
   int expireBidsOlderThan(@Param("date") Instant date);
 
+  /**
+   * Deletes the bids of the given type that reference the given user through {@code inviting_user_id}.
+   *
+   * @param userId the user id
+   * @param type   the bid type stored in {@code metadata.metadata.type}
+   * @return number of deleted rows
+   */
+  @Modifying
+  @Query(value = "DELETE FROM user_creation_bid bid WHERE bid.inviting_user_id = :userId AND (bid.metadata -> 'metadata'->>'type' = :type)", nativeQuery = true)
+  int deleteByInvitingUserIdAndType(@Param("userId") Long userId, @Param("type") String type);
+
   Optional<UserCreationBid> findFirstByEmailOrderByLastModifiedDesc(String email);
 
   void deleteByUuid(String uuid);

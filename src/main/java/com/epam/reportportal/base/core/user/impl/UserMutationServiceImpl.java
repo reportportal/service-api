@@ -19,9 +19,11 @@ package com.epam.reportportal.base.core.user.impl;
 import static com.epam.reportportal.base.infrastructure.model.ValidationConstraints.MAX_USER_NAME_LENGTH;
 import static com.epam.reportportal.base.infrastructure.model.ValidationConstraints.MIN_USER_NAME_LENGTH;
 import static com.epam.reportportal.base.infrastructure.model.ValidationConstraints.USER_FULL_NAME_REGEXP;
+import static com.epam.reportportal.base.infrastructure.persistence.commons.Predicates.equalTo;
 import static com.epam.reportportal.base.infrastructure.rules.commons.validation.BusinessRule.expect;
 import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.ACCESS_DENIED;
 import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.BAD_REQUEST_ERROR;
+import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.INCORRECT_REQUEST;
 import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.USER_ALREADY_EXISTS;
 import static com.epam.reportportal.base.util.email.EmailRulesValidator.NORMALIZE_EMAIL;
 
@@ -58,12 +60,14 @@ public class UserMutationServiceImpl implements UserMutationService {
 
   private static final Pattern FULL_NAME_PATTERN = Pattern.compile(USER_FULL_NAME_REGEXP);
   private static final Set<UserType> ALLOWED_ACCOUNT_TYPES = Set.of(UserType.INTERNAL, UserType.SCIM);
+  static final String EMAIL_CHANGE_LINK_INVALID = "Email change link is invalid or expired.";
 
   private final UserRepository userRepository;
   private final ProjectRepository projectRepository;
   private final ApplicationEventPublisher eventPublisher;
   private final TokenBlacklistService tokenBlacklistService;
   private final PasswordEncoder passwordEncoder;
+  private final EmailChangeConfirmationService emailChangeConfirmationService;
 
   @Override
   public void updateEmail(User user, String rawEmail, ReportPortalUser editor) {
@@ -75,6 +79,39 @@ public class UserMutationServiceImpl implements UserMutationService {
     verifyEmailChangeAllowed(user, editor);
     checkEmailUniqueness(email);
 
+    if (isSelfService(user, editor)) {
+      // The owner has to prove they control the new address: the change is applied by confirmEmailChange.
+      emailChangeConfirmationService.requestChange(user, email);
+      return;
+    }
+
+    applyEmail(user, email);
+  }
+
+  @Override
+  public User confirmEmailChange(String uuid) {
+    var pending = emailChangeConfirmationService.findPending(uuid)
+        .orElseThrow(() -> new ReportPortalException(INCORRECT_REQUEST, EMAIL_CHANGE_LINK_INVALID));
+
+    var user = userRepository.findById(pending.userId())
+        .orElseThrow(() -> new ReportPortalException(INCORRECT_REQUEST, EMAIL_CHANGE_LINK_INVALID));
+
+    // The account's email was changed some other way (e.g. by an administrator) after the link was issued.
+    expect(pending.currentEmail(), equalTo(user.getEmail()))
+        .verify(INCORRECT_REQUEST, EMAIL_CHANGE_LINK_INVALID);
+
+    expect(Boolean.TRUE.equals(user.getActive()) && user.getUserType() == UserType.INTERNAL, Boolean.TRUE::equals)
+        .verify(ACCESS_DENIED, "Email of this account cannot be changed.");
+
+    var email = normalizeAndValidateEmail(pending.newEmail());
+    checkEmailUniqueness(email);
+
+    applyEmail(user, email);
+    emailChangeConfirmationService.completeChange(user.getId());
+    return user;
+  }
+
+  private void applyEmail(User user, String email) {
     // Revoke while the user still carries the old login: issued JWTs use it as their subject.
     tokenBlacklistService.revokeUserTokens(user);
 
@@ -92,10 +129,14 @@ public class UserMutationServiceImpl implements UserMutationService {
     }
   }
 
+  private static boolean isSelfService(User user, ReportPortalUser editor) {
+    return editor == null || editor.getUserId() == null || editor.getUserId().equals(user.getId());
+  }
+
   /**
-   * Email equals login, so changing it is an account-recovery-sensitive operation. Until the change is confirmed by a
-   * link sent to the new address, it is allowed only from an interactive (JWT) session, and a user may change their own
-   * email only when the account is managed by ReportPortal itself ({@link UserType#INTERNAL}); accounts provisioned by
+   * Email equals login, so changing it is an account-recovery-sensitive operation. It is allowed only from an
+   * interactive (JWT) session, and a user may change their own email only when the account is managed by ReportPortal
+   * itself ({@link UserType#INTERNAL}); accounts provisioned by
    * SAML, LDAP, SCIM, UPSA and other identity providers get their email from that provider. Administrators may still
    * change the email of other users of any type.
    */
@@ -103,8 +144,7 @@ public class UserMutationServiceImpl implements UserMutationService {
     expect(isInteractiveSession(), Boolean.TRUE::equals)
         .verify(ACCESS_DENIED, "Email cannot be changed with an API key. Sign in to change it.");
 
-    boolean selfService = editor == null || editor.getUserId() == null || editor.getUserId().equals(user.getId());
-    if (selfService) {
+    if (isSelfService(user, editor)) {
       expect(user.getUserType(), UserType.INTERNAL::equals)
           .verify(ACCESS_DENIED, "Email of an externally managed account cannot be changed by its owner.");
     }

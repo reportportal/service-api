@@ -50,6 +50,7 @@ import com.epam.reportportal.base.model.ModelViews;
 import com.epam.reportportal.base.model.Page;
 import com.epam.reportportal.base.model.YesNoRS;
 import com.epam.reportportal.base.model.user.ChangePasswordRQ;
+import com.epam.reportportal.base.model.user.ConfirmEmailChangeRQ;
 import com.epam.reportportal.base.model.user.EditUserRQ;
 import com.epam.reportportal.base.model.user.ResetPasswordRQ;
 import com.epam.reportportal.base.model.user.RestorePasswordRQ;
@@ -206,6 +207,16 @@ public class UserController {
   @Operation(summary = "Check if a restore password bid exists")
   public YesNoRS isRestorePasswordBidExist(@PathVariable String uuid) {
     return createUserMessageHandler.isResetPasswordBidExist(uuid);
+  }
+
+  @Transactional
+  @PostMapping(value = "/email/confirm")
+  @ResponseStatus(OK)
+  @Operation(summary = "Confirm own email change",
+      description = "Applies an email change requested by the account owner, using the token from the link mailed to "
+          + "the new address. Does not require authentication.")
+  public OperationCompletionRS confirmEmailChange(@RequestBody @Validated ConfirmEmailChangeRQ rq) {
+    return editUserMessageHandler.confirmEmailChange(rq);
   }
 
   @Transactional

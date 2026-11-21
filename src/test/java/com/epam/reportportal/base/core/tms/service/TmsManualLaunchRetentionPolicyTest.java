@@ -24,6 +24,7 @@ import com.epam.reportportal.base.core.user.GetUserHandler;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchAttributeRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestCaseExecutionRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.filterable.TmsManualLaunchFilterableRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.RetentionPolicyEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
@@ -76,6 +77,10 @@ class TmsManualLaunchRetentionPolicyTest {
   private ProjectService projectService;
   @Mock
   private ServerSettingsService serverSettingsService;
+  @Mock
+  private TmsFolderTestCaseResolver tmsFolderTestCaseResolver;
+  @Mock
+  private TmsTestCaseExecutionRepository tmsTestCaseExecutionRepository;
 
   private TmsManualLaunchServiceImpl service;
   private ReportPortalUser user;
@@ -95,7 +100,7 @@ class TmsManualLaunchRetentionPolicyTest {
     service = new TmsManualLaunchServiceImpl(launchRepository, tmsManualLaunchFilterableRepository,
         tmsManualLaunchMapper, attributeService, testItemService, deleteLaunchHandler,
         testFolderItemService, tmsStepExecutionService, getUserHandler, tmsTestPlanService,
-        handler);
+        handler, tmsFolderTestCaseResolver, tmsTestCaseExecutionRepository);
     service.setTmsTestCaseExecutionService(tmsTestCaseExecutionService);
     lenient().when(launchRepository.save(any(Launch.class)))
         .thenAnswer(invocation -> invocation.getArgument(0));

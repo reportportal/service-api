@@ -18,6 +18,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.epam.reportportal.base.core.tms.dto.AddTestCaseToLaunchRQ;
+import com.epam.reportportal.base.core.tms.dto.CreateTmsManualLaunchRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsManualLaunchRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsManualLaunchRS;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseExecutionCommentAttachmentRQ;
@@ -633,6 +634,172 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
         .andExpect(jsonPath("$.successCount").value(2))
         .andExpect(jsonPath("$.failureCount").value(1))
         .andExpect(jsonPath("$.errors[0].testCaseId").value(999));
+  }
+
+  @Test
+  void batchAddTestCasesToLaunch_ByFolder_ShouldAddSubtreeAndSkipPresent() throws Exception {
+    // folder 1 (cases 4, 5, 6) has subfolder 4 (cases 22, 23); launch 200 already has 4 and 5
+    var batchAddRQ = BatchAddTestCasesToLaunchRQ.builder().folderIds(List.of(1L)).build();
+
+    var result = mockMvc.perform(
+            post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/200/test-case/batch")
+                .contentType(APPLICATION_JSON)
+                .content(mapper.writeValueAsString(batchAddRQ))
+                .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.totalCount").value(5))
+        .andExpect(jsonPath("$.successCount").value(5))
+        .andExpect(jsonPath("$.failureCount").value(0))
+        .andReturn();
+
+    var response = mapper.readValue(
+        result.getResponse().getContentAsString(),
+        BatchTestCaseOperationResultRS.class
+    );
+    assertThat(response.getSuccessTestCaseIds()).containsExactlyInAnyOrder(4L, 5L, 6L, 22L, 23L);
+
+    entityManager.clear();
+    var executions = testCaseExecutionRepository.findByLaunchId(200L);
+    assertThat(executions).extracting("testCaseId")
+        .filteredOn(id -> List.of(4L, 5L, 6L, 22L, 23L).contains(id))
+        .containsExactlyInAnyOrder(4L, 5L, 6L, 22L, 23L);
+  }
+
+  @Test
+  void batchAddTestCasesToLaunch_ByNestedFolders_ShouldCreateExecutionsForWholeSubtree()
+      throws Exception {
+    // 2 nested folders x 600 test cases: crosses the 1000-id partition of the execution service
+    seedFolderChain(90001L, 2, 600, 900001L);
+    var batchAddRQ = BatchAddTestCasesToLaunchRQ.builder().folderIds(List.of(90001L)).build();
+
+    mockMvc.perform(
+            post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/201/test-case/batch")
+                .contentType(APPLICATION_JSON)
+                .content(mapper.writeValueAsString(batchAddRQ))
+                .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.totalCount").value(1200))
+        .andExpect(jsonPath("$.successCount").value(1200))
+        .andExpect(jsonPath("$.failureCount").value(0));
+
+    assertEquals(1200L, countExecutionsBetween(201L, 900001L, 901200L));
+  }
+
+  @Test
+  void batchAddTestCasesToLaunch_ByFolderOverLimit_ShouldReturnBadRequestAndWriteNothing()
+      throws Exception {
+    seedFolderChain(90001L, 1, 5001, 900001L);
+    var batchAddRQ = BatchAddTestCasesToLaunchRQ.builder()
+        .testCaseIds(List.of(7L))
+        .folderIds(List.of(90001L))
+        .build();
+
+    mockMvc.perform(
+            post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/200/test-case/batch")
+                .contentType(APPLICATION_JSON)
+                .content(mapper.writeValueAsString(batchAddRQ))
+                .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.message").value(containsString(
+            "Folders contain 5001 test cases, the limit per request is 5000")));
+
+    entityManager.clear();
+    assertThat(testCaseExecutionRepository.findTestCaseIdsByLaunchId(200L)).doesNotContain(7L);
+    assertEquals(0L, countExecutionsBetween(200L, 900001L, 905001L));
+  }
+
+  @Test
+  void batchAddTestCasesToLaunch_ByForeignFolder_ShouldReturnNotFound() throws Exception {
+    // folder 5 belongs to project 2
+    var batchAddRQ = BatchAddTestCasesToLaunchRQ.builder().folderIds(List.of(5L)).build();
+
+    mockMvc.perform(
+            post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/200/test-case/batch")
+                .contentType(APPLICATION_JSON)
+                .content(mapper.writeValueAsString(batchAddRQ))
+                .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isNotFound());
+  }
+
+  @Test
+  void createManualLaunch_WithFolderIds_ShouldAddOnlyFolderSubtree() throws Exception {
+    var launchRQ = CreateTmsManualLaunchRQ.builder()
+        .name("Launch from folder")
+        .testPlan(new com.epam.reportportal.base.core.tms.dto.TmsManualLaunchTestPlanRQ(1L))
+        .folderIds(List.of(1L))
+        .build();
+
+    var result = mockMvc.perform(
+            post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual")
+                .contentType(APPLICATION_JSON)
+                .content(mapper.writeValueAsString(launchRQ))
+                .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.executionStatistic.total").value(5))
+        .andReturn();
+
+    var response = mapper.readValue(result.getResponse().getContentAsString(), TmsManualLaunchRS.class);
+    entityManager.clear();
+    assertThat(testCaseExecutionRepository.findTestCaseIdsByLaunchId(response.getId()))
+        .containsExactlyInAnyOrder(4L, 5L, 6L, 22L, 23L);
+  }
+
+  @Test
+  void createManualLaunch_WithUnknownFolder_ShouldReturnNotFoundAndNotCreateLaunch()
+      throws Exception {
+    var launchRQ = CreateTmsManualLaunchRQ.builder()
+        .name("Launch from unknown folder")
+        .folderIds(List.of(99999L))
+        .build();
+
+    mockMvc.perform(
+            post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual")
+                .contentType(APPLICATION_JSON)
+                .content(mapper.writeValueAsString(launchRQ))
+                .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isNotFound());
+
+    assertTrue(launchRepository.findAll().stream()
+        .noneMatch(launch -> "Launch from unknown folder".equals(launch.getName())));
+  }
+
+  private void seedFolderChain(long firstFolderId, int folders, int testCasesPerFolder,
+      long firstTestCaseId) {
+    for (int i = 0; i < folders; i++) {
+      long folderId = firstFolderId + i;
+      long fromId = firstTestCaseId + (long) i * testCasesPerFolder;
+      long toId = fromId + testCasesPerFolder - 1;
+      entityManager.createNativeQuery("INSERT INTO tms_test_folder (id, name, parent_id, project_id) "
+              + "VALUES (:id, :name, NULLIF(:parentId, 0), 1)")
+          .setParameter("id", folderId)
+          .setParameter("name", "Folder " + folderId)
+          .setParameter("parentId", i == 0 ? 0L : folderId - 1)
+          .executeUpdate();
+      entityManager.createNativeQuery("INSERT INTO tms_test_case "
+              + "(id, name, test_folder_id, priority, project_id, display_id) "
+              + "SELECT g, 'Folder case ' || g, :folderId, 'MEDIUM', 1, 'FB-' || g "
+              + "FROM generate_series(CAST(:fromId AS BIGINT), CAST(:toId AS BIGINT)) g")
+          .setParameter("folderId", folderId)
+          .setParameter("fromId", fromId)
+          .setParameter("toId", toId)
+          .executeUpdate();
+      entityManager.createNativeQuery("INSERT INTO tms_test_case_version "
+              + "(id, test_case_id, name, is_default, is_draft) "
+              + "SELECT g, g, 'Default Version', true, false "
+              + "FROM generate_series(CAST(:fromId AS BIGINT), CAST(:toId AS BIGINT)) g")
+          .setParameter("fromId", fromId)
+          .setParameter("toId", toId)
+          .executeUpdate();
+    }
+  }
+
+  private long countExecutionsBetween(long launchId, long fromTestCaseId, long toTestCaseId) {
+    return ((Number) entityManager.createNativeQuery("SELECT COUNT(*) FROM tms_test_case_execution "
+            + "WHERE launch_id = :launchId AND test_case_id BETWEEN :fromId AND :toId")
+        .setParameter("launchId", launchId)
+        .setParameter("fromId", fromTestCaseId)
+        .setParameter("toId", toTestCaseId)
+        .getSingleResult()).longValue();
   }
 
   @Test

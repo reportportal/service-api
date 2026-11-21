@@ -43,6 +43,9 @@ public class CiTriggerIntegrationService extends BasicIntegrationServiceImpl {
       "github-actions", List.of("token", "repo"),
       "gitlab-ci", List.of("projectId", "triggerToken"));
 
+  /**
+   * Creates the service for the CI trigger integrations (GitHub Actions, GitLab CI).
+   */
   public CiTriggerIntegrationService(IntegrationRepository integrationRepository, PluginBox pluginBox,
       IntegrationParamsEncryptor paramsEncryptor) {
     super(integrationRepository, pluginBox, paramsEncryptor);
@@ -69,8 +72,8 @@ public class CiTriggerIntegrationService extends BasicIntegrationServiceImpl {
 
   /**
    * The first parameter the integration's type cannot work without that is missing or blank.
-   * <p>
-   * Example: a {@code gitlab-ci} integration with {@code projectId} but no {@code triggerToken} gives
+   *
+   * <p>Example: a {@code gitlab-ci} integration with {@code projectId} but no {@code triggerToken} gives
    * {@code Optional.of("triggerToken")}; a complete one gives an empty optional.
    */
   public static Optional<String> missingRequiredParam(Integration integration) {

@@ -21,6 +21,7 @@ import com.epam.reportportal.base.core.marketplace.CompatibilityRange;
 import com.epam.reportportal.base.core.marketplace.MarketplaceArtifactFetcher;
 import com.epam.reportportal.base.core.marketplace.MarketplaceClient;
 import com.epam.reportportal.base.core.marketplace.MarketplaceLicence;
+import com.epam.reportportal.base.core.marketplace.PluginArtifacts;
 import com.epam.reportportal.base.core.marketplace.ProductVersion;
 import com.epam.reportportal.base.core.marketplace.exception.LicenceFailure;
 import com.epam.reportportal.base.core.marketplace.exception.LicenceRejectedException;
@@ -44,16 +45,10 @@ import com.epam.reportportal.base.model.marketplace.MarketplaceInstallResource;
 import com.epam.reportportal.base.model.marketplace.MarketplaceVersionDetail;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.attribute.PosixFilePermissions;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
-import java.util.HexFormat;
 import java.util.Locale;
-import java.util.regex.Pattern;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -80,14 +75,6 @@ public class InstallMarketplacePluginHandlerImpl implements InstallMarketplacePl
   private static final String MARKETPLACE_PLUGIN_ID_KEY = "marketplacePluginId";
   private static final String MARKETPLACE_VERSION_KEY = "marketplaceVersion";
   private static final String PREMIUM = "premium";
-
-  /**
-   * Both identifiers become part of a file name under the plugins temp directory, so neither may
-   * carry a separator or a dot segment. The registry's own id grammar is stricter still; this only
-   * has to stop what the caller sends from leaving the directory.
-   */
-  private static final Pattern SAFE_IDENTIFIER =
-      Pattern.compile("[A-Za-z0-9][A-Za-z0-9._-]{0,126}");
 
   private final MarketplaceClient client;
   private final MarketplaceArtifactFetcher fetcher;
@@ -251,7 +238,7 @@ public class InstallMarketplacePluginHandlerImpl implements InstallMarketplacePl
    * registry is called, so a probe cannot be turned into a request either.
    */
   private static void safe(String value, String what) {
-    if (value == null || !SAFE_IDENTIFIER.matcher(value).matches()) {
+    if (!PluginArtifacts.isSafeIdentifier(value)) {
       throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
           "marketplace " + what + " '" + value + "'");
     }
@@ -297,28 +284,12 @@ public class InstallMarketplacePluginHandlerImpl implements InstallMarketplacePl
           "the registry published no sha256 for '" + registryId + ":" + version + "', so the"
               + " download cannot be verified");
     }
-    var actual = sha256(artifact);
+    var actual = PluginArtifacts.sha256(artifact);
     if (!expected.toLowerCase(Locale.ROOT).equals(actual)) {
       throw new ReportPortalException(ErrorType.MARKETPLACE_CHECKSUM_MISMATCH,
           "'" + registryId + ":" + version + "' downloaded as sha256 " + actual + ", the registry"
               + " published " + expected.toLowerCase(Locale.ROOT) + "; nothing was installed");
     }
-  }
-
-  private static String sha256(Path artifact) throws IOException {
-    MessageDigest digest;
-    try {
-      digest = MessageDigest.getInstance("SHA-256");
-    } catch (NoSuchAlgorithmException e) {
-      throw new IllegalStateException("SHA-256 is not available", e);
-    }
-    try (InputStream in = Files.newInputStream(artifact)) {
-      var buffer = new byte[8192];
-      for (int read = in.read(buffer); read > 0; read = in.read(buffer)) {
-        digest.update(buffer, 0, read);
-      }
-    }
-    return HexFormat.of().formatHex(digest.digest());
   }
 
   /**
@@ -435,14 +406,8 @@ public class InstallMarketplacePluginHandlerImpl implements InstallMarketplacePl
    * POSIX view falls back to the default mode.
    */
   private Path tempFile(String registryId, String version) throws IOException {
-    var directory = Files.createDirectories(Path.of(pluginsTempPath));
-    var prefix = "rp-marketplace-" + registryId + "-" + version + "-";
-    if (FileSystems.getDefault().supportedFileAttributeViews().contains("posix")) {
-      var ownerOnly = PosixFilePermissions.asFileAttribute(
-          PosixFilePermissions.fromString("rw-------"));
-      return Files.createTempFile(directory, prefix, ".jar", ownerOnly);
-    }
-    return Files.createTempFile(directory, prefix, ".jar");
+    return PluginArtifacts.createOwnerOnlyTempFile(Path.of(pluginsTempPath),
+        "rp-marketplace-" + registryId + "-" + version + "-");
   }
 
   private static void delete(Path file) {

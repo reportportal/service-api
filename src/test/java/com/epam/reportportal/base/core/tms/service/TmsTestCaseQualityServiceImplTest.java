@@ -23,6 +23,7 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsQuali
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCaseGenerationMetadata;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCaseQualityScore;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCaseVersion;
+import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -133,14 +134,46 @@ class TmsTestCaseQualityServiceImplTest {
   }
 
   @Test
-  void applyQualityScores_WithUnknownCriterionKey_ShouldThrowNotFound() {
-    var rq = TmsTestCaseQualityScoreRQ.builder().criterionKey("nope").score(1).build();
+  void applyQualityScores_WithUnknownCriterionKeys_ShouldAnswerBadRequestListingThemAndTheKnownKeys() {
+    var good = TmsTestCaseQualityScoreRQ.builder().criterionKey("clear_steps").score(20).build();
+    var wrong = TmsTestCaseQualityScoreRQ.builder().criterionKey("expected_result").score(1).build();
+    var wrongToo = TmsTestCaseQualityScoreRQ.builder().criterionKey("nope").score(1).build();
+    criterion.setKey("clear_steps");
 
+    when(tmsQualityStandardCriterionRepository.findByKeyAndStandard_ProjectId("clear_steps", projectId))
+        .thenReturn(Optional.of(criterion));
+    when(tmsQualityStandardCriterionRepository.findByKeyAndStandard_ProjectId("expected_result", projectId))
+        .thenReturn(Optional.empty());
     when(tmsQualityStandardCriterionRepository.findByKeyAndStandard_ProjectId("nope", projectId))
         .thenReturn(Optional.empty());
+    when(tmsQualityStandardCriterionRepository.findAllByStandard_ProjectIdOrderBySequenceAsc(projectId))
+        .thenReturn(List.of(criterion));
 
-    assertThrows(ReportPortalException.class, () -> sut.applyQualityScores(projectId, version, List.of(rq)));
+    var ex = assertThrows(ReportPortalException.class,
+        () -> sut.applyQualityScores(projectId, version, List.of(good, wrong, wrongToo)));
+
+    assertEquals(ErrorType.BAD_REQUEST_ERROR.getCode(), ex.getErrorType().getCode());
+    assertTrue(ex.getMessage().contains("key 'expected_result'"), ex.getMessage());
+    assertTrue(ex.getMessage().contains("key 'nope'"), ex.getMessage());
+    assertTrue(ex.getMessage().contains("Known: [clear_steps]"), ex.getMessage());
+    verify(tmsTestCaseQualityScoreRepository, never()).deleteByTestCaseVersionId(any());
     verify(tmsTestCaseQualityScoreRepository, never()).saveAll(any());
+  }
+
+  @Test
+  void applyQualityScores_WhenTheProjectHasNoStandard_ShouldAnswerBadRequestSayingSo() {
+    var rq = TmsTestCaseQualityScoreRQ.builder().criterionKey("atomicity").score(1).build();
+
+    when(tmsQualityStandardCriterionRepository.findByKeyAndStandard_ProjectId("atomicity", projectId))
+        .thenReturn(Optional.empty());
+    when(tmsQualityStandardCriterionRepository.findAllByStandard_ProjectIdOrderBySequenceAsc(projectId))
+        .thenReturn(List.of());
+
+    var ex = assertThrows(ReportPortalException.class,
+        () -> sut.applyQualityScores(projectId, version, List.of(rq)));
+
+    assertEquals(ErrorType.BAD_REQUEST_ERROR.getCode(), ex.getErrorType().getCode());
+    assertTrue(ex.getMessage().contains("no quality standard"), ex.getMessage());
   }
 
   @Test

@@ -49,9 +49,7 @@ public class TmsTestCaseQualityServiceImpl implements TmsTestCaseQualityService 
     if (qualityScores == null) {
       return;
     }
-    var resolved = qualityScores.stream()
-        .map(rq -> Map.entry(resolveCriterion(projectId, rq), rq))
-        .toList();
+    var resolved = resolveCriteria(projectId, qualityScores);
     validateNoDuplicateCriteria(resolved.stream().map(entry -> entry.getKey().getId()).toList());
     tmsTestCaseQualityScoreRepository.deleteByTestCaseVersionId(version.getId());
     var now = Instant.now();
@@ -74,25 +72,45 @@ public class TmsTestCaseQualityServiceImpl implements TmsTestCaseQualityService 
   }
 
   /**
-   * A score names its criterion either by id or by the criterion's stable key - exactly one.
+   * Finds the criterion of every score. A score names its criterion either by id or by the criterion's stable key -
+   * exactly one. Criteria the project's standard does not have are collected and refused together with 400, so the
+   * caller sees every wrong one and the keys it may use.
+   * <p>
+   * Example: {@code criterionKey: "expected_result"} when the standard has {@code expected_results} answers
+   * {@code Unknown quality criteria: [key 'expected_result']. Known: [atomicity, clear_steps, expected_results]}.
    */
-  private TmsQualityStandardCriterion resolveCriterion(Long projectId, TmsTestCaseQualityScoreRQ rq) {
-    var hasId = rq.getCriterionId() != null;
-    var hasKey = rq.getCriterionKey() != null && !rq.getCriterionKey().isBlank();
-    if (hasId == hasKey) {
+  private List<Map.Entry<TmsQualityStandardCriterion, TmsTestCaseQualityScoreRQ>> resolveCriteria(Long projectId,
+      List<TmsTestCaseQualityScoreRQ> qualityScores) {
+    var resolved = new ArrayList<Map.Entry<TmsQualityStandardCriterion, TmsTestCaseQualityScoreRQ>>();
+    var unknown = new ArrayList<String>();
+    for (var rq : qualityScores) {
+      var hasId = rq.getCriterionId() != null;
+      var hasKey = rq.getCriterionKey() != null && !rq.getCriterionKey().isBlank();
+      if (hasId == hasKey) {
+        throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
+            "Exactly one of 'criterionId' and 'criterionKey' must be set for each quality score");
+      }
+      var criterion = hasId
+          ? tmsQualityStandardCriterionRepository.findByIdAndStandard_ProjectId(rq.getCriterionId(), projectId)
+          : tmsQualityStandardCriterionRepository.findByKeyAndStandard_ProjectId(rq.getCriterionKey(), projectId);
+      if (criterion.isPresent()) {
+        resolved.add(Map.entry(criterion.get(), rq));
+      } else {
+        unknown.add(hasId ? "id " + rq.getCriterionId() : "key '" + rq.getCriterionKey() + "'");
+      }
+    }
+    if (!unknown.isEmpty()) {
       throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
-          "Exactly one of 'criterionId' and 'criterionKey' must be set for each quality score");
+          "Unknown quality criteria: " + unknown + ". " + knownCriteria(projectId));
     }
-    if (hasId) {
-      return tmsQualityStandardCriterionRepository
-          .findByIdAndStandard_ProjectId(rq.getCriterionId(), projectId)
-          .orElseThrow(() -> new ReportPortalException(ErrorType.NOT_FOUND,
-              "Quality standard criterion '" + rq.getCriterionId() + "' for project '" + projectId + "'"));
-    }
-    return tmsQualityStandardCriterionRepository
-        .findByKeyAndStandard_ProjectId(rq.getCriterionKey(), projectId)
-        .orElseThrow(() -> new ReportPortalException(ErrorType.NOT_FOUND,
-            "Quality standard criterion with key '" + rq.getCriterionKey() + "' for project '" + projectId + "'"));
+    return resolved;
+  }
+
+  private String knownCriteria(Long projectId) {
+    var known = tmsQualityStandardCriterionRepository.findAllByStandard_ProjectIdOrderBySequenceAsc(projectId).stream()
+        .map(criterion -> criterion.getKey() != null ? criterion.getKey() : "id " + criterion.getId())
+        .toList();
+    return known.isEmpty() ? "The project has no quality standard criteria." : "Known: " + known;
   }
 
   private void validateNoDuplicateCriteria(List<Long> criterionIds) {

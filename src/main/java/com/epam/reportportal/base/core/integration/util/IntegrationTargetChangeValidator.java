@@ -36,7 +36,7 @@ public final class IntegrationTargetChangeValidator {
    * Lower-cased names of parameters that decide where credentials are sent.
    */
   static final Set<String> TARGET_PARAMS =
-      Set.of("host", "url", "port", "username", "protocol", "btsurl", "baseurl", "serverurl", "endpoint");
+      Set.of("host", "url", "port", "protocol", "btsurl", "baseurl", "serverurl", "endpoint");
 
   private static final Set<String> SENSITIVE_LOWER = SensitiveIntegrationParam.ALL.stream()
       .map(k -> k.toLowerCase(Locale.ROOT)).collect(Collectors.toSet());
@@ -65,7 +65,7 @@ public final class IntegrationTargetChangeValidator {
         .anyMatch(e -> !sameValue(e.getValue(), findIgnoreCase(stored, e.getKey())));
     if (targetChanged && !hasSecret(requestParams)) {
       throw new ReportPortalException(ErrorType.INCORRECT_REQUEST,
-          "Connection target (host, url, port or username) cannot be changed without providing "
+          "Connection target (host, url or port) cannot be changed without providing "
               + "the secret (password or token) again");
     }
   }

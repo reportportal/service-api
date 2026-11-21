@@ -39,7 +39,6 @@ public class PluginFilesProvider {
 
   private final String baseDirectory;
   private final String folderQualifier;
-  private final boolean requirePublicAccessType;
 
   private final FileTypeMap fileTypeResolver;
 
@@ -48,17 +47,6 @@ public class PluginFilesProvider {
   public PluginFilesProvider(String baseDirectory, String folderQualifier,
       FileTypeMap fileTypeResolver,
       IntegrationTypeRepository integrationTypeRepository) {
-    this(baseDirectory, folderQualifier, fileTypeResolver, integrationTypeRepository, false);
-  }
-
-  /**
-   * @param requirePublicAccessType when true, files are served only for plugins whose details declare
-   *                                {@code accessType=public} (used by the anonymous endpoint)
-   */
-  public PluginFilesProvider(String baseDirectory, String folderQualifier,
-      FileTypeMap fileTypeResolver,
-      IntegrationTypeRepository integrationTypeRepository, boolean requirePublicAccessType) {
-    this.requirePublicAccessType = requirePublicAccessType;
     this.baseDirectory = baseDirectory;
     this.folderQualifier = folderQualifier;
     this.fileTypeResolver = fileTypeResolver;
@@ -76,11 +64,6 @@ public class PluginFilesProvider {
     final IntegrationType integrationType = integrationTypeRepository.findByName(pluginName)
         .orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, pluginName));
 
-    if (requirePublicAccessType && !isPublic(integrationType)) {
-      throw new ReportPortalException(ErrorType.ACCESS_DENIED,
-          "Plugin '" + pluginName + "' is not public.");
-    }
-
     validateFileName(fileName);
 
     final Path basePath = Paths.get(baseDirectory, integrationType.getName(), folderQualifier)
@@ -88,14 +71,6 @@ public class PluginFilesProvider {
     final File file = getFile(fileName, basePath);
 
     return getBinaryData(file);
-  }
-
-  private static boolean isPublic(IntegrationType integrationType) {
-    return java.util.Optional.ofNullable(integrationType.getDetails())
-        .map(d -> d.getDetails())
-        .map(d -> d.get("accessType"))
-        .map("public"::equals)
-        .orElse(false);
   }
 
   private File getFile(String fileName, Path basePath) {

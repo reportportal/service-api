@@ -27,7 +27,10 @@ import com.epam.reportportal.base.infrastructure.persistence.dao.ServerSettingsR
 import com.epam.reportportal.base.infrastructure.persistence.entity.ServerSettings;
 import jakarta.annotation.PostConstruct;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import javax.crypto.spec.SecretKeySpec;
 import lombok.Data;
@@ -43,9 +46,14 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
+import org.springframework.security.oauth2.core.OAuth2TokenValidator;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtClaimNames;
+import org.springframework.security.oauth2.jwt.JwtClaimValidator;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.JwtValidators;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationProvider;
 import org.springframework.security.oauth2.server.resource.authentication.JwtIssuerAuthenticationManagerResolver;
@@ -144,6 +152,29 @@ public class MultiIdentityProviderConfig {
   }
 
   private JwtDecoder createJwtDecoder(String name, JwtIssuer config) {
+    var decoder = buildJwtDecoder(name, config);
+    decoder.setJwtValidator(createJwtValidator(config));
+    return decoder;
+  }
+
+  /**
+   * Creates the token validator for a provider: timestamps and issuer always, audience when configured.
+   *
+   * @param config provider configuration
+   * @return JWT validator
+   */
+  static OAuth2TokenValidator<Jwt> createJwtValidator(JwtIssuer config) {
+    List<OAuth2TokenValidator<Jwt>> validators = new ArrayList<>();
+    validators.add(JwtValidators.createDefaultWithIssuer(config.getIssuerUri()));
+    if (StringUtils.isNotBlank(config.getAudience())) {
+      String audience = config.getAudience().trim();
+      validators.add(new JwtClaimValidator<Collection<String>>(JwtClaimNames.AUD,
+          aud -> aud != null && aud.contains(audience)));
+    }
+    return new DelegatingOAuth2TokenValidator<>(validators);
+  }
+
+  private NimbusJwtDecoder buildJwtDecoder(String name, JwtIssuer config) {
     if (name.contentEquals("internal")) {
       var algorithm = config.getAlgorithm();
       var key = StringUtils.isNotEmpty(config.getSecretKey())

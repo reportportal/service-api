@@ -170,21 +170,15 @@ public class AttachmentBinaryDataServiceImpl implements AttachmentBinaryDataServ
 
   @Override
   public BinaryData load(Long fileId, MembershipDetails membershipDetails) {
-    try {
-      Attachment attachment = attachmentRepository.findById(fileId)
-          .orElseThrow(() -> new ReportPortalException(ErrorType.ATTACHMENT_NOT_FOUND, fileId));
-      InputStream data = dataStoreService.load(attachment.getFileId()).orElseThrow(
-          () -> new ReportPortalException(ErrorType.UNABLE_TO_LOAD_BINARY_DATA, fileId));
-      expect(attachment.getProjectId(), Predicate.isEqual(membershipDetails.getProjectId())).verify(
-          ErrorType.ACCESS_DENIED, formattedSupplier("You are not assigned to project '{}'",
-              membershipDetails.getProjectName()));
-      return new BinaryData(attachment.getFileName(), attachment.getContentType(),
-          (long) data.available(), data);
-    } catch (IOException e) {
-      LOGGER.error("Unable to load binary data", e);
-      throw new ReportPortalException(ErrorType.UNCLASSIFIED_REPORT_PORTAL_ERROR,
-          "Unable to load binary data");
-    }
+    Attachment attachment = attachmentRepository.findById(fileId)
+        .orElseThrow(() -> new ReportPortalException(ErrorType.ATTACHMENT_NOT_FOUND, fileId));
+    expect(attachment.getProjectId(), Predicate.isEqual(membershipDetails.getProjectId())).verify(
+        ErrorType.ACCESS_DENIED, formattedSupplier("You are not assigned to project '{}'",
+            membershipDetails.getProjectName()));
+    long fileSize = resolveFileSize(attachment);
+    InputStream data = dataStoreService.load(attachment.getFileId()).orElseThrow(
+        () -> new ReportPortalException(ErrorType.UNABLE_TO_LOAD_BINARY_DATA, fileId));
+    return new BinaryData(attachment.getFileName(), attachment.getContentType(), fileSize, data);
   }
 
   @Override
@@ -202,7 +196,18 @@ public class AttachmentBinaryDataServiceImpl implements AttachmentBinaryDataServ
         ErrorType.ACCESS_DENIED, formattedSupplier("You are not assigned to project '{}'",
             membershipDetails.getProjectName()));
     return new AttachmentStreamMetadata(attachment.getFileId(), attachment.getFileName(),
-        attachment.getContentType(), attachment.getFileSize());
+        attachment.getContentType(), resolveFileSize(attachment));
+  }
+
+  /**
+   * Returns the stored size of the attachment, or the real object size when the stored value is
+   * missing (legacy rows with {@code file_size = 0}).
+   */
+  private long resolveFileSize(Attachment attachment) {
+    if (attachment.getFileSize() > 0) {
+      return attachment.getFileSize();
+    }
+    return dataStoreService.getSize(attachment.getFileId());
   }
 
   @Override

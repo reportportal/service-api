@@ -478,6 +478,7 @@ public class Pf4jPluginManager implements Pf4jPluginBox {
     Path pluginsTempDirPath = Paths.get(pluginsTempDir);
     createTempPluginsFolderIfNotExists(pluginsTempDirPath);
 
+    validateFileName(fileName);
     validateFileExtension(fileName);
 
     try {
@@ -527,6 +528,17 @@ public class Pf4jPluginManager implements Pf4jPluginBox {
             Suppliers.formattedSupplier("Unsupported plugin file extension = '{}'",
                 resolvedExtension).get()
         );
+  }
+
+  /**
+   * Rejects file names that could escape the temporary plugins directory.
+   *
+   * @param fileName uploaded plugin file name
+   */
+  private void validateFileName(String fileName) {
+    BusinessRule.expect(fileName, name -> name != null && !name.isBlank() && !name.contains("..")
+            && name.indexOf('/') < 0 && name.indexOf('\\') < 0 && name.indexOf('\0') < 0)
+        .verify(ErrorType.PLUGIN_UPLOAD_ERROR, "Plugin file name is not valid");
   }
 
   /**

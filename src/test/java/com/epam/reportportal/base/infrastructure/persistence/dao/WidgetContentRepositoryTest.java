@@ -45,6 +45,7 @@ import static com.epam.reportportal.base.infrastructure.persistence.jooq.enums.J
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.epam.reportportal.base.infrastructure.model.ActivityResource;
@@ -61,6 +62,8 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.widget.conte
 import com.epam.reportportal.base.infrastructure.persistence.entity.widget.content.FlakyCasesTableContent;
 import com.epam.reportportal.base.infrastructure.persistence.entity.widget.content.LaunchesDurationContent;
 import com.epam.reportportal.base.infrastructure.persistence.entity.widget.content.LaunchesTableContent;
+import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
+import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.infrastructure.persistence.entity.widget.content.MostTimeConsumingTestCasesContent;
 import com.epam.reportportal.base.infrastructure.persistence.entity.widget.content.NotPassedCasesContent;
 import com.epam.reportportal.base.infrastructure.persistence.entity.widget.content.OverallStatisticsContent;
@@ -631,6 +634,32 @@ class WidgetContentRepositoryTest extends BaseMvcTest {
     );
 
     assertNotNull(result);
+  }
+
+  @Test
+  void launchesTableStatisticsRejectsUnknownContentField() {
+    Filter filter = buildDefaultFilter(1L);
+    Sort sort = Sort.by(
+        Lists.newArrayList(new Sort.Order(Sort.Direction.ASC, CRITERIA_START_TIME)));
+    List<String> contentFields = Lists.newArrayList("name", "unknownField");
+
+    ReportPortalException ex = assertThrows(ReportPortalException.class,
+        () -> widgetContentRepository.launchesTableStatistics(filter, contentFields, sort, 3));
+    assertEquals(ErrorType.BAD_REQUEST_ERROR, ex.getErrorType());
+  }
+
+  @Test
+  void productStatusLaunchGroupedWidgetRejectsUnknownContentField() {
+    Filter filter = buildDefaultTestFilter(1L);
+    Sort sort = Sort.by(
+        Lists.newArrayList(new Sort.Order(Sort.Direction.DESC, CRITERIA_START_TIME)));
+    List<String> contentFields = buildProductStatusContentFields();
+    contentFields.add("unknownField");
+
+    ReportPortalException ex = assertThrows(ReportPortalException.class,
+        () -> widgetContentRepository.productStatusGroupedByLaunchesStatistics(filter, contentFields,
+            new LinkedHashMap<>(), sort, false, 10));
+    assertEquals(ErrorType.BAD_REQUEST_ERROR, ex.getErrorType());
   }
 
   @Test

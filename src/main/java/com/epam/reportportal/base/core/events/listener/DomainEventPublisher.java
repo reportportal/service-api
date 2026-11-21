@@ -18,9 +18,9 @@ package com.epam.reportportal.base.core.events.listener;
 
 import com.epam.reportportal.base.core.events.MessageBus;
 import com.epam.reportportal.base.core.events.domain.AbstractEvent;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Async;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionalEventListener;
 
@@ -31,26 +31,36 @@ import org.springframework.transaction.event.TransactionalEventListener;
  */
 @Slf4j
 @Component
-@RequiredArgsConstructor
 public class DomainEventPublisher {
 
   private static final String DOMAIN_EVENTS_EXCHANGE = "domain.events";
 
   private final MessageBus messageBus;
 
+  private final TaskExecutor domainEventExecutor;
+
+  public DomainEventPublisher(MessageBus messageBus,
+      @Qualifier("domainEventExecutor") TaskExecutor domainEventExecutor) {
+    this.messageBus = messageBus;
+    this.domainEventExecutor = domainEventExecutor;
+  }
+
   /**
    * Listens to domain events and publishes them to RabbitMQ after transaction commit. Routing key pattern:
    * domain.{objectType}.{action} Local-only events (e.g., high-frequency reporting events) are skipped to avoid
-   * unnecessary RabbitMQ traffic.
+   * unnecessary RabbitMQ traffic; they are filtered before queueing so per-item and per-log events never occupy the
+   * executor.
    *
    * @param event The domain event to publish
    */
-  @Async(value = "eventListenerExecutor")
   @TransactionalEventListener(fallbackExecution = true)
   public void onDomainEvent(AbstractEvent<?> event) {
     if (event.shouldPublishToRabbitMq()) {
-      log.debug("Publishing domain event to exchange '{}', event:'{}'", DOMAIN_EVENTS_EXCHANGE, event);
-      messageBus.publish(DOMAIN_EVENTS_EXCHANGE, generateRoutingKey(event), event);
+      domainEventExecutor.execute(() -> {
+        log.debug("Publishing domain event to exchange '{}', event:'{}'", DOMAIN_EVENTS_EXCHANGE,
+            event);
+        messageBus.publish(DOMAIN_EVENTS_EXCHANGE, generateRoutingKey(event), event);
+      });
     }
   }
 

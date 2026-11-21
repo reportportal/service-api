@@ -24,8 +24,10 @@ import com.epam.reportportal.base.core.events.listener.TestItemFinishedEventList
 import com.epam.reportportal.base.core.events.listener.TestItemIssueResolvedEventListener;
 import com.epam.reportportal.base.core.events.subscriber.impl.delegate.ProjectConfigDelegatingSubscriber;
 import java.util.List;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.task.TaskExecutor;
 
 /**
  * Async event listener container factory settings.
@@ -49,7 +51,9 @@ public class EventListenerConfig {
 
   @Bean
   public TestItemFinishedEventListener testItemFinishedEventListener(
-      ProjectConfigDelegatingSubscriber<TestItemFinishedEvent> testItemFinishedDelegatingSubscriber) {
-    return new TestItemFinishedEventListener(List.of(testItemFinishedDelegatingSubscriber));
+      ProjectConfigDelegatingSubscriber<TestItemFinishedEvent> testItemFinishedDelegatingSubscriber,
+      @Qualifier("eventListenerExecutor") TaskExecutor eventListenerExecutor) {
+    return new TestItemFinishedEventListener(List.of(testItemFinishedDelegatingSubscriber),
+        eventListenerExecutor);
   }
 }

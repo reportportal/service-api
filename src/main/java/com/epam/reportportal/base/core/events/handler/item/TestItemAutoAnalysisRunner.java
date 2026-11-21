@@ -40,7 +40,7 @@ import org.springframework.stereotype.Component;
 public class TestItemAutoAnalysisRunner implements
     ConfigurableEventHandler<TestItemFinishedEvent, Map<String, String>> {
 
-  protected static final String IMMEDIATE_AUTO_ANALYSIS = "immediateAutoAnalysis";
+  public static final String IMMEDIATE_AUTO_ANALYSIS = "immediateAutoAnalysis";
 
   private final AnalyzerService analyzerService;
 

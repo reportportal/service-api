@@ -190,6 +190,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
@@ -231,6 +232,8 @@ public class WidgetContentRepositoryImpl implements WidgetContentRepository {
     String name = it.name();
     return name.contains("METHOD") || name.contains("CLASS");
   }).collect(Collectors.toList());
+  private static final Pattern QUOTED_QUALIFIED_NAME = Pattern.compile("\"[^\"]+\"(\\.\"[^\"]+\")*");
+  private static final Pattern QUOTED_NAME_PART = Pattern.compile("\"([^\"]+)\"");
   @Autowired
   private DSLContext dsl;
   @Autowired
@@ -877,22 +880,9 @@ public class WidgetContentRepositoryImpl implements WidgetContentRepository {
   public List<LaunchesTableContent> launchesTableStatistics(Filter filter,
       List<String> contentFields, Sort sort, int limit) {
 
-    Map<String, String> criteria = filter.getTarget()
-        .getCriteriaHolders()
-        .stream()
-        .collect(
-            Collectors.toMap(CriteriaHolder::getFilterCriteria, CriteriaHolder::getQueryCriteria));
-
     boolean isAttributePresent = contentFields.remove("attributes");
 
-    List<Field<?>> selectFields = contentFields.stream()
-        .filter(cf -> !cf.startsWith(STATISTICS_KEY))
-        .map(cf -> field(ofNullable(criteria.get(cf)).orElseThrow(
-            () -> new ReportPortalException(Suppliers.formattedSupplier(
-                "Unknown table field - '{}'",
-                cf
-            ).get()))))
-        .collect(Collectors.toList());
+    List<Field<?>> selectFields = resolveContentFields(filter, contentFields);
 
     Collections.addAll(selectFields, LAUNCH.ID, fieldName(STATISTICS_TABLE, STATISTICS_COUNTER),
         fieldName(STATISTICS_TABLE, SF_NAME));
@@ -1605,21 +1595,45 @@ public class WidgetContentRepositoryImpl implements WidgetContentRepository {
 
   }
 
-  private List<Field<?>> getCommonProductStatusFields(Filter filter,
-      Collection<String> contentFields) {
-
+  /**
+   * Resolves the non-statistics widget content fields to columns of the filter target. A content field must name a
+   * criteria of the target whose query criteria is a quoted column name; anything else is rejected. The column is
+   * referenced as a jOOQ {@link org.jooq.Name} (never as plain SQL) and aliased to the query criteria, which is the name
+   * the content fetchers read it by.
+   *
+   * @param filter        widget filter
+   * @param contentFields widget content fields
+   * @return select fields
+   */
+  private static List<Field<?>> resolveContentFields(Filter filter, Collection<String> contentFields) {
     Map<String, String> criteria = filter.getTarget()
         .getCriteriaHolders()
         .stream()
         .collect(
             Collectors.toMap(CriteriaHolder::getFilterCriteria, CriteriaHolder::getQueryCriteria));
 
-    List<Field<?>> selectFields = contentFields.stream()
+    return contentFields.stream()
         .filter(cf -> !cf.startsWith(STATISTICS_KEY))
-        .map(criteria::get)
-        .filter(Objects::nonNull)
-        .map(DSL::field)
+        .map(cf -> toColumnField(cf, criteria.get(cf)))
         .collect(Collectors.toList());
+  }
+
+  private static Field<?> toColumnField(String contentField, String queryCriteria) {
+    if (queryCriteria == null || !QUOTED_QUALIFIED_NAME.matcher(queryCriteria).matches()) {
+      throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
+          Suppliers.formattedSupplier("Unknown table field - '{}'", contentField).get());
+    }
+    String[] parts = QUOTED_NAME_PART.matcher(queryCriteria)
+        .results()
+        .map(match -> match.group(1))
+        .toArray(String[]::new);
+    return field(name(parts)).as(queryCriteria);
+  }
+
+  private List<Field<?>> getCommonProductStatusFields(Filter filter,
+      Collection<String> contentFields) {
+
+    List<Field<?>> selectFields = resolveContentFields(filter, contentFields);
 
     Collections.addAll(selectFields,
         LAUNCH.ID,

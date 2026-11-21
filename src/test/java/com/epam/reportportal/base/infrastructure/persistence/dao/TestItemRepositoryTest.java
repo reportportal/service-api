@@ -493,6 +493,14 @@ class TestItemRepositoryTest extends BaseMvcTest {
   }
 
   @Test
+  void existsByUuid() {
+    String uuid = testItemRepository.findById(1L).orElseThrow().getUuid();
+
+    Assertions.assertTrue(testItemRepository.existsByUuid(uuid));
+    Assertions.assertFalse(testItemRepository.existsByUuid("not-existing-uuid"));
+  }
+
+  @Test
   void findIdsByNotHasChildrenAndLaunchIdAndStatus() {
 
     List<Long> itemIds = testItemRepository.findIdsByNotHasChildrenAndLaunchIdAndStatus(1L,

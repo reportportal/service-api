@@ -3,8 +3,12 @@ package com.epam.reportportal.base.core.tms.service;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -12,6 +16,9 @@ import com.epam.reportportal.base.core.tms.mapper.TmsTestPlanExecutionMapper;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestPlanStatisticsRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestPlan;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestPlanExecutionStatistic;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.projection.TmsTestPlanStatisticByTestPlan;
+import java.util.Arrays;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -31,8 +38,6 @@ class TmsTestPlanExecutionServiceImplTest {
 
   private Long testPlanId;
   private TmsTestPlan testPlan;
-  private TmsTestPlanExecutionStatistic statistics;
-  private TmsTestPlanExecutionStatistic emptyStatistics;
 
   @BeforeEach
   void setUp() {
@@ -47,272 +52,133 @@ class TmsTestPlanExecutionServiceImplTest {
     testPlan.setId(testPlanId);
     testPlan.setName("Test Plan");
     testPlan.setDescription("Test Plan Description");
+  }
 
-    statistics = new TmsTestPlanExecutionStatistic(10, 5);
+  private static TmsTestPlanStatisticByTestPlan row(Long testPlanId, long total, long covered) {
+    return new TmsTestPlanStatisticByTestPlan() {
+      @Override
+      public Long getTestPlanId() {
+        return testPlanId;
+      }
 
-    emptyStatistics = new TmsTestPlanExecutionStatistic(0, 0);
+      @Override
+      public Long getTotal() {
+        return total;
+      }
+
+      @Override
+      public Long getCovered() {
+        return covered;
+      }
+    };
   }
 
   @Test
   void getStatisticsForTestPlan_WhenStatisticsExist_ShouldReturnStatistics() {
-    // Given
-    when(tmsTestPlanStatisticsRepository.getExecutionStatisticsByTestPlanId(testPlanId))
-        .thenReturn(statistics);
+    when(tmsTestPlanStatisticsRepository.getExecutionStatisticsByTestPlanIds(List.of(testPlanId)))
+        .thenReturn(List.of(row(testPlanId, 10, 5)));
 
-    // When
     var result = sut.getStatisticsForTestPlan(testPlanId);
 
-    // Then
     assertNotNull(result);
     assertEquals(10L, result.getTotal());
     assertEquals(5L, result.getCovered());
-    verify(tmsTestPlanStatisticsRepository).getExecutionStatisticsByTestPlanId(testPlanId);
     verify(tmsTestPlanExecutionMapper, never()).createEmptyStatistics();
   }
 
   @Test
-  void getStatisticsForTestPlan_WhenStatisticsIsNull_ShouldReturnEmptyStatistics() {
-    // Given
-    when(tmsTestPlanStatisticsRepository.getExecutionStatisticsByTestPlanId(testPlanId))
-        .thenReturn(null);
-    when(tmsTestPlanExecutionMapper.createEmptyStatistics()).thenReturn(emptyStatistics);
+  void getStatisticsForTestPlan_WhenNoRow_ShouldReturnEmptyStatistics() {
+    when(tmsTestPlanStatisticsRepository.getExecutionStatisticsByTestPlanIds(List.of(testPlanId)))
+        .thenReturn(List.of());
+    when(tmsTestPlanExecutionMapper.createEmptyStatistics())
+        .thenReturn(new TmsTestPlanExecutionStatistic(0, 0));
 
-    // When
     var result = sut.getStatisticsForTestPlan(testPlanId);
 
-    // Then
-    assertNotNull(result);
     assertEquals(0L, result.getTotal());
     assertEquals(0L, result.getCovered());
-    verify(tmsTestPlanStatisticsRepository).getExecutionStatisticsByTestPlanId(testPlanId);
     verify(tmsTestPlanExecutionMapper).createEmptyStatistics();
   }
 
   @Test
-  void getStatisticsForTestPlan_WhenExceptionOccurs_ShouldReturnEmptyStatistics() {
-    // Given
-    when(tmsTestPlanStatisticsRepository.getExecutionStatisticsByTestPlanId(testPlanId))
+  void getStatisticsForTestPlan_WhenRepositoryFails_ShouldPropagateException() {
+    when(tmsTestPlanStatisticsRepository.getExecutionStatisticsByTestPlanIds(List.of(testPlanId)))
         .thenThrow(new RuntimeException("Database error"));
-    when(tmsTestPlanExecutionMapper.createEmptyStatistics()).thenReturn(emptyStatistics);
 
-    // When
-    var result = sut.getStatisticsForTestPlan(testPlanId);
-
-    // Then
-    assertNotNull(result);
-    assertEquals(0L, result.getTotal());
-    assertEquals(0L, result.getCovered());
-    verify(tmsTestPlanStatisticsRepository).getExecutionStatisticsByTestPlanId(testPlanId);
-    verify(tmsTestPlanExecutionMapper).createEmptyStatistics();
+    assertThrows(RuntimeException.class, () -> sut.getStatisticsForTestPlan(testPlanId));
+    verify(tmsTestPlanExecutionMapper, never()).createEmptyStatistics();
   }
 
   @Test
-  void getStatisticsForTestPlan_WithZeroValues_ShouldReturnZeroStatistics() {
-    // Given
-    var zeroStatistics = TmsTestPlanExecutionStatistic.builder()
-        .total(0L)
-        .covered(0L)
-        .build();
+  void getStatisticsForTestPlans_ShouldLoadAllPlansWithOneQuery() {
+    var ids = List.of(1L, 2L, 3L);
+    when(tmsTestPlanStatisticsRepository.getExecutionStatisticsByTestPlanIds(ids))
+        .thenReturn(List.of(row(1L, 10, 5), row(2L, 3, 3)));
+    when(tmsTestPlanExecutionMapper.createEmptyStatistics())
+        .thenReturn(new TmsTestPlanExecutionStatistic(0, 0));
 
-    when(tmsTestPlanStatisticsRepository.getExecutionStatisticsByTestPlanId(testPlanId))
-        .thenReturn(zeroStatistics);
+    var result = sut.getStatisticsForTestPlans(ids);
 
-    // When
-    var result = sut.getStatisticsForTestPlan(testPlanId);
-
-    // Then
-    assertNotNull(result);
-    assertEquals(0L, result.getTotal());
-    assertEquals(0L, result.getCovered());
-    verify(tmsTestPlanStatisticsRepository).getExecutionStatisticsByTestPlanId(testPlanId);
+    assertEquals(3, result.size());
+    assertEquals(10L, result.get(1L).getTotal());
+    assertEquals(5L, result.get(1L).getCovered());
+    assertEquals(3L, result.get(2L).getTotal());
+    assertEquals(3L, result.get(2L).getCovered());
+    assertEquals(0L, result.get(3L).getTotal());
+    verify(tmsTestPlanStatisticsRepository, times(1)).getExecutionStatisticsByTestPlanIds(anyCollection());
   }
 
   @Test
-  void getStatisticsForTestPlan_WithFullyCoveredPlan_ShouldReturnCorrectStatistics() {
-    // Given
-    var fullyCoveredStatistics = TmsTestPlanExecutionStatistic.builder()
-        .total(10L)
-        .covered(10L)
-        .build();
-
-    when(tmsTestPlanStatisticsRepository.getExecutionStatisticsByTestPlanId(testPlanId))
-        .thenReturn(fullyCoveredStatistics);
-
-    // When
-    var result = sut.getStatisticsForTestPlan(testPlanId);
-
-    // Then
-    assertNotNull(result);
-    assertEquals(10L, result.getTotal());
-    assertEquals(10L, result.getCovered());
-    verify(tmsTestPlanStatisticsRepository).getExecutionStatisticsByTestPlanId(testPlanId);
-  }
-
-  @Test
-  void getStatisticsForTestPlan_WithNotCoveredPlan_ShouldReturnCorrectStatistics() {
-    // Given
-    var notCoveredStatistics = new TmsTestPlanExecutionStatistic(10, 0);
-
-    when(tmsTestPlanStatisticsRepository.getExecutionStatisticsByTestPlanId(testPlanId))
-        .thenReturn(notCoveredStatistics);
-
-    // When
-    var result = sut.getStatisticsForTestPlan(testPlanId);
-
-    // Then
-    assertNotNull(result);
-    assertEquals(10L, result.getTotal());
-    assertEquals(0L, result.getCovered());
-    verify(tmsTestPlanStatisticsRepository).getExecutionStatisticsByTestPlanId(testPlanId);
-  }
-
-  @Test
-  void getStatisticsForTestPlan_WithLargeNumbers_ShouldReturnCorrectStatistics() {
-    // Given
-    var largeStatistics = new TmsTestPlanExecutionStatistic(1000, 750);
-
-    when(tmsTestPlanStatisticsRepository.getExecutionStatisticsByTestPlanId(testPlanId))
-        .thenReturn(largeStatistics);
-
-    // When
-    var result = sut.getStatisticsForTestPlan(testPlanId);
-
-    // Then
-    assertNotNull(result);
-    assertEquals(1000L, result.getTotal());
-    assertEquals(750L, result.getCovered());
-    verify(tmsTestPlanStatisticsRepository).getExecutionStatisticsByTestPlanId(testPlanId);
+  void getStatisticsForTestPlans_WhenEmpty_ShouldNotQuery() {
+    assertTrue(sut.getStatisticsForTestPlans(List.of()).isEmpty());
+    verify(tmsTestPlanStatisticsRepository, never()).getExecutionStatisticsByTestPlanIds(any());
   }
 
   @Test
   void enrichWithStatistics_WhenTestPlanIsNull_ShouldReturnNull() {
-    // When
-    var result = sut.enrichWithStatistics(null);
+    var result = sut.enrichWithStatistics((TmsTestPlan) null);
 
-    // Then
     assertNull(result);
-    verify(tmsTestPlanStatisticsRepository, never()).getExecutionStatisticsByTestPlanId(any());
-    verify(tmsTestPlanExecutionMapper, never()).toDto(any());
-    verify(tmsTestPlanExecutionMapper, never()).createEmptyStatistics();
+    verify(tmsTestPlanStatisticsRepository, never()).getExecutionStatisticsByTestPlanIds(any());
   }
 
   @Test
   void enrichWithStatistics_WhenTestPlanExists_ShouldReturnEnrichedTestPlan() {
-    // Given
-    when(tmsTestPlanStatisticsRepository.getExecutionStatisticsByTestPlanId(testPlanId))
-        .thenReturn(statistics);
+    when(tmsTestPlanStatisticsRepository.getExecutionStatisticsByTestPlanIds(List.of(testPlanId)))
+        .thenReturn(List.of(row(testPlanId, 10, 5)));
 
-    // When
     var result = sut.enrichWithStatistics(testPlan);
 
-    // Then
     assertNotNull(result);
-    assertNotNull(result.getTestPlan());
-    assertNotNull(result.getExecutionStatistic());
-    assertEquals(testPlanId, result.getId());
-    assertEquals("Test Plan", result.getName());
     assertEquals(testPlan, result.getTestPlan());
-    assertEquals(statistics, result.getExecutionStatistic());
     assertEquals(10L, result.getExecutionStatistic().getTotal());
     assertEquals(5L, result.getExecutionStatistic().getCovered());
-    verify(tmsTestPlanStatisticsRepository).getExecutionStatisticsByTestPlanId(testPlanId);
   }
 
   @Test
-  void enrichWithStatistics_WhenStatisticsNotFound_ShouldReturnTestPlanWithEmptyStatistics() {
-    // Given
-    when(tmsTestPlanStatisticsRepository.getExecutionStatisticsByTestPlanId(testPlanId))
-        .thenReturn(null);
-    when(tmsTestPlanExecutionMapper.createEmptyStatistics()).thenReturn(emptyStatistics);
-
-    // When
-    var result = sut.enrichWithStatistics(testPlan);
-
-    // Then
-    assertNotNull(result);
-    assertNotNull(result.getTestPlan());
-    assertNotNull(result.getExecutionStatistic());
-    assertEquals(testPlanId, result.getId());
-    assertEquals("Test Plan", result.getName());
-    assertEquals(testPlan, result.getTestPlan());
-    assertEquals(emptyStatistics, result.getExecutionStatistic());
-    assertEquals(0L, result.getExecutionStatistic().getTotal());
-    assertEquals(0L, result.getExecutionStatistic().getCovered());
-    verify(tmsTestPlanStatisticsRepository).getExecutionStatisticsByTestPlanId(testPlanId);
-    verify(tmsTestPlanExecutionMapper).createEmptyStatistics();
-    verify(tmsTestPlanExecutionMapper, never()).toDto(any());
-  }
-
-  @Test
-  void enrichWithStatistics_WhenExceptionOccurs_ShouldReturnTestPlanWithEmptyStatistics() {
-    // Given
-    when(tmsTestPlanStatisticsRepository.getExecutionStatisticsByTestPlanId(testPlanId))
+  void enrichWithStatistics_WhenRepositoryFails_ShouldPropagateException() {
+    when(tmsTestPlanStatisticsRepository.getExecutionStatisticsByTestPlanIds(List.of(testPlanId)))
         .thenThrow(new RuntimeException("Database error"));
-    when(tmsTestPlanExecutionMapper.createEmptyStatistics()).thenReturn(emptyStatistics);
 
-    // When
-    var result = sut.enrichWithStatistics(testPlan);
-
-    // Then
-    assertNotNull(result);
-    assertNotNull(result.getTestPlan());
-    assertNotNull(result.getExecutionStatistic());
-    assertEquals(testPlanId, result.getId());
-    assertEquals("Test Plan", result.getName());
-    assertEquals(testPlan, result.getTestPlan());
-    assertEquals(emptyStatistics, result.getExecutionStatistic());
-    assertEquals(0L, result.getExecutionStatistic().getTotal());
-    assertEquals(0L, result.getExecutionStatistic().getCovered());
-    verify(tmsTestPlanStatisticsRepository).getExecutionStatisticsByTestPlanId(testPlanId);
-    verify(tmsTestPlanExecutionMapper).createEmptyStatistics();
-    verify(tmsTestPlanExecutionMapper, never()).toDto(any());
+    assertThrows(RuntimeException.class, () -> sut.enrichWithStatistics(testPlan));
   }
 
   @Test
-  void enrichWithStatistics_WithZeroStatistics_ShouldReturnEnrichedTestPlan() {
-    // Given
-    var zeroStatistics = TmsTestPlanExecutionStatistic.builder()
-        .total(0L)
-        .covered(0L)
-        .build();
-
-    when(tmsTestPlanStatisticsRepository.getExecutionStatisticsByTestPlanId(testPlanId))
-        .thenReturn(zeroStatistics);
-
-    // When
-    var result = sut.enrichWithStatistics(testPlan);
-
-    // Then
-    assertNotNull(result);
-    assertNotNull(result.getTestPlan());
-    assertNotNull(result.getExecutionStatistic());
-    assertEquals(0L, result.getExecutionStatistic().getTotal());
-    assertEquals(0L, result.getExecutionStatistic().getCovered());
-    verify(tmsTestPlanStatisticsRepository).getExecutionStatisticsByTestPlanId(testPlanId);
-  }
-
-  @Test
-  void enrichWithStatistics_WithDifferentTestPlanIds_ShouldLoadCorrectStatistics() {
-    // Given
-    var anotherTestPlanId = 999L;
+  void enrichWithStatistics_ForList_ShouldUseOneQueryKeepOrderAndSkipNulls() {
     var anotherTestPlan = new TmsTestPlan();
-    anotherTestPlan.setId(anotherTestPlanId);
-    anotherTestPlan.setName("Another Test Plan");
+    anotherTestPlan.setId(999L);
+    when(tmsTestPlanStatisticsRepository.getExecutionStatisticsByTestPlanIds(List.of(999L, testPlanId)))
+        .thenReturn(List.of(row(testPlanId, 10, 5), row(999L, 20, 15)));
 
-    var anotherStatistics = new TmsTestPlanExecutionStatistic(20, 15);
+    var result = sut.enrichWithStatistics(Arrays.asList(anotherTestPlan, null, testPlan));
 
-    when(tmsTestPlanStatisticsRepository.getExecutionStatisticsByTestPlanId(anotherTestPlanId))
-        .thenReturn(anotherStatistics);
-
-    // When
-    var result = sut.enrichWithStatistics(anotherTestPlan);
-
-    // Then
-    assertNotNull(result);
-    assertEquals(anotherTestPlanId, result.getId());
-    assertEquals("Another Test Plan", result.getName());
-    assertEquals(20L, result.getExecutionStatistic().getTotal());
-    assertEquals(15L, result.getExecutionStatistic().getCovered());
-    verify(tmsTestPlanStatisticsRepository).getExecutionStatisticsByTestPlanId(anotherTestPlanId);
+    assertEquals(2, result.size());
+    assertEquals(999L, result.get(0).getId());
+    assertEquals(20L, result.get(0).getExecutionStatistic().getTotal());
+    assertEquals(15L, result.get(0).getExecutionStatistic().getCovered());
+    assertEquals(testPlanId, result.get(1).getId());
+    assertEquals(10L, result.get(1).getExecutionStatistic().getTotal());
+    assertEquals(5L, result.get(1).getExecutionStatistic().getCovered());
+    verify(tmsTestPlanStatisticsRepository, times(1)).getExecutionStatisticsByTestPlanIds(anyCollection());
   }
 }

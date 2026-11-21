@@ -5,6 +5,12 @@ import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestPlan
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestPlan;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestPlanExecutionStatistic;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestPlanWithStatistic;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.projection.TmsTestPlanStatisticByTestPlan;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -21,25 +27,37 @@ public class TmsTestPlanExecutionServiceImpl implements TmsTestPlanExecutionServ
   @Override
   @Transactional(readOnly = true)
   public TmsTestPlanExecutionStatistic getStatisticsForTestPlan(Long testPlanId) {
-    log.debug("Loading execution statistics for test plan: {}", testPlanId);
+    return getStatisticsForTestPlans(List.of(testPlanId)).get(testPlanId);
+  }
 
-    try {
-      var statistics = tmsTestPlanStatisticsRepository
-          .getExecutionStatisticsByTestPlanId(testPlanId);
-
-      if (statistics == null) {
-        log.warn("No statistics found for test plan {}, returning empty", testPlanId);
-        return tmsTestPlanExecutionMapper.createEmptyStatistics();
-      }
-
-      log.debug("Loaded statistics for test plan {}: total={}, covered={}",
-          testPlanId, statistics.getTotal(), statistics.getCovered());
-
-      return statistics;
-    } catch (Exception e) {
-      log.error("Failed to load statistics for test plan {}", testPlanId, e);
-      return tmsTestPlanExecutionMapper.createEmptyStatistics();
+  @Override
+  @Transactional(readOnly = true)
+  public Map<Long, TmsTestPlanExecutionStatistic> getStatisticsForTestPlans(
+      Collection<Long> testPlanIds) {
+    if (testPlanIds.isEmpty()) {
+      return Map.of();
     }
+    log.debug("Loading execution statistics for test plans: {}", testPlanIds);
+
+    var statistics = tmsTestPlanStatisticsRepository
+        .getExecutionStatisticsByTestPlanIds(testPlanIds)
+        .stream()
+        .collect(Collectors.toMap(
+            TmsTestPlanStatisticByTestPlan::getTestPlanId,
+            row -> new TmsTestPlanExecutionStatistic(row.getTotal(), row.getCovered())
+        ));
+
+    return testPlanIds
+        .stream()
+        .distinct()
+        .collect(Collectors.toMap(
+            testPlanId -> testPlanId,
+            testPlanId -> {
+              var statistic = statistics.get(testPlanId);
+              return statistic != null ? statistic
+                  : tmsTestPlanExecutionMapper.createEmptyStatistics();
+            }
+        ));
   }
 
   @Transactional(readOnly = true)
@@ -50,13 +68,20 @@ public class TmsTestPlanExecutionServiceImpl implements TmsTestPlanExecutionServ
       return null;
     }
 
-    log.debug("Enriching test plan {} with statistics", testPlan.getId());
+    return TmsTestPlanWithStatistic.of(testPlan, getStatisticsForTestPlan(testPlan.getId()));
+  }
 
-    var statistics = getStatisticsForTestPlan(testPlan.getId());
+  @Transactional(readOnly = true)
+  @Override
+  public List<TmsTestPlanWithStatistic> enrichWithStatistics(List<TmsTestPlan> testPlans) {
+    var nonNullTestPlans = testPlans.stream().filter(Objects::nonNull).toList();
+    var statistics = getStatisticsForTestPlans(
+        nonNullTestPlans.stream().map(TmsTestPlan::getId).toList()
+    );
 
-    log.debug("Successfully enriched test plan {} with statistics: total={}, covered={}",
-        testPlan.getId(), statistics.getTotal(), statistics.getCovered());
-
-    return TmsTestPlanWithStatistic.of(testPlan, statistics);
+    return nonNullTestPlans
+        .stream()
+        .map(testPlan -> TmsTestPlanWithStatistic.of(testPlan, statistics.get(testPlan.getId())))
+        .toList();
   }
 }

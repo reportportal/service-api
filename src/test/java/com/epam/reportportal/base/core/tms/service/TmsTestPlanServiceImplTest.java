@@ -150,7 +150,7 @@ class TmsTestPlanServiceImplTest {
 
     assertEquals(exception.getErrorType(), ErrorType.NOT_FOUND);
     verify(testPlanRepository).findByIdAndProjectId(testPlanId, projectId);
-    verify(tmsTestPlanExecutionService, never()).enrichWithStatistics(any());
+    verify(tmsTestPlanExecutionService, never()).enrichWithStatistics(any(TmsTestPlan.class));
   }
 
   @Test
@@ -160,8 +160,11 @@ class TmsTestPlanServiceImplTest {
     var testPlan = new TmsTestPlan();
     var testPlanRS = new TmsTestPlanRS();
 
+    var testPlanWithStatistic = mock(TmsTestPlanWithStatistic.class);
+
     when(tmsTestPlanMapper.convertFromRQ(projectId, testPlanRQ)).thenReturn(testPlan);
-    when(tmsTestPlanMapper.convertTmsTestPlanWithStatisticToRS(any(TmsTestPlanWithStatistic.class))).thenReturn(testPlanRS);
+    when(tmsTestPlanExecutionService.enrichWithStatistics(testPlan)).thenReturn(testPlanWithStatistic);
+    when(tmsTestPlanMapper.convertTmsTestPlanWithStatisticToRS(testPlanWithStatistic)).thenReturn(testPlanRS);
 
     var result = sut.create(projectId, testPlanRQ);
 
@@ -169,7 +172,8 @@ class TmsTestPlanServiceImplTest {
     verify(tmsTestPlanMapper).convertFromRQ(projectId, testPlanRQ);
     verify(testPlanRepository).save(testPlan);
     verify(tmsTestPlanAttributeService).createTestPlanAttributes(projectId, testPlan, testPlanRQ.getAttributes());
-    verify(tmsTestPlanMapper).convertTmsTestPlanWithStatisticToRS(any(TmsTestPlanWithStatistic.class));
+    verify(tmsTestPlanExecutionService).enrichWithStatistics(testPlan);
+    verify(tmsTestPlanMapper).convertTmsTestPlanWithStatisticToRS(testPlanWithStatistic);
   }
 
   @Test
@@ -296,7 +300,7 @@ class TmsTestPlanServiceImplTest {
 
     when(tmsTestPlanFilterableRepository.findIdsByProjectIdAndFilter(projectId, filter, pageable)).thenReturn(testPlanIdsPage);
     when(testPlanRepository.findByIdsWithAttributes(List.of(1L))).thenReturn(List.of(testPlan));
-    when(tmsTestPlanExecutionService.enrichWithStatistics(testPlan)).thenReturn(testPlanWithStatistic);
+    when(tmsTestPlanExecutionService.enrichWithStatistics(List.of(testPlan))).thenReturn(List.of(testPlanWithStatistic));
     when(tmsTestPlanMapper.convertTmsTestPlanWithStatisticToRS(List.of(testPlanWithStatistic), pageable, 1L)).thenReturn(testPlanPage);
 
     var result = assertDoesNotThrow(() -> sut.getByCriteria(projectId, filter, pageable));
@@ -312,7 +316,7 @@ class TmsTestPlanServiceImplTest {
 
     verify(tmsTestPlanFilterableRepository).findIdsByProjectIdAndFilter(projectId, filter, pageable);
     verify(testPlanRepository).findByIdsWithAttributes(List.of(1L));
-    verify(tmsTestPlanExecutionService).enrichWithStatistics(testPlan);
+    verify(tmsTestPlanExecutionService).enrichWithStatistics(List.of(testPlan));
     verify(tmsTestPlanMapper).convertTmsTestPlanWithStatisticToRS(List.of(testPlanWithStatistic), pageable, 1L);
   }
 
@@ -331,7 +335,7 @@ class TmsTestPlanServiceImplTest {
 
     when(tmsTestPlanFilterableRepository.findIdsByProjectIdAndFilter(projectId, filter, pageable)).thenReturn(testPlanIdsPage);
     when(testPlanRepository.findByIdsWithAttributes(List.of(1L))).thenReturn(List.of(testPlan));
-    when(tmsTestPlanExecutionService.enrichWithStatistics(testPlan)).thenReturn(testPlanWithStatistic);
+    when(tmsTestPlanExecutionService.enrichWithStatistics(List.of(testPlan))).thenReturn(List.of(testPlanWithStatistic));
     when(tmsTestPlanMapper.convertTmsTestPlanWithStatisticToRS(List.of(testPlanWithStatistic), pageable, 1L)).thenReturn(testPlanPage);
 
     var result = assertDoesNotThrow(() -> sut.getByCriteria(projectId, filter, pageable));
@@ -342,7 +346,7 @@ class TmsTestPlanServiceImplTest {
 
     verify(tmsTestPlanFilterableRepository).findIdsByProjectIdAndFilter(projectId, filter, pageable);
     verify(testPlanRepository).findByIdsWithAttributes(List.of(1L));
-    verify(tmsTestPlanExecutionService).enrichWithStatistics(testPlan);
+    verify(tmsTestPlanExecutionService).enrichWithStatistics(List.of(testPlan));
     verify(tmsTestPlanMapper).convertTmsTestPlanWithStatisticToRS(List.of(testPlanWithStatistic), pageable, 1L);
   }
 
@@ -367,7 +371,7 @@ class TmsTestPlanServiceImplTest {
 
     verify(tmsTestPlanFilterableRepository).findIdsByProjectIdAndFilter(projectId, filter, pageable);
     verify(testPlanRepository, never()).findByIdsWithAttributes(any());
-    verify(tmsTestPlanExecutionService, never()).enrichWithStatistics(any(TmsTestPlan.class));
+    verify(tmsTestPlanExecutionService, never()).enrichWithStatistics(anyList());
     verify(tmsTestPlanMapper, never()).convertTmsTestPlanWithStatisticToRS(anyList(), any(), anyLong());
   }
 
@@ -406,7 +410,9 @@ class TmsTestPlanServiceImplTest {
 
     when(testPlanRepository.findByIdAndProjectId(testPlanId, projectId)).thenReturn(Optional.empty());
     when(tmsTestPlanMapper.convertFromRQ(projectId, testPlanRQ)).thenReturn(testPlan);
-    when(tmsTestPlanMapper.convertTmsTestPlanWithStatisticToRS(any(TmsTestPlanWithStatistic.class))).thenReturn(testPlanRS);
+    var testPlanWithStatistic = mock(TmsTestPlanWithStatistic.class);
+    when(tmsTestPlanExecutionService.enrichWithStatistics(testPlan)).thenReturn(testPlanWithStatistic);
+    when(tmsTestPlanMapper.convertTmsTestPlanWithStatisticToRS(testPlanWithStatistic)).thenReturn(testPlanRS);
 
     var result = assertDoesNotThrow(() -> sut.update(projectId, testPlanId, testPlanRQ));
 
@@ -414,7 +420,8 @@ class TmsTestPlanServiceImplTest {
     verify(testPlanRepository).findByIdAndProjectId(testPlanId, projectId);
     verify(testPlanRepository).save(testPlan);
     verify(tmsTestPlanAttributeService).createTestPlanAttributes(projectId, testPlan, testPlanRQ.getAttributes());
-    verify(tmsTestPlanMapper).convertTmsTestPlanWithStatisticToRS(any(TmsTestPlanWithStatistic.class));
+    verify(tmsTestPlanExecutionService).enrichWithStatistics(testPlan);
+    verify(tmsTestPlanMapper).convertTmsTestPlanWithStatisticToRS(testPlanWithStatistic);
   }
 
   @Test
@@ -454,7 +461,7 @@ class TmsTestPlanServiceImplTest {
 
     assertEquals(exception.getErrorType(), ErrorType.NOT_FOUND);
     verify(testPlanRepository).findByIdAndProjectId(testPlanId, projectId);
-    verify(tmsTestPlanExecutionService, never()).enrichWithStatistics(any());
+    verify(tmsTestPlanExecutionService, never()).enrichWithStatistics(any(TmsTestPlan.class));
   }
 
   @Test
@@ -1021,8 +1028,8 @@ class TmsTestPlanServiceImplTest {
 
     when(testPlanRepository.findIdsByProjectIdAndMilestoneId(projectId, milestoneId)).thenReturn(List.of(100L, 200L));
     when(testPlanRepository.findByIdsWithAttributes(List.of(100L, 200L))).thenReturn(List.of(testPlan1, testPlan2));
-    when(tmsTestPlanExecutionService.enrichWithStatistics(testPlan1)).thenReturn(testPlanWithStatistic1);
-    when(tmsTestPlanExecutionService.enrichWithStatistics(testPlan2)).thenReturn(testPlanWithStatistic2);
+    when(tmsTestPlanExecutionService.enrichWithStatistics(List.of(testPlan1, testPlan2)))
+        .thenReturn(List.of(testPlanWithStatistic1, testPlanWithStatistic2));
     when(tmsTestPlanMapper.convertTmsTestPlansWithStatisticToRS(List.of(testPlanWithStatistic1, testPlanWithStatistic2)))
         .thenReturn(List.of(testPlanRS1, testPlanRS2));
 
@@ -1035,8 +1042,7 @@ class TmsTestPlanServiceImplTest {
 
     verify(testPlanRepository).findIdsByProjectIdAndMilestoneId(projectId, milestoneId);
     verify(testPlanRepository).findByIdsWithAttributes(List.of(100L, 200L));
-    verify(tmsTestPlanExecutionService).enrichWithStatistics(testPlan1);
-    verify(tmsTestPlanExecutionService).enrichWithStatistics(testPlan2);
+    verify(tmsTestPlanExecutionService).enrichWithStatistics(List.of(testPlan1, testPlan2));
     verify(tmsTestPlanMapper).convertTmsTestPlansWithStatisticToRS(anyList());
   }
 
@@ -1051,7 +1057,7 @@ class TmsTestPlanServiceImplTest {
 
     verify(testPlanRepository).findIdsByProjectIdAndMilestoneId(projectId, milestoneId);
     verify(testPlanRepository, never()).findByIdsWithAttributes(anyList());
-    verify(tmsTestPlanExecutionService, never()).enrichWithStatistics(any());
+    verify(tmsTestPlanExecutionService, never()).enrichWithStatistics(anyList());
     verify(tmsTestPlanMapper, never()).convertTmsTestPlansWithStatisticToRS(anyList());
   }
 
@@ -1076,8 +1082,8 @@ class TmsTestPlanServiceImplTest {
 
     when(testPlanRepository.findIdsByProjectIdAndMilestoneIds(projectId, milestoneIds)).thenReturn(List.of(100L, 200L));
     when(testPlanRepository.findByIdsWithAttributes(List.of(100L, 200L))).thenReturn(List.of(testPlan1, testPlan2));
-    when(tmsTestPlanExecutionService.enrichWithStatistics(testPlan1)).thenReturn(testPlanWithStatistic1);
-    when(tmsTestPlanExecutionService.enrichWithStatistics(testPlan2)).thenReturn(testPlanWithStatistic2);
+    when(tmsTestPlanExecutionService.enrichWithStatistics(List.of(testPlan1, testPlan2)))
+        .thenReturn(List.of(testPlanWithStatistic1, testPlanWithStatistic2));
     when(tmsTestPlanMapper.convertTmsTestPlansWithStatisticToMap(List.of(testPlanWithStatistic1, testPlanWithStatistic2)))
         .thenReturn(expectedMap);
 
@@ -1094,8 +1100,7 @@ class TmsTestPlanServiceImplTest {
 
     verify(testPlanRepository).findIdsByProjectIdAndMilestoneIds(projectId, milestoneIds);
     verify(testPlanRepository).findByIdsWithAttributes(List.of(100L, 200L));
-    verify(tmsTestPlanExecutionService).enrichWithStatistics(testPlan1);
-    verify(tmsTestPlanExecutionService).enrichWithStatistics(testPlan2);
+    verify(tmsTestPlanExecutionService).enrichWithStatistics(List.of(testPlan1, testPlan2));
     verify(tmsTestPlanMapper).convertTmsTestPlansWithStatisticToMap(anyList());
   }
 
@@ -1112,7 +1117,7 @@ class TmsTestPlanServiceImplTest {
 
     verify(testPlanRepository).findIdsByProjectIdAndMilestoneIds(projectId, milestoneIds);
     verify(testPlanRepository, never()).findByIdsWithAttributes(anyList());
-    verify(tmsTestPlanExecutionService, never()).enrichWithStatistics(any());
+    verify(tmsTestPlanExecutionService, never()).enrichWithStatistics(anyList());
     verify(tmsTestPlanMapper, never()).convertTmsTestPlansWithStatisticToMap(anyList());
   }
 

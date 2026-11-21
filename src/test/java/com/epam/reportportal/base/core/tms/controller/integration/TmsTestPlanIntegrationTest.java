@@ -538,6 +538,19 @@ public class TmsTestPlanIntegrationTest extends BaseMvcTest {
   }
 
   @Test
+  void executionStatisticCountsOnlyTestCasesOfThePlanIntegrationTest() throws Exception {
+    // Given - the executed (PASSED) test case 100 is removed from plan 100, only 101 is left
+    tmsTestPlanTestCaseRepository.deleteByTestPlanIdAndTestCaseId(100L, 100L);
+
+    // When/Then - the execution of a test case outside the plan is not counted as covered
+    mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-plan/100")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.executionStatistic.total").value(1))
+        .andExpect(jsonPath("$.executionStatistic.covered").value(0));
+  }
+
+  @Test
   void getTestPlanByIdWithoutExecutionStatisticIntegrationTest() throws Exception {
     // Given - test plan 101 without execution statistics (2 total, 0 covered)
 

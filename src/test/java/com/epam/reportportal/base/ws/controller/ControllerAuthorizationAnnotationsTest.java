@@ -17,7 +17,6 @@
 package com.epam.reportportal.base.ws.controller;
 
 import static com.epam.reportportal.base.auth.permissions.Permissions.ALLOWED_TO_EDIT_PROJECT;
-import static com.epam.reportportal.base.auth.permissions.Permissions.ALLOWED_TO_EDIT_USER;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
@@ -26,19 +25,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.security.access.prepost.PreAuthorize;
 
 /**
- * Guards the method-level authorization of endpoints that must not be open to every authenticated or project-viewer
- * caller.
+ * Guards the method-level authorization of endpoints that must not be open to project-viewer callers.
  */
 class ControllerAuthorizationAnnotationsTest {
-
-  @Test
-  void getUserProjectsIsAllowedOnlyToTheUserOrAdministrator() throws Exception {
-    PreAuthorize preAuthorize = UserController.class
-        .getMethod("getUserProjects", String.class, ReportPortalUser.class)
-        .getAnnotation(PreAuthorize.class);
-
-    assertEquals(ALLOWED_TO_EDIT_USER, preAuthorize.value());
-  }
 
   @Test
   void executePluginCommandRequiresProjectEditPermission() throws Exception {

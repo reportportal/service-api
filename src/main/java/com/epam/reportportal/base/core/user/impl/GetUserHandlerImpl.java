@@ -31,6 +31,7 @@ import com.epam.reportportal.api.model.InstanceUserPage;
 import com.epam.reportportal.base.core.jasper.GetJasperReportHandler;
 import com.epam.reportportal.base.core.jasper.ReportFormat;
 import com.epam.reportportal.base.core.user.GetUserHandler;
+import com.epam.reportportal.base.infrastructure.persistence.commons.EntityUtils;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Condition;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
@@ -46,6 +47,7 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.project.Proj
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.ProjectUser;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.User;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserExportProjection;
+import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRole;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.model.user.UserResource;
@@ -153,7 +155,16 @@ public class GetUserHandlerImpl implements GetUserHandler {
 
 
   @Override
-  public Map<String, UserResource.AssignedProject> getUserProjects(String userName) {
+  public Map<String, UserResource.AssignedProject> getUserProjects(String userName,
+      ReportPortalUser currentUser) {
+    if (currentUser.getUserRole() != UserRole.ADMINISTRATOR) {
+      boolean self = userRepository.findByLogin(EntityUtils.normalizeId(userName))
+          .map(user -> user.getId().equals(currentUser.getUserId()))
+          .orElse(false);
+      if (!self) {
+        throw new ReportPortalException(ErrorType.ACCESS_DENIED);
+      }
+    }
     return projectRepository.findUserProjects(userName).stream()
         .collect(toMap(Project::getName, it -> {
           UserResource.AssignedProject assignedProject = new UserResource.AssignedProject();

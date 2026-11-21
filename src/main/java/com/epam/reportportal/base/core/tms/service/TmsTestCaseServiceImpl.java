@@ -1068,37 +1068,27 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
   private Filter enhanceFilterWithProjectIdAndTestPlanId(Filter originalFilter,
       Long projectId,
       Long testPlanId) {
-    var conditions = new ArrayList<>(originalFilter.getFilterConditions());
-
-    var hasProjectIdFilter = conditions
+    // Project and test plan always come from the path (the plan is verified against the project):
+    // caller-supplied projectId/testPlanId criteria are dropped
+    var conditions = new ArrayList<>(originalFilter.getFilterConditions()
         .stream()
-        .anyMatch(condition -> condition instanceof FilterCondition &&
-            ((FilterCondition) condition).getSearchCriteria()
-                .equals(CRITERIA_TMS_TEST_CASE_PROJECT_ID));
+        .filter(condition -> !(condition instanceof FilterCondition fc
+            && (CRITERIA_TMS_TEST_CASE_PROJECT_ID.equals(fc.getSearchCriteria())
+            || CRITERIA_TMS_TEST_CASE_PLAN_ID.equals(fc.getSearchCriteria()))))
+        .toList());
 
-    if (!hasProjectIdFilter) {
-      conditions.add(new FilterCondition(
-          Condition.EQUALS,
-          false,
-          String.valueOf(projectId),
-          CRITERIA_TMS_TEST_CASE_PROJECT_ID
-      ));
-    }
-
-    var hasTestPlanIdIdFilter = conditions
-        .stream()
-        .anyMatch(condition -> condition instanceof FilterCondition &&
-            ((FilterCondition) condition).getSearchCriteria()
-                .equals(CRITERIA_TMS_TEST_CASE_PLAN_ID));
-
-    if (!hasTestPlanIdIdFilter) {
-      conditions.add(new FilterCondition(
-          Condition.EQUALS,
-          false,
-          String.valueOf(testPlanId),
-          CRITERIA_TMS_TEST_CASE_PLAN_ID
-      ));
-    }
+    conditions.add(new FilterCondition(
+        Condition.EQUALS,
+        false,
+        String.valueOf(projectId),
+        CRITERIA_TMS_TEST_CASE_PROJECT_ID
+    ));
+    conditions.add(new FilterCondition(
+        Condition.EQUALS,
+        false,
+        String.valueOf(testPlanId),
+        CRITERIA_TMS_TEST_CASE_PLAN_ID
+    ));
 
     return new Filter(TmsTestCase.class, conditions);
   }

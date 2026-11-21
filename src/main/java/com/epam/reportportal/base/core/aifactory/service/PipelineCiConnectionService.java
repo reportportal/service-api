@@ -295,16 +295,21 @@ public class PipelineCiConnectionService {
   }
 
   /**
-   * The environments the pipeline's jobs may run against, the first being the default; empty when the pipeline has
-   * no connection of its own or none are saved.
+   * The environments the pipeline's jobs may run against, the first being the default; empty when none are saved.
+   * They are read from the integration the pipeline uses: its own, or, until it has one, the project integration
+   * (when that carries an {@code environments} parameter).
    * <p>
-   * Example: a pipeline saved with {@code environments: ["beta5", "qa"]} gives {@code ["beta5", "qa"]}.
+   * Example: a pipeline saved with {@code environments: ["beta5", "qa"]} gives {@code ["beta5", "qa"]}; a pipeline
+   * without its own connection in a project whose integration has {@code environments: ["beta5"]} gives
+   * {@code ["beta5"]}.
    */
   @Transactional(readOnly = true)
   public List<String> environmentsOf(Pipeline pipeline) {
-    return ownedIntegration(pipeline)
-        .map(integration -> stringList(integration.getParams().getParams().get(PARAM_ENVIRONMENTS)))
-        .orElseGet(ArrayList::new);
+    var integration = effective(pipeline).integration();
+    if (integration == null || integration.getParams() == null || integration.getParams().getParams() == null) {
+      return new ArrayList<>();
+    }
+    return stringList(integration.getParams().getParams().get(PARAM_ENVIRONMENTS));
   }
 
   /**

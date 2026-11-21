@@ -22,24 +22,31 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.epam.reportportal.base.core.analyzer.auto.LogIndexer;
 import com.epam.reportportal.base.core.item.identity.TestCaseHashGenerator;
 import com.epam.reportportal.base.core.item.identity.UniqueIdGenerator;
 import com.epam.reportportal.base.core.item.impl.rerun.RerunSearcher;
 import com.epam.reportportal.base.core.item.impl.retry.RetryHandler;
 import com.epam.reportportal.base.core.item.validator.parent.ParentItemValidator;
+import com.epam.reportportal.base.core.statistics.TestItemStatisticsService;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Queryable;
+import com.epam.reportportal.base.infrastructure.persistence.dao.IssueEntityRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.TestItemRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.StatusEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.TestItemTypeEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItem;
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItemResults;
+import com.epam.reportportal.base.infrastructure.persistence.entity.item.issue.IssueEntity;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationRole;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectRole;
@@ -92,6 +99,15 @@ class RerunHandlerImplTest {
 
   @Mock
   private RetryHandler retryHandler;
+
+  @Mock
+  private TestItemStatisticsService testItemStatisticsService;
+
+  @Mock
+  private IssueEntityRepository issueEntityRepository;
+
+  @Mock
+  private LogIndexer logIndexer;
 
   @InjectMocks
   private RerunHandlerImpl rerunHandler;
@@ -240,6 +256,89 @@ class RerunHandlerImplTest {
     Optional<ItemCreatedRS> rerunCreatedRS = rerunHandler.handleRootItem(request, launch);
 
     assertTrue(rerunCreatedRS.isPresent());
+  }
+
+  @Test
+  void rerunOfFinishedRootItemDeletesItsStatisticsAndIssue() {
+    StartTestItemRQ request = new StartTestItemRQ();
+    request.setLaunchUuid("launch_uuid");
+    request.setType("STEP");
+    request.setName("name");
+    request.setTestCaseId("caseId");
+    request.setUuid("new-uuid");
+    Launch launch = getLaunch("uuid");
+    launch.setProjectId(10L);
+
+    final TestItem item = getItem("name", launch);
+    item.setUuid("old-uuid");
+    item.setPath("1");
+    item.getItemResults().setStatus(StatusEnum.FAILED);
+    IssueEntity issue = new IssueEntity();
+    issue.setTestItemResults(item.getItemResults());
+    item.getItemResults().setIssue(issue);
+    when(rerunSearcher.findItem(any(Queryable.class))).thenReturn(Optional.of(item.getItemId()));
+    when(testItemRepository.findById(item.getItemId())).thenReturn(Optional.of(item));
+
+    Optional<ItemCreatedRS> rerunCreatedRS = rerunHandler.handleRootItem(request, launch);
+
+    assertTrue(rerunCreatedRS.isPresent());
+    assertEquals("new-uuid", rerunCreatedRS.get().getId());
+    verify(testItemStatisticsService).deleteItemStatistics(argThat(
+        ctx -> ctx.getItemId().equals(1L) && ctx.getLaunchId().equals(1L) && "1".equals(
+            ctx.getPath())));
+    verify(issueEntityRepository).delete(issue);
+    verify(logIndexer).indexItemsRemoveAsync(10L, java.util.List.of(1L));
+    assertNull(item.getItemResults().getIssue());
+    assertEquals(StatusEnum.IN_PROGRESS, item.getItemResults().getStatus());
+  }
+
+  @Test
+  void redeliveredRerunStartDoesNotReopenItemAgain() {
+    StartTestItemRQ request = new StartTestItemRQ();
+    request.setLaunchUuid("launch_uuid");
+    request.setType("STEP");
+    request.setName("name");
+    request.setTestCaseId("caseId");
+    request.setUuid("same-uuid");
+    Launch launch = getLaunch("uuid");
+
+    // item was already reopened by this START and finished afterwards
+    final TestItem item = getItem("name", launch);
+    item.setUuid("same-uuid");
+    item.setPath("1");
+    item.getItemResults().setStatus(StatusEnum.PASSED);
+    when(rerunSearcher.findItem(any(Queryable.class))).thenReturn(Optional.of(item.getItemId()));
+    when(testItemRepository.findById(item.getItemId())).thenReturn(Optional.of(item));
+
+    Optional<ItemCreatedRS> rerunCreatedRS = rerunHandler.handleRootItem(request, launch);
+
+    assertTrue(rerunCreatedRS.isPresent());
+    assertEquals("same-uuid", rerunCreatedRS.get().getId());
+    verify(testItemStatisticsService, never()).deleteItemStatistics(any());
+    assertEquals(StatusEnum.PASSED, item.getItemResults().getStatus());
+  }
+
+  @Test
+  void rerunOfContainerDoesNotDeleteItsAggregatedStatistics() {
+    StartTestItemRQ request = new StartTestItemRQ();
+    request.setLaunchUuid("launch_uuid");
+    request.setType("SUITE");
+    request.setName("name");
+    request.setTestCaseId("caseId");
+    Launch launch = getLaunch("uuid");
+
+    final TestItem item = getItem("name", launch);
+    item.setType(TestItemTypeEnum.SUITE);
+    item.setHasChildren(true);
+    item.setPath("1");
+    item.getItemResults().setStatus(StatusEnum.FAILED);
+    when(rerunSearcher.findItem(any(Queryable.class))).thenReturn(Optional.of(item.getItemId()));
+    when(testItemRepository.findById(item.getItemId())).thenReturn(Optional.of(item));
+
+    rerunHandler.handleRootItem(request, launch);
+
+    verify(testItemStatisticsService, never()).deleteItemStatistics(any());
+    assertEquals(StatusEnum.IN_PROGRESS, item.getItemResults().getStatus());
   }
 
   @Test

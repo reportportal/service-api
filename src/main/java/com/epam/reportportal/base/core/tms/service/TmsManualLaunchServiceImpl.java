@@ -44,6 +44,7 @@ import com.epam.reportportal.base.ws.converter.PagedResourcesAssembler;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -57,7 +58,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * Service implementation for managing TMS Manual Launches.
@@ -87,6 +91,7 @@ public class TmsManualLaunchServiceImpl implements TmsManualLaunchService {
 
   private TmsTestCaseExecutionService tmsTestCaseExecutionService;
   private TmsTestCaseService tmsTestCaseService;
+  private TransactionTemplate requiresNewTransactionTemplate;
 
   @Autowired
   public void setTmsTestCaseExecutionService(
@@ -100,11 +105,22 @@ public class TmsManualLaunchServiceImpl implements TmsManualLaunchService {
     this.tmsTestCaseService = tmsTestCaseService;
   }
 
+  @Autowired
+  public void setTransactionManager(PlatformTransactionManager transactionManager) {
+    this.requiresNewTransactionTemplate = new TransactionTemplate(transactionManager);
+    this.requiresNewTransactionTemplate.setPropagationBehavior(
+        TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+  }
+
   @Override
   @Transactional
   public CreateTmsManualLaunchRS create(Long projectId, ReportPortalUser user,
       CreateTmsManualLaunchRQ request) {
     log.debug("Creating manual launch for project: {}", projectId);
+
+    if (request.getTestPlan() != null && request.getTestPlan().getId() != null) {
+      tmsTestPlanService.verifyTestPlanExists(projectId, request.getTestPlan().getId());
+    }
 
     // Create Launch entity
     var launch = tmsManualLaunchMapper.convertFromCreateTmsManualLaunchRQ(projectId, user, request);
@@ -197,7 +213,7 @@ public class TmsManualLaunchServiceImpl implements TmsManualLaunchService {
 
     // Get maps from services
     var userMap = getUserHandler.getUserMap(userIds);
-    var testPlanMap = tmsTestPlanService.getTestPlanMap(testPlanIds);
+    var testPlanMap = tmsTestPlanService.getTestPlanMap(projectId, testPlanIds);
     var testCaseExecutionStatistics =
         tmsTestCaseExecutionService.getTestCaseExecutionStatistic(launchIds);
 
@@ -227,6 +243,16 @@ public class TmsManualLaunchServiceImpl implements TmsManualLaunchService {
             NOT_FOUND, LAUNCH_NOT_FOUND_BY_ID.formatted(launchId, projectId))
         );
 
+    deleteManualLaunch(membershipDetails, launch, user);
+
+    log.debug("Deleted manual launch: {} for project: {}", launchId, projectId);
+  }
+
+  private void deleteManualLaunch(MembershipDetails membershipDetails, Launch launch,
+      ReportPortalUser user) {
+    var projectId = membershipDetails.getProjectId();
+    var launchId = launch.getId();
+
     if (StatusEnum.IN_PROGRESS.equals(launch.getStatus())) {
       launch.setStatus(StatusEnum.INTERRUPTED);
       launchRepository.save(launch);
@@ -251,8 +277,6 @@ public class TmsManualLaunchServiceImpl implements TmsManualLaunchService {
 
     // Delete launch
     deleteLaunchHandler.deleteLaunch(launchId, membershipDetails, user);
-
-    log.debug("Deleted manual launch: {} for project: {}", launchId, projectId);
   }
 
   @Override
@@ -266,6 +290,10 @@ public class TmsManualLaunchServiceImpl implements TmsManualLaunchService {
         .orElseThrow(() -> new ReportPortalException(
             NOT_FOUND, LAUNCH_NOT_FOUND_BY_ID.formatted(launchId, projectId))
         );
+
+    if (request.getTestPlan() != null && request.getTestPlan().getId() != null) {
+      tmsTestPlanService.verifyTestPlanExists(projectId, request.getTestPlan().getId());
+    }
 
     // Patch launch fields
     tmsManualLaunchMapper.patch(existingLaunch, request);
@@ -419,29 +447,24 @@ public class TmsManualLaunchServiceImpl implements TmsManualLaunchService {
     List<BatchDeleteTestCaseExecutionError> errors = new ArrayList<>();
     var executionIds = request.getExecutionIds();
 
+    // Verify executions exist and belong to launch
+    var executionIdsInLaunch = new HashSet<>(
+        tmsTestCaseExecutionService.findExecutionIdsInLaunch(executionIds, launchId)
+    );
+
     for (var executionId : executionIds) {
-      try {
-        // Verify execution exists and belongs to launch
-        if (!tmsTestCaseExecutionService.existsByTestCaseExecutionIdAndLaunchId(executionId,
-            launchId)) {
-          errors.add(new BatchDeleteTestCaseExecutionError(
-              executionId,
-              "Test case execution not found in launch " + launchId
-          ));
-          continue;
-        }
-
-        tmsTestCaseExecutionService.deleteTestCaseExecutionFromLaunch(projectId, launchId,
-            executionId);
-        successExecutionIds.add(executionId);
-
-      } catch (Exception e) {
-        log.error("Failed to delete execution {} from launch {}", executionId, launchId, e);
+      // A repeated id is reported as not found: it is deleted by its first occurrence
+      if (!executionIdsInLaunch.remove(executionId)) {
         errors.add(new BatchDeleteTestCaseExecutionError(
             executionId,
-            e.getMessage()
+            "Test case execution not found in launch " + launchId
         ));
+        continue;
       }
+
+      tmsTestCaseExecutionService.deleteTestCaseExecutionFromLaunch(projectId, launchId,
+          executionId);
+      successExecutionIds.add(executionId);
     }
 
     return tmsManualLaunchMapper.convertToBatchDeleteExecutionsResponse(
@@ -503,8 +526,11 @@ public class TmsManualLaunchServiceImpl implements TmsManualLaunchService {
     );
   }
 
+  /**
+   * Deletes each launch in its own transaction, so a launch that fails to delete does not roll back
+   * the launches deleted before it. Intentionally not transactional.
+   */
   @Override
-  @Transactional
   public BatchManualLaunchOperationResultRS batchDeleteManualLaunches(
       MembershipDetails membershipDetails,
       BatchDeleteManualLaunchesRQ request, ReportPortalUser user) {
@@ -516,53 +542,32 @@ public class TmsManualLaunchServiceImpl implements TmsManualLaunchService {
 
     var launchIds = request.getLaunchIds();
 
-    // Try to delete each launch
+    // Delete each launch in its own transaction
     for (var launchId : launchIds) {
+      Boolean deleted;
       try {
-        // Check if launch exists and belongs to project
-        var launchOptional = launchRepository.findManualLaunchByIdAndProjectId(launchId, projectId);
-        if (launchOptional.isEmpty()) {
-          log.warn("Launch {} not found in project {}", launchId, projectId);
-          errors.add(new BatchManualLaunchOperationError(
-              launchId,
-              "Manual Launch not found in project"
-          ));
-          continue;
-        }
-        var launch = launchOptional.get();
-
-        if (StatusEnum.IN_PROGRESS.equals(launch.getStatus())) {
-          launch.setStatus(StatusEnum.INTERRUPTED);
-          launchRepository.save(launch);
-        }
-
-        // Delete tms step executions
-        tmsStepExecutionService.deleteByLaunchId(launchId);
-
-        // Delete test case executions (includes launch-test case associations)
-        tmsTestCaseExecutionService.deleteByLaunchId(launchId);
-
-        // Delete test folder item associations
-        testFolderItemService.deleteByLaunchId(launchId);
-
-        // Delete test items
-        testItemService.deleteByLaunchId(projectId,
-            launchId); //TODO check if that is required ( potential CASCADE REMOVAL)
-
-        // Delete attributes
-        tmsManualLaunchAttributeService.deleteAllByLaunchId(
-            launchId); //TODO check if that is required ( potential CASCADE REMOVAL)
-
-        // Delete launch
-        deleteLaunchHandler.deleteLaunch(launchId, membershipDetails, user);
-
-        successLaunchIds.add(launchId);
-
-      } catch (Exception e) {
+        deleted = requiresNewTransactionTemplate.execute(status -> {
+          // Check if launch exists and belongs to project
+          var launch = launchRepository.findManualLaunchByIdAndProjectId(launchId, projectId);
+          if (launch.isEmpty()) {
+            return false;
+          }
+          deleteManualLaunch(membershipDetails, launch.get(), user);
+          return true;
+        });
+      } catch (RuntimeException e) {
         log.error("Failed to delete launch {} in project {}", launchId, projectId, e);
+        errors.add(new BatchManualLaunchOperationError(launchId, e.getMessage()));
+        continue;
+      }
+
+      if (Boolean.TRUE.equals(deleted)) {
+        successLaunchIds.add(launchId);
+      } else {
+        log.warn("Launch {} not found in project {}", launchId, projectId);
         errors.add(new BatchManualLaunchOperationError(
             launchId,
-            e.getMessage()
+            "Manual Launch not found in project"
         ));
       }
     }

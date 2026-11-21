@@ -332,6 +332,6 @@ public class JTestItemRecord extends UpdatableRecordImpl<JTestItemRecord> {
         setLaunchId(launchId);
         setTestCaseHash(testCaseHash);
         setAnalysisOwnerId(analysisOwnerId);
-        resetChangedOnNotNull();
+        resetTouchedOnNotNull();
     }
 }

@@ -28,8 +28,6 @@ import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationType
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.util.JsonSchemaValidator;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -44,6 +42,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Test class for {@link JsonPluginUploader}.
@@ -61,7 +61,7 @@ public class JsonPluginUploaderTest {
 
   //  @Autowired
   @Spy
-  private ObjectMapper objectMapper;
+  private JsonMapper objectMapper;
 
   @InjectMocks
   private JsonPluginUploader jsonPluginUploader;
@@ -90,7 +90,7 @@ public class JsonPluginUploaderTest {
     IntegrationType mockIntegrationType = new IntegrationType();
     when(integrationTypeRepository.findByName(any())).thenReturn(Optional.empty());
     when(integrationTypeRepository.saveAndFlush(any(IntegrationType.class))).thenReturn(mockIntegrationType);
-    when(jsonSchemaValidator.validate(any(String.class), any(JsonNode.class))).thenReturn(Collections.emptySet());
+    when(jsonSchemaValidator.validate(any(String.class), any(JsonNode.class))).thenReturn(Collections.emptyList());
 
     IntegrationType result = jsonPluginUploader.uploadPlugin("manifest.json", manifestStream);
 
@@ -110,7 +110,7 @@ public class JsonPluginUploaderTest {
     InputStream manifestStream = new ByteArrayInputStream(manifestWithoutId.getBytes());
 
     when(jsonSchemaValidator.validate(any(String.class), any(JsonNode.class)))
-        .thenReturn(Collections.emptySet());
+        .thenReturn(Collections.emptyList());
 
     assertThrows(ReportPortalException.class, () ->
         jsonPluginUploader.uploadPlugin("missing-id.json", manifestStream));
@@ -146,7 +146,7 @@ public class JsonPluginUploaderTest {
     when(integrationTypeRepository.saveAndFlush(any(IntegrationType.class)))
         .thenReturn(mockIntegrationType);
     when(jsonSchemaValidator.validate(any(String.class), any(JsonNode.class)))
-        .thenReturn(Collections.emptySet());
+        .thenReturn(Collections.emptyList());
 
     jsonPluginUploader.uploadPlugin("manifest.json", manifestStream);
 

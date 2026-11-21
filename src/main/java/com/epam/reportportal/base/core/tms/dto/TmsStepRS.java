@@ -18,6 +18,5 @@ public class TmsStepRS {
 
   private String expectedResult;
 
-  @Valid
-  private List<TmsManualScenarioAttachmentRS> attachments;
+  private List<@Valid TmsManualScenarioAttachmentRS> attachments;
 }

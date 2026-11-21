@@ -32,6 +32,7 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.LockedException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingPathVariableException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
@@ -98,7 +99,7 @@ public class GlobalExceptionHandler {
 
   @ExceptionHandler({BadCredentialsException.class, LockedException.class})
   @ResponseStatus(HttpStatus.UNAUTHORIZED)
-  public ErrorRS handle(BadCredentialsException exception) {
+  public ErrorRS handle(AuthenticationException exception) {
     return defaultErrorResolver.resolveError(exception).errorRs();
   }
 

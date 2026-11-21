@@ -26,8 +26,9 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.io.Serializable;
 import java.util.Objects;
-import org.hibernate.annotations.JdbcType;
-import org.hibernate.dialect.PostgreSQLEnumJdbcType;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
  * A string or regex pattern definition for auto-analysis (per project, type, enabled flag).
@@ -36,6 +37,9 @@ import org.hibernate.dialect.PostgreSQLEnumJdbcType;
  */
 @Entity
 @Table(name = "pattern_template")
+@Setter
+@Getter
+@NoArgsConstructor
 public class PatternTemplate implements Serializable {
 
   @Id
@@ -49,7 +53,6 @@ public class PatternTemplate implements Serializable {
   private String value;
 
   @Enumerated(EnumType.STRING)
-  @JdbcType(PostgreSQLEnumJdbcType.class)
   @Column(name = "type")
   private PatternTemplateType templateType;
 
@@ -58,57 +61,6 @@ public class PatternTemplate implements Serializable {
 
   @Column(name = "project_id")
   private Long projectId;
-
-  public PatternTemplate() {
-  }
-
-  public Long getId() {
-    return id;
-  }
-
-  public void setId(Long id) {
-    this.id = id;
-  }
-
-  public String getName() {
-    return name;
-  }
-
-  public void setName(String name) {
-    this.name = name;
-  }
-
-  public String getValue() {
-    return value;
-  }
-
-  public void setValue(String value) {
-    this.value = value;
-  }
-
-  public PatternTemplateType getTemplateType() {
-    return templateType;
-  }
-
-  public void setTemplateType(PatternTemplateType templateType) {
-    this.templateType = templateType;
-  }
-
-  public Long getProjectId() {
-    return projectId;
-  }
-
-  public void setProjectId(Long projectId) {
-    this.projectId = projectId;
-  }
-
-  public boolean isEnabled() {
-    return enabled;
-  }
-
-  public void setEnabled(boolean enabled) {
-    this.enabled = enabled;
-  }
 
   @Override
   public boolean equals(Object o) {

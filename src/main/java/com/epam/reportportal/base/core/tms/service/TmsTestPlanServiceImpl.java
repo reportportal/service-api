@@ -13,10 +13,12 @@ import com.epam.reportportal.base.core.tms.dto.batch.BatchTestCaseOperationResul
 import com.epam.reportportal.base.core.tms.mapper.TmsTestPlanMapper;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
-import com.epam.reportportal.base.infrastructure.persistence.entity.organization.MembershipDetails;
+import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsMilestoneRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestPlanRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestPlanTestCaseRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.filterable.TmsTestPlanFilterableRepository;
+import com.epam.reportportal.base.infrastructure.persistence.entity.organization.MembershipDetails;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestPlan;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestPlanExecutionStatistic;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestPlanWithStatistic;
@@ -47,8 +49,14 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
 
   private static final String TMS_TEST_PLAN_NOT_FOUND_BY_ID =
       "TMS Test Plan with id: %d for project: %d";
+  private static final String TMS_TEST_PLAN_NOT_IN_PROJECT =
+      "Test plan '%s' is not under the specified project.";
+  private static final String TMS_MILESTONE_NOT_FOUND_BY_ID =
+      "TMS Milestone with id: %d for project: %d";
 
+  private final LaunchRepository launchRepository;
   private final TmsTestPlanRepository testPlanRepository;
+  private final TmsMilestoneRepository tmsMilestoneRepository;
   private final TmsTestPlanFilterableRepository tmsTestPlanFilterableRepository;
   private final TmsTestPlanMapper tmsTestPlanMapper;
   private final TmsTestPlanAttributeService tmsTestPlanAttributeService;
@@ -126,8 +134,12 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
   @Override
   @Transactional
   public void delete(long projectId, Long testPlanId) {
+    var tmsTestPlan = testPlanRepository.findByIdAndProjectId(testPlanId,
+        projectId).orElseThrow(() -> new ReportPortalException(
+        NOT_FOUND, TMS_TEST_PLAN_NOT_FOUND_BY_ID.formatted(testPlanId, projectId))
+    );
     tmsTestPlanAttributeService.deleteAllByTestPlanId(testPlanId);
-    testPlanRepository.deleteByIdAndProjectId(testPlanId, projectId);
+    testPlanRepository.delete(tmsTestPlan);
   }
 
   @Override
@@ -219,6 +231,12 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
   @Transactional
   public BatchTestCaseOperationResultRS removeTestCasesFromPlan(Long projectId, Long testPlanId,
       List<Long> testCaseIds) {
+
+    var tmsTestPlan = testPlanRepository.findByIdAndProjectId(testPlanId, projectId)
+        .orElseThrow(() -> new ReportPortalException(NOT_FOUND,
+            TMS_TEST_PLAN_NOT_FOUND_BY_ID.formatted(testPlanId, projectId))
+        );
+
     var errors = new ArrayList<BatchTestCaseOperationError>();
     var successCount = 0;
     var totalCount = testCaseIds.size();
@@ -317,7 +335,8 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
         );
 
     // Duplicate test plan entity
-    var duplicatedTestPlan = tmsTestPlanMapper.duplicateTestPlan(originalTestPlan, targetMilestoneId);
+    var duplicatedTestPlan = tmsTestPlanMapper.duplicateTestPlan(originalTestPlan,
+        targetMilestoneId);
 
     duplicatedTestPlan = testPlanRepository.save(duplicatedTestPlan);
 
@@ -415,6 +434,7 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
   @Override
   @Transactional
   public void removeTestPlanFromMilestone(Long projectId, Long milestoneId, Long testPlanId) {
+    verifyMilestoneExists(projectId, milestoneId);
     verifyTestPlanExists(projectId, testPlanId);
 
     var updatedCount = testPlanRepository.removeTestPlanFromMilestone(milestoneId, testPlanId,
@@ -481,7 +501,8 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
 
   @Override
   @Transactional
-  public List<DuplicateTmsTestPlanRS> duplicateTestPlansInMilestone(MembershipDetails membershipDetails,
+  public List<DuplicateTmsTestPlanRS> duplicateTestPlansInMilestone(
+      MembershipDetails membershipDetails,
       ReportPortalUser user, Long sourceMilestoneId, Long targetMilestoneId) {
     var projectId = membershipDetails.getProjectId();
     var testPlanIds = testPlanRepository.findIdsByProjectIdAndMilestoneId(
@@ -502,6 +523,7 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
   @Override
   @Transactional
   public void addTestPlanMilestone(Long projectId, Long milestoneId, Long testPlanId) {
+    verifyMilestoneExists(projectId, milestoneId);
     verifyTestPlanExists(projectId, testPlanId);
 
     testPlanRepository.addTestPlanToMilestone(milestoneId, testPlanId,
@@ -510,11 +532,22 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
 
   @Override
   @Transactional
-  public void removeTestPlansFromMilestone(Long projectId, Long milestoneId) {
-    testPlanRepository.removeTestPlansFromMilestone(milestoneId, projectId);
+  public void deleteTestPlansByMilestoneId(Long projectId, Long milestoneId) {
+    verifyMilestoneExists(projectId, milestoneId);
+
+    var testPlanIds = testPlanRepository.findIdsByProjectIdAndMilestoneId(projectId, milestoneId);
+
+    if (testPlanIds.isEmpty()) {
+      return;
+    }
+
+    launchRepository.clearTestPlanIdsByProjectIdAndTestPlanIds(projectId, testPlanIds);
+    testPlanIds.forEach(tmsTestPlanAttributeService::deleteAllByTestPlanId);
+    testPlanRepository.deleteByProjectIdAndMilestoneId(projectId, milestoneId);
   }
 
-  private BatchTestCaseOperationResultRS processBatchTestCaseDuplication(MembershipDetails membershipDetails,
+  private BatchTestCaseOperationResultRS processBatchTestCaseDuplication(
+      MembershipDetails membershipDetails,
       ReportPortalUser user,
       Long newTestPlanId,
       List<Long> originalTestCaseIds) {
@@ -526,7 +559,8 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
     var projectId = membershipDetails.getProjectId();
 
     // Step 1: Duplicate test cases in batch
-    var duplicationResult = tmsTestCaseService.duplicateTestCases(membershipDetails, user, originalTestCaseIds);
+    var duplicationResult = tmsTestCaseService.duplicateTestCases(membershipDetails, user,
+        originalTestCaseIds);
 
     // Step 2: Add successfully duplicated test cases to the new plan
     if (!duplicationResult.getSuccessTestCaseIds().isEmpty()) {
@@ -562,5 +596,13 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
     return PagedResourcesAssembler
         .<TmsManualLaunchTestPlanRS>pageConverter()
         .apply(page);
+  }
+
+  public void verifyMilestoneExists(Long projectId, Long milestoneId) {
+    if (!tmsMilestoneRepository.existsByIdAndProjectId(milestoneId, projectId)) {
+      throw new ReportPortalException(
+          NOT_FOUND, TMS_MILESTONE_NOT_FOUND_BY_ID.formatted(milestoneId, projectId)
+      );
+    }
   }
 }

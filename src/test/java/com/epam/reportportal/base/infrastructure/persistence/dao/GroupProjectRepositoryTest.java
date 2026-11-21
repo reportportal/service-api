@@ -23,6 +23,7 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.group.Group;
 import com.epam.reportportal.base.infrastructure.persistence.entity.group.GroupProject;
 import com.epam.reportportal.base.ws.BaseMvcTest;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import java.util.List;
 import org.hibernate.Hibernate;
 import org.hibernate.Session;
@@ -47,7 +48,7 @@ class GroupProjectRepositoryTest extends BaseMvcTest {
   @Autowired
   private GroupRepository groupRepository;
 
-  @Autowired
+  @PersistenceContext
   private EntityManager entityManager;
 
   private Statistics statistics;

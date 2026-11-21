@@ -33,7 +33,7 @@ import static com.epam.reportportal.base.infrastructure.rules.commons.validation
 import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.ACCESS_DENIED;
 import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.BAD_REQUEST_ERROR;
 import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.NOT_FOUND;
-import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.PROJECT_NOT_FOUND;
+import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.PROJECT_KEY_NOT_FOUND;
 import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.ROLE_NOT_FOUND;
 import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT;
 import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.USER_NOT_FOUND;
@@ -95,7 +95,7 @@ import com.epam.reportportal.base.model.project.UpdateProjectRQ;
 import com.epam.reportportal.base.model.project.config.ProjectConfigurationUpdate;
 import com.epam.reportportal.base.model.project.email.ProjectNotificationConfigDTO;
 import com.epam.reportportal.base.model.project.email.SenderCaseDTO;
-import com.epam.reportportal.base.reporting.ItemAttributeResource;
+import com.epam.reportportal.base.reporting.AttributeResource;
 import com.epam.reportportal.base.reporting.OperationCompletionRS;
 import com.epam.reportportal.base.util.ProjectExtractor;
 import com.epam.reportportal.base.util.email.EmailRulesValidator;
@@ -169,7 +169,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
   public OperationCompletionRS updateProject(String projectKey, UpdateProjectRQ updateProjectRQ,
       ReportPortalUser user) {
     Project project = projectRepository.findByKey(projectKey)
-        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectKey));
+        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_KEY_NOT_FOUND, projectKey));
     ProjectAttributesActivityResource before = TO_ACTIVITY_RESOURCE.apply(project);
     updateProjectConfiguration(updateProjectRQ.getConfiguration(), project);
     ofNullable(updateProjectRQ.getUserRoles()).ifPresent(
@@ -187,7 +187,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
   public OperationCompletionRS updateProjectNotificationConfig(String projectKey,
       ReportPortalUser user, ProjectNotificationConfigDTO updateProjectNotificationConfigRQ) {
     Project project = projectRepository.findByKey(projectKey)
-        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectKey));
+        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_KEY_NOT_FOUND, projectKey));
     ProjectResource before = projectConverter.TO_PROJECT_RESOURCE.apply(project);
 
     updateSenderCases(project, updateProjectNotificationConfigRQ.getSenderCases());
@@ -212,7 +212,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
         "Request should contain at least one username."
     );
     Project project = projectRepository.findByKey(projectKey)
-        .orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectKey));
+        .orElseThrow(() -> new ReportPortalException(PROJECT_KEY_NOT_FOUND, projectKey));
     User modifier = userRepository.findById(user.getUserId())
         .orElseThrow(() -> new ReportPortalException(USER_NOT_FOUND, user.getUsername()));
     if (!UserRole.ADMINISTRATOR.equals(modifier.getRole())) {
@@ -238,7 +238,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
       ReportPortalUser user) {
     if (UserRole.ADMINISTRATOR.equals(user.getUserRole())) {
       Project project = projectRepository.findByKey(normalizeId(projectKey)).orElseThrow(
-          () -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, normalizeId(projectKey)));
+          () -> new ReportPortalException(ErrorType.PROJECT_KEY_NOT_FOUND, normalizeId(projectKey)));
 
       List<String> assignedUsernames =
           project.getUsers().stream().map(u -> u.getUser().getLogin()).collect(toList());
@@ -257,7 +257,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
       MembershipDetails membershipDetails =
           projectExtractor.extractMembershipDetails(user, projectKey);
       Project project = projectRepository.findById(membershipDetails.getProjectId()).orElseThrow(
-          () -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, normalizeId(projectKey)));
+          () -> new ReportPortalException(ErrorType.PROJECT_KEY_NOT_FOUND, normalizeId(projectKey)));
 
       List<String> assignedUsernames =
           project.getUsers().stream().map(u -> u.getUser().getLogin()).collect(toList());
@@ -281,7 +281,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
         ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, "There are no analyzer deployed.");
 
     Project project = projectRepository.findByKey(projectKey)
-        .orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectKey));
+        .orElseThrow(() -> new ReportPortalException(PROJECT_KEY_NOT_FOUND, projectKey));
 
     expect(ofNullable(indexerStatusCache.getIndexingStatus().getIfPresent(project.getId())).orElse(
         false), equalTo(false)).verify(ErrorType.FORBIDDEN_OPERATION,
@@ -294,7 +294,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
     expect(analyzeStatus.asMap().containsValue(project.getId()), equalTo(false)).verify(
         ErrorType.FORBIDDEN_OPERATION, "Index can not be removed until auto-analysis proceeds.");
 
-    logIndexer.deleteIndex(project.getId());
+    logIndexer.deleteIndexAsync(project.getId());
 
     logIndexer.index(project.getId(), AnalyzerUtils.getAnalyzerConfig(project)).thenAcceptAsync(
         indexedCount -> mailServiceFactory.getDefaultEmailService(true)
@@ -576,7 +576,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
         }).collect(Collectors.toSet())));
   }
 
-  private void cutAttributeToMaxLength(ItemAttributeResource entity) {
+  private void cutAttributeToMaxLength(AttributeResource entity) {
     String key = entity.getKey();
     String value = entity.getValue();
     if (key != null && key.length() > ValidationConstraints.MAX_ATTRIBUTE_LENGTH) {

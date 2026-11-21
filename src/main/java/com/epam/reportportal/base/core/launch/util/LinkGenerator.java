@@ -18,13 +18,11 @@ package com.epam.reportportal.base.core.launch.util;
 
 import jakarta.servlet.http.HttpServletRequest;
 import java.net.URI;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
-import org.springframework.web.util.ForwardedHeaderUtils;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 /**
  * Builds UI and deep links to launches and test items.
@@ -82,28 +80,9 @@ public class LinkGenerator {
     return URI.create(baseUrl + "/ui/#registration?uuid=" + invitationId);
   }
 
-  @SneakyThrows
   public String composeBaseUrl(HttpServletRequest request) {
-
     String processedPath = "/".equals(pathValue) ? null : pathValue.replace("/api", "");
-    /*
-     * Use Uri components since they are aware of x-forwarded-host headers
-     */
-
-    HttpHeaders httpHeaders = new HttpHeaders();
-    // Only include relevant forwarding headers
-    String[] forwardedHeaders = {"x-forwarded-host", "x-forwarded-proto", "x-forwarded-port", "x-forwarded-for",
-        "forwarded"};
-    for (String headerName : forwardedHeaders) {
-      String headerValue = request.getHeader(headerName);
-      if (headerValue != null) {
-        httpHeaders.add(headerName, headerValue);
-      }
-    }
-
-    URI uri = new URI(request.getRequestURL().toString());
-
-    return ForwardedHeaderUtils.adaptFromForwardedHeaders(uri, httpHeaders)
+    return ServletUriComponentsBuilder.fromRequest(request)
         .replacePath(processedPath)
         .replaceQuery(null)
         .build()

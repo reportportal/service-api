@@ -36,7 +36,6 @@ import com.epam.reportportal.base.model.item.UnlinkExternalIssueRQ;
 import com.epam.reportportal.base.reporting.Issue;
 import com.epam.reportportal.base.reporting.StartTestItemRQ;
 import com.epam.reportportal.base.ws.BaseMvcTest;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -45,6 +44,7 @@ import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.web.servlet.MvcResult;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * @author <a href="mailto:tatyana_gladysheva@epam.com">Tatyana Gladysheva</a>
@@ -68,7 +68,7 @@ public class TestItemControllerValidationTest extends BaseMvcTest {
           + "ttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt";
 
   @Autowired
-  private ObjectMapper objectMapper;
+  private JsonMapper objectMapper;
 
   @Test
   public void startRootTestItemShouldReturnErrorWhenNameIsNull() throws Exception {

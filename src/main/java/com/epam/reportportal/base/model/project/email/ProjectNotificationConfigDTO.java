@@ -42,8 +42,7 @@ public class ProjectNotificationConfigDTO implements Serializable {
   @JsonProperty(value = "enabled")
   private boolean enabled;
 
-  @Valid
   @JsonProperty(value = "cases")
-  private List<SenderCaseDTO> senderCases;
+  private List<@Valid SenderCaseDTO> senderCases;
 
 }

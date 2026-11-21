@@ -30,13 +30,14 @@ import org.jooq.QueryPart;
 import org.jooq.Record;
 import org.jooq.SQL;
 import org.jooq.Schema;
-import org.jooq.Select;
 import org.jooq.Stringly;
 import org.jooq.Table;
 import org.jooq.TableField;
+import org.jooq.TableLike;
 import org.jooq.TableOptions;
 import org.jooq.UniqueKey;
 import org.jooq.impl.DSL;
+import org.jooq.impl.Internal;
 import org.jooq.impl.SQLDataType;
 import org.jooq.impl.TableImpl;
 
@@ -65,7 +66,7 @@ public class JTicket extends TableImpl<JTicketRecord> {
     /**
      * The column <code>public.ticket.id</code>.
      */
-    public final TableField<JTicketRecord, Long> ID = createField(DSL.name("id"), SQLDataType.BIGINT.nullable(false).identity(true), this, "");
+    public final TableField<JTicketRecord, Long> ID = createField(DSL.name("id"), SQLDataType.BIGINT.nullable(false).generatedByDefaultAsIdentity(), this, "");
 
     /**
      * The column <code>public.ticket.ticket_id</code>.
@@ -249,7 +250,7 @@ public class JTicket extends TableImpl<JTicketRecord> {
      */
     @Override
     public JTicket where(Condition condition) {
-        return new JTicket(getQualifiedName(), aliased() ? this : null, null, condition);
+        return new JTicket(getQualifiedName(), aliased() ? this : null, null, Internal.condition(this, condition));
     }
 
     /**
@@ -316,7 +317,7 @@ public class JTicket extends TableImpl<JTicketRecord> {
      * Create an inline derived table from this table
      */
     @Override
-    public JTicket whereExists(Select<?> select) {
+    public JTicket whereExists(TableLike<?> select) {
         return where(DSL.exists(select));
     }
 
@@ -324,7 +325,7 @@ public class JTicket extends TableImpl<JTicketRecord> {
      * Create an inline derived table from this table
      */
     @Override
-    public JTicket whereNotExists(Select<?> select) {
+    public JTicket whereNotExists(TableLike<?> select) {
         return where(DSL.notExists(select));
     }
 }

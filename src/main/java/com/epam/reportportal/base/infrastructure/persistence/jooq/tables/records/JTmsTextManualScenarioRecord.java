@@ -91,6 +91,6 @@ public class JTmsTextManualScenarioRecord extends UpdatableRecordImpl<JTmsTextMa
         setManualScenarioId(manualScenarioId);
         setInstructions(instructions);
         setExpectedResult(expectedResult);
-        resetChangedOnNotNull();
+        resetTouchedOnNotNull();
     }
 }

@@ -18,12 +18,12 @@ package com.epam.reportportal.base.util;
 
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
+import org.jspecify.annotations.NonNull;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.lang.NonNull;
 
 /**
  * {@link FactoryBean} with access to {@link ApplicationContext} with lazy initialization

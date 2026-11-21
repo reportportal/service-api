@@ -39,8 +39,6 @@ import com.epam.reportportal.base.model.project.config.pattern.CreatePatternTemp
 import com.epam.reportportal.base.model.project.config.pattern.UpdatePatternTemplateRQ;
 import com.epam.reportportal.base.model.project.email.SenderCaseDTO;
 import com.epam.reportportal.base.ws.BaseMvcTest;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -50,6 +48,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MvcResult;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -58,7 +58,7 @@ import org.springframework.test.web.servlet.MvcResult;
 class ProjectSettingsControllerTest extends BaseMvcTest {
 
   @Autowired
-  private ObjectMapper objectMapper;
+  private JsonMapper objectMapper;
 
   @Autowired
   private IssueTypeRepository issueTypeRepository;

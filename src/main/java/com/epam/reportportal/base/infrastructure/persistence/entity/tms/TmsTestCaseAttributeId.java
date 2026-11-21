@@ -22,9 +22,6 @@ public class TmsTestCaseAttributeId implements Serializable {
   @Column(name = "attribute_id")
   private Long attributeId;
 
-  //TODO: override equals and hashCode methods
-
-
   @Override
   public boolean equals(Object o) {
     if (o == null || getClass() != o.getClass()) {

@@ -20,6 +20,7 @@ import com.epam.reportportal.base.core.tms.scheduled.TmsAttachmentCleanupJob;
 import com.epam.reportportal.base.core.tms.scheduled.TmsSyncOutboxPollerJob;
 import com.epam.reportportal.base.job.CleanExpiredCreationBidsJob;
 import com.epam.reportportal.base.job.FlushingDataJob;
+import com.epam.reportportal.base.job.GrafanaSessionPurgeJob;
 import com.epam.reportportal.base.job.InterruptBrokenLaunchesJob;
 import com.epam.reportportal.base.job.RevokedTokensPurgeJob;
 import com.epam.reportportal.extension.classloader.ReportPortalResourceLoader;
@@ -150,6 +151,13 @@ public class SchedulerConfiguration {
     return createTrigger(jobDetail, Duration.parse(flushingCron).toMillis());
   }
 
+  @Bean
+  public SimpleTriggerFactoryBean grafanaSessionPurgeTrigger(
+      @Named("grafanaSessionPurgeJobBean") JobDetail jobDetail,
+      @Value("${com.ta.reportportal.job.purge.grafana.sessions.cron}") String purgeCron) {
+    return createTrigger(jobDetail, Duration.parse(purgeCron).toMillis());
+  }
+
   @Bean("interruptLaunchesJobBean")
   public JobDetailFactoryBean interruptLaunchesJob() {
     return createJobDetail(InterruptBrokenLaunchesJob.class);
@@ -163,6 +171,11 @@ public class SchedulerConfiguration {
   @Bean("revokedTokensPurgeJobBean")
   public JobDetailFactoryBean revokedTokensPurgeJob() {
     return createJobDetail(RevokedTokensPurgeJob.class);
+  }
+
+  @Bean("grafanaSessionPurgeJobBean")
+  public JobDetailFactoryBean grafanaSessionPurgeJob() {
+    return createJobDetail(GrafanaSessionPurgeJob.class);
   }
 
   @Bean

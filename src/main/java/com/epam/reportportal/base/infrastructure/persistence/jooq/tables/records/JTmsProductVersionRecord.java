@@ -104,6 +104,6 @@ public class JTmsProductVersionRecord extends UpdatableRecordImpl<JTmsProductVer
         setDocumentation(documentation);
         setVersion(version);
         setProjectId(projectId);
-        resetChangedOnNotNull();
+        resetTouchedOnNotNull();
     }
 }

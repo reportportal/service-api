@@ -74,6 +74,6 @@ public class JTmsTestPlanTestCaseRecord extends UpdatableRecordImpl<JTmsTestPlan
 
         setTestPlanId(testPlanId);
         setTestCaseId(testCaseId);
-        resetChangedOnNotNull();
+        resetTouchedOnNotNull();
     }
 }

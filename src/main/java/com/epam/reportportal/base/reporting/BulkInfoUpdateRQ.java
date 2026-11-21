@@ -38,8 +38,7 @@ public class BulkInfoUpdateRQ {
 
   private Description description;
 
-  @Valid
-  private List<UpdateItemAttributeRQ> attributes;
+  private List<@Valid UpdateItemAttributeRQ> attributes;
 
   public enum Action {
     DELETE,

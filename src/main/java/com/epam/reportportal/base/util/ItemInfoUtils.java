@@ -19,10 +19,11 @@ package com.epam.reportportal.base.util;
 import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.INCORRECT_REQUEST;
 import static com.epam.reportportal.base.util.Predicates.ITEM_ATTRIBUTE_EQUIVALENCE;
 
+import com.epam.reportportal.base.infrastructure.persistence.entity.Attribute;
 import com.epam.reportportal.base.infrastructure.persistence.entity.ItemAttribute;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
+import com.epam.reportportal.base.reporting.AttributeResource;
 import com.epam.reportportal.base.reporting.BulkInfoUpdateRQ;
-import com.epam.reportportal.base.reporting.ItemAttributeResource;
 import com.epam.reportportal.base.reporting.UpdateItemAttributeRQ;
 import java.util.Collection;
 import java.util.Objects;
@@ -60,8 +61,8 @@ public class ItemInfoUtils {
     }
   }
 
-  public static ItemAttribute findAttributeByResource(Set<ItemAttribute> attributes,
-      ItemAttributeResource resource) {
+  public static <T extends Attribute> T findAttributeByResource(Set<T> attributes,
+      AttributeResource resource) {
     return attributes.stream()
         .filter(attr -> ITEM_ATTRIBUTE_EQUIVALENCE.test(attr, resource))
         .findAny()
@@ -69,9 +70,9 @@ public class ItemInfoUtils {
             "Cannot delete not common attribute"));
   }
 
-  public static void updateAttribute(Set<ItemAttribute> attributes,
+  public static <T extends Attribute> void updateAttribute(Set<T> attributes,
       UpdateItemAttributeRQ updateItemAttributeRQ) {
-    ItemAttribute itemAttribute = attributes.stream()
+    T itemAttribute = attributes.stream()
         .filter(attr -> ITEM_ATTRIBUTE_EQUIVALENCE.test(attr, updateItemAttributeRQ.getFrom()))
         .findAny()
         .orElseThrow(() -> new ReportPortalException(INCORRECT_REQUEST,
@@ -82,8 +83,8 @@ public class ItemInfoUtils {
     attributes.add(itemAttribute);
   }
 
-  public static boolean containsAttribute(Set<ItemAttribute> attributes,
-      ItemAttributeResource resource) {
+  public static boolean containsAttribute(Set<? extends Attribute> attributes,
+      AttributeResource resource) {
     return attributes.stream().noneMatch(attr -> ITEM_ATTRIBUTE_EQUIVALENCE.test(attr, resource));
   }
 
@@ -94,8 +95,8 @@ public class ItemInfoUtils {
         collection.stream().filter(it -> key.equalsIgnoreCase(it.getKey())).findAny();
   }
 
-  public static Optional<ItemAttributeResource> extractAttributeResource(
-      Collection<ItemAttributeResource> collection, String key) {
+  public static Optional<AttributeResource> extractAttributeResource(
+      Collection<AttributeResource> collection, String key) {
     return CollectionUtils.isEmpty(collection) ?
         Optional.empty() :
         collection.stream().filter(it -> key.equalsIgnoreCase(it.getKey())).findAny();

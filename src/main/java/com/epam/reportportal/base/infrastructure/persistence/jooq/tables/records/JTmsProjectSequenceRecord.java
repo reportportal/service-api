@@ -89,6 +89,6 @@ public class JTmsProjectSequenceRecord extends UpdatableRecordImpl<JTmsProjectSe
         setProjectId(projectId);
         setEntityType(entityType);
         setCurrentValue(currentValue);
-        resetChangedOnNotNull();
+        resetTouchedOnNotNull();
     }
 }

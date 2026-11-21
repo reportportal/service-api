@@ -109,7 +109,7 @@ class CreateLogTypeHandlerImplTest {
             createDefaultLogTypeStyle(), user));
 
     // Then
-    assertEquals(ErrorType.PROJECT_NOT_FOUND, ex.getErrorType());
+    assertEquals(ErrorType.PROJECT_KEY_NOT_FOUND, ex.getErrorType());
   }
 
   @Test

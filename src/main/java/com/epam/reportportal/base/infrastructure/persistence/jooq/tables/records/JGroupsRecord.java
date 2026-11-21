@@ -167,6 +167,6 @@ public class JGroupsRecord extends UpdatableRecordImpl<JGroupsRecord> {
         setUpdatedAt(updatedAt);
         setUuid(uuid);
         setOrgId(orgId);
-        resetChangedOnNotNull();
+        resetTouchedOnNotNull();
     }
 }

@@ -16,12 +16,12 @@
 
 package com.epam.reportportal.base.util;
 
-import com.epam.reportportal.base.infrastructure.persistence.entity.ItemAttribute;
+import com.epam.reportportal.base.infrastructure.persistence.entity.Attribute;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.LaunchModeEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.TestItemTypeEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItem;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
-import com.epam.reportportal.base.reporting.ItemAttributeResource;
+import com.epam.reportportal.base.reporting.AttributeResource;
 import com.google.common.base.CharMatcher;
 import java.util.Objects;
 import java.util.Set;
@@ -56,7 +56,7 @@ public class Predicates {
   /**
    * Checks if not system item attribute has specified key and value
    */
-  public static final BiPredicate<ItemAttribute, ItemAttributeResource> ITEM_ATTRIBUTE_EQUIVALENCE = (attribute, resource) -> {
+  public static final BiPredicate<Attribute, AttributeResource> ITEM_ATTRIBUTE_EQUIVALENCE = (attribute, resource) -> {
     boolean valueAndSystemEquivalence =
         attribute.getValue().equals(resource.getValue()) && !attribute.isSystem();
     return Objects.isNull(attribute.getKey()) ?

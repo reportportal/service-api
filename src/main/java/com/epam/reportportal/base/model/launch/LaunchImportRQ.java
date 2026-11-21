@@ -41,6 +41,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class LaunchImportRQ {
 
+  @JsonProperty("launchUuid")
+  @JsonAlias({"launchUuid", "launch_uuid"})
+  private String launchUuid;
+
   @JsonProperty(value = "name")
   @Schema
   @Size(min = MIN_LAUNCH_NAME_LENGTH, max = MAX_NAME_LENGTH)
@@ -50,10 +54,9 @@ public class LaunchImportRQ {
   private String description;
 
   @Size(max = MAX_PARAMETERS_LENGTH)
-  @Valid
   @JsonProperty("attributes")
   @JsonAlias({"attributes", "tags"})
-  private Set<ItemAttributesRQ> attributes;
+  private Set<@Valid ItemAttributesRQ> attributes;
 
   @JsonProperty
   @JsonAlias({"startTime", "start_time"})

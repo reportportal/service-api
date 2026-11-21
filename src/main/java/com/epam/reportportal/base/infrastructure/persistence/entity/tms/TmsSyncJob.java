@@ -3,14 +3,12 @@ package com.epam.reportportal.base.infrastructure.persistence.entity.tms;
 import com.epam.reportportal.base.core.tms.enums.TmsSyncDirection;
 import com.epam.reportportal.base.core.tms.enums.TmsSyncProvider;
 import com.epam.reportportal.base.core.tms.enums.TmsSyncStatus;
-import com.epam.reportportal.base.infrastructure.persistence.dao.converters.JpaInstantConverter;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.Integration;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.sync.SyncCounters;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.sync.SyncErrorLog;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.sync.SyncScopeConfig;
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.EnumType;
@@ -28,7 +26,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.Type;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
@@ -69,28 +68,25 @@ public class TmsSyncJob implements Serializable {
   @Column(name = "status", nullable = false)
   private TmsSyncStatus status;
 
-  @Type(SyncScopeConfig.class)
+  @JdbcTypeCode(SqlTypes.JSON)
   @Column(name = "scope_config", columnDefinition = "jsonb")
   private SyncScopeConfig scopeConfig;
 
-  @Type(SyncCounters.class)
+  @JdbcTypeCode(SqlTypes.JSON)
   @Column(name = "counters", columnDefinition = "jsonb")
   private SyncCounters counters;
 
-  @Type(SyncErrorLog.class)
+  @JdbcTypeCode(SqlTypes.JSON)
   @Column(name = "error_log", columnDefinition = "jsonb")
   private SyncErrorLog errorLog;
 
   @CreatedDate
   @Column(name = "created_at", nullable = false)
-  @Convert(converter = JpaInstantConverter.class)
   private Instant createdAt;
 
   @Column(name = "started_at")
-  @Convert(converter = JpaInstantConverter.class)
   private Instant startedAt;
 
   @Column(name = "completed_at")
-  @Convert(converter = JpaInstantConverter.class)
   private Instant completedAt;
 }

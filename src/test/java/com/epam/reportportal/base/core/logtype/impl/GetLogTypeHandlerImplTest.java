@@ -81,7 +81,7 @@ class GetLogTypeHandlerImplTest {
         () -> handler.getLogTypes(projectName));
 
     // Then
-    assertEquals(ErrorType.PROJECT_NOT_FOUND, ex.getErrorType());
+    assertEquals(ErrorType.PROJECT_KEY_NOT_FOUND, ex.getErrorType());
   }
 
   private List<ProjectLogType> getBuildLogTypeModels() {

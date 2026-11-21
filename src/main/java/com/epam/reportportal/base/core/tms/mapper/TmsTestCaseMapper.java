@@ -1,8 +1,9 @@
 package com.epam.reportportal.base.core.tms.mapper;
 
-import com.epam.reportportal.base.core.tms.dto.TmsTestCaseImportRQ;
+import com.epam.reportportal.base.core.tms.TmsTestCasePriority;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseExecutionInTestPlanRS;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseExecutionLaunchRS;
+import com.epam.reportportal.base.core.tms.dto.TmsTestCaseImportRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseInTestPlanRS;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseRS;
@@ -21,7 +22,6 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestC
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestFolder;
 import java.util.Collection;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -52,7 +52,9 @@ public abstract class TmsTestCaseMapper implements DtoMapper<TmsTestCase, TmsTes
       expression = "java(tmsManualScenarioMapper.convert(defaultCaseVersion.getManualScenario()))")
   @Mapping(target = "id", source = "tmsTestCase.id")
   @Mapping(target = "name", source = "tmsTestCase.name")
+  @Mapping(target = "priority", source = "tmsTestCase.priority")
   @Mapping(target = "displayId", source = "tmsTestCase.displayId")
+  @Mapping(target = "defaultVersionId", source = "defaultCaseVersion.id")
   public abstract TmsTestCaseRS convert(
       TmsTestCase tmsTestCase,
       TmsTestCaseVersion defaultCaseVersion
@@ -64,6 +66,7 @@ public abstract class TmsTestCaseMapper implements DtoMapper<TmsTestCase, TmsTes
   @Mapping(target = "name", source = "tmsTestCase.name")
   @Mapping(target = "priority", source = "tmsTestCase.priority")
   @Mapping(target = "displayId", source = "tmsTestCase.displayId")
+  @Mapping(target = "defaultVersionId", source = "defaultCaseVersion.id")
   @Mapping(target = "lastExecutionAt", source = "lastTestCaseExecution.testItem.startTime")
   public abstract TmsTestCaseRS convert(
       TmsTestCase tmsTestCase,
@@ -94,8 +97,7 @@ public abstract class TmsTestCaseMapper implements DtoMapper<TmsTestCase, TmsTes
   @Mapping(target = "testFolder", expression = "java(convertToTmsTestFolder(testFolderId, projectId))")
   @Mapping(target = "attributes", ignore = true)
   @Mapping(target = "versions", ignore = true)
-  @Mapping(target = "priority", source = "tmsTestCaseRQ.priority",
-      qualifiedByName = "normalizePriority")
+  @Mapping(target = "priority", expression = "java(normalizePriority(tmsTestCaseRQ.getPriority()))")
   public abstract TmsTestCase convertFromRQ(Long projectId, TmsTestCaseRQ tmsTestCaseRQ,
       Long testFolderId);
 
@@ -104,8 +106,7 @@ public abstract class TmsTestCaseMapper implements DtoMapper<TmsTestCase, TmsTes
   @Mapping(target = "testFolder", expression = "java(convertToTmsTestFolder(testFolderId, projectId))")
   @Mapping(target = "attributes", ignore = true)
   @Mapping(target = "versions", ignore = true)
-  @Mapping(target = "priority", source = "tmsTestCaseRQ.priority",
-      qualifiedByName = "normalizePriorityForPatch")
+  @Mapping(target = "priority", expression = "java(normalizePriorityForPatch(tmsTestCaseRQ.getPriority()))")
   public abstract TmsTestCase convertFromPatchRQ(Long projectId, TmsTestCaseRQ tmsTestCaseRQ,
       Long testFolderId);
 
@@ -273,7 +274,7 @@ public abstract class TmsTestCaseMapper implements DtoMapper<TmsTestCase, TmsTes
   @Mapping(target = "testCaseIds", source = "patchRequest.testCaseIds",
       nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
       nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
-  @Mapping(target = "priority", expression = "java(patchRequest.getPriority() != null ? patchRequest.getPriority().toUpperCase() : null)")
+  @Mapping(target = "priority", expression = "java(normalizePriorityForPatch(patchRequest.getPriority()))")
   public abstract BatchPatchTestCasesRS toBatchPatchTestCasesRS(
       Long testFolderId, BatchPatchTestCasesRQ patchRequest
   );
@@ -309,7 +310,7 @@ public abstract class TmsTestCaseMapper implements DtoMapper<TmsTestCase, TmsTes
       testCase.setDisplayId(tmsDisplayIdService.generateTestCaseDisplayId(projectId));
     }
 
-    testCase.setPriority(remoteTestCase.getPriority() != null ? remoteTestCase.getPriority().toUpperCase() : null);
+    testCase.setPriority(normalizePriority(remoteTestCase.getPriority()));
     testCase.setName(remoteTestCase.getName());
     testCase.setDescription(remoteTestCase.getDescription());
     testCase.setSourceUpdatedAt(remoteTestCase.getUpdatedAt());
@@ -323,10 +324,7 @@ public abstract class TmsTestCaseMapper implements DtoMapper<TmsTestCase, TmsTes
 
   @Named("normalizePriority")
   protected String normalizePriority(String priority) {
-    if (priority == null || priority.trim().isEmpty()) {
-      return "UNSPECIFIED";
-    }
-    return priority.trim().toUpperCase(Locale.ROOT);
+    return TmsTestCasePriority.normalize(priority);
   }
 
   @Named("normalizePriorityForPatch")

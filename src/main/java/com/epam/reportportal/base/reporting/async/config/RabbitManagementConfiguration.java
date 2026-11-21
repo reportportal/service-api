@@ -16,10 +16,12 @@
 
 package com.epam.reportportal.base.reporting.async.config;
 
+import com.epam.reportportal.base.core.configs.Conditions;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.rabbitmq.http.client.Client;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 
 /**
@@ -28,6 +30,7 @@ import org.springframework.context.annotation.Configuration;
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 @Configuration
+@Conditional(Conditions.NotTestCondition.class)
 public class RabbitManagementConfiguration {
 
   public static final Integer REPLY_TIMEOUT_MS = 10000;
@@ -37,7 +40,7 @@ public class RabbitManagementConfiguration {
       @Value("${rp.amqp.api-address}") String address) {
     try {
       return new Client(address);
-    } catch (Exception e) {
+    } catch (Exception _) {
       throw new ReportPortalException(
           "Cannot create a HTTP rabbit client instance. Incorrect api address " + address);
     }

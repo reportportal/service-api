@@ -16,10 +16,8 @@
 
 package com.epam.reportportal.base.infrastructure.persistence.entity.analytics;
 
-import com.epam.reportportal.base.infrastructure.persistence.dao.converters.JpaInstantConverter;
 import com.epam.reportportal.base.infrastructure.persistence.entity.Metadata;
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -31,7 +29,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.Type;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import org.springframework.data.annotation.CreatedDate;
 
 /**
@@ -58,12 +57,11 @@ public class AnalyticsData implements Serializable {
   private String type;
 
   @Column(name = "metadata")
-  @Type(Metadata.class)
+  @JdbcTypeCode(SqlTypes.JSON)
   private Metadata metadata;
 
   @Column(name = "created_at", nullable = false)
   @CreatedDate
-  @Convert(converter = JpaInstantConverter.class)
   private Instant createdAt;
 
 }

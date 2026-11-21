@@ -5,6 +5,7 @@ package com.epam.reportportal.base.infrastructure.persistence.jooq;
 
 
 import org.jooq.Sequence;
+import org.jooq.impl.DSL;
 import org.jooq.impl.Internal;
 import org.jooq.impl.SQLDataType;
 
@@ -18,5 +19,5 @@ public class Sequences {
     /**
      * The sequence <code>public.shareable_entity_id_seq</code>
      */
-    public static final Sequence<Long> SHAREABLE_ENTITY_ID_SEQ = Internal.createSequence("shareable_entity_id_seq", JPublic.PUBLIC, SQLDataType.BIGINT.nullable(false), null, null, null, null, false, null);
+    public static final Sequence<Long> SHAREABLE_ENTITY_ID_SEQ = Internal.createSequence("shareable_entity_id_seq", JPublic.PUBLIC, DSL.comment(""), SQLDataType.BIGINT.nullable(false), null, null, null, null, false, null);
 }

@@ -19,6 +19,9 @@ package com.epam.reportportal.base.core.widget.content.loader.materialized.handl
 import com.epam.reportportal.base.infrastructure.persistence.entity.widget.Widget;
 import java.util.Collections;
 import java.util.Map;
+import org.apache.commons.lang3.BooleanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
 
@@ -30,9 +33,20 @@ import org.springframework.util.MultiValueMap;
 @Service
 public class EmptyMaterializedWidgetStateHandler implements MaterializedWidgetStateHandler {
 
+  private final MaterializedWidgetStateHandler refreshWidgetStateHandler;
+
+  @Autowired
+  public EmptyMaterializedWidgetStateHandler(
+      @Qualifier("createdMaterializedWidgetStateHandler") MaterializedWidgetStateHandler refreshWidgetStateHandler) {
+    this.refreshWidgetStateHandler = refreshWidgetStateHandler;
+  }
+
   @Override
   public Map<String, Object> handleWidgetState(Widget widget,
       MultiValueMap<String, String> params) {
+    if (BooleanUtils.toBoolean(params.getFirst(REFRESH))) {
+      return refreshWidgetStateHandler.handleWidgetState(widget, params);
+    }
     return Collections.emptyMap();
   }
 }

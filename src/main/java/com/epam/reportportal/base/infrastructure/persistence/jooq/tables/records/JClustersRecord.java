@@ -119,6 +119,6 @@ public class JClustersRecord extends UpdatableRecordImpl<JClustersRecord> {
         setProjectId(projectId);
         setLaunchId(launchId);
         setMessage(message);
-        resetChangedOnNotNull();
+        resetTouchedOnNotNull();
     }
 }

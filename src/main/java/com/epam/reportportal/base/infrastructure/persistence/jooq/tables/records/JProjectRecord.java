@@ -197,6 +197,6 @@ public class JProjectRecord extends UpdatableRecordImpl<JProjectRecord> {
         setSlug(slug);
         setKey(key);
         setUpdatedAt(updatedAt);
-        resetChangedOnNotNull();
+        resetTouchedOnNotNull();
     }
 }

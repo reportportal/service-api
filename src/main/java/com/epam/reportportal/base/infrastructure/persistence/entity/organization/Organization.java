@@ -18,6 +18,8 @@ package com.epam.reportportal.base.infrastructure.persistence.entity.organizatio
 
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.OrganizationType;
 import jakarta.persistence.Column;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -60,6 +62,7 @@ public class Organization implements Serializable {
   private String name;
 
   @Column(name = "organization_type")
+  @Enumerated(EnumType.STRING)
   private OrganizationType organizationType;
 
   @Column(name = "slug")

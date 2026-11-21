@@ -24,12 +24,14 @@ import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JPatter
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JProjectAttribute.JProjectAttributePath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JProjectUser.JProjectUserPath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JSenderCase.JSenderCasePath;
+import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsAttachment.JTmsAttachmentPath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsAttribute.JTmsAttributePath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsDataset.JTmsDatasetPath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsEnvironment.JTmsEnvironmentPath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsMilestone.JTmsMilestonePath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsProductVersion.JTmsProductVersionPath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsProjectSequence.JTmsProjectSequencePath;
+import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsSyncJob.JTmsSyncJobPath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTestCase.JTmsTestCasePath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTestFolder.JTmsTestFolderPath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTestPlan.JTmsTestPlanPath;
@@ -56,13 +58,14 @@ import org.jooq.QueryPart;
 import org.jooq.Record;
 import org.jooq.SQL;
 import org.jooq.Schema;
-import org.jooq.Select;
 import org.jooq.Stringly;
 import org.jooq.Table;
 import org.jooq.TableField;
+import org.jooq.TableLike;
 import org.jooq.TableOptions;
 import org.jooq.UniqueKey;
 import org.jooq.impl.DSL;
+import org.jooq.impl.Internal;
 import org.jooq.impl.SQLDataType;
 import org.jooq.impl.TableImpl;
 
@@ -91,7 +94,7 @@ public class JProject extends TableImpl<JProjectRecord> {
     /**
      * The column <code>public.project.id</code>.
      */
-    public final TableField<JProjectRecord, Long> ID = createField(DSL.name("id"), SQLDataType.BIGINT.nullable(false).identity(true), this, "");
+    public final TableField<JProjectRecord, Long> ID = createField(DSL.name("id"), SQLDataType.BIGINT.nullable(false).generatedByDefaultAsIdentity(), this, "");
 
     /**
      * The column <code>public.project.name</code>.
@@ -398,6 +401,19 @@ public class JProject extends TableImpl<JProjectRecord> {
         return _ownedEntity;
     }
 
+    private transient JTmsAttachmentPath _tmsAttachment;
+
+    /**
+     * Get the implicit to-many join path to the
+     * <code>public.tms_attachment</code> table
+     */
+    public JTmsAttachmentPath tmsAttachment() {
+        if (_tmsAttachment == null)
+            _tmsAttachment = new JTmsAttachmentPath(this, null, Keys.TMS_ATTACHMENT__TMS_ATTACHMENT_FK_PROJECT.getInverseKey());
+
+        return _tmsAttachment;
+    }
+
     private transient JTmsAttributePath _tmsAttribute;
 
     /**
@@ -474,6 +490,19 @@ public class JProject extends TableImpl<JProjectRecord> {
             _tmsProjectSequence = new JTmsProjectSequencePath(this, null, Keys.TMS_PROJECT_SEQUENCE__TMS_PROJECT_SEQUENCE_FK_PROJECT.getInverseKey());
 
         return _tmsProjectSequence;
+    }
+
+    private transient JTmsSyncJobPath _tmsSyncJob;
+
+    /**
+     * Get the implicit to-many join path to the
+     * <code>public.tms_sync_job</code> table
+     */
+    public JTmsSyncJobPath tmsSyncJob() {
+        if (_tmsSyncJob == null)
+            _tmsSyncJob = new JTmsSyncJobPath(this, null, Keys.TMS_SYNC_JOB__TMS_SYNC_JOB_PROJECT_ID_FKEY.getInverseKey());
+
+        return _tmsSyncJob;
     }
 
     private transient JTmsTestCasePath _tmsTestCase;
@@ -604,7 +633,7 @@ public class JProject extends TableImpl<JProjectRecord> {
      */
     @Override
     public JProject where(Condition condition) {
-        return new JProject(getQualifiedName(), aliased() ? this : null, null, condition);
+        return new JProject(getQualifiedName(), aliased() ? this : null, null, Internal.condition(this, condition));
     }
 
     /**
@@ -671,7 +700,7 @@ public class JProject extends TableImpl<JProjectRecord> {
      * Create an inline derived table from this table
      */
     @Override
-    public JProject whereExists(Select<?> select) {
+    public JProject whereExists(TableLike<?> select) {
         return where(DSL.exists(select));
     }
 
@@ -679,7 +708,7 @@ public class JProject extends TableImpl<JProjectRecord> {
      * Create an inline derived table from this table
      */
     @Override
-    public JProject whereNotExists(Select<?> select) {
+    public JProject whereNotExists(TableLike<?> select) {
         return where(DSL.notExists(select));
     }
 }

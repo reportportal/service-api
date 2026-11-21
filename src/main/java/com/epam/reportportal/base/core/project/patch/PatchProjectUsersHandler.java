@@ -37,8 +37,6 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.user.User;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.model.IdContainer;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -49,6 +47,8 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Handler for patch operations related to project users. Supports bulk assign/unassign operations with corresponding
@@ -75,7 +75,7 @@ public class PatchProjectUsersHandler extends BasePatchProjectHandler {
       UserRepository userRepository,
       ProjectService projectService,
       ProjectUserRepository projectUserRepository,
-      ObjectMapper objectMapper,
+      JsonMapper objectMapper,
       OrganizationRepositoryCustom organizationRepository,
       ProjectRepository projectRepository,
       ApplicationEventPublisher eventPublisher,
@@ -166,8 +166,8 @@ public class PatchProjectUsersHandler extends BasePatchProjectHandler {
 
   private Project findAndValidateProject(Long orgId, Long projectId) {
     var project = projectRepository.findById(projectId)
-        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectId));
-    expect(project.getOrganizationId(), isEqual(orgId)).verify(ErrorType.PROJECT_NOT_FOUND, projectId);
+        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_ID_NOT_FOUND, projectId));
+    expect(project.getOrganizationId(), isEqual(orgId)).verify(ErrorType.PROJECT_ID_NOT_FOUND, projectId);
     return project;
   }
 

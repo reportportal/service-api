@@ -43,9 +43,8 @@ public class UpdateDashboardRQ extends BaseEntityRQ {
   @Schema(requiredMode = RequiredMode.REQUIRED)
   private String name;
 
-  @Valid
   @JsonProperty(value = "updateWidgets")
-  private List<DashboardResource.WidgetObjectModel> widgets;
+  private List<DashboardResource.@Valid WidgetObjectModel> widgets;
 
   @Override
   public String toString() {

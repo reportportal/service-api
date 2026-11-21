@@ -42,7 +42,6 @@ import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalExc
 import com.epam.reportportal.base.model.widget.ContentParameters;
 import com.epam.reportportal.base.model.widget.WidgetRQ;
 import com.epam.reportportal.base.reporting.OperationCompletionRS;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import java.util.HashMap;
@@ -59,6 +58,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageImpl;
+import tools.jackson.databind.json.JsonMapper;
 
 @ExtendWith(MockitoExtension.class)
 class UpdateWidgetHandlerImplTest {
@@ -82,7 +82,7 @@ class UpdateWidgetHandlerImplTest {
   private ApplicationEventPublisher eventPublisher;
 
   @Mock
-  private ObjectMapper objectMapper;
+  private JsonMapper objectMapper;
 
   @Mock
   private WidgetValidator widgetContentFieldsValidator;
@@ -172,7 +172,8 @@ class UpdateWidgetHandlerImplTest {
   @Test
   void updateLockedWidgetWithStructuralChangeShouldSucceedForAdmin() throws Exception {
     // given
-    ReportPortalUser admin = getRpUser("admin", UserRole.ADMINISTRATOR, OrganizationRole.MANAGER, ProjectRole.EDITOR, PROJECT_ID);
+    ReportPortalUser admin = getRpUser("admin", UserRole.ADMINISTRATOR, OrganizationRole.MANAGER, ProjectRole.EDITOR,
+        PROJECT_ID);
     MembershipDetails projectDetails = extractProjectDetails(admin, "test_project");
 
     WidgetRQ request = createStructuralUpdateRequest();

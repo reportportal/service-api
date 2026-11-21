@@ -16,7 +16,7 @@
 
 package com.epam.reportportal.base.ws.converter.resource.handler.attribute.matcher;
 
-import com.epam.reportportal.base.infrastructure.persistence.entity.ItemAttribute;
+import com.epam.reportportal.base.infrastructure.persistence.entity.Attribute;
 import com.epam.reportportal.base.ws.converter.resource.handler.attribute.ItemAttributeType;
 import java.util.function.Predicate;
 
@@ -27,17 +27,17 @@ import java.util.function.Predicate;
  */
 public class PredicateItemAttributeTypeMatcher implements ItemAttributeTypeMatcher {
 
-  private final Predicate<ItemAttribute> predicate;
+  private final Predicate<Attribute> predicate;
   private final ItemAttributeType type;
 
-  public PredicateItemAttributeTypeMatcher(Predicate<ItemAttribute> predicate,
+  public PredicateItemAttributeTypeMatcher(Predicate<Attribute> predicate,
       ItemAttributeType type) {
     this.predicate = predicate;
     this.type = type;
   }
 
   @Override
-  public boolean matches(ItemAttribute attribute) {
+  public boolean matches(Attribute attribute) {
     return predicate.test(attribute);
   }
 

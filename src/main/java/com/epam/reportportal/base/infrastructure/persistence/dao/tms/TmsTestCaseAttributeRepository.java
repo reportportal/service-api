@@ -14,6 +14,16 @@ public interface TmsTestCaseAttributeRepository extends
 
   List<TmsTestCaseAttribute> findAllById_TestCaseId(Long testCaseId);
 
+  /**
+   * Finds the composite IDs of test case/attribute pairs that already exist among the given
+   * test case IDs and attribute IDs, so callers can skip re-inserting them.
+   */
+  @Query("SELECT t.id FROM TmsTestCaseAttribute t "
+      + "WHERE t.id.testCaseId IN :testCaseIds "
+      + "AND t.id.attributeId IN :attributeIds")
+  List<TmsTestCaseAttributeId> findExistingIds(@Param("testCaseIds") Collection<Long> testCaseIds,
+      @Param("attributeIds") Collection<Long> attributeIds);
+
   @Modifying
   @Query(value = "DELETE FROM TmsTestCaseAttribute tca "
       + "WHERE tca.id.testCaseId = :testCaseId")

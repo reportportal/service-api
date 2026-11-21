@@ -17,6 +17,7 @@
 package com.epam.reportportal.base.infrastructure.persistence.dao.util;
 
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.FilterTarget.ATTRIBUTE_ALIAS;
+import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.StatisticsConstant.LAUNCH_STATISTICS;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.LogRepositoryCustomImpl.ROOT_ITEM_ID;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.constant.TestItemRepositoryConstants.ATTACHMENTS_COUNT;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.constant.TestItemRepositoryConstants.HAS_CONTENT;
@@ -45,8 +46,8 @@ import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.TEST_ITEM_RESULTS;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.TICKET;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.TMS_ATTRIBUTE;
-import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.TMS_TEST_CASE;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.TMS_MILESTONE;
+import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.TMS_TEST_CASE;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.TMS_TEST_CASE_EXECUTION;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.TMS_TEST_CASE_EXECUTION_COMMENT;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.TMS_TEST_FOLDER;
@@ -96,6 +97,8 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.item.issue.I
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.issue.IssueGroup;
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.issue.IssueType;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
+import com.epam.reportportal.base.infrastructure.persistence.entity.launch.LaunchAttribute;
+import com.epam.reportportal.base.infrastructure.persistence.entity.launch.LaunchStatistics;
 import com.epam.reportportal.base.infrastructure.persistence.entity.log.Log;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.MembershipDetails;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.Organization;
@@ -106,15 +109,15 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.project.Proj
 import com.epam.reportportal.base.infrastructure.persistence.entity.statistics.Statistics;
 import com.epam.reportportal.base.infrastructure.persistence.entity.statistics.StatisticsField;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsAttribute;
-import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCase;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsMilestone;
-import com.epam.reportportal.base.infrastructure.persistence.entity.tms.enums.TmsMilestoneStatus;
-import com.epam.reportportal.base.infrastructure.persistence.entity.tms.enums.TmsMilestoneType;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCase;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCaseExecution;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCaseExecutionComment;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestFolder;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestFolderTestItem;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestPlan;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.enums.TmsMilestoneStatus;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.enums.TmsMilestoneType;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.OrganizationUser;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.OrganizationUserId;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.ProjectUser;
@@ -126,22 +129,18 @@ import com.epam.reportportal.base.infrastructure.persistence.jooq.Tables;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JLog;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import java.io.IOException;
 import java.lang.reflect.Type;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -156,6 +155,8 @@ import org.jooq.JSON;
 import org.jooq.Record;
 import org.jooq.RecordMapper;
 import org.jooq.Result;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Set of record mappers that helps to convert the result of jooq queries into Java objects
@@ -164,12 +165,10 @@ import org.jooq.Result;
  */
 public class RecordMappers {
 
-  private static final ObjectMapper objectMapper;
+  private static final JsonMapper objectMapper;
 
   static {
-    objectMapper = new ObjectMapper();
-    objectMapper.registerModule(new JavaTimeModule());
-    objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    objectMapper = JsonMapper.builder().build();
   }
 
   /**
@@ -253,7 +252,7 @@ public class RecordMappers {
         try {
           Metadata metadata = objectMapper.readValue(metaDataString, Metadata.class);
           project.setMetadata(metadata);
-        } catch (IOException e) {
+        } catch (JacksonException _) {
           throw new ReportPortalException(ErrorType.UNCLASSIFIED_REPORT_PORTAL_ERROR,
               "Error during parsing user metadata");
         }
@@ -281,6 +280,17 @@ public class RecordMappers {
 
     statistics.setStatisticsField(statisticsField);
     statistics.setCounter(ofNullable(r.get(Tables.STATISTICS.S_COUNTER)).orElse(0));
+    return statistics;
+  };
+
+  public static final RecordMapper<? super Record, LaunchStatistics> LAUNCH_STATISTICS_RECORD_MAPPER = r -> {
+    LaunchStatistics statistics = new LaunchStatistics();
+
+    StatisticsField statisticsField = new StatisticsField();
+    statisticsField.setName(r.get(STATISTICS_FIELD.NAME));
+
+    statistics.setStatisticsField(statisticsField);
+    statistics.setCounter(ofNullable(r.get(LAUNCH_STATISTICS.S_COUNTER)).orElse(0));
     return statistics;
   };
 
@@ -458,7 +468,7 @@ public class RecordMappers {
       try {
         Metadata metadata = objectMapper.readValue(metaDataString, Metadata.class);
         user.setMetadata(metadata);
-      } catch (IOException e) {
+      } catch (JacksonException _) {
         throw new ReportPortalException("Error during parsing user metadata");
       }
     });
@@ -541,8 +551,8 @@ public class RecordMappers {
       try {
         ActivityDetails details = objectMapper.readValue(s, ActivityDetails.class);
         activity.setDetails(details);
-      } catch (IOException e) {
-        throw new ReportPortalException(ErrorType.UNCLASSIFIED_REPORT_PORTAL_ERROR);
+      } catch (JacksonException e) {
+        throw new ReportPortalException(ErrorType.UNCLASSIFIED_REPORT_PORTAL_ERROR, e);
       }
     });
     activity.setSubjectId(r.get(ACTIVITY.SUBJECT_ID));
@@ -569,7 +579,7 @@ public class RecordMappers {
       try {
         WidgetOptions widgetOptions = objectMapper.readValue(wo, WidgetOptions.class);
         widget.setWidgetOptions(widgetOptions);
-      } catch (IOException e) {
+      } catch (JacksonException _) {
         throw new ReportPortalException("Error during parsing widget options");
       }
     });
@@ -655,6 +665,45 @@ public class RecordMappers {
     }
   };
 
+  public static final Function<? super Record, Optional<List<LaunchAttribute>>> LAUNCH_ATTRIBUTE_MAPPER = r -> {
+    List<LaunchAttribute> attributeList = new ArrayList<>();
+
+    if (r.get(ATTRIBUTE_ALIAS) != null) {
+      List<JSON> attributesArray = r.get(ATTRIBUTE_ALIAS, List.class);
+      Gson gson = new Gson();
+      Type listType = new TypeToken<List<String>>() {
+      }.getType();
+
+      for (JSON attributeEntry : attributesArray) {
+        if (attributeEntry == null) {
+          continue;
+        }
+        String[] attributes = gson.<List<String>>fromJson(attributeEntry.data(), listType)
+            .toArray(new String[0]);
+
+        if (attributes.length > 1 && (Strings.isNotEmpty(attributes[0])
+            || Strings.isNotEmpty(attributes[1]))) {
+          Boolean systemAttribute;
+          //Case when system attribute is retrieved as 't' or 'f'
+          if ("t".equals(attributes[2]) || "f".equals(attributes[2])) {
+            systemAttribute = "t".equals(attributes[2]) ? Boolean.TRUE : Boolean.FALSE;
+          } else {
+            systemAttribute = Boolean.parseBoolean(attributes[2]);
+          }
+          attributeList.add(
+              new LaunchAttribute(attributes[0], attributes[1], systemAttribute)
+          );
+        }
+      }
+    }
+
+    if (CollectionUtils.isNotEmpty(attributeList)) {
+      return Optional.of(attributeList);
+    } else {
+      return Optional.empty();
+    }
+  };
+
   public static final Function<? super Record, Optional<Ticket>> TICKET_MAPPER = r -> {
     String ticketId = r.get(TICKET.TICKET_ID);
     if (ticketId != null) {
@@ -704,7 +753,7 @@ public class RecordMappers {
       try {
         IntegrationTypeDetails details = objectMapper.readValue(s, IntegrationTypeDetails.class);
         integrationType.setDetails(details);
-      } catch (IOException e) {
+      } catch (JacksonException _) {
         throw new ReportPortalException("Error during parsing integration type details");
       }
     });
@@ -718,8 +767,8 @@ public class RecordMappers {
       try {
         IntegrationParams params = objectMapper.readValue(s, IntegrationParams.class);
         i.setParams(params);
-      } catch (IOException e) {
-        throw new ReportPortalException("Error during parsing integration params");
+      } catch (JacksonException e) {
+        throw new ReportPortalException("Error during parsing integration params", e);
       }
     });
   };
@@ -758,22 +807,24 @@ public class RecordMappers {
     milestone.setId(r.get(TMS_MILESTONE.ID));
     milestone.setName(r.get(TMS_MILESTONE.NAME));
     milestone.setDisplayId(r.get(TMS_MILESTONE.DISPLAY_ID));
-  
-    ofNullable(r.get(TMS_MILESTONE.START_DATE)).ifPresent(d -> milestone.setStartDate(d.atZone(ZoneOffset.UTC).toLocalDateTime()));
-    ofNullable(r.get(TMS_MILESTONE.END_DATE)).ifPresent(d -> milestone.setEndDate(d.atZone(ZoneOffset.UTC).toLocalDateTime()));
-  
+
+    ofNullable(r.get(TMS_MILESTONE.START_DATE)).ifPresent(
+        d -> milestone.setStartDate(d.atZone(ZoneOffset.UTC).toLocalDateTime()));
+    ofNullable(r.get(TMS_MILESTONE.END_DATE)).ifPresent(
+        d -> milestone.setEndDate(d.atZone(ZoneOffset.UTC).toLocalDateTime()));
+
     ofNullable(r.get(TMS_MILESTONE.TYPE)).ifPresent(t -> milestone.setType(TmsMilestoneType.valueOf(t.name())));
     ofNullable(r.get(TMS_MILESTONE.STATUS)).ifPresent(s -> milestone.setStatus(TmsMilestoneStatus.valueOf(s.name())));
-  
+
     ofNullable(r.get(TMS_MILESTONE.PROJECT_ID)).ifPresent(projectId -> {
       Project project = new Project();
       project.setId(projectId);
       milestone.setProject(project);
     });
-  
+
     return milestone;
   };
-  
+
   /**
    * Maps record into {@link TmsTestCase} object
    */
@@ -869,7 +920,7 @@ public class RecordMappers {
     execution.setTestCaseSnapshot(r.get(TMS_TEST_CASE_EXECUTION.TEST_CASE_SNAPSHOT, String.class));
     ofNullable(getFieldValue(r, TMS_TEST_CASE_EXECUTION.DISPLAY_ID))
         .ifPresent(execution::setDisplayId);
-    
+
     //Create TestItem with id, if test_item_id exists
     ofNullable(r.get(TMS_TEST_CASE_EXECUTION.TEST_ITEM_ID)).ifPresent(testItemId -> {
       TestItem testItem = new TestItem();
@@ -922,10 +973,10 @@ public class RecordMappers {
     item.setLaunchId(r.get(TMS_TEST_FOLDER_TEST_ITEM.LAUNCH_ID));
 
     ofNullable(r.get(TMS_TEST_FOLDER_TEST_ITEM.TEST_ITEM_ID)).ifPresent(itemId -> {
-        TestItem testItem = new TestItem();
-        testItem.setItemId(itemId);
-        ofNullable(r.get(TEST_ITEM.PARENT_ID)).ifPresent(testItem::setParentId);
-        item.setTestItem(testItem);
+      TestItem testItem = new TestItem();
+      testItem.setItemId(itemId);
+      ofNullable(r.get(TEST_ITEM.PARENT_ID)).ifPresent(testItem::setParentId);
+      item.setTestItem(testItem);
     });
 
     return item;

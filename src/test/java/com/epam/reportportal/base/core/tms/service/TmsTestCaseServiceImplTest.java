@@ -9,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anySet;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
@@ -185,6 +186,8 @@ class TmsTestCaseServiceImplTest {
     membershipDetails = mock(MembershipDetails.class);
     user = mock(ReportPortalUser.class);
     lenient().when(membershipDetails.getProjectId()).thenReturn(projectId);
+    lenient().when(tmsTestCaseRepository.findExistingIdsByProjectIdAndIds(anyLong(), anyList()))
+        .thenAnswer(invocation -> invocation.getArgument(1));
 
     lenient().when(tmsTestCaseActivityResourceMapper.buildActivityResource(any(), any()))
         .thenReturn(mock(TestCaseActivityResource.class));
@@ -339,6 +342,73 @@ class TmsTestCaseServiceImplTest {
     verify(tmsTestCaseVersionService).getDefaultVersion(testCaseId);
     verify(tmsTestCaseExecutionService).getLastTestCaseExecution(testCaseId);
     verify(tmsTestCaseMapper).convert(testCase, testCaseVersion, testCaseExecution);
+  }
+
+  @Test
+  void getById_WithoutLastExecution_ShouldReturnTestCaseWithoutCallingExecutionService() {
+    when(tmsTestCaseRepository.findByProjectIdAndId(projectId, testCaseId))
+        .thenReturn(Optional.of(testCase));
+    when(tmsTestCaseVersionService.getDefaultVersion(testCaseId)).thenReturn(testCaseVersion);
+    when(tmsTestCaseMapper.convert(testCase, testCaseVersion))
+        .thenReturn(testCaseRS);
+
+    var result = sut.getById(projectId, testCaseId, false);
+
+    assertNotNull(result);
+    assertEquals(testCaseRS, result);
+    verify(tmsTestCaseRepository).findByProjectIdAndId(projectId, testCaseId);
+    verify(tmsTestCaseVersionService).getDefaultVersion(testCaseId);
+    verifyNoInteractions(tmsTestCaseExecutionService);
+    verify(tmsTestCaseMapper).convert(testCase, testCaseVersion);
+  }
+
+  @Test
+  void getByIdsMap_WithoutLastExecution_ShouldReturnMapWithoutCallingExecutionService() {
+    var ids = List.of(testCaseId1, testCaseId2);
+    when(tmsTestCaseRepository.findByProjectIdAndIds(projectId, ids))
+        .thenReturn(List.of(testCase1, testCase2));
+    when(tmsTestCaseVersionService.getDefaultVersions(ids))
+        .thenReturn(Map.of(testCaseId1, version1, testCaseId2, version2));
+    when(tmsTestCaseMapper.convert(testCase1, version1)).thenReturn(testCaseRS);
+    var testCaseRS2 = new TmsTestCaseRS();
+    testCaseRS2.setId(testCaseId2);
+    when(tmsTestCaseMapper.convert(testCase2, version2)).thenReturn(testCaseRS2);
+
+    var result = sut.getByIdsMap(projectId, ids, false);
+
+    assertNotNull(result);
+    assertEquals(2, result.size());
+    assertEquals(testCaseRS, result.get(testCaseId1));
+    assertEquals(testCaseRS2, result.get(testCaseId2));
+    verify(tmsTestCaseRepository).findByProjectIdAndIds(projectId, ids);
+    verify(tmsTestCaseVersionService).getDefaultVersions(ids);
+    verifyNoInteractions(tmsTestCaseExecutionService);
+  }
+
+  @Test
+  void getByIdsMap_WithDuplicateRepositoryResults_ShouldKeepOneResourcePerTestCase() {
+    var ids = List.of(testCaseId1);
+    when(tmsTestCaseRepository.findByProjectIdAndIds(projectId, ids))
+        .thenReturn(List.of(testCase1, testCase1));
+    when(tmsTestCaseVersionService.getDefaultVersions(ids))
+        .thenReturn(Map.of(testCaseId1, version1));
+    when(tmsTestCaseMapper.convert(testCase1, version1)).thenReturn(testCaseRS);
+
+    var result = sut.getByIdsMap(projectId, ids, false);
+
+    assertEquals(Map.of(testCaseId1, testCaseRS), result);
+    verifyNoInteractions(tmsTestCaseExecutionService);
+  }
+
+  @Test
+  void getByIdsMap_WithEmptyIds_ShouldReturnEmptyMap() {
+    var result = sut.getByIdsMap(projectId, Collections.emptyList(), false);
+
+    assertNotNull(result);
+    assertTrue(result.isEmpty());
+    verifyNoInteractions(tmsTestCaseRepository);
+    verifyNoInteractions(tmsTestCaseVersionService);
+    verifyNoInteractions(tmsTestCaseExecutionService);
   }
 
   @Test
@@ -745,12 +815,31 @@ class TmsTestCaseServiceImplTest {
 
   @Test
   void delete_ShouldDeleteTestCase() {
+    when(tmsTestCaseRepository.findByProjectIdAndId(projectId, testCaseId))
+        .thenReturn(Optional.of(testCase));
+
     sut.delete(membershipDetails, user, testCaseId);
 
+    verify(tmsTestCaseRepository).findByProjectIdAndId(projectId, testCaseId);
     verify(tmsTestCaseAttributeService).deleteAllByTestCaseId(testCaseId);
     verify(tmsTestCaseVersionService).deleteAllByTestCaseId(testCaseId);
     verify(tmsTestPlanTestCaseRepository).deleteAllByTestCaseId(testCaseId);
-    verify(tmsTestCaseRepository).deleteById(testCaseId);
+    verify(tmsTestCaseRepository).delete(any(TmsTestCase.class));
+  }
+
+  @Test
+  void delete_WhenTestCaseIsOutsideProject_ShouldNotDelete() {
+    when(tmsTestCaseRepository.findByProjectIdAndId(projectId, testCaseId))
+        .thenReturn(Optional.empty());
+
+    var exception = assertThrows(ReportPortalException.class,
+        () -> sut.delete(membershipDetails, user, testCaseId));
+    assertEquals(NOT_FOUND, exception.getErrorType());
+
+    verify(tmsTestCaseAttributeService, never()).deleteAllByTestCaseId(any());
+    verify(tmsTestCaseVersionService, never()).deleteAllByTestCaseId(any());
+    verify(tmsTestPlanTestCaseRepository, never()).deleteAllByTestCaseId(any());
+    verify(tmsTestCaseRepository, never()).deleteById(any());
   }
 
   @Test
@@ -764,10 +853,11 @@ class TmsTestCaseServiceImplTest {
 
     sut.delete(membershipDetails, user, deleteRequest);
 
+    verify(tmsTestCaseRepository).findExistingIdsByProjectIdAndIds(projectId, testCaseIds);
     verify(tmsTestCaseAttributeService).deleteAllByTestCaseIds(testCaseIds);
     verify(tmsTestCaseVersionService).deleteAllByTestCaseIds(testCaseIds);
     verify(tmsTestPlanTestCaseRepository).deleteAllByTestCaseIds(testCaseIds);
-    verify(tmsTestCaseRepository).deleteAllByTestCaseIds(testCaseIds);
+    verify(tmsTestCaseRepository).deleteAllByTestCaseIds(projectId, testCaseIds);
   }
 
   @Test
@@ -781,10 +871,28 @@ class TmsTestCaseServiceImplTest {
 
     sut.delete(membershipDetails, user, deleteRequest);
 
+    verify(tmsTestCaseRepository).findExistingIdsByProjectIdAndIds(projectId, singleTestCaseId);
     verify(tmsTestCaseAttributeService).deleteAllByTestCaseIds(singleTestCaseId);
     verify(tmsTestCaseVersionService).deleteAllByTestCaseIds(singleTestCaseId);
     verify(tmsTestPlanTestCaseRepository).deleteAllByTestCaseIds(singleTestCaseId);
-    verify(tmsTestCaseRepository).deleteAllByTestCaseIds(singleTestCaseId);
+    verify(tmsTestCaseRepository).deleteAllByTestCaseIds(projectId, singleTestCaseId);
+  }
+
+  @Test
+  void delete_WithBatchDeleteRequest_WhenTestCaseIsOutsideProject_ShouldNotDelete() {
+    var testCaseIds = Arrays.asList(1L, 2L, 3L);
+    var deleteRequest = BatchDeleteTestCasesRQ.builder()
+        .testCaseIds(testCaseIds)
+        .build();
+    when(tmsTestCaseRepository.findExistingIdsByProjectIdAndIds(projectId, testCaseIds))
+        .thenReturn(List.of());
+
+    var exception = assertThrows(ReportPortalException.class,
+        () -> sut.delete(membershipDetails, user, deleteRequest));
+    assertEquals(NOT_FOUND, exception.getErrorType());
+
+    verify(tmsTestCaseAttributeService, never()).deleteAllByTestCaseIds(any());
+    verify(tmsTestCaseRepository, never()).deleteAllByTestCaseIds(any(), any());
   }
 
   @Test
@@ -822,9 +930,29 @@ class TmsTestCaseServiceImplTest {
 
     sut.patch(projectId, patchRequest);
 
+    verify(tmsTestCaseRepository).findExistingIdsByProjectIdAndIds(projectId, testCaseIds);
     verify(tmsTestFolderService).resolveTargetFolderId(projectId, testFolderId, null);
     verify(tmsTestCaseRepository).patch(projectId, testCaseIds, testFolderId, priority);
     verify(tmsTestCaseMapper).toBatchPatchTestCasesRS(testFolderId, patchRequest);
+  }
+
+  @Test
+  void patch_WithBatchPatchRequest_WhenTestCaseIsOutsideProject_ShouldNotPatch() {
+    var testCaseIds = Arrays.asList(1L, 2L, 3L);
+    var patchRequest = BatchPatchTestCasesRQ.builder()
+        .testCaseIds(testCaseIds)
+        .testFolderId(5L)
+        .priority("HIGH")
+        .build();
+    when(tmsTestCaseRepository.findExistingIdsByProjectIdAndIds(projectId, testCaseIds))
+        .thenReturn(List.of());
+
+    var exception = assertThrows(ReportPortalException.class,
+        () -> sut.patch(projectId, patchRequest));
+    assertEquals(NOT_FOUND, exception.getErrorType());
+
+    verify(tmsTestFolderService, never()).resolveTargetFolderId(any(Long.class), any(), any());
+    verify(tmsTestCaseRepository, never()).patch(any(Long.class), any(), any(), any());
   }
 
   @Test
@@ -845,6 +973,27 @@ class TmsTestCaseServiceImplTest {
 
     verify(tmsTestCaseRepository, never()).findAllById(any());
     verify(tmsTestCaseAttributeService, never()).patchTestCaseAttributes(eq(projectId), any(), any());
+    verify(tmsTestFolderService).resolveTargetFolderId(projectId, testFolderId, null);
+    verify(tmsTestCaseRepository).patch(projectId, testCaseIds, testFolderId, null);
+    verify(tmsTestCaseMapper).toBatchPatchTestCasesRS(testFolderId, patchRequest);
+  }
+
+  @Test
+  void patch_WithWhitespaceOnlyPriorityAndTestFolderId_ShouldNotPatchPriority() {
+    var testCaseIds = Arrays.asList(1L, 2L, 3L);
+    var testFolderId = 5L;
+
+    var patchRequest = BatchPatchTestCasesRQ.builder()
+        .testCaseIds(testCaseIds)
+        .testFolderId(testFolderId)
+        .priority("   ")
+        .build();
+
+    when(tmsTestFolderService.resolveTargetFolderId(projectId, testFolderId, null))
+        .thenReturn(testFolderId);
+
+    sut.patch(projectId, patchRequest);
+
     verify(tmsTestFolderService).resolveTargetFolderId(projectId, testFolderId, null);
     verify(tmsTestCaseRepository).patch(projectId, testCaseIds, testFolderId, null);
     verify(tmsTestCaseMapper).toBatchPatchTestCasesRS(testFolderId, patchRequest);
@@ -1083,9 +1232,11 @@ class TmsTestCaseServiceImplTest {
         .thenReturn(savedTestCase);
     when(tmsTestCaseRepository.saveAll(anyList())).thenReturn(List.of(savedTestCase));
     when(tmsTestFolderService.getFoldersWithCountByIds(eq(projectId), any())).thenReturn(List.of(new TmsTestFolderRS()));
-    
+    when(tmsTestCaseVersionService.createDefaultTestCaseVersionsBatch(anyLong(), anyList(), anyList()))
+        .thenReturn(Collections.singletonList(null));
+
     var result = sut.importFromFile(membershipDetails, user, testFolderId, null, file);
-    
+
     assertNotNull(result);
     assertEquals(1, result.size());
     verify(importerFactory).getImporter("test.csv");
@@ -1139,7 +1290,9 @@ class TmsTestCaseServiceImplTest {
         .thenReturn(savedTestCase);
     when(tmsTestCaseRepository.saveAll(anyList())).thenReturn(List.of(savedTestCase));
     when(tmsTestFolderService.getFoldersWithCountByIds(eq(projectId), any())).thenReturn(List.of(new TmsTestFolderRS()));
-    
+    when(tmsTestCaseVersionService.createDefaultTestCaseVersionsBatch(anyLong(), anyList(), anyList()))
+        .thenReturn(Collections.singletonList(null));
+
     var result = sut.importFromFile(membershipDetails, user, null, null, file);
     
     assertNotNull(result);
@@ -1174,6 +1327,8 @@ class TmsTestCaseServiceImplTest {
     when(tmsTestCaseMapper.convertFromImportRQ(eq(projectId), eq(importRQ), eq(testFolderId)))
         .thenReturn(savedTestCase);
     when(tmsTestCaseRepository.saveAll(anyList())).thenReturn(List.of(savedTestCase));
+    when(tmsTestCaseVersionService.createDefaultTestCaseVersionsBatch(anyLong(), anyList(), anyList()))
+        .thenReturn(Collections.singletonList(null));
 
     var result = sut.importFromFile(membershipDetails, user, testFolderId, null, file);
 
@@ -1212,6 +1367,8 @@ class TmsTestCaseServiceImplTest {
     when(tmsTestCaseMapper.convertFromImportRQ(eq(projectId), eq(importRQ), eq(createdFolderId)))
         .thenReturn(savedTestCase);
     when(tmsTestCaseRepository.saveAll(anyList())).thenReturn(List.of(savedTestCase));
+    when(tmsTestCaseVersionService.createDefaultTestCaseVersionsBatch(anyLong(), anyList(), anyList()))
+        .thenReturn(Collections.singletonList(null));
 
     var result = sut.importFromFile(membershipDetails, user, null, folderName, file);
 
@@ -1300,7 +1457,9 @@ class TmsTestCaseServiceImplTest {
     when(tmsTestCaseRepository.saveAll(anyList()))
         .thenReturn(List.of(savedTestCase1, savedTestCase2));
     when(tmsTestFolderService.getFoldersWithCountByIds(eq(projectId), any())).thenReturn(List.of(new TmsTestFolderRS(), new TmsTestFolderRS()));
-    
+    when(tmsTestCaseVersionService.createDefaultTestCaseVersionsBatch(anyLong(), anyList(), anyList()))
+        .thenReturn(Arrays.asList(null, null));
+
     var result = sut.importFromFile(membershipDetails, user, testFolderId, null, file);
     
     assertNotNull(result);
@@ -1350,13 +1509,15 @@ class TmsTestCaseServiceImplTest {
     when(tmsTestCaseMapper.convertFromImportRQ(eq(projectId), eq(importRQ), eq(testFolderId)))
         .thenReturn(savedTestCase);
     when(tmsTestCaseRepository.saveAll(anyList())).thenReturn(List.of(savedTestCase));
+    when(tmsTestCaseVersionService.createDefaultTestCaseVersionsBatch(anyLong(), anyList(), anyList()))
+        .thenReturn(Collections.singletonList(null));
 
     var result = sut.importFromFile(membershipDetails, user, testFolderId, null, file);
 
     assertNotNull(result);
     verify(tmsAttributeService).resolveAttributes(eq(projectId), anySet());
-    verify(tmsTestCaseAttributeService).createTestCaseAttributes(
-        eq(projectId), eq(savedTestCase), anyList());
+    verify(tmsTestCaseAttributeService).createTestCaseAttributesByIds(
+        eq(savedTestCase), eq(List.of(200L)));
   }
 
   @Test

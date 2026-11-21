@@ -91,6 +91,6 @@ public class JTmsStepAttachmentRecord extends UpdatableRecordImpl<JTmsStepAttach
         setStepId(stepId);
         setAttachmentId(attachmentId);
         setCreatedAt(createdAt);
-        resetChangedOnNotNull();
+        resetTouchedOnNotNull();
     }
 }

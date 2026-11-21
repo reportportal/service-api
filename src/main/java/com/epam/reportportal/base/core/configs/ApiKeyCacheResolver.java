@@ -20,12 +20,12 @@ import com.epam.reportportal.base.infrastructure.persistence.dao.ApiKeyRepositor
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.ApiKey;
 import java.util.ArrayList;
 import java.util.Collection;
+import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.interceptor.CacheOperationInvocationContext;
 import org.springframework.cache.interceptor.CacheResolver;
-import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 
 /**
@@ -47,8 +47,7 @@ public class ApiKeyCacheResolver implements CacheResolver {
   }
 
   @Override
-  @NonNull
-  public Collection<? extends Cache> resolveCaches(CacheOperationInvocationContext<?> context) {
+  public @NonNull Collection<? extends Cache> resolveCaches(CacheOperationInvocationContext<?> context) {
     Cache cache = cacheManager.getCache("apiKeyCache");
     Collection<Cache> caches = new ArrayList<>();
 
@@ -57,12 +56,9 @@ public class ApiKeyCacheResolver implements CacheResolver {
 
       Object arg = context.getArgs()[0];
 
-      if (context.getMethod().getName().equals("deleteById") && arg instanceof Long) {
-        Long apiKeyId = (Long) arg;
-        ApiKey apiKey = apiKeyRepository.findById(apiKeyId).orElse(null);
-        if (apiKey != null) {
-          cache.evict(apiKey.getHash());
-        }
+      if (context.getMethod().getName().equals("deleteById") && arg instanceof Long apiKeyId) {
+        apiKeyRepository.findById(apiKeyId)
+            .ifPresent(apiKey -> cache.evict(apiKey.getHash()));
       }
     }
 

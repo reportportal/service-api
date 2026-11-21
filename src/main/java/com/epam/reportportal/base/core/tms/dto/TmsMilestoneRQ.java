@@ -1,14 +1,13 @@
 package com.epam.reportportal.base.core.tms.dto;
 
 import com.epam.reportportal.base.reporting.databind.MultiFormatDateDeserializer;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import jakarta.validation.Valid;
 import java.time.Instant;
-import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import tools.jackson.databind.annotation.JsonDeserialize;
 
 @Data
 @NoArgsConstructor

@@ -64,6 +64,6 @@ public class JClustersTestItemRecord extends TableRecordImpl<JClustersTestItemRe
 
         setClusterId(clusterId);
         setItemId(itemId);
-        resetChangedOnNotNull();
+        resetTouchedOnNotNull();
     }
 }

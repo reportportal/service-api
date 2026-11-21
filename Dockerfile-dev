@@ -1,0 +1,43 @@
+# syntax=docker/dockerfile:1
+# Fast local rebuilds: dependency layers stay cached; only source invalidates the compile step.
+#   docker build -f Dockerfile-dev -t service-api:dev .
+
+FROM --platform=$BUILDPLATFORM gradle:9.3.1-jdk25-alpine AS build
+ARG APP_VERSION
+WORKDIR /usr/app
+
+ENV GRADLE_USER_HOME=/home/gradle/.gradle \
+    GRADLE_OPTS="-Dorg.gradle.daemon=false -Dorg.gradle.parallel=true -Dorg.gradle.caching=true -Dorg.gradle.vfs.watch=false -Xmx2048m"
+
+USER root
+RUN chown gradle:gradle /usr/app
+USER gradle
+
+COPY --chown=gradle:gradle gradle/libs.versions.toml gradle/libs.versions.toml
+COPY --chown=gradle:gradle settings.gradle build.gradle gradle.properties project-properties.gradle jooq.gradle ./
+
+RUN --mount=type=cache,id=service-api-gradle,target=/home/gradle/.gradle,uid=1000,gid=1000 \
+    gradle --no-daemon --build-cache dependencies -Dorg.gradle.project.version=${APP_VERSION} || true
+
+COPY --chown=gradle:gradle api-registry/api/openapi/ api-registry/api/openapi/
+COPY --chown=gradle:gradle src/main/ src/main/
+
+RUN --mount=type=cache,id=service-api-gradle,target=/home/gradle/.gradle,uid=1000,gid=1000 \
+    --mount=type=cache,id=service-api-build,target=/usr/app/build,uid=1000,gid=1000 \
+    gradle --no-daemon --build-cache bootJar \
+      -x test \
+      -x javadoc \
+      -x jooqCodegen \
+      -x dependencyCheckAnalyze \
+      -Dorg.gradle.project.version=${APP_VERSION} \
+    && cp /usr/app/build/libs/service-api-*exec.jar /usr/app/service-api-exec.jar
+
+FROM amazoncorretto:25.0.2
+LABEL version=${APP_VERSION} description="EPAM Report portal. Main API Service" maintainer="Andrei Varabyeu <andrei_varabyeu@epam.com>, Hleb Kanonik <hleb_kanonik@epam.com>"
+ARG APP_VERSION=${APP_VERSION}
+ENV APP_DIR=/usr/app
+ENV JAVA_OPTS="-DLOG_FILE=app.log -Xmx1g -XX:+UseG1GC -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp -XX:InitiatingHeapOccupancyPercent=70 -Djava.security.egd=file:/dev/./urandom -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005"
+WORKDIR $APP_DIR
+COPY --from=build /usr/app/service-api-exec.jar .
+EXPOSE 8080 5005
+ENTRYPOINT ["sh", "-c", "java ${JAVA_OPTS} -jar ${APP_DIR}/service-api-exec.jar"]

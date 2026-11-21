@@ -34,8 +34,8 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.organization
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.model.BulkRQ;
+import com.epam.reportportal.base.reporting.AttributeResource;
 import com.epam.reportportal.base.reporting.FinishExecutionRQ;
-import com.epam.reportportal.base.reporting.ItemAttributeResource;
 import com.epam.reportportal.base.reporting.OperationCompletionRS;
 import com.epam.reportportal.base.ws.converter.builders.LaunchBuilder;
 import java.time.Instant;
@@ -80,7 +80,7 @@ public class StopLaunchHandlerImpl implements StopLaunchHandler {
         .addStatus(ofNullable(finishLaunchRQ.getStatus()).orElse(STOPPED.name()))
         .addEndTime(ofNullable(finishLaunchRQ.getEndTime()).orElse(Instant.now()))
         .addAttributes(finishLaunchRQ.getAttributes())
-        .addAttribute(new ItemAttributeResource("status", "stopped")).get();
+        .addAttribute(new AttributeResource("status", "stopped")).get();
 
     launchRepository.save(launch);
     launchChangesHandler.handleIfChanged(launch, beforeSnapshot);

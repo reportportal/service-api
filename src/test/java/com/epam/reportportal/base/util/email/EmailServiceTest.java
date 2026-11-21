@@ -21,13 +21,13 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.epam.reportportal.base.infrastructure.commons.template.TemplateEngine;
-import com.epam.reportportal.base.infrastructure.persistence.entity.ItemAttribute;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.LaunchModeEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.StatusEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.issue.IssueType;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
+import com.epam.reportportal.base.infrastructure.persistence.entity.launch.LaunchAttribute;
+import com.epam.reportportal.base.infrastructure.persistence.entity.launch.LaunchStatistics;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectIssueType;
-import com.epam.reportportal.base.infrastructure.persistence.entity.statistics.Statistics;
 import com.epam.reportportal.base.infrastructure.persistence.entity.statistics.StatisticsField;
 import com.google.common.collect.Sets;
 import java.time.Instant;
@@ -80,9 +80,9 @@ class EmailServiceTest {
     launch.setMode(LaunchModeEnum.DEFAULT);
     launch.setNumber(1L);
     launch.setDescription("description");
-    launch.setAttributes(Sets.newHashSet(new ItemAttribute("key", "value", false)));
+    launch.setAttributes(Sets.newHashSet(new LaunchAttribute("key", "value", false)));
     StatisticsField statisticsField = new StatisticsField("statistics$executions$total");
-    Statistics statistics = new Statistics(statisticsField, 1, 1L);
+    LaunchStatistics statistics = new LaunchStatistics(statisticsField, 1);
     launch.setStatistics(Sets.newHashSet(statistics));
     return launch;
   }

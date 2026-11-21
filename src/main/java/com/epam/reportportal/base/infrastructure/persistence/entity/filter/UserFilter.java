@@ -31,8 +31,8 @@ import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
 import java.io.Serializable;
 import java.util.Set;
-import org.hibernate.annotations.JdbcType;
-import org.hibernate.dialect.PostgreSQLEnumJdbcType;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * Saved filter: target object (launches, items, etc.), name, and jsonb conditions.
@@ -41,14 +41,14 @@ import org.hibernate.dialect.PostgreSQLEnumJdbcType;
  */
 @Entity
 @Table(name = "filter")
-
+@Setter
+@Getter
 public class UserFilter extends OwnedEntity implements Serializable {
 
   @Column(name = "name")
   private String name;
 
   @Enumerated(EnumType.STRING)
-  @JdbcType(PostgreSQLEnumJdbcType.class)
   @Column(name = "target")
   private ObjectType targetClass;
 
@@ -64,43 +64,4 @@ public class UserFilter extends OwnedEntity implements Serializable {
   @OrderBy(value = "id")
   private Set<FilterSort> filterSorts = Sets.newLinkedHashSet();
 
-  public Set<FilterCondition> getFilterCondition() {
-    return filterCondition;
-  }
-
-  public void setFilterCondition(Set<FilterCondition> filterCondition) {
-    this.filterCondition = filterCondition;
-  }
-
-  public Set<FilterSort> getFilterSorts() {
-    return filterSorts;
-  }
-
-  public void setFilterSorts(Set<FilterSort> filterSorts) {
-    this.filterSorts = filterSorts;
-  }
-
-  public String getName() {
-    return name;
-  }
-
-  public void setName(String name) {
-    this.name = name;
-  }
-
-  public ObjectType getTargetClass() {
-    return targetClass;
-  }
-
-  public void setTargetClass(ObjectType targetClass) {
-    this.targetClass = targetClass;
-  }
-
-  public String getDescription() {
-    return description;
-  }
-
-  public void setDescription(String description) {
-    this.description = description;
-  }
 }

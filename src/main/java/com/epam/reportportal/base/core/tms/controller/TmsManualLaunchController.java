@@ -143,6 +143,7 @@ public class TmsManualLaunchController {
         projectExtractor
             .extractMembershipDetails(user, projectKey)
             .getProjectId(),
+        user,
         launchId,
         request
     );

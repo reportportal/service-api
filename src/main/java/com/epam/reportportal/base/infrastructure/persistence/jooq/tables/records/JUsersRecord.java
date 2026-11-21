@@ -303,6 +303,6 @@ public class JUsersRecord extends UpdatableRecordImpl<JUsersRecord> {
         setCreatedAt(createdAt);
         setUpdatedAt(updatedAt);
         setLoginBackup(loginBackup);
-        resetChangedOnNotNull();
+        resetTouchedOnNotNull();
     }
 }

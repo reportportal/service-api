@@ -194,6 +194,6 @@ public class JDashboardWidgetRecord extends UpdatableRecordImpl<JDashboardWidget
         setWidgetPositionX(widgetPositionX);
         setWidgetPositionY(widgetPositionY);
         setIsCreatedOn(isCreatedOn);
-        resetChangedOnNotNull();
+        resetTouchedOnNotNull();
     }
 }

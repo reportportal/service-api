@@ -1,11 +1,7 @@
 package com.epam.reportportal.base.infrastructure.persistence.entity.tms;
 
-import com.epam.reportportal.base.infrastructure.persistence.dao.converters.JpaInstantConverter;
-import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItem;
-import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.FetchType;
@@ -13,7 +9,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
@@ -70,16 +65,13 @@ public class TmsTestCase implements Serializable {
 
   @CreatedDate
   @Column(name = "created_at", nullable = false)
-  @Convert(converter = JpaInstantConverter.class)
   private Instant createdAt;
 
   @LastModifiedDate
   @Column(name = "updated_at", nullable = false)
-  @Convert(converter = JpaInstantConverter.class)
   private Instant updatedAt;
 
   @Column(name = "source_updated_at")
-  @Convert(converter = JpaInstantConverter.class)
   private Instant sourceUpdatedAt;
 
   @OneToMany(mappedBy = "testCase", fetch = FetchType.LAZY)

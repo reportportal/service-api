@@ -26,15 +26,12 @@ import com.epam.reportportal.base.core.analyzer.auto.LogIndexer;
 import com.epam.reportportal.base.core.analyzer.auto.client.AnalyzerServiceClient;
 import com.epam.reportportal.base.core.analyzer.auto.impl.AnalyzerStatusCache;
 import com.epam.reportportal.base.core.events.domain.DefectTypeDeletedEvent;
-import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.google.common.cache.Cache;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.retry.annotation.Backoff;
-import org.springframework.retry.annotation.Retryable;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -47,32 +44,15 @@ import org.springframework.transaction.event.TransactionalEventListener;
  */
 @Component
 @Transactional
+@RequiredArgsConstructor
 public class DefectTypeDeletedHandler {
 
   private final AnalyzerStatusCache analyzerStatusCache;
-
   private final AnalyzerServiceClient analyzerServiceClient;
-
-  private final LaunchRepository launchRepository;
-
   private final LogIndexer logIndexer;
-
   private final ProjectRepository projectRepository;
 
-  @Autowired
-  public DefectTypeDeletedHandler(AnalyzerStatusCache analyzerStatusCache,
-      AnalyzerServiceClient analyzerServiceClient,
-      LaunchRepository launchRepository, LogIndexer logIndexer,
-      ProjectRepository projectRepository) {
-    this.analyzerStatusCache = analyzerStatusCache;
-    this.analyzerServiceClient = analyzerServiceClient;
-    this.launchRepository = launchRepository;
-    this.logIndexer = logIndexer;
-    this.projectRepository = projectRepository;
-  }
-
   @Transactional(propagation = Propagation.REQUIRES_NEW)
-  @Retryable(retryFor = ReportPortalException.class, maxAttempts = 5, backoff = @Backoff(value = 5000L))
   @TransactionalEventListener
   public void handleDefectTypeDeleted(DefectTypeDeletedEvent event) {
     Project project = projectRepository.findById(event.getProjectId())

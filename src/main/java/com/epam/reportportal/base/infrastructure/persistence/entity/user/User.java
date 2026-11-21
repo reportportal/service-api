@@ -40,10 +40,9 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.DynamicInsert;
-import org.hibernate.annotations.JdbcType;
-import org.hibernate.annotations.Type;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UpdateTimestamp;
-import org.hibernate.dialect.PostgreSQLEnumJdbcType;
+import org.hibernate.type.SqlTypes;
 
 /**
  * Application user account, credentials, type, and default project/photo metadata.
@@ -85,7 +84,6 @@ public class User implements Serializable {
 
   @Column(name = "role")
   @Enumerated(EnumType.STRING)
-  @JdbcType(PostgreSQLEnumJdbcType.class)
   private UserRole role;
 
   @Column(name = "full_name")
@@ -103,7 +101,7 @@ public class User implements Serializable {
   private boolean isExpired;
 
   @Column(name = "metadata")
-  @Type(Metadata.class)
+  @JdbcTypeCode(SqlTypes.JSON)
   private Metadata metadata;
 
   @Column(name = "attachment")
@@ -113,6 +111,7 @@ public class User implements Serializable {
   private String attachmentThumbnail;
 
   @Column(name = "type")
+  @Enumerated(EnumType.STRING)
   private UserType userType;
 
   @OneToMany(fetch = FetchType.LAZY, mappedBy = "user", cascade = {CascadeType.PERSIST,

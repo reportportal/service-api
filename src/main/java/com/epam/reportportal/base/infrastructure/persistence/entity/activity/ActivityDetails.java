@@ -16,11 +16,11 @@
 
 package com.epam.reportportal.base.infrastructure.persistence.entity.activity;
 
-import com.epam.reportportal.base.infrastructure.persistence.commons.JsonbUserType;
 import com.google.common.collect.Lists;
 import java.io.Serializable;
 import java.util.List;
 import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -34,14 +34,10 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class ActivityDetails extends JsonbUserType<ActivityDetails> implements Serializable {
+@EqualsAndHashCode
+public class ActivityDetails implements Serializable {
 
   private List<HistoryField> history = Lists.newArrayList();
-
-  @Override
-  public Class<ActivityDetails> returnedClass() {
-    return ActivityDetails.class;
-  }
 
   public void addHistoryField(HistoryField historyField) {
     history.add(historyField);
@@ -51,5 +47,4 @@ public class ActivityDetails extends JsonbUserType<ActivityDetails> implements S
   public String toString() {
     return "ActivityDetails{" + "history=" + history + '}';
   }
-
 }

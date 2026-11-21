@@ -60,7 +60,7 @@ public abstract class ProjectMemberCommand<T> extends AbstractRoleBasedCommand<T
   public void validateRole(Map<String, Object> params) {
     Long projectId = retrieveLong(params, PROJECT_ID_PARAM);
     Project project = projectRepository.findById(projectId)
-        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectId));
+        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_ID_NOT_FOUND, projectId));
 
     ReportPortalUser user = (ReportPortalUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     BusinessRule.expect(user, Objects::nonNull).verify(ErrorType.ACCESS_DENIED);

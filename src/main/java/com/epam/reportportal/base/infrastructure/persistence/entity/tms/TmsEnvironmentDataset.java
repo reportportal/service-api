@@ -4,8 +4,6 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.tms.enums.Tm
 import jakarta.persistence.Column;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.MapsId;
@@ -14,8 +12,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.JdbcType;
-import org.hibernate.dialect.PostgreSQLEnumJdbcType;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Entity
 @Table(name = "tms_environment_dataset", schema = "public")
@@ -38,8 +36,7 @@ public class TmsEnvironmentDataset {
   @JoinColumn(name = "dataset_id")
   private TmsDataset dataset;
 
-  @Enumerated(EnumType.STRING)
-  @JdbcType(PostgreSQLEnumJdbcType.class)
+  @JdbcTypeCode(SqlTypes.NAMED_ENUM)
   @Column(name = "dataset_type", nullable = false)
   private TmsDatasetType datasetType;
 }

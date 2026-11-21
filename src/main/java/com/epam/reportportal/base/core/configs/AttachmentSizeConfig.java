@@ -23,15 +23,14 @@ import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalExc
 import java.io.InputStream;
 import java.util.Optional;
 import javax.sql.DataSource;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.batch.core.Step;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.repository.JobRepository;
+import org.springframework.batch.core.step.Step;
 import org.springframework.batch.core.step.builder.StepBuilder;
-import org.springframework.batch.item.ItemProcessor;
-import org.springframework.batch.item.ItemWriter;
-import org.springframework.batch.item.database.JdbcCursorItemReader;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.batch.infrastructure.item.ItemProcessor;
+import org.springframework.batch.infrastructure.item.ItemWriter;
+import org.springframework.batch.infrastructure.item.database.JdbcCursorItemReader;
+import org.springframework.batch.infrastructure.item.database.builder.JdbcCursorItemReaderBuilder;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
@@ -45,44 +44,44 @@ import org.springframework.util.StreamUtils;
  *
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
+@Slf4j
 @Configuration
 @ConditionalOnProperty(name = "rp.attachments.recalculate", havingValue = "true")
 public class AttachmentSizeConfig {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(AttachmentSizeConfig.class);
-
   private static final int CHUNK_SIZE = 10;
 
-  @Autowired
-  private DataSource dataSource;
+  private final DataSource dataSource;
+  private final DataStoreService dataStoreService;
+  private final JdbcTemplate jdbcTemplate;
+  private final JobRepository jobRepository;
+  private final PlatformTransactionManager transactionManager;
 
-  @Autowired
-  @Qualifier("attachmentDataStoreService")
-  private DataStoreService dataStoreService;
-
-  @Autowired
-  private JdbcTemplate jdbcTemplate;
-
-  @Autowired
-  private JobRepository jobRepository;
-
-  private PlatformTransactionManager transactionManager;
-
+  public AttachmentSizeConfig(DataSource dataSource,
+      @Qualifier("attachmentDataStoreService") DataStoreService dataStoreService,
+      JdbcTemplate jdbcTemplate, JobRepository jobRepository,
+      PlatformTransactionManager transactionManager) {
+    this.dataSource = dataSource;
+    this.dataStoreService = dataStoreService;
+    this.jdbcTemplate = jdbcTemplate;
+    this.jobRepository = jobRepository;
+    this.transactionManager = transactionManager;
+  }
 
   @Bean
-  public JdbcCursorItemReader<Attachment> reader() throws Exception {
+  public JdbcCursorItemReader<Attachment> reader() {
     String query = "SELECT * from attachment order by id";
-    JdbcCursorItemReader<Attachment> reader = new JdbcCursorItemReader<>();
-    reader.setSql(query);
-    reader.setDataSource(dataSource);
-    reader.setRowMapper((rs, rowNum) -> {
-      Attachment attachment = new Attachment();
-      attachment.setId(rs.getLong("id"));
-      attachment.setFileId(rs.getString("file_id"));
-      return attachment;
-    });
-    reader.afterPropertiesSet();
-    return reader;
+    return new JdbcCursorItemReaderBuilder<Attachment>()
+        .name("attachmentReader")
+        .dataSource(dataSource)
+        .sql(query)
+        .rowMapper((rs, rowNum) -> {
+          Attachment attachment = new Attachment();
+          attachment.setId(rs.getLong("id"));
+          attachment.setFileId(rs.getString("file_id"));
+          return attachment;
+        })
+        .build();
   }
 
   @Bean
@@ -94,8 +93,8 @@ public class AttachmentSizeConfig {
           item.setFileSize(StreamUtils.copyToByteArray(inputStream).length);
           return item;
         }
-      } catch (ReportPortalException e) {
-        LOGGER.debug(Suppliers.formattedSupplier(
+      } catch (ReportPortalException _) {
+        log.debug(Suppliers.formattedSupplier(
             "File with id {} is not presented at the file system. Removing from the database.",
             item.getId()
         ).get());
@@ -107,16 +106,16 @@ public class AttachmentSizeConfig {
 
   @Bean
   public ItemWriter<Attachment> writer() {
-    return items -> items.forEach(item -> {
-      jdbcTemplate.update("UPDATE attachment SET file_size = ? WHERE id = ?", item.getFileSize(),
-          item.getId());
-    });
+    return items -> items
+        .forEach(item -> jdbcTemplate
+            .update("UPDATE attachment SET file_size = ? WHERE id = ?", item.getFileSize(), item.getId()));
   }
 
   @Bean
-  public Step attachmentSizeStep() throws Exception {
+  public Step attachmentSizeStep() {
     return new StepBuilder("attachment", jobRepository)
-        .<Attachment, Attachment>chunk(CHUNK_SIZE, transactionManager)
+        .<Attachment, Attachment>chunk(CHUNK_SIZE)
+        .transactionManager(transactionManager)
         .reader(reader())
         .processor(processor())
         .writer(writer())

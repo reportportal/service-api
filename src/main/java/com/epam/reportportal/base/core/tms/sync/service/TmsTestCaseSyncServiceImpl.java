@@ -30,6 +30,7 @@ import java.io.InputStream;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -101,17 +102,23 @@ public class TmsTestCaseSyncServiceImpl implements TmsTestCaseSyncService {
       Long projectId,
       TmsSyncConnector<Integration> connector,
       Integration integration,
-      List<RemoteTestCase> remoteTestCaseBatch,
+      List<RemoteTestCase> originalBatch,
       Long localFolderId) {
     var organizationId = projectRepository.findById(projectId)
         .map(Project::getOrganizationId)
         .orElse(null);
+    var remoteTestCaseBatch = deduplicateByExternalId(originalBatch);
+    var duplicatesCount = originalBatch.size() - remoteTestCaseBatch.size();
+    if (duplicatesCount > 0) {
+      log.warn("Remote batch of job {} contains {} duplicate test case id(s); using one record per id",
+          jobId, duplicatesCount);
+    }
     var existingTestCases = loadExistingTestCasesAndBeforeSnapshots(projectId, remoteTestCaseBatch);
     var testCaseSyncContext = new TestCaseSyncContext(
         projectId, connector, integration, localFolderId
     );
     var batchProcessingResult = processRemoteTestCaseBatch(
-        remoteTestCaseBatch, existingTestCases.testCases(), testCaseSyncContext
+        remoteTestCaseBatch, existingTestCases.testCases(), testCaseSyncContext, duplicatesCount
     );
 
     try {
@@ -127,7 +134,46 @@ public class TmsTestCaseSyncServiceImpl implements TmsTestCaseSyncService {
       });
     } catch (RuntimeException e) {
       deleteAttachments(batchProcessingResult.storedAttachmentIds());
+      recordRolledBackBatch(jobId, batchProcessingResult);
       throw e;
+    }
+  }
+
+  /**
+   * Keeps a single record per remote id (the most recently updated one, the last one on a tie) so
+   * the entity, attributes and scenario of a test case always come from the same remote record.
+   */
+  private List<RemoteTestCase> deduplicateByExternalId(List<RemoteTestCase> batch) {
+    var byId = new LinkedHashMap<String, RemoteTestCase>();
+    for (var candidate : batch) {
+      byId.merge(candidate.getId(), candidate,
+          (kept, next) -> isOlder(next, kept) ? kept : next);
+    }
+    return new ArrayList<>(byId.values());
+  }
+
+  private boolean isOlder(RemoteTestCase candidate, RemoteTestCase other) {
+    return candidate.getUpdatedAt() != null && other.getUpdatedAt() != null
+        && candidate.getUpdatedAt().isBefore(other.getUpdatedAt());
+  }
+
+  /**
+   * Persisting a batch failed and was rolled back, so its cases that were due for import were not
+   * actually imported. Count them as failed so the job statistics stay consistent.
+   */
+  private void recordRolledBackBatch(Long jobId, BatchProcessingResult result) {
+    var rolledBack = new BatchProcessingResult(
+        List.of(), Map.of(), Map.of(), List.of(),
+        result.processedCount(),
+        0,
+        result.skippedCount(),
+        result.failedCount() + result.importedCount(),
+        result.errors()
+    );
+    try {
+      transactionTemplate.execute(status -> updateSyncJob(jobId, rolledBack));
+    } catch (RuntimeException statsException) {
+      log.warn("Failed to record statistics of the rolled back batch for job {}", jobId, statsException);
     }
   }
 
@@ -163,16 +209,21 @@ public class TmsTestCaseSyncServiceImpl implements TmsTestCaseSyncService {
   private BatchProcessingResult processRemoteTestCaseBatch(
       List<RemoteTestCase> remoteTestCaseBatch,
       Map<String, TmsTestCase> existingTestCases,
-      TestCaseSyncContext context) {
+      TestCaseSyncContext context,
+      int duplicatesCount) {
     var testCasesToSave = new ArrayList<TmsTestCase>();
     var isNewTestCaseMap = new HashMap<String, Boolean>();
     var attachmentsByTestCaseId = new HashMap<String, List<TmsAttachment>>();
     var storedAttachmentIds = new ArrayList<String>();
     var errors = new ArrayList<SyncError>();
-    var processedCount = 0;
+    // Dropped duplicates still count as processed (and skipped) so job totals match the remote page.
+    var processedCount = duplicatesCount;
+    var importedCount = 0;
+    var skippedCount = duplicatesCount;
     var failedCount = 0;
 
     for (var remoteTestCase : remoteTestCaseBatch) {
+      processedCount++;
       var testCaseAttachmentIds = new ArrayList<String>();
       try {
         var testCaseSyncResult = processTestCase(
@@ -180,13 +231,15 @@ public class TmsTestCaseSyncServiceImpl implements TmsTestCaseSyncService {
             testCaseAttachmentIds
         );
         if (testCaseSyncResult.processed()) {
-          processedCount++;
+          importedCount++;
           testCasesToSave.add(testCaseSyncResult.testCase());
           isNewTestCaseMap.put(remoteTestCase.getId(), testCaseSyncResult.isNew());
           storedAttachmentIds.addAll(testCaseAttachmentIds);
           if (CollectionUtils.isNotEmpty(testCaseSyncResult.attachments())) {
             attachmentsByTestCaseId.put(remoteTestCase.getId(), testCaseSyncResult.attachments());
           }
+        } else {
+          skippedCount++;
         }
       } catch (Exception e) {
         deleteAttachments(testCaseAttachmentIds);
@@ -202,6 +255,8 @@ public class TmsTestCaseSyncServiceImpl implements TmsTestCaseSyncService {
         attachmentsByTestCaseId,
         storedAttachmentIds,
         processedCount,
+        importedCount,
+        skippedCount,
         failedCount,
         errors
     );
@@ -321,6 +376,10 @@ public class TmsTestCaseSyncServiceImpl implements TmsTestCaseSyncService {
     var job = tmsSyncJobRepository.findById(jobId).orElseThrow();
     job.getCounters().setProcessed(
         job.getCounters().getProcessed() + batchProcessingResult.processedCount());
+    job.getCounters().setImported(
+        job.getCounters().getImported() + batchProcessingResult.importedCount());
+    job.getCounters().setSkipped(
+        job.getCounters().getSkipped() + batchProcessingResult.skippedCount());
     job.getCounters().setFailed(job.getCounters().getFailed() + batchProcessingResult.failedCount());
     if (!batchProcessingResult.errors().isEmpty()) {
       job.getErrorLog().getErrors().addAll(batchProcessingResult.errors());
@@ -491,6 +550,8 @@ public class TmsTestCaseSyncServiceImpl implements TmsTestCaseSyncService {
       Map<String, List<TmsAttachment>> attachmentsByTestCaseId,
       List<String> storedAttachmentIds,
       int processedCount,
+      int importedCount,
+      int skippedCount,
       int failedCount,
       List<SyncError> errors
   ) {}

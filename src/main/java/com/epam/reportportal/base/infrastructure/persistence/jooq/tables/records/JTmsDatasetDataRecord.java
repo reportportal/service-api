@@ -104,6 +104,6 @@ public class JTmsDatasetDataRecord extends UpdatableRecordImpl<JTmsDatasetDataRe
         setKey(key);
         setValue(value);
         setDatasetId(datasetId);
-        resetChangedOnNotNull();
+        resetTouchedOnNotNull();
     }
 }

@@ -19,11 +19,11 @@ package com.epam.reportportal.base.infrastructure.model.analyzer;
 
 import com.epam.reportportal.base.infrastructure.databind.LocalDateTimeSerializer;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import java.time.LocalDateTime;
 import java.util.Set;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import tools.jackson.databind.annotation.JsonSerialize;
 
 /**
  * Represents test item container in index/analysis request/response.

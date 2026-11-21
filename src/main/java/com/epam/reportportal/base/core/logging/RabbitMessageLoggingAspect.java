@@ -16,8 +16,6 @@
 
 package com.epam.reportportal.base.core.logging;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.HashMap;
@@ -33,6 +31,8 @@ import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Payload;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Traces incoming Rabbit message handling for operations.
@@ -46,7 +46,7 @@ public class RabbitMessageLoggingAspect {
   private static final String BODY_DENOMINATOR = "-- Body --";
 
   @Autowired
-  private ObjectMapper objectMapper;
+  private JsonMapper objectMapper;
 
   @Autowired
   private MessageConverter messageConverter;
@@ -113,7 +113,7 @@ public class RabbitMessageLoggingAspect {
       try {
         record.append(NEWLINE).append(' ').append(BODY_DENOMINATOR)
             .append(NEWLINE).append(' ').append(objectMapper.writeValueAsString(body));
-      } catch (JsonProcessingException e) {
+      } catch (JacksonException e) {
         // ignore
       }
     }

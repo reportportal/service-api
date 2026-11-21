@@ -30,12 +30,12 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.user.Project
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.util.SecurityContextUtils;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Handler for patch operations related to project users. Extends {@link BasePatchProjectHandler} to provide
@@ -63,7 +63,7 @@ public class PatchProjectUserHandler extends BasePatchProjectHandler {
       UserRepository userRepository,
       ProjectService projectService,
       ProjectUserRepository projectUserRepository,
-      ObjectMapper objectMapper,
+      JsonMapper objectMapper,
       OrganizationRepositoryCustom organizationRepository,
       ProjectRepository projectRepository,
       ProjectUserAssignmentHelper assignmentHelper
@@ -93,9 +93,9 @@ public class PatchProjectUserHandler extends BasePatchProjectHandler {
         .orElseThrow(() -> new ReportPortalException(ErrorType.ORGANIZATION_NOT_FOUND, orgId));
 
     var project = projectRepository.findById(projectId)
-        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectId));
+        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_ID_NOT_FOUND, projectId));
 
-    expect(org.getId(), isEqual(project.getOrganizationId())).verify(ErrorType.PROJECT_NOT_FOUND, projectId);
+    expect(org.getId(), isEqual(project.getOrganizationId())).verify(ErrorType.PROJECT_ID_NOT_FOUND, projectId);
 
     assignmentHelper.validateUserAssignment(org, principal, user);
 

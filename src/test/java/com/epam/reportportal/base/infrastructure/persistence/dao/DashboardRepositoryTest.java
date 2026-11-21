@@ -28,6 +28,7 @@ import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Fi
 import com.epam.reportportal.base.infrastructure.persistence.entity.dashboard.Dashboard;
 import com.epam.reportportal.base.ws.BaseMvcTest;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -50,7 +51,7 @@ class DashboardRepositoryTest extends BaseMvcTest {
   @Autowired
   private UserFilterRepository filterRepository;
 
-  @Autowired
+  @PersistenceContext
   private EntityManager entityManager;
 
   @Test

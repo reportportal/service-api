@@ -16,40 +16,37 @@
 
 package com.epam.reportportal.base.infrastructure.persistence.entity.launch;
 
-import com.epam.reportportal.base.infrastructure.persistence.dao.converters.JpaInstantConverter;
-import com.epam.reportportal.base.infrastructure.persistence.entity.ItemAttribute;
+import com.epam.reportportal.base.infrastructure.persistence.entity.Attribute;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.LaunchModeEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.LaunchTypeEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.RetentionPolicyEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.StatusEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.log.Log;
-import com.epam.reportportal.base.infrastructure.persistence.entity.statistics.Statistics;
 import com.google.common.collect.Sets;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
-import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import java.io.Serializable;
 import java.time.Instant;
+import java.util.Collection;
 import java.util.Objects;
 import java.util.Set;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
-import org.hibernate.annotations.JdbcType;
-import org.hibernate.dialect.PostgreSQLEnumJdbcType;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
@@ -59,13 +56,15 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
  * @author Pavel Bortnik
  */
 
-@Getter
 @Entity
 @EntityListeners(AuditingEntityListener.class)
 @Table(name = "launch", schema = "public", uniqueConstraints = {
     @UniqueConstraint(columnNames = {"name", "number", "project_id"})}, indexes = {
     @Index(name = "launch_pk", unique = true, columnList = "id ASC"),
     @Index(name = "unq_name_number", unique = true, columnList = "name ASC, number ASC, project_id ASC")})
+@Getter
+@Setter
+@NoArgsConstructor
 public class Launch implements Serializable {
 
   @Id
@@ -89,11 +88,9 @@ public class Launch implements Serializable {
   private String description;
 
   @Column(name = "start_time", nullable = false)
-  @Convert(converter = JpaInstantConverter.class)
   private Instant startTime;
 
   @Column(name = "end_time")
-  @Convert(converter = JpaInstantConverter.class)
   private Instant endTime;
 
   @Column(name = "number", nullable = false, precision = 32)
@@ -107,27 +104,22 @@ public class Launch implements Serializable {
 
   @Column(name = "last_modified", nullable = false)
   @LastModifiedDate
-  @Convert(converter = JpaInstantConverter.class)
   private Instant lastModified;
 
   @Column(name = "mode", nullable = false)
-  @Enumerated(EnumType.STRING)
-  @JdbcType(PostgreSQLEnumJdbcType.class)
+  @JdbcTypeCode(SqlTypes.NAMED_ENUM)
   private LaunchModeEnum mode;
 
   @Column(name = "status", nullable = false)
-  @Enumerated(EnumType.STRING)
-  @JdbcType(PostgreSQLEnumJdbcType.class)
+  @JdbcTypeCode(SqlTypes.NAMED_ENUM)
   private StatusEnum status;
 
   @Column(name = "retention_policy", nullable = false)
-  @Enumerated(EnumType.STRING)
-  @JdbcType(PostgreSQLEnumJdbcType.class)
+  @JdbcTypeCode(SqlTypes.NAMED_ENUM)
   private RetentionPolicyEnum retentionPolicy = RetentionPolicyEnum.REGULAR;
 
   @Column(name = "launch_type", nullable = false)
-  @Enumerated(EnumType.STRING)
-  @JdbcType(PostgreSQLEnumJdbcType.class)
+  @JdbcTypeCode(SqlTypes.NAMED_ENUM)
   private LaunchTypeEnum launchType = LaunchTypeEnum.AUTOMATION;
 
   @Column(name = "display_id")
@@ -135,12 +127,11 @@ public class Launch implements Serializable {
 
   @OneToMany(mappedBy = "launch", cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
   @Fetch(FetchMode.JOIN)
-  private Set<ItemAttribute> attributes = Sets.newHashSet();
+  private Set<LaunchAttribute> attributes = Sets.newHashSet();
 
-  @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+  @OneToMany(mappedBy = "launch", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
   @Fetch(FetchMode.JOIN)
-  @JoinColumn(name = "launch_id", insertable = false, updatable = false)
-  private Set<Statistics> statistics = Sets.newHashSet();
+  private Set<LaunchStatistics> statistics = Sets.newHashSet();
 
   @OneToMany(mappedBy = "launch", fetch = FetchType.LAZY, orphanRemoval = true)
   private Set<Log> logs = Sets.newHashSet();
@@ -151,188 +142,22 @@ public class Launch implements Serializable {
   @Column(name = "test_plan_id")
   private Long testPlanId;
 
-  public Launch() {
-  }
-
   public Launch(Long id) {
     this.id = id;
   }
 
-  public Set<ItemAttribute> getAttributes() {
-    return attributes;
-  }
-
-  public void setAttributes(Set<ItemAttribute> tags) {
+  public void setAttributes(Collection<? extends Attribute> tags) {
     this.attributes.clear();
-    this.attributes.addAll(tags);
-  }
-
-  public Long getId() {
-    return id;
-  }
-
-  public void setId(Long id) {
-    this.id = id;
-  }
-
-  public String getUuid() {
-    return uuid;
-  }
-
-  public void setUuid(String uuid) {
-    this.uuid = uuid;
-  }
-
-  public Long getProjectId() {
-    return projectId;
-  }
-
-  public void setProjectId(Long projectId) {
-    this.projectId = projectId;
-  }
-
-  public Long getUserId() {
-    return userId;
-  }
-
-  public void setUserId(Long userId) {
-    this.userId = userId;
-  }
-
-  public String getName() {
-    return name;
-  }
-
-  public void setName(String name) {
-    this.name = name;
-  }
-
-  public boolean isRerun() {
-    return rerun;
-  }
-
-  public void setRerun(boolean rerun) {
-    this.rerun = rerun;
-  }
-
-  public String getDescription() {
-    return description;
-  }
-
-  public void setDescription(String description) {
-    this.description = description;
-  }
-
-  public Instant getStartTime() {
-    return startTime;
-  }
-
-  public void setStartTime(Instant startTime) {
-    this.startTime = startTime;
-  }
-
-  public Set<Statistics> getStatistics() {
-    return statistics;
-  }
-
-  public void setStatistics(Set<Statistics> statistics) {
-    this.statistics = statistics;
-  }
-
-  public Instant getEndTime() {
-    return endTime;
-  }
-
-  public void setEndTime(Instant endTime) {
-    this.endTime = endTime;
-  }
-
-  public Long getNumber() {
-    return number;
-  }
-
-  public void setNumber(Long number) {
-    this.number = number;
-  }
-
-  public boolean isHasRetries() {
-    return hasRetries;
-  }
-
-  public void setHasRetries(boolean hasRetries) {
-    this.hasRetries = hasRetries;
-  }
-
-  public Instant getLastModified() {
-    return lastModified;
-  }
-
-  public void setLastModified(Instant lastModified) {
-    this.lastModified = lastModified;
-  }
-
-  public LaunchModeEnum getMode() {
-    return mode;
-  }
-
-  public void setMode(LaunchModeEnum mode) {
-    this.mode = mode;
-  }
-
-  public StatusEnum getStatus() {
-    return status;
-  }
-
-  public void setStatus(StatusEnum status) {
-    this.status = status;
-  }
-
-  public Set<Log> getLogs() {
-    return logs;
-  }
-
-  public void setLogs(Set<Log> logs) {
-    this.logs = logs;
-  }
-
-  public double getApproximateDuration() {
-    return approximateDuration;
-  }
-
-  public void setApproximateDuration(double approximateDuration) {
-    this.approximateDuration = approximateDuration;
-  }
-
-  public RetentionPolicyEnum getRetentionPolicy() {
-    return retentionPolicy;
-  }
-
-  public void setRetentionPolicy(RetentionPolicyEnum retentionPolicy) {
-    this.retentionPolicy = retentionPolicy;
-  }
-
-  public LaunchTypeEnum getLaunchType() {
-    return launchType;
-  }
-
-  public void setLaunchType(LaunchTypeEnum launchType) {
-    this.launchType = launchType;
-  }
-
-  public Long getTestPlanId() {
-    return testPlanId;
-  }
-
-  public void setTestPlanId(Long testPlanId) {
-    this.testPlanId = testPlanId;
-  }
-
-  public String getDisplayId() {
-    return displayId;
-  }
-
-  public void setDisplayId(String displayId) {
-    this.displayId = displayId;
+    tags.forEach(attribute -> {
+      if (attribute instanceof LaunchAttribute launchAttribute) {
+        this.attributes.add(launchAttribute);
+      } else {
+        LaunchAttribute launchAttribute =
+            new LaunchAttribute(attribute.getKey(), attribute.getValue(), attribute.isSystem());
+        launchAttribute.setLaunch(this);
+        this.attributes.add(launchAttribute);
+      }
+    });
   }
 
   @Override

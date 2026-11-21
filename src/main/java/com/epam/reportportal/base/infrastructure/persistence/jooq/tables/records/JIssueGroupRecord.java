@@ -75,6 +75,6 @@ public class JIssueGroupRecord extends UpdatableRecordImpl<JIssueGroupRecord> {
 
         setIssueGroupId(issueGroupId);
         setIssueGroup(issueGroup);
-        resetChangedOnNotNull();
+        resetTouchedOnNotNull();
     }
 }

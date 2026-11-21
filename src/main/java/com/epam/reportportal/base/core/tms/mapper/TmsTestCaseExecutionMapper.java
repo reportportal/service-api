@@ -1,7 +1,8 @@
 package com.epam.reportportal.base.core.tms.mapper;
 
-import com.epam.reportportal.base.core.tms.dto.TmsTestCaseExecutionCommentAttachmentRS;
+import com.epam.reportportal.base.core.tms.TmsTestCasePriority;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseExecutionBtsTicketRS;
+import com.epam.reportportal.base.core.tms.dto.TmsTestCaseExecutionCommentAttachmentRS;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseExecutionCommentRS;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseExecutionRS;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseExecutionTestFolderRS;
@@ -15,8 +16,6 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestC
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCaseExecutionComment;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Duration;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
@@ -26,15 +25,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.json.JsonMapper;
 
 @Mapper(config = CommonMapperConfig.class)
 @Slf4j
 public abstract class TmsTestCaseExecutionMapper {
 
-  private static final String UNSPECIFIED_PRIORITY = "UNSPECIFIED";
-
   @Autowired
-  private ObjectMapper objectMapper;
+  private JsonMapper objectMapper;
 
   /**
    * Converts TmsTestCaseExecution entity to TmsTestCaseExecutionRS DTO.
@@ -102,7 +101,7 @@ public abstract class TmsTestCaseExecutionMapper {
     if (execution.getExecutionComment() != null) {
       builder.executionComment(convertToExecutionCommentRS(execution.getExecutionComment()));
     }
-    
+
     // BTS Tickets from TestItem's Issue
     if (execution.getTestItem() != null && execution.getTestItem().getItemResults() != null
         && execution.getTestItem().getItemResults().getIssue() != null) {
@@ -120,7 +119,7 @@ public abstract class TmsTestCaseExecutionMapper {
         builder.btsTickets(btsTicketsRS);
       }
     }
-    
+
     return builder.build();
   }
 
@@ -142,7 +141,7 @@ public abstract class TmsTestCaseExecutionMapper {
   public String createTestCaseSnapshot(TmsTestCaseRS testCase) {
     try {
       return objectMapper.writeValueAsString(testCase);
-    } catch (JsonProcessingException e) {
+    } catch (JacksonException e) {
       log.error("Failed to create test case snapshot for test case: {}",
           testCase.getId(), e);
       throw new ReportPortalException(
@@ -162,15 +161,11 @@ public abstract class TmsTestCaseExecutionMapper {
     execution.setName(testCase.getName());
     execution.setLaunchId(launch.getId());
     execution.setTestItem(testItem);
-    execution.setPriority(
-        testCase.getPriority() == null || testCase.getPriority().isBlank()
-            ? UNSPECIFIED_PRIORITY
-            : testCase.getPriority().trim()
-    );
+    execution.setPriority(TmsTestCasePriority.normalize(testCase.getPriority()));
     execution.setTestCaseVersionId(defaultVersionId);
     execution.setTestCaseSnapshot(snapshot);
     execution.setDisplayId(testCase.getDisplayId());
-    
+
     return execution;
   }
 
@@ -188,7 +183,7 @@ public abstract class TmsTestCaseExecutionMapper {
 
     try {
       return objectMapper.readValue(snapshotJson, TmsTestCaseSnapshotDTO.class);
-    } catch (JsonProcessingException e) {
+    } catch (JacksonException e) {
       log.error("Failed to parse test case snapshot: {}", e.getMessage(), e);
       return null;
     }
@@ -205,7 +200,7 @@ public abstract class TmsTestCaseExecutionMapper {
     if (comment == null) {
       return null;
     }
-  
+
     var attachmentRSList = comment.getAttachments() != null ?
         comment
             .getAttachments()
@@ -213,14 +208,14 @@ public abstract class TmsTestCaseExecutionMapper {
             .map(this::convertCommentAttachment)
             .collect(Collectors.toList())
         : null;
-  
+
     var result = new TmsTestCaseExecutionCommentRS();
-  
+
     result.setComment(comment.getComment());
     if (CollectionUtils.isNotEmpty(attachmentRSList)) {
       result.setAttachments(attachmentRSList);
     }
-  
+
     return result;
   }
 

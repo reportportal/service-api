@@ -57,11 +57,13 @@ public interface ProjectRepository extends ReportPortalRepository<Project, Long>
 
   @Modifying
   @Query(value = "UPDATE project SET name = :projectName WHERE id = :projectId", nativeQuery = true)
-  void updateProjectName(@Param("projectName") String projectName, @Param("projectId") Long projectId);
+  void updateProjectName(@Param("projectName") String projectName,
+      @Param("projectId") Long projectId);
 
   @Modifying
   @Query(value = "UPDATE project SET slug = :projectSlug WHERE id = :projectId", nativeQuery = true)
-  void updateProjectSlug(@Param("projectSlug") String projectSlug, @Param("projectId") Long projectId);
+  void updateProjectSlug(@Param("projectSlug") String projectSlug,
+      @Param("projectId") Long projectId);
 
   @Modifying
   @Query(value = """

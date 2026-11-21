@@ -104,6 +104,6 @@ public class JUserPreferenceRecord extends UpdatableRecordImpl<JUserPreferenceRe
         setProjectId(projectId);
         setUserId(userId);
         setFilterId(filterId);
-        resetChangedOnNotNull();
+        resetTouchedOnNotNull();
     }
 }

@@ -42,8 +42,6 @@ import com.epam.reportportal.base.model.widget.ContentParameters;
 import com.epam.reportportal.base.model.widget.WidgetRQ;
 import com.epam.reportportal.base.reporting.OperationCompletionRS;
 import com.epam.reportportal.base.ws.converter.builders.WidgetBuilder;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -57,6 +55,8 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Default implementation of {@link com.epam.reportportal.base.core.widget.UpdateWidgetHandler} that updates widget
@@ -71,7 +71,7 @@ public class UpdateWidgetHandlerImpl implements UpdateWidgetHandler {
   private final WidgetRepository widgetRepository;
   private final UserFilterRepository filterRepository;
   private final ApplicationEventPublisher eventPublisher;
-  private final ObjectMapper objectMapper;
+  private final JsonMapper objectMapper;
   private final WidgetValidator widgetContentFieldsValidator;
 
   @Override
@@ -130,7 +130,7 @@ public class UpdateWidgetHandlerImpl implements UpdateWidgetHandler {
   private String parseWidgetOptions(Widget widget) {
     try {
       return objectMapper.writeValueAsString(widget.getWidgetOptions());
-    } catch (JsonProcessingException e) {
+    } catch (JacksonException e) {
       throw new ReportPortalException(ErrorType.INCORRECT_REQUEST, Suppliers.formattedSupplier(
           "Error during parsing new widget options of widget with id = ", widget.getId()));
     }

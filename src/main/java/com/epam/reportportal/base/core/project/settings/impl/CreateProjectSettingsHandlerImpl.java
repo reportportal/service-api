@@ -26,7 +26,7 @@ import static com.epam.reportportal.base.infrastructure.persistence.entity.enums
 import static com.epam.reportportal.base.infrastructure.rules.commons.validation.BusinessRule.expect;
 import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.BAD_REQUEST_ERROR;
 import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.INCORRECT_REQUEST;
-import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.PROJECT_NOT_FOUND;
+import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.PROJECT_KEY_NOT_FOUND;
 import static com.epam.reportportal.base.ws.converter.converters.IssueTypeConverter.TO_ACTIVITY_RESOURCE;
 
 import com.epam.reportportal.base.core.analyzer.pattern.service.CreatePatternTemplateHandler;
@@ -57,9 +57,9 @@ import com.epam.reportportal.base.model.project.config.IssueSubTypeCreatedRS;
 import com.epam.reportportal.base.model.project.config.pattern.CreatePatternTemplateRQ;
 import com.epam.reportportal.base.ws.converter.builders.IssueTypeBuilder;
 import com.epam.reportportal.base.ws.converter.converters.PatternTemplateConverter;
-import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableMap;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.UUID;
@@ -111,7 +111,7 @@ public class CreateProjectSettingsHandlerImpl implements CreateProjectSettingsHa
   }
 
   private static String shortUUID() {
-    long l = ByteBuffer.wrap(UUID.randomUUID().toString().getBytes(Charsets.UTF_8)).getLong();
+    long l = ByteBuffer.wrap(UUID.randomUUID().toString().getBytes(StandardCharsets.UTF_8)).getLong();
     return Long.toString(l, Character.MAX_RADIX);
   }
 
@@ -119,7 +119,7 @@ public class CreateProjectSettingsHandlerImpl implements CreateProjectSettingsHa
   public IssueSubTypeCreatedRS createProjectIssueSubType(String projectKey, ReportPortalUser user,
       CreateIssueSubTypeRQ rq) {
     Project project = projectRepository.findByKey(projectKey)
-        .orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectKey));
+        .orElseThrow(() -> new ReportPortalException(PROJECT_KEY_NOT_FOUND, projectKey));
 
     expect(NOT_ISSUE_FLAG.getValue().equalsIgnoreCase(rq.getTypeRef()), equalTo(false)).verify(
         INCORRECT_REQUEST, "Impossible to create sub-type for 'Not Issue' type.");
@@ -183,7 +183,7 @@ public class CreateProjectSettingsHandlerImpl implements CreateProjectSettingsHa
       CreatePatternTemplateRQ createPatternTemplateRQ, ReportPortalUser user) {
 
     Project project = projectRepository.findByKey(projectKey)
-        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectKey));
+        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_KEY_NOT_FOUND, projectKey));
 
     PatternTemplate patternTemplate = createPatternTemplateMapping.get(
         PatternTemplateType.fromString(createPatternTemplateRQ.getType()).orElseThrow(

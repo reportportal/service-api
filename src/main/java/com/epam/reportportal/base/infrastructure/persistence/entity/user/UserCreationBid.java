@@ -16,11 +16,9 @@
 
 package com.epam.reportportal.base.infrastructure.persistence.entity.user;
 
-import com.epam.reportportal.base.infrastructure.persistence.dao.converters.JpaInstantConverter;
 import com.epam.reportportal.base.infrastructure.persistence.entity.Metadata;
 import com.epam.reportportal.base.infrastructure.persistence.entity.Modifiable;
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.Id;
@@ -33,7 +31,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.Type;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
@@ -57,7 +56,6 @@ public class UserCreationBid implements Serializable, Modifiable {
 
   @LastModifiedDate
   @Column(name = LAST_MODIFIED)
-  @Convert(converter = JpaInstantConverter.class)
   private Instant lastModified;
 
   @Column(name = "email")
@@ -67,7 +65,7 @@ public class UserCreationBid implements Serializable, Modifiable {
   @JoinColumn(name = "inviting_user_id")
   private User invitingUser;
 
-  @Type(Metadata.class)
+  @JdbcTypeCode(SqlTypes.JSON)
   @Column(name = "metadata")
   private Metadata metadata;
 

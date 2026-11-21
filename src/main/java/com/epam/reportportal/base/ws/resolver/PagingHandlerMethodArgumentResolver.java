@@ -16,12 +16,13 @@
 
 package com.epam.reportportal.base.ws.resolver;
 
-import javax.annotation.Nonnull;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import org.springframework.core.MethodParameter;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
 import org.springframework.data.web.SortHandlerMethodArgumentResolver;
-import org.springframework.lang.Nullable;
 import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.ModelAndViewContainer;
@@ -32,8 +33,7 @@ import org.springframework.web.method.support.ModelAndViewContainer;
  *
  * @author Andrei Varabyeu
  */
-public class PagingHandlerMethodArgumentResolver extends
-    org.springframework.data.web.PageableHandlerMethodArgumentResolver {
+public class PagingHandlerMethodArgumentResolver extends PageableHandlerMethodArgumentResolver {
 
   public PagingHandlerMethodArgumentResolver() {
     super();
@@ -49,10 +49,9 @@ public class PagingHandlerMethodArgumentResolver extends
   public static final int MAX_PAGE_SIZE = 300000;
 
   @Override
-  @Nonnull
-  public Pageable resolveArgument(MethodParameter methodParameter,
+  public @NonNull Pageable resolveArgument(@NonNull MethodParameter methodParameter,
       @Nullable ModelAndViewContainer mavContainer,
-      NativeWebRequest webRequest, @Nullable WebDataBinderFactory binderFactory) {
+      @NonNull NativeWebRequest webRequest, @Nullable WebDataBinderFactory binderFactory) {
     Pageable pageable = super.resolveArgument(methodParameter, mavContainer, webRequest,
         binderFactory);
 

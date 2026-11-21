@@ -26,7 +26,9 @@ import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.saml2.provider.service.authentication.AbstractSaml2AuthenticationRequest;
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistrationRepository;
+import org.springframework.security.saml2.provider.service.web.Saml2AuthenticationRequestRepository;
 import org.springframework.security.saml2.provider.service.web.Saml2WebSsoAuthenticationRequestFilter;
 import org.springframework.security.saml2.provider.service.web.authentication.Saml2WebSsoAuthenticationFilter;
 import org.springframework.security.web.SecurityFilterChain;
@@ -48,14 +50,19 @@ public class Saml2AuthenticationConfiguration {
 
   private final RelyingPartyRegistrationRepository relyingPartyRegistrationRepository;
 
+  private final Saml2AuthenticationRequestRepository<AbstractSaml2AuthenticationRequest>
+      authenticationRequestRepository;
+
   public Saml2AuthenticationConfiguration(SamlAuthSuccessHandler successHandler,
       AuthFailureHandler failureHandler,
       DelegatingPluginAuthenticationProvider delegatingPluginAuthenticationProvider,
-      RelyingPartyRegistrationRepository relyingPartyRegistrationRepository) {
+      RelyingPartyRegistrationRepository relyingPartyRegistrationRepository,
+      Saml2AuthenticationRequestRepository<AbstractSaml2AuthenticationRequest> authenticationRequestRepository) {
     this.successHandler = successHandler;
     this.failureHandler = failureHandler;
     this.delegatingPluginAuthenticationProvider = delegatingPluginAuthenticationProvider;
     this.relyingPartyRegistrationRepository = relyingPartyRegistrationRepository;
+    this.authenticationRequestRepository = authenticationRequestRepository;
   }
 
   @Bean
@@ -65,6 +72,7 @@ public class Saml2AuthenticationConfiguration {
         relyingPartyRegistrationRepository,
         SAML_PROCESSING_URL
     );
+    saml2Filter.setAuthenticationRequestRepository(authenticationRequestRepository);
     saml2Filter.setAuthenticationManager(new ProviderManager(delegatingPluginAuthenticationProvider));
     saml2Filter.setAuthenticationSuccessHandler(successHandler);
     saml2Filter.setAuthenticationFailureHandler(failureHandler);

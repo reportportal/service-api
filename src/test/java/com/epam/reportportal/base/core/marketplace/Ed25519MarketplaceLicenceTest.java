@@ -24,8 +24,9 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.jsonwebtoken.Jwts;
+import com.nimbusds.jose.JOSEObjectType;
+import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jwt.JWTClaimsSet;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.PublicKey;
@@ -39,11 +40,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
- * The licence JWT, checked against what the registry actually reads: EdDSA over the claims
- * {@code customerId} and {@code pluginId} with {@code iat} and {@code exp}, verified by the
- * entitlement's public key (see the registry's {@code auth.VerifyLicenseJWT}).
+ * The licence JWT, checked against what the registry actually reads: EdDSA over the claims {@code customerId} and
+ * {@code pluginId} with {@code iat} and {@code exp}, verified by the entitlement's public key (see the registry's
+ * {@code auth.VerifyLicenseJWT}).
  *
- * <p>Tokens are parsed back with jjwt rather than by this code's own reader — an assembler that
+ * <p>Tokens are parsed back with Nimbus rather than by this code's own reader — an assembler that
  * agrees only with itself proves nothing about a token a Go registry has to accept.
  */
 class Ed25519MarketplaceLicenceTest {
@@ -62,8 +63,8 @@ class Ed25519MarketplaceLicenceTest {
   }
 
   /**
-   * The registry hands out the key as Go prints it: base64 of {@code ed25519.PrivateKey}, which is
-   * the 32-byte seed followed by the 32-byte public key.
+   * The registry hands out the key as Go prints it: base64 of {@code ed25519.PrivateKey}, which is the 32-byte seed
+   * followed by the 32-byte public key.
    */
   private String goStylePrivateKey() {
     var pkcs8 = keyPair.getPrivate().getEncoded();
@@ -89,14 +90,8 @@ class Ed25519MarketplaceLicenceTest {
     return new Ed25519MarketplaceLicence(store, ttl, Clock.fixed(at, ZoneOffset.UTC));
   }
 
-  private io.jsonwebtoken.Claims claims(String token, PublicKey publicKey) {
-    return Jwts.parser()
-        .verifyWith(publicKey)
-        .clockSkewSeconds(0)
-        .clock(() -> java.util.Date.from(NOW))
-        .build()
-        .parseSignedClaims(token)
-        .getPayload();
+  private JWTClaimsSet claims(String token, PublicKey publicKey) {
+    return LicenceJwt.verifiedClaims(token, publicKey);
   }
 
   @Test
@@ -112,7 +107,9 @@ class Ed25519MarketplaceLicenceTest {
     assertTrue(licence().isConfigured());
   }
 
-  /** {@link MarketplaceLicence#isConfigured()} must not need the private key to answer. */
+  /**
+   * {@link MarketplaceLicence#isConfigured()} must not need the private key to answer.
+   */
   @Test
   void beingConfiguredIsAnsweredWithoutDecryptingTheKey() {
     store.credentials = new MarketplaceLicenceCredentials(CUSTOMER, goStylePrivateKey());
@@ -128,22 +125,22 @@ class Ed25519MarketplaceLicenceTest {
     var token = licence().signArtifactToken(PLUGIN_ID).orElseThrow();
 
     var claims = claims(token, keyPair.getPublic());
-    assertEquals(CUSTOMER, claims.get("customerId"));
-    assertEquals(PLUGIN_ID, claims.get("pluginId"));
-    assertEquals(NOW.getEpochSecond(), claims.getExpiration().toInstant().getEpochSecond() - 60);
-    assertTrue(claims.getIssuedAt().toInstant().isBefore(claims.getExpiration().toInstant()));
+    assertEquals(CUSTOMER, claims.getClaim("customerId"));
+    assertEquals(PLUGIN_ID, claims.getClaim("pluginId"));
+    assertEquals(NOW.getEpochSecond(),
+        claims.getExpirationTime().toInstant().getEpochSecond() - 60);
+    assertTrue(claims.getIssueTime().toInstant().isBefore(claims.getExpirationTime().toInstant()));
   }
 
   @Test
-  void theHeaderNamesEdDsaSoTheRegistryPicksTheRightAlgorithm() throws Exception {
+  void theHeaderNamesEdDsaSoTheRegistryPicksTheRightAlgorithm() {
     store.credentials = new MarketplaceLicenceCredentials(CUSTOMER, goStylePrivateKey());
 
     var token = licence().signArtifactToken(PLUGIN_ID).orElseThrow();
 
-    var header = new ObjectMapper().readTree(
-        Base64.getUrlDecoder().decode(token.substring(0, token.indexOf('.'))));
-    assertEquals("EdDSA", header.get("alg").asText());
-    assertEquals("JWT", header.get("typ").asText());
+    var header = LicenceJwt.parse(token).getHeader();
+    assertEquals(JWSAlgorithm.EdDSA, header.getAlgorithm());
+    assertEquals(JOSEObjectType.JWT, header.getType());
   }
 
   @Test
@@ -152,7 +149,7 @@ class Ed25519MarketplaceLicenceTest {
 
     var token = licence().signArtifactToken(PLUGIN_ID).orElseThrow();
 
-    assertEquals(CUSTOMER, claims(token, keyPair.getPublic()).get("customerId"));
+    assertEquals(CUSTOMER, claims(token, keyPair.getPublic()).getClaim("customerId"));
   }
 
   @Test
@@ -162,8 +159,7 @@ class Ed25519MarketplaceLicenceTest {
 
     var token = licence().signArtifactToken(PLUGIN_ID).orElseThrow();
 
-    assertThrows(io.jsonwebtoken.security.SignatureException.class,
-        () -> claims(token, somebodyElse));
+    assertFalse(LicenceJwt.verifies(token, somebodyElse));
   }
 
   /**
@@ -175,14 +171,14 @@ class Ed25519MarketplaceLicenceTest {
 
     var claims = claims(licence().signArtifactToken(PLUGIN_ID).orElseThrow(), keyPair.getPublic());
 
-    var lifetime = Duration.between(claims.getIssuedAt().toInstant(),
-        claims.getExpiration().toInstant());
+    var lifetime = Duration.between(claims.getIssueTime().toInstant(),
+        claims.getExpirationTime().toInstant());
     assertTrue(lifetime.compareTo(Duration.ofMinutes(2)) <= 0, "lifetime was " + lifetime);
   }
 
   /**
-   * The registry (jwx) rejects an {@code iat} in the future with no skew allowance, so an instance
-   * whose clock runs a little fast must still be able to sign.
+   * The registry (jwx) rejects an {@code iat} in the future with no skew allowance, so an instance whose clock runs a
+   * little fast must still be able to sign.
    */
   @Test
   void issuedAtIsBackdatedSoSlightlyFastClockStillSigns() {
@@ -190,11 +186,13 @@ class Ed25519MarketplaceLicenceTest {
 
     var claims = claims(licence().signArtifactToken(PLUGIN_ID).orElseThrow(), keyPair.getPublic());
 
-    assertTrue(claims.getIssuedAt().toInstant().isBefore(NOW),
-        "iat was " + claims.getIssuedAt().toInstant());
+    assertTrue(claims.getIssueTime().toInstant().isBefore(NOW),
+        "iat was " + claims.getIssueTime().toInstant());
   }
 
-  /** One instance, one plugin, a clock that moved: a cached token would come back unchanged. */
+  /**
+   * One instance, one plugin, a clock that moved: a cached token would come back unchanged.
+   */
   @Test
   void everyCallSignsFreshTokenRatherThanReplayingTheLastOne() {
     store.credentials = new MarketplaceLicenceCredentials(CUSTOMER, goStylePrivateKey());
@@ -229,7 +227,7 @@ class Ed25519MarketplaceLicenceTest {
 
     var token = licence().signArtifactToken("rally").orElseThrow();
 
-    assertEquals("rally", claims(token, keyPair.getPublic()).get("pluginId"));
+    assertEquals("rally", claims(token, keyPair.getPublic()).getClaim("pluginId"));
   }
 
   @Test
@@ -240,7 +238,9 @@ class Ed25519MarketplaceLicenceTest {
     assertThrows(ReportPortalException.class, () -> licence().signArtifactToken(PLUGIN_ID));
   }
 
-  /** Counts credential reads so "configured" cannot quietly start decrypting. */
+  /**
+   * Counts credential reads so "configured" cannot quietly start decrypting.
+   */
   private static final class StubStore implements MarketplaceLicenceStore {
 
     private MarketplaceLicenceCredentials credentials;

@@ -19,11 +19,11 @@ package com.epam.reportportal.base.ws.model;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.epam.reportportal.base.reporting.StartTestItemRQ;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import java.io.IOException;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.MapperFeature;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.SerializationFeature;
 
 /**
  * Test Item custom serializer test
@@ -32,12 +32,12 @@ import org.junit.jupiter.api.Test;
  */
 public class StartTestItemSerializerTest {
 
-  private final ObjectMapper om = getObjectMapper();
+  private final JsonMapper om = getObjectMapper();
 
   private static final String START_ITEM_RQ = "{\"launchUuid\":\"1\",\"description\":\"description\",\"type\":\"LAUNCH\",\"retry\":false,\"hasStats\":true}";
 
   @Test
-  public void testSerializer() throws JsonProcessingException {
+  public void testSerializer() {
     String json = om.writeValueAsString(getStartTestItem());
     assertEquals(START_ITEM_RQ, json, "Incorrect serialization result");
   }
@@ -58,9 +58,10 @@ public class StartTestItemSerializerTest {
     return startTestItem;
   }
 
-  private ObjectMapper getObjectMapper() {
-    ObjectMapper om = new ObjectMapper();
-    om.configure(SerializationFeature.INDENT_OUTPUT, false);
-    return om;
+  private JsonMapper getObjectMapper() {
+    return JsonMapper.builder()
+        .disable(SerializationFeature.INDENT_OUTPUT)
+        .disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
+        .build();
   }
 }

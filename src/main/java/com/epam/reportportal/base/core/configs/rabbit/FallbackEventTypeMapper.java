@@ -19,8 +19,6 @@ package com.epam.reportportal.base.core.configs.rabbit;
 import static java.util.function.Function.identity;
 
 import com.epam.reportportal.base.core.events.domain.AbstractEvent;
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.type.TypeFactory;
 import jakarta.annotation.PostConstruct;
 import java.lang.reflect.Modifier;
 import java.util.Map;
@@ -29,12 +27,14 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.MessageProperties;
-import org.springframework.amqp.support.converter.Jackson2JavaTypeMapper;
+import org.springframework.amqp.support.converter.JacksonJavaTypeMapper;
 import org.springframework.amqp.support.converter.MessageConversionException;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
 import org.springframework.core.type.filter.AssignableTypeFilter;
 import org.springframework.stereotype.Component;
+import tools.jackson.databind.JavaType;
+import tools.jackson.databind.type.TypeFactory;
 
 /**
  * Type mapper that resolves event classes from RabbitMQ message headers. Primary resolution uses fully qualified class
@@ -43,10 +43,10 @@ import org.springframework.stereotype.Component;
  */
 @Slf4j
 @Component
-public class FallbackEventTypeMapper implements Jackson2JavaTypeMapper {
+public class FallbackEventTypeMapper implements JacksonJavaTypeMapper {
 
   private static final String TYPE_ID_HEADER = "__TypeId__";
-  private static final TypeFactory TYPE_FACTORY = TypeFactory.defaultInstance();
+  private static final TypeFactory TYPE_FACTORY = TypeFactory.createDefaultInstance();
 
   private Map<String, Class<?>> registry;
 

@@ -56,8 +56,8 @@ import static com.epam.reportportal.base.infrastructure.persistence.dao.constant
 import static com.epam.reportportal.base.infrastructure.persistence.dao.constant.WidgetContentRepositoryConstants.USER_ID;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.constant.WidgetContentRepositoryConstants.VALUE;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.util.JooqFieldNameTransformer.fieldName;
+import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.LAUNCH_ATTRIBUTE;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JActivity.ACTIVITY;
-import static com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JItemAttribute.ITEM_ATTRIBUTE;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JLaunch.LAUNCH;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JPatternTemplate.PATTERN_TEMPLATE;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JProject.PROJECT;
@@ -90,14 +90,10 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.widget.conte
 import com.epam.reportportal.base.infrastructure.persistence.entity.widget.content.healthcheck.HealthCheckTableStatisticsContent;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.google.common.base.CaseFormat;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.sql.Timestamp;
@@ -124,6 +120,8 @@ import org.jooq.Record;
 import org.jooq.RecordMapper;
 import org.jooq.Result;
 import org.jooq.impl.DSL;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Util class for widget content repository.
@@ -132,12 +130,10 @@ import org.jooq.impl.DSL;
  */
 public class WidgetContentUtil {
 
-  private static final ObjectMapper objectMapper;
+  private static final JsonMapper objectMapper;
 
   static {
-    objectMapper = new ObjectMapper();
-    objectMapper.registerModule(new JavaTimeModule());
-    objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    objectMapper = JsonMapper.builder().build();
   }
 
   private WidgetContentUtil() {
@@ -181,12 +177,14 @@ public class WidgetContentUtil {
 
   public static final BiFunction<Result<? extends Record>, List<String>, List<LaunchesTableContent>> LAUNCHES_TABLE_FETCHER = (result, contentFields) -> {
 
-    List<String> nonStatisticsFields = contentFields.stream().filter(cf -> !cf.startsWith(STATISTICS_KEY))
-        .collect(Collectors.toList());
+    List<String> nonStatisticsFields = contentFields.stream()
+        .filter(cf -> !cf.startsWith(STATISTICS_KEY)).collect(Collectors.toList());
 
-    nonStatisticsFields.removeAll(Stream.of(LAUNCH.ID, LAUNCH.NAME, LAUNCH.NUMBER, LAUNCH.START_TIME)
-        .map(cf -> CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, cf.getQualifiedName().last()))
-        .collect(Collectors.toList()));
+    nonStatisticsFields.removeAll(
+        Stream.of(LAUNCH.ID, LAUNCH.NAME, LAUNCH.NUMBER, LAUNCH.START_TIME)
+            .map(cf -> CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL,
+                cf.getQualifiedName().last()))
+            .toList());
 
     Map<Long, LaunchesTableContent> resultMap = new LinkedHashMap<>();
 
@@ -196,7 +194,7 @@ public class WidgetContentUtil {
 
     Optional<Field<?>> statisticsField = ofNullable(result.field(fieldName(STATISTICS_TABLE, SF_NAME)));
     Optional<Field<?>> startTimeField = ofNullable(result.field(LAUNCH.START_TIME.getQualifiedName().toString()));
-    Optional<Field<?>> itemAttributeIdField = ofNullable(result.field(ATTR_ID));
+    Optional<Field<?>> attributeIdField = ofNullable(result.field(ATTR_ID));
 
     result.forEach(record -> {
       LaunchesTableContent content;
@@ -205,33 +203,40 @@ public class WidgetContentUtil {
       } else {
         content = new LaunchesTableContent();
         content.setId(record.get(LAUNCH.ID));
-        content.setName(record.get(DSL.field(LAUNCH.NAME.getQualifiedName().toString()), String.class));
-        content.setNumber(record.get(DSL.field(LAUNCH.NUMBER.getQualifiedName().toString()), Integer.class));
+        content.setName(
+            record.get(DSL.field(LAUNCH.NAME.getQualifiedName().toString()), String.class));
+        content.setNumber(
+            record.get(DSL.field(LAUNCH.NUMBER.getQualifiedName().toString()), Integer.class));
 
-        startTimeField.ifPresent(f -> content.setStartTime(record.get(f, Timestamp.class).toInstant()));
+        startTimeField.ifPresent(
+            f -> content.setStartTime(record.get(f, Timestamp.class).toInstant()));
       }
 
       statisticsField.flatMap(sf -> ofNullable(record.get(sf, String.class)))
           .ifPresent(v -> content.getValues()
               .put(v,
-                  ofNullable(record.get(fieldName(STATISTICS_TABLE, STATISTICS_COUNTER), String.class)).orElse("0")));
+                  ofNullable(record.get(fieldName(STATISTICS_TABLE, STATISTICS_COUNTER),
+                      String.class)).orElse("0")));
 
       resultMap.put(record.get(LAUNCH.ID), content);
 
       nonStatisticsFields.forEach(cf -> {
         if (CRITERIA_END_TIME.equalsIgnoreCase(cf) || CRITERIA_LAST_MODIFIED.equalsIgnoreCase(cf)) {
-          consumeIfNotNull(cf, record.get(criteria.get(cf), Timestamp.class), (k, v) -> content.getValues().put(k, v));
+          consumeIfNotNull(cf, record.get(criteria.get(cf), Timestamp.class),
+              (k, v) -> content.getValues().put(k, v));
         } else {
-          consumeIfNotNull(cf, record.get(criteria.get(cf)), (k, v) -> content.getValues().put(k, String.valueOf(v)));
+          consumeIfNotNull(cf, record.get(criteria.get(cf)),
+              (k, v) -> content.getValues().put(k, String.valueOf(v)));
         }
       });
 
-      itemAttributeIdField.flatMap(f -> ofNullable(record.get(f))).ifPresent(id -> {
-        Set<ItemAttributePojo> attributes = ofNullable(content.getAttributes()).orElseGet(Sets::newLinkedHashSet);
+      attributeIdField.flatMap(f -> ofNullable(record.get(f))).ifPresent(id -> {
+        Set<ItemAttributePojo> attributes = ofNullable(content.getAttributes()).orElseGet(
+            Sets::newLinkedHashSet);
 
         ItemAttributePojo itemAttribute = new ItemAttributePojo();
-        itemAttribute.setKey(record.get(ITEM_ATTRIBUTE.KEY));
-        itemAttribute.setValue(record.get(ITEM_ATTRIBUTE.VALUE));
+        itemAttribute.setKey(record.get(LAUNCH_ATTRIBUTE.KEY));
+        itemAttribute.setValue(record.get(LAUNCH_ATTRIBUTE.VALUE));
 
         attributes.add(itemAttribute);
 
@@ -263,7 +268,7 @@ public class WidgetContentUtil {
       try {
         ActivityDetails details = objectMapper.readValue(s, ActivityDetails.class);
         activityResource.setDetails(details);
-      } catch (IOException e) {
+      } catch (JacksonException _) {
         throw new ReportPortalException(ErrorType.OBJECT_RETRIEVAL_ERROR, "Activity details");
       }
     });
@@ -502,7 +507,7 @@ public class WidgetContentUtil {
         entry.setLaunchId(record.get(TEST_ITEM.LAUNCH_ID));
         return entry;
       })
-      .collect(Collectors.toList());
+      .toList();
 
   public static final Function<Result<? extends Record>, List<CriteriaHistoryItem>> CRITERIA_HISTORY_ITEM_FETCHER = result -> result.stream()
       .map(record -> {
@@ -517,7 +522,7 @@ public class WidgetContentUtil {
         entry.setLaunchId(record.get(TEST_ITEM.LAUNCH_ID));
         return entry;
       })
-      .collect(Collectors.toList());
+      .toList();
 
   public static final Function<Result<? extends Record>, List<ChartStatisticsContent>> LAUNCHES_STATISTICS_FETCHER = result -> new ArrayList<>(
       STATISTICS_FETCHER.apply(result).values());
@@ -561,14 +566,14 @@ public class WidgetContentUtil {
     if (isLatest) {
       content = Maps.newLinkedHashMap();
       result.forEach(record -> {
-        String attribute = record.get(ITEM_ATTRIBUTE.VALUE, String.class);
-        List<Long> launchIds = content.computeIfAbsent(attribute, k -> Lists.newArrayList());
+        String attribute = record.get(LAUNCH_ATTRIBUTE.VALUE, String.class);
+        List<Long> launchIds = content.computeIfAbsent(attribute, _ -> Lists.newArrayList());
         launchIds.add(record.get(fieldName(ID), Long.class));
       });
     } else {
       content = Maps.newLinkedHashMapWithExpectedSize(result.size());
       result.forEach(record -> {
-        String attribute = record.get(ITEM_ATTRIBUTE.VALUE, String.class);
+        String attribute = record.get(LAUNCH_ATTRIBUTE.VALUE, String.class);
         content.put(attribute, Lists.newArrayList(record.get(fieldName(ID), Long[].class)));
       });
     }
@@ -621,7 +626,7 @@ public class WidgetContentUtil {
         Double passingRate = record.get(fieldName(PASSING_RATE), Double.class);
         return new ComponentHealthCheckContent(attributeValue, total, passingRate);
       })
-      .collect(Collectors.toList());
+      .toList();
 
   public static final BiFunction<Result<? extends Record>, HealthCheckTableGetParams,
       Map<String, HealthCheckTableStatisticsContent>> COMPONENT_HEALTH_CHECK_TABLE_STATS_FETCHER =

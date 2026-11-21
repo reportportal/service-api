@@ -46,7 +46,7 @@ import java.util.Objects;
 import java.util.Set;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
@@ -157,7 +157,7 @@ public class UpdateDashboardHandlerImpl implements UpdateDashboardHandler {
   private void validateWidgetBeforeAddingToDashboard(AddWidgetRq rq, Dashboard dashboard,
       Set<DashboardWidget> dashboardWidgets) {
     BusinessRule.expect(dashboardWidgets.stream()
-            .anyMatch(dashboardWidget -> StringUtils.equals(dashboardWidget.getWidgetName(),
+            .anyMatch(dashboardWidget -> Strings.CS.equals(dashboardWidget.getWidgetName(),
                 rq.getAddWidget().getName())), BooleanUtils::isFalse)
         .verify(ErrorType.DASHBOARD_UPDATE_ERROR, Suppliers.formattedSupplier(
             "Widget with name = '{}' is already added to the dashboard with name = '{}'",

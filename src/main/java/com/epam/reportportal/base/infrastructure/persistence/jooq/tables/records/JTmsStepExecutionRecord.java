@@ -119,6 +119,6 @@ public class JTmsStepExecutionRecord extends UpdatableRecordImpl<JTmsStepExecuti
         setTestItemId(testItemId);
         setLaunchId(launchId);
         setTmsStepId(tmsStepId);
-        resetChangedOnNotNull();
+        resetTouchedOnNotNull();
     }
 }

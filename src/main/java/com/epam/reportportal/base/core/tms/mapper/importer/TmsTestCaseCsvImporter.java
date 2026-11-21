@@ -1,5 +1,6 @@
 package com.epam.reportportal.base.core.tms.mapper.importer;
 
+import com.epam.reportportal.base.core.tms.TmsTestCasePriority;
 import com.epam.reportportal.base.core.tms.dto.TmsManualScenarioPreconditionsRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsManualScenarioType;
 import com.epam.reportportal.base.core.tms.dto.TmsRequirementRQ;
@@ -47,7 +48,6 @@ public class TmsTestCaseCsvImporter implements TmsTestCaseImporter {
   private static final String COL_EXPECTED_RESULT = "expected result";
   private static final String COL_REQUIREMENTS = "requirements";
   private static final String COL_PRECONDITIONS = "preconditions";
-  private static final String UNSPECIFIED_PRIORITY = "UNSPECIFIED";
 
   // Separators
   private static final String LABEL_SEPARATOR = ";";
@@ -159,8 +159,7 @@ public class TmsTestCaseCsvImporter implements TmsTestCaseImporter {
   }
 
   private String getPriority(CSVRecord record, Map<String, Integer> headerMap) {
-    String priority = getValueSafe(record, headerMap, COL_PRIORITY);
-    return priority == null ? UNSPECIFIED_PRIORITY : priority;
+    return TmsTestCasePriority.normalize(getValueSafe(record, headerMap, COL_PRIORITY));
   }
 
   private List<String> parsePath(String path) {

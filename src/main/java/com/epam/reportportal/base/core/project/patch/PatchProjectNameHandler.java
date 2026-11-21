@@ -18,9 +18,9 @@ package com.epam.reportportal.base.core.project.patch;
 
 import com.epam.reportportal.api.model.PatchOperation;
 import com.epam.reportportal.base.core.project.ProjectService;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Handler for managing project name patch operations in the Report Portal system. Extends the base patch handler to
@@ -43,7 +43,7 @@ public class PatchProjectNameHandler extends BasePatchProjectHandler {
    *
    * @param projectService service for handling project-related operations
    */
-  public PatchProjectNameHandler(ProjectService projectService, ObjectMapper objectMapper) {
+  public PatchProjectNameHandler(ProjectService projectService, JsonMapper objectMapper) {
     super(projectService, objectMapper);
   }
 

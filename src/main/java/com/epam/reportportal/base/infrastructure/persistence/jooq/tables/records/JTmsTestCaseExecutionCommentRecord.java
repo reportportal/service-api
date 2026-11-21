@@ -91,6 +91,6 @@ public class JTmsTestCaseExecutionCommentRecord extends UpdatableRecordImpl<JTms
         setId(id);
         setExecutionId(executionId);
         setComment(comment);
-        resetChangedOnNotNull();
+        resetTouchedOnNotNull();
     }
 }

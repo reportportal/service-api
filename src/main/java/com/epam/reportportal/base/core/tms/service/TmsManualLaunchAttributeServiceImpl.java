@@ -1,9 +1,11 @@
 package com.epam.reportportal.base.core.tms.service;
 
-import static com.epam.reportportal.base.ws.converter.converters.ItemAttributeConverter.FROM_RESOURCE;
+import static com.epam.reportportal.base.core.launch.attribute.AttributeHandler.RETENTION_POLICY_KEY;
+import static com.epam.reportportal.base.ws.converter.converters.AttributeConverter.FROM_LAUNCH_RESOURCE;
 
-import com.epam.reportportal.base.infrastructure.persistence.dao.ItemAttributeRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchAttributeRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
+import com.epam.reportportal.base.infrastructure.persistence.entity.launch.LaunchAttribute;
 import com.epam.reportportal.base.reporting.ItemAttributesRQ;
 import java.util.Collection;
 import java.util.stream.Collectors;
@@ -21,7 +23,7 @@ import org.springframework.util.CollectionUtils;
 @RequiredArgsConstructor
 public class TmsManualLaunchAttributeServiceImpl implements TmsManualLaunchAttributeService {
 
-  private final ItemAttributeRepository itemAttributeRepository;
+  private final LaunchAttributeRepository launchAttributeRepository;
 
   @Override
   @Transactional
@@ -34,13 +36,13 @@ public class TmsManualLaunchAttributeServiceImpl implements TmsManualLaunchAttri
     var launchAttributes = attributeRQS
         .stream()
         .map(attribute -> {
-          var itemAttribute = FROM_RESOURCE.apply(attribute);
-          itemAttribute.setLaunch(launch);
-          return itemAttribute;
+          var launchAttribute = FROM_LAUNCH_RESOURCE.apply(attribute);
+          launchAttribute.setLaunch(launch);
+          return launchAttribute;
         })
         .collect(Collectors.toSet());
 
-    itemAttributeRepository.saveAll(launchAttributes);
+    launchAttributeRepository.saveAll(launchAttributes);
 
 
     if (launch.getAttributes() == null) {
@@ -62,10 +64,16 @@ public class TmsManualLaunchAttributeServiceImpl implements TmsManualLaunchAttri
 
     log.debug("Updating attributes for launch: {} with PUT semantics", existingLaunch.getId());
 
+    boolean replacesRetentionPolicy = attributes.stream().anyMatch(this::isSystemRetentionPolicy);
 
     if (existingLaunch.getAttributes() != null) {
-      itemAttributeRepository.deleteAll(existingLaunch.getAttributes());
-      existingLaunch.getAttributes().clear();
+      var attributesToDelete = existingLaunch.getAttributes().stream()
+          .filter(attribute -> isReplaced(attribute, replacesRetentionPolicy))
+          .toList();
+      if (!attributesToDelete.isEmpty()) {
+        launchAttributeRepository.deleteAll(attributesToDelete);
+        existingLaunch.getAttributes().removeAll(attributesToDelete);
+      }
     }
 
     if (!attributes.isEmpty()) {
@@ -80,8 +88,19 @@ public class TmsManualLaunchAttributeServiceImpl implements TmsManualLaunchAttri
   public void deleteAllByLaunchId(Long launchId) {
     log.debug("Deleting all non-system attributes for launch: {}", launchId);
 
-    itemAttributeRepository.deleteAllByLaunchIdAndSystem(launchId, false);
+    launchAttributeRepository.deleteAllByLaunchIdAndSystem(launchId, false);
 
     log.debug("Deleted all non-system attributes for launch: {}", launchId);
+  }
+
+  private boolean isReplaced(LaunchAttribute attribute, boolean replacesRetentionPolicy) {
+    if (!Boolean.TRUE.equals(attribute.isSystem())) {
+      return true;
+    }
+    return replacesRetentionPolicy && RETENTION_POLICY_KEY.equalsIgnoreCase(attribute.getKey());
+  }
+
+  private boolean isSystemRetentionPolicy(ItemAttributesRQ attribute) {
+    return attribute.isSystem() && RETENTION_POLICY_KEY.equalsIgnoreCase(attribute.getKey());
   }
 }

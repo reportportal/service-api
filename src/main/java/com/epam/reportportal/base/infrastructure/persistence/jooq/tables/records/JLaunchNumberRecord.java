@@ -104,6 +104,6 @@ public class JLaunchNumberRecord extends UpdatableRecordImpl<JLaunchNumberRecord
         setProjectId(projectId);
         setLaunchName(launchName);
         setNumber(number);
-        resetChangedOnNotNull();
+        resetTouchedOnNotNull();
     }
 }

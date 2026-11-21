@@ -26,7 +26,6 @@ import com.epam.reportportal.base.core.marketplace.MarketplaceJson;
 import jakarta.annotation.PreDestroy;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
-import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import org.apache.hc.client5.http.config.ConnectionConfig;
@@ -43,13 +42,12 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.converter.ByteArrayHttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.http.converter.json.JacksonJsonHttpMessageConverter;
+import org.springframework.web.client.RestClient;
 
 /**
- * HTTP client for the marketplace registry only. Separate from the shared
- * {@link RestTemplateConfig} template, which has no timeouts — a black-holed registry must not
- * stall request threads.
+ * HTTP client for the marketplace registry only. Separate from the shared {@link RestClientConfig} client, which has no
+ * timeouts — a black-holed registry must not stall request threads.
  */
 @Configuration
 public class MarketplaceConfig {
@@ -59,7 +57,6 @@ public class MarketplaceConfig {
   private final Duration connectTimeout;
   private final Duration readTimeout;
   private final Duration requestDeadline;
-  private PoolingHttpClientConnectionManager connectionManager;
   private CloseableHttpClient httpClient;
   private CloseableHttpClient downloadHttpClient;
   private final ScheduledExecutorService deadlineWatchdog =
@@ -72,13 +69,13 @@ public class MarketplaceConfig {
   /**
    * Reads the marketplace client settings.
    *
-   * @param registryUrl     registry base URL
-   * @param connectTimeout  TCP connect timeout
-   * @param readTimeout     socket read timeout, bounding a single read
-   * @param requestDeadline whole-exchange deadline, bounding all reads together
-   * @param allowInsecureTransport permits a credential over plain HTTP to a non-loopback registry,
-   *     for an in-cluster registry on a trusted network. Off by default, and off is the only
-   *     setting that is safe on an untrusted path.
+   * @param registryUrl            registry base URL
+   * @param connectTimeout         TCP connect timeout
+   * @param readTimeout            socket read timeout, bounding a single read
+   * @param requestDeadline        whole-exchange deadline, bounding all reads together
+   * @param allowInsecureTransport permits a credential over plain HTTP to a non-loopback registry, for an in-cluster
+   *                               registry on a trusted network. Off by default, and off is the only setting that is
+   *                               safe on an untrusted path.
    */
   public MarketplaceConfig(
       @Value("${marketplace.registry.url:https://marketplace.reportportal.io}") String registryUrl,
@@ -94,7 +91,9 @@ public class MarketplaceConfig {
     this.requestDeadline = requestDeadline;
   }
 
-  /** The pool holds its connections open until told otherwise, so hand them back on the way out. */
+  /**
+   * The pool holds its connections open until told otherwise, so hand them back on the way out.
+   */
   @PreDestroy
   void shutdown() {
     deadlineWatchdog.shutdownNow();
@@ -106,16 +105,17 @@ public class MarketplaceConfig {
     }
   }
 
-  /** The registry base URL every marketplace request is built onto. */
+  /**
+   * The registry base URL every marketplace request is built onto.
+   */
   public String registryUrl() {
     return registryUrl;
   }
 
   /**
-   * The read timeout is a socket timeout, so it bounds every read of the response — a registry
-   * that sends headers and then stalls mid-body fails instead of pinning the caller. The JDK
-   * client is not used here: its request timeout only closes the body stream, and the stall then
-   * surfaces as an unreadable response rather than a timeout.
+   * The read timeout is a socket timeout, so it bounds every read of the response — a registry that sends headers and
+   * then stalls mid-body fails instead of pinning the caller. The JDK client is not used here: its request timeout only
+   * closes the body stream, and the stall then surfaces as an unreadable response rather than a timeout.
    */
   ConnectionConfig connectionConfig() {
     return ConnectionConfig.custom()
@@ -125,7 +125,7 @@ public class MarketplaceConfig {
   }
 
   CloseableHttpClient httpClient() {
-    connectionManager = PoolingHttpClientConnectionManagerBuilder.create()
+    PoolingHttpClientConnectionManager connectionManager = PoolingHttpClientConnectionManagerBuilder.create()
         .setDefaultConnectionConfig(connectionConfig())
         .setMaxConnPerRoute(20)
         .setMaxConnTotal(20)
@@ -144,34 +144,42 @@ public class MarketplaceConfig {
   }
 
   /**
-   * Marketplace-only template. Named on purpose so the shared {@code restTemplate} bean keeps
-   * winning by-name injection elsewhere.
+   * The marketplace-only builder, left unbuilt so a test can bind a mock server to it.
    */
-  @Bean("marketplaceRestTemplate")
-  public RestTemplate marketplaceRestTemplate() {
-    var requestFactory =
-        new DeadlineHttpRequestFactory(httpClient(), requestDeadline, deadlineWatchdog);
-    var restTemplate = new RestTemplate(List.of(
-        new ByteArrayHttpMessageConverter(),
-        new StringHttpMessageConverter(StandardCharsets.UTF_8),
-        new MappingJackson2HttpMessageConverter(MarketplaceJson.mapper())));
-    restTemplate.setRequestFactory(requestFactory);
-    return restTemplate;
+  public RestClient.Builder marketplaceRestClientBuilder() {
+    var requestFactory = new DeadlineHttpRequestFactory(httpClient(), requestDeadline, deadlineWatchdog);
+    return RestClient.builder()
+        .requestFactory(requestFactory)
+        .configureMessageConverters(converters -> converters
+            .disableDefaults()
+            .addCustomConverter(new ByteArrayHttpMessageConverter())
+            .withStringConverter(new StringHttpMessageConverter(StandardCharsets.UTF_8))
+            .withJsonConverter(new JacksonJsonHttpMessageConverter(MarketplaceJson.mapper())));
   }
 
-  /** The marketplace client, wired with the transport policy this instance is configured for. */
+  /**
+   * Marketplace-only client. Named on purpose so the shared {@code restClient} bean keeps winning by-name injection
+   * elsewhere.
+   */
+  @Bean("marketplaceRestClient")
+  public RestClient marketplaceRestClient() {
+    return marketplaceRestClientBuilder().build();
+  }
+
+  /**
+   * The marketplace client, wired with the transport policy this instance is configured for.
+   */
   @Bean
-  public MarketplaceClient marketplaceClient(
-      @Qualifier("marketplaceRestTemplate") RestTemplate marketplaceRestTemplate,
+  public MarketplaceClient marketplaceClient(@Qualifier("marketplaceRestClient") RestClient marketplaceRestClient,
       MarketplaceInstanceId instanceId) {
-    return new MarketplaceClient(marketplaceRestTemplate, registryUrl, instanceId,
+    return new MarketplaceClient(marketplaceRestClient, registryUrl, instanceId,
         new CredentialTransport(allowInsecureTransport));
   }
 
   /**
-   * Artifact downloads, which are a different job from reading JSON: a jar takes minutes rather
-   * than seconds, so the exchange deadline is its own, and the CDN a download URL points at may
-   * redirect again — here the redirect is not data, so it is followed.
+   * Artifact downloads, which are a different job from reading JSON: a jar takes minutes rather than seconds, so the
+   * exchange deadline is its own, and the CDN a download URL points at may redirect again — here the redirect is not
+   * data, so it is followed.
    */
   CloseableHttpClient downloadHttpClient() {
     downloadHttpClient = HttpClients.custom()
@@ -191,7 +199,7 @@ public class MarketplaceConfig {
   }
 
   /**
-   * Downloader of plugin artifacts, on its own template so the registry's deadline stays short.
+   * Downloader of plugin artifacts, on its own client so the registry's deadline stays short.
    *
    * @param downloadDeadline how long one artifact download may take in total
    */
@@ -199,10 +207,10 @@ public class MarketplaceConfig {
   public MarketplaceArtifactFetcher marketplaceArtifactFetcher(
       @Value("${marketplace.client.download-deadline:PT5M}") Duration downloadDeadline,
       @Value("${marketplace.client.max-artifact-bytes:#{null}}") Long maxArtifactBytes) {
-    var restTemplate = new RestTemplate(List.of(new ByteArrayHttpMessageConverter()));
-    restTemplate.setRequestFactory(
-        new DeadlineHttpRequestFactory(downloadHttpClient(), downloadDeadline, deadlineWatchdog));
-    return new HttpMarketplaceArtifactFetcher(restTemplate, maxArtifactBytes == null
+    var restClient = RestClient.builder()
+        .requestFactory(new DeadlineHttpRequestFactory(downloadHttpClient(), downloadDeadline, deadlineWatchdog))
+        .build();
+    return new HttpMarketplaceArtifactFetcher(restClient, maxArtifactBytes == null
         ? HttpMarketplaceArtifactFetcher.DEFAULT_MAX_ARTIFACT_BYTES : maxArtifactBytes);
   }
 }

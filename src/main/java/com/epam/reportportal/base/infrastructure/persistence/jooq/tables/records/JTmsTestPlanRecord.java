@@ -211,6 +211,6 @@ public class JTmsTestPlanRecord extends UpdatableRecordImpl<JTmsTestPlanRecord> 
         setEnvironmentId(environmentId);
         setProductVersionId(productVersionId);
         setMilestoneId(milestoneId);
-        resetChangedOnNotNull();
+        resetTouchedOnNotNull();
     }
 }

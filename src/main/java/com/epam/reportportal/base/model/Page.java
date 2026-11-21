@@ -17,11 +17,16 @@
 package com.epam.reportportal.base.model;
 
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.ToString;
 
 /**
  * Paged response: re-implementation of Spring HATEOAS-style page without those dependencies in the model layer.
@@ -29,99 +34,91 @@ import lombok.Getter;
  * @param <T> page content element type
  * @author Andrei Varabyeu
  */
+@Getter
+@ToString
+@EqualsAndHashCode
 public class Page<T> implements Iterable<T> {
 
   private final Collection<T> content;
   private final PageMetadata page;
 
-  /**
-   * Visible for deserializer
-   */
-  Page() {
-    this(null, null);
-  }
-
-  public Page(Collection<T> content, PageMetadata page) {
+  @JsonCreator
+  public Page(@JsonProperty("content") Collection<T> content, @JsonProperty("page") PageMetadata page) {
     this.content = content;
     this.page = page;
   }
 
   public Page(Collection<T> content, long size, long number, long totalElements, long totalPages) {
-    this.content = content;
-    this.page = new PageMetadata(size, number, totalElements, totalPages);
+    this(content, new PageMetadata(size, number, totalElements, totalPages));
   }
 
   public Page(Collection<T> content, long size, long number, long totalElements) {
-    this.content = content;
-    this.page = new PageMetadata(size, number, totalElements);
-  }
-
-  private static void checkArgument(boolean expression, String errorMessage) {
-    if (!expression) {
-      throw new IllegalArgumentException(errorMessage);
-    }
-  }
-
-  public Collection<T> getContent() {
-    return content;
-  }
-
-  public PageMetadata getPage() {
-    return page;
+    this(content, new PageMetadata(size, number, totalElements));
   }
 
   @Override
   public Iterator<T> iterator() {
-    return content.iterator();
-  }
-
-  @Override
-  public String toString() {
-    final StringBuilder sb = new StringBuilder("Page{");
-    sb.append("content=").append(content);
-    sb.append(", page=").append(page);
-    sb.append('}');
-    return sb.toString();
+    return content == null ? Collections.emptyIterator() : content.iterator();
   }
 
   @Getter
+  @ToString
+  @EqualsAndHashCode
   @JsonInclude(Include.NON_NULL)
   public static class PageMetadata {
 
-    long number;
-    long size;
-    Long totalElements;
-    Long totalPages;
-    Boolean hasNext;
+    private long number;
+    private long size;
+    private Long totalElements;
+    private Long totalPages;
+    private Boolean hasNext;
 
     /**
-     * Visible for deserializer
+     * Canonical creator for Jackson.
      */
-    PageMetadata() {
-    }
-
-    public PageMetadata(Integer number, Integer size, Boolean hasNext) {
-      this.number = number;
+    @JsonCreator
+    public PageMetadata(
+        @JsonProperty("size") long size,
+        @JsonProperty("number") long number,
+        @JsonProperty("totalElements") Long totalElements,
+        @JsonProperty("totalPages") Long totalPages,
+        @JsonProperty("hasNext") Boolean hasNext) {
+      checkArgument(size > -1, "Size must not be negative!");
+      checkArgument(number > -1, "Number must not be negative!");
       this.size = size;
+      this.number = number;
+      this.totalElements = totalElements;
+      this.totalPages = totalPages;
       this.hasNext = hasNext;
     }
 
+    /**
+     * Offset-based pagination with explicit total pages.
+     */
     public PageMetadata(long size, long number, long totalElements, long totalPages) {
-      checkArgument(size > -1, "Size must not be negative!");
-      checkArgument(number > -1, "Number must not be negative!");
+      this(size, number, totalElements, totalPages, null);
       checkArgument(totalElements > -1, "Total elements must not be negative!");
       checkArgument(totalPages > -1, "Total pages must not be negative!");
-
-      this.number = number;
-      this.size = size;
-      this.totalElements = totalElements;
-      this.totalPages = totalPages;
-
     }
 
+    /**
+     * Offset-based pagination; total pages computed.
+     */
     public PageMetadata(long size, long number, long totalElements) {
-      this(size, number, totalElements,
-          size == 0 ? 0 : (long) Math.ceil((double) totalElements / (double) size));
+      this(size, number, totalElements, size == 0 ? 0 : (long) Math.ceil((double) totalElements / (double) size));
+    }
+
+    /**
+     * Cursor/slice-based pagination.
+     */
+    public PageMetadata(long size, long number, boolean hasNext) {
+      this(size, number, null, null, hasNext);
+    }
+
+    private static void checkArgument(boolean expression, String msg) {
+      if (!expression) {
+        throw new IllegalArgumentException(msg);
+      }
     }
   }
 }

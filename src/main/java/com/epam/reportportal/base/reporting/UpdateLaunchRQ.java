@@ -47,9 +47,8 @@ public class UpdateLaunchRQ {
   private String description;
 
   @Size(max = MAX_PARAMETERS_LENGTH)
-  @Valid
   @JsonProperty("attributes")
-  private Set<ItemAttributeResource> attributes;
+  private Set<@Valid AttributeResource> attributes;
 
   @Override
   public String toString() {

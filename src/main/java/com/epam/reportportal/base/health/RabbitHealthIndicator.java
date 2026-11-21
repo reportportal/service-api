@@ -18,8 +18,8 @@ package com.epam.reportportal.base.health;
 
 import com.rabbitmq.client.Channel;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.boot.actuate.health.AbstractHealthIndicator;
-import org.springframework.boot.actuate.health.Health;
+import org.springframework.boot.health.contributor.AbstractHealthIndicator;
+import org.springframework.boot.health.contributor.Health;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 

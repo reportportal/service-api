@@ -61,6 +61,6 @@ public class JTmsStepsManualScenarioRecord extends UpdatableRecordImpl<JTmsSteps
         super(JTmsStepsManualScenario.TMS_STEPS_MANUAL_SCENARIO);
 
         setManualScenarioId(manualScenarioId);
-        resetChangedOnNotNull();
+        resetTouchedOnNotNull();
     }
 }

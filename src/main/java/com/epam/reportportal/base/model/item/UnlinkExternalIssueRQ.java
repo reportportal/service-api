@@ -18,7 +18,6 @@ package com.epam.reportportal.base.model.item;
 
 import com.epam.reportportal.base.infrastructure.annotations.NotBlankStringCollection;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
 import java.util.List;
@@ -34,7 +33,6 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 public class UnlinkExternalIssueRQ extends ExternalIssueRQ {
 
-  @Valid
   @NotEmpty
   @NotBlankStringCollection
   @Size(max = 300)

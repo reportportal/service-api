@@ -28,15 +28,19 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.io.Serializable;
 import java.util.Objects;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
- * A counter row (pass/fail/etc.) for a test item, launch, or other aggregate.
+ * A counter row (pass/fail/etc.) attached to a test item.
  *
  * @author Ivan Budayeu
  */
+@Setter
+@Getter
 @Entity
 @Table(name = "statistics")
-public class Statistics implements Serializable {
+public class Statistics implements StatisticsView, Serializable {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -50,9 +54,6 @@ public class Statistics implements Serializable {
   @Column(name = "s_counter")
   private int counter;
 
-  @Column(name = "launch_id")
-  private Long launchId;
-
   @Column(name = "item_id")
   private Long itemId;
 
@@ -62,52 +63,6 @@ public class Statistics implements Serializable {
   public Statistics(StatisticsField statisticsField, int counter) {
     this.statisticsField = statisticsField;
     this.counter = counter;
-  }
-
-  public Statistics(StatisticsField statisticsField, int counter, Long launchId) {
-    this.statisticsField = statisticsField;
-    this.counter = counter;
-    this.launchId = launchId;
-  }
-
-  public Long getId() {
-    return id;
-  }
-
-  public void setId(Long id) {
-    this.id = id;
-  }
-
-  public StatisticsField getStatisticsField() {
-    return statisticsField;
-  }
-
-  public void setStatisticsField(StatisticsField statisticsField) {
-    this.statisticsField = statisticsField;
-  }
-
-  public int getCounter() {
-    return counter;
-  }
-
-  public void setCounter(int counter) {
-    this.counter = counter;
-  }
-
-  public Long getLaunchId() {
-    return launchId;
-  }
-
-  public void setLaunchId(Long launchId) {
-    this.launchId = launchId;
-  }
-
-  public Long getItemId() {
-    return itemId;
-  }
-
-  public void setItemId(Long itemId) {
-    this.itemId = itemId;
   }
 
   @Override
@@ -121,11 +76,11 @@ public class Statistics implements Serializable {
     Statistics that = (Statistics) o;
     return counter == that.counter && Objects.equals(id, that.id) && Objects.equals(statisticsField,
         that.statisticsField)
-        && Objects.equals(launchId, that.launchId) && Objects.equals(itemId, that.itemId);
+        && Objects.equals(itemId, that.itemId);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(id, statisticsField, counter, launchId, itemId);
+    return Objects.hash(id, statisticsField, counter, itemId);
   }
 }

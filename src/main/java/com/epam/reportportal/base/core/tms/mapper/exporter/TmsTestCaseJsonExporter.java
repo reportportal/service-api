@@ -2,19 +2,19 @@ package com.epam.reportportal.base.core.tms.mapper.exporter;
 
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseExportFormat;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseRS;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletResponse;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.springframework.stereotype.Component;
+import tools.jackson.databind.json.JsonMapper;
 
 @Component
 @RequiredArgsConstructor
 public class TmsTestCaseJsonExporter implements TmsTestCaseExporter {
 
-  private final ObjectMapper objectMapper;
+  private final JsonMapper objectMapper;
 
   @Override
   public TmsTestCaseExportFormat getSupportedFormat() {

@@ -12,10 +12,11 @@ import com.epam.reportportal.base.infrastructure.persistence.jooq.enums.JLaunchM
 import com.epam.reportportal.base.infrastructure.persistence.jooq.enums.JLaunchTypeEnum;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.enums.JRetentionPolicyEnum;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.enums.JStatusEnum;
-import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JItemAttribute.JItemAttributePath;
+import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JLaunchAttribute.JLaunchAttributePath;
+import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JLaunchStatistics.JLaunchStatisticsPath;
+import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JLaunchesModified.JLaunchesModifiedPath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JLog.JLogPath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JProject.JProjectPath;
-import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JStatistics.JStatisticsPath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JStatisticsField.JStatisticsFieldPath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTestItem.JTestItemPath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JUsers.JUsersPath;
@@ -39,13 +40,14 @@ import org.jooq.QueryPart;
 import org.jooq.Record;
 import org.jooq.SQL;
 import org.jooq.Schema;
-import org.jooq.Select;
 import org.jooq.Stringly;
 import org.jooq.Table;
 import org.jooq.TableField;
+import org.jooq.TableLike;
 import org.jooq.TableOptions;
 import org.jooq.UniqueKey;
 import org.jooq.impl.DSL;
+import org.jooq.impl.Internal;
 import org.jooq.impl.SQLDataType;
 import org.jooq.impl.TableImpl;
 
@@ -74,7 +76,7 @@ public class JLaunch extends TableImpl<JLaunchRecord> {
     /**
      * The column <code>public.launch.id</code>.
      */
-    public final TableField<JLaunchRecord, Long> ID = createField(DSL.name("id"), SQLDataType.BIGINT.nullable(false).identity(true), this, "");
+    public final TableField<JLaunchRecord, Long> ID = createField(DSL.name("id"), SQLDataType.BIGINT.nullable(false).generatedByDefaultAsIdentity(), this, "");
 
     /**
      * The column <code>public.launch.uuid</code>.
@@ -154,7 +156,7 @@ public class JLaunch extends TableImpl<JLaunchRecord> {
     /**
      * The column <code>public.launch.launch_type</code>.
      */
-    public final TableField<JLaunchRecord, JLaunchTypeEnum> LAUNCH_TYPE = createField(DSL.name("launch_type"), SQLDataType.VARCHAR.defaultValue(DSL.field(DSL.raw("'AUTOMATION'::launch_type_enum"), SQLDataType.VARCHAR)).asEnumDataType(JLaunchTypeEnum.class), this, "");
+    public final TableField<JLaunchRecord, JLaunchTypeEnum> LAUNCH_TYPE = createField(DSL.name("launch_type"), SQLDataType.VARCHAR.nullable(false).defaultValue(DSL.field(DSL.raw("'AUTOMATION'::launch_type_enum"), SQLDataType.VARCHAR)).asEnumDataType(JLaunchTypeEnum.class), this, "");
 
     /**
      * The column <code>public.launch.test_plan_id</code>.
@@ -235,7 +237,7 @@ public class JLaunch extends TableImpl<JLaunchRecord> {
 
     @Override
     public List<Index> getIndexes() {
-        return Arrays.asList(Indexes.LAUNCH_PROJECT_START_TIME_IDX, Indexes.LAUNCH_USER_IDX, Indexes.MODE_IDX, Indexes.UNQ_LAUNCH_PROJECT_DISPLAY_ID);
+        return Arrays.asList(Indexes.IDX_LAUNCH_TEST_PLAN_ID, Indexes.LAUNCH_PROJECT_START_TIME_IDX, Indexes.LAUNCH_USER_IDX, Indexes.MODE_IDX, Indexes.UNQ_LAUNCH_PROJECT_DISPLAY_ID);
     }
 
     @Override
@@ -282,17 +284,43 @@ public class JLaunch extends TableImpl<JLaunchRecord> {
         return _users;
     }
 
-    private transient JItemAttributePath _itemAttribute;
+    private transient JLaunchAttributePath _launchAttribute;
 
     /**
      * Get the implicit to-many join path to the
-     * <code>public.item_attribute</code> table
+     * <code>public.launch_attribute</code> table
      */
-    public JItemAttributePath itemAttribute() {
-        if (_itemAttribute == null)
-            _itemAttribute = new JItemAttributePath(this, null, Keys.ITEM_ATTRIBUTE__ITEM_ATTRIBUTE_LAUNCH_ID_FKEY.getInverseKey());
+    public JLaunchAttributePath launchAttribute() {
+        if (_launchAttribute == null)
+            _launchAttribute = new JLaunchAttributePath(this, null, Keys.LAUNCH_ATTRIBUTE__LAUNCH_ATTRIBUTE_LAUNCH_ID_FKEY.getInverseKey());
 
-        return _itemAttribute;
+        return _launchAttribute;
+    }
+
+    private transient JLaunchStatisticsPath _launchStatistics;
+
+    /**
+     * Get the implicit to-many join path to the
+     * <code>public.launch_statistics</code> table
+     */
+    public JLaunchStatisticsPath launchStatistics() {
+        if (_launchStatistics == null)
+            _launchStatistics = new JLaunchStatisticsPath(this, null, Keys.LAUNCH_STATISTICS__LAUNCH_STATISTICS_LAUNCH_ID_FKEY.getInverseKey());
+
+        return _launchStatistics;
+    }
+
+    private transient JLaunchesModifiedPath _launchesModified;
+
+    /**
+     * Get the implicit to-many join path to the
+     * <code>public.launches_modified</code> table
+     */
+    public JLaunchesModifiedPath launchesModified() {
+        if (_launchesModified == null)
+            _launchesModified = new JLaunchesModifiedPath(this, null, Keys.LAUNCHES_MODIFIED__LAUNCHES_MODIFIED_LAUNCH_ID_FKEY.getInverseKey());
+
+        return _launchesModified;
     }
 
     private transient JLogPath _log;
@@ -305,19 +333,6 @@ public class JLaunch extends TableImpl<JLaunchRecord> {
             _log = new JLogPath(this, null, Keys.LOG__LOG_LAUNCH_ID_FKEY.getInverseKey());
 
         return _log;
-    }
-
-    private transient JStatisticsPath _statistics;
-
-    /**
-     * Get the implicit to-many join path to the <code>public.statistics</code>
-     * table
-     */
-    public JStatisticsPath statistics() {
-        if (_statistics == null)
-            _statistics = new JStatisticsPath(this, null, Keys.STATISTICS__STATISTICS_LAUNCH_ID_FKEY.getInverseKey());
-
-        return _statistics;
     }
 
     private transient JTestItemPath _testItem;
@@ -338,7 +353,7 @@ public class JLaunch extends TableImpl<JLaunchRecord> {
      * <code>public.statistics_field</code> table
      */
     public JStatisticsFieldPath statisticsField() {
-        return statistics().statisticsField();
+        return launchStatistics().statisticsField();
     }
 
     @Override
@@ -385,7 +400,7 @@ public class JLaunch extends TableImpl<JLaunchRecord> {
      */
     @Override
     public JLaunch where(Condition condition) {
-        return new JLaunch(getQualifiedName(), aliased() ? this : null, null, condition);
+        return new JLaunch(getQualifiedName(), aliased() ? this : null, null, Internal.condition(this, condition));
     }
 
     /**
@@ -452,7 +467,7 @@ public class JLaunch extends TableImpl<JLaunchRecord> {
      * Create an inline derived table from this table
      */
     @Override
-    public JLaunch whereExists(Select<?> select) {
+    public JLaunch whereExists(TableLike<?> select) {
         return where(DSL.exists(select));
     }
 
@@ -460,7 +475,7 @@ public class JLaunch extends TableImpl<JLaunchRecord> {
      * Create an inline derived table from this table
      */
     @Override
-    public JLaunch whereNotExists(Select<?> select) {
+    public JLaunch whereNotExists(TableLike<?> select) {
         return where(DSL.notExists(select));
     }
 }

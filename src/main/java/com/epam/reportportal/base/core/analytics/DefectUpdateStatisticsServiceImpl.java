@@ -111,7 +111,7 @@ public class DefectUpdateStatisticsServiceImpl implements DefectUpdateStatistics
 
   @Override
   public void saveUserAnalyzedDefectStatistics(int userAnalyzed, Long projectId) {
-    this.saveAnalyzedDefectStatistics(userAnalyzed, 0, userAnalyzed, 0, projectId);
+    this.saveAnalyzedDefectStatistics(0, 0, userAnalyzed, 0, projectId);
   }
 
   private boolean isAnalyticsGatheringAllowed() {

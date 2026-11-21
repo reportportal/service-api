@@ -24,6 +24,8 @@ public class TmsTestCaseRS {
 
   private String displayId;
 
+  private Long defaultVersionId;
+
   private Long createdAt;
 
   private Long updatedAt;

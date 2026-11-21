@@ -16,10 +16,6 @@
 
 package com.epam.reportportal.base.reporting.databind;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonDeserializer;
-import java.io.IOException;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -31,13 +27,17 @@ import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAccessor;
 import java.util.Arrays;
 import java.util.List;
+import tools.jackson.core.JsonParser;
+import tools.jackson.databind.DatabindException;
+import tools.jackson.databind.DeserializationContext;
+import tools.jackson.databind.ValueDeserializer;
 
 /**
  * Deserialization class for parsing incoming dates of different formats.
  *
  * @author Siarhei Hrabko
  */
-public class MultiFormatDateDeserializer extends JsonDeserializer<Instant> {
+public class MultiFormatDateDeserializer extends ValueDeserializer<Instant> {
 
   private static final DateTimeFormatter TIMESTAMP_FORMAT =
       DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").withZone(ZoneId.of("UTC"));
@@ -64,37 +64,37 @@ public class MultiFormatDateDeserializer extends JsonDeserializer<Instant> {
   );
 
   @Override
-  public Instant deserialize(JsonParser parser, DeserializationContext context) throws IOException {
+  public Instant deserialize(JsonParser parser, DeserializationContext context) {
     try {
       long longDate = parser.getLongValue();
-      if (parser.getText() == null) {
+      if (parser.getString() == null) {
         return getTruncatedToMicros(longDate);
       }
-    } catch (Exception e) {
+    } catch (Exception _) {
       // ignore
     }
     try {
-      long longDate = Long.parseLong(parser.getText());
+      long longDate = Long.parseLong(parser.getString());
       return getTruncatedToMicros(longDate);
-    } catch (Exception e) {
+    } catch (Exception _) {
       // ignore
     }
 
-    String strDate = parser.getText();
+    String strDate = parser.getString();
 
     for (DateTimeFormatter formatter : PREDEFINED_FORMATS) {
       try {
         TemporalAccessor parsedDate = formatter.parseBest(strDate, ZonedDateTime::from,
             LocalDateTime::from);
         Instant instant =
-            parsedDate instanceof ZonedDateTime ? ((ZonedDateTime) parsedDate).toInstant()
+            parsedDate instanceof ZonedDateTime zonedDateTime ? zonedDateTime.toInstant()
                 : ((LocalDateTime) parsedDate).toInstant(ZoneOffset.UTC);
         return instant.truncatedTo(ChronoUnit.MICROS);
-      } catch (DateTimeParseException e) {
+      } catch (DateTimeParseException _) {
         // Exception means the text could not be parsed with this formatter, continue with next formatter
       }
     }
-    throw new IOException("Unable to parse date: " + strDate);
+    throw DatabindException.from(parser, "Unable to parse date: " + strDate);
   }
 
   private Instant getTruncatedToMicros(long longDate) {

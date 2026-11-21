@@ -43,15 +43,14 @@ import com.epam.reportportal.base.model.issue.IssueDefinition;
 import com.epam.reportportal.base.model.item.LinkExternalIssueRQ;
 import com.epam.reportportal.base.model.item.UnlinkExternalIssueRQ;
 import com.epam.reportportal.base.model.item.UpdateTestItemRQ;
+import com.epam.reportportal.base.reporting.AttributeResource;
 import com.epam.reportportal.base.reporting.BulkInfoUpdateRQ;
 import com.epam.reportportal.base.reporting.FinishTestItemRQ;
 import com.epam.reportportal.base.reporting.Issue;
-import com.epam.reportportal.base.reporting.ItemAttributeResource;
 import com.epam.reportportal.base.reporting.ParameterResource;
 import com.epam.reportportal.base.reporting.StartTestItemRQ;
 import com.epam.reportportal.base.reporting.UpdateItemAttributeRQ;
 import com.epam.reportportal.base.ws.BaseMvcTest;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -65,6 +64,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.event.ApplicationEvents;
 import org.springframework.test.context.jdbc.Sql;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -73,7 +73,7 @@ import org.springframework.test.context.jdbc.Sql;
 class TestItemControllerTest extends BaseMvcTest {
 
   @Autowired
-  private ObjectMapper objectMapper;
+  private JsonMapper objectMapper;
 
   @Autowired
   private TestItemRepository testItemRepository;
@@ -362,7 +362,7 @@ class TestItemControllerTest extends BaseMvcTest {
   void updateTestItemPositive() throws Exception {
     UpdateTestItemRQ rq = new UpdateTestItemRQ();
     rq.setDescription("updated");
-    rq.setAttributes(Sets.newHashSet(new ItemAttributeResource("test", "test")));
+    rq.setAttributes(Sets.newHashSet(new AttributeResource("test", "test")));
     mockMvc.perform(
             put(DEFAULT_PROJECT_BASE_URL + "/item/1/update").with(token(oAuthHelper.getDefaultToken()))
                 .contentType(APPLICATION_JSON).content(objectMapper.writeValueAsBytes(rq)))
@@ -1028,8 +1028,8 @@ class TestItemControllerTest extends BaseMvcTest {
     request.setDescription(description);
     UpdateItemAttributeRQ updateItemAttributeRQ = new UpdateItemAttributeRQ();
     updateItemAttributeRQ.setAction(BulkInfoUpdateRQ.Action.UPDATE);
-    updateItemAttributeRQ.setFrom(new ItemAttributeResource("testKey", "testValue"));
-    updateItemAttributeRQ.setTo(new ItemAttributeResource("updatedKey", "updatedValue"));
+    updateItemAttributeRQ.setFrom(new AttributeResource("testKey", "testValue"));
+    updateItemAttributeRQ.setTo(new AttributeResource("updatedKey", "updatedValue"));
     request.setAttributes(Lists.newArrayList(updateItemAttributeRQ));
 
     mockMvc.perform(
@@ -1063,7 +1063,7 @@ class TestItemControllerTest extends BaseMvcTest {
     request.setDescription(description);
     UpdateItemAttributeRQ updateItemAttributeRQ = new UpdateItemAttributeRQ();
     updateItemAttributeRQ.setAction(BulkInfoUpdateRQ.Action.CREATE);
-    updateItemAttributeRQ.setTo(new ItemAttributeResource("createdKey", "createdValue"));
+    updateItemAttributeRQ.setTo(new AttributeResource("createdKey", "createdValue"));
     request.setAttributes(Lists.newArrayList(updateItemAttributeRQ));
 
     mockMvc.perform(
@@ -1095,7 +1095,7 @@ class TestItemControllerTest extends BaseMvcTest {
     request.setDescription(description);
     UpdateItemAttributeRQ updateItemAttributeRQ = new UpdateItemAttributeRQ();
     updateItemAttributeRQ.setAction(BulkInfoUpdateRQ.Action.DELETE);
-    updateItemAttributeRQ.setFrom(new ItemAttributeResource("testKey", "testValue"));
+    updateItemAttributeRQ.setFrom(new AttributeResource("testKey", "testValue"));
     request.setAttributes(Lists.newArrayList(updateItemAttributeRQ));
 
     mockMvc.perform(
@@ -1126,7 +1126,7 @@ class TestItemControllerTest extends BaseMvcTest {
     request.setDescription(description);
     UpdateItemAttributeRQ updateItemAttributeRQ = new UpdateItemAttributeRQ();
     updateItemAttributeRQ.setAction(BulkInfoUpdateRQ.Action.CREATE);
-    updateItemAttributeRQ.setTo(new ItemAttributeResource("createdKey", "createdValue"));
+    updateItemAttributeRQ.setTo(new AttributeResource("createdKey", "createdValue"));
     request.setAttributes(Lists.newArrayList(updateItemAttributeRQ));
 
     mockMvc.perform(

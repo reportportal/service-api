@@ -51,11 +51,10 @@ public class UserFilterResource extends OwnedResource {
   @JsonProperty(value = "name", required = true)
   private String name;
 
-  @Valid
   @NotNull
   @Size(min = MIN_COLLECTION_SIZE)
   @JsonProperty(value = "conditions", required = true)
-  private Set<UserFilterCondition> conditions;
+  private Set<@Valid UserFilterCondition> conditions;
 
   @Size(min = MIN_COLLECTION_SIZE)
   @JsonProperty(value = "orders", required = true)

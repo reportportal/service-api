@@ -16,7 +16,6 @@
 
 package com.epam.reportportal.base.infrastructure.persistence.entity.item;
 
-import com.epam.reportportal.base.infrastructure.persistence.dao.converters.JpaInstantConverter;
 import com.epam.reportportal.base.infrastructure.persistence.entity.ItemAttribute;
 import com.epam.reportportal.base.infrastructure.persistence.entity.LTreeType;
 import com.epam.reportportal.base.infrastructure.persistence.entity.attachment.Attachment;
@@ -27,12 +26,9 @@ import com.google.common.collect.Sets;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -47,11 +43,12 @@ import java.io.Serializable;
 import java.time.Instant;
 import java.util.Objects;
 import java.util.Set;
+import lombok.Getter;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
-import org.hibernate.annotations.JdbcType;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.Type;
-import org.hibernate.dialect.PostgreSQLEnumJdbcType;
+import org.hibernate.type.SqlTypes;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
@@ -63,6 +60,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @Entity
 @EntityListeners(AuditingEntityListener.class)
 @Table(name = "test_item", schema = "public")
+@Getter
 public class TestItem implements Serializable {
 
   @Id
@@ -79,13 +77,11 @@ public class TestItem implements Serializable {
   @Column(name = "code_ref")
   private String codeRef;
 
-  @Enumerated(EnumType.STRING)
-  @JdbcType(PostgreSQLEnumJdbcType.class)
+  @JdbcTypeCode(SqlTypes.NAMED_ENUM)
   @Column(name = "type", nullable = false)
   private TestItemTypeEnum type;
 
   @Column(name = "start_time", nullable = false)
-  @Convert(converter = JpaInstantConverter.class)
   private Instant startTime;
 
   @Column(name = "description")
@@ -96,7 +92,6 @@ public class TestItem implements Serializable {
 
   @LastModifiedDate
   @Column(name = "last_modified", nullable = false)
-  @Convert(converter = JpaInstantConverter.class)
   private Instant lastModified;
 
   @ElementCollection(fetch = FetchType.EAGER)
@@ -176,17 +171,9 @@ public class TestItem implements Serializable {
     this.hasRetries = hasRetries;
   }
 
-  public Set<ItemAttribute> getAttributes() {
-    return attributes;
-  }
-
   public void setAttributes(Set<ItemAttribute> tags) {
     this.attributes.clear();
     this.attributes.addAll(tags);
-  }
-
-  public Set<Log> getLogs() {
-    return logs;
   }
 
   public void setLogs(Set<Log> logs) {
@@ -198,184 +185,92 @@ public class TestItem implements Serializable {
     logs.add(log);
   }
 
-  public Long getItemId() {
-    return itemId;
-  }
-
   public void setItemId(Long itemId) {
     this.itemId = itemId;
-  }
-
-  public String getUuid() {
-    return uuid;
   }
 
   public void setUuid(String uuid) {
     this.uuid = uuid;
   }
 
-  public String getName() {
-    return name;
-  }
-
   public void setName(String name) {
     this.name = name;
-  }
-
-  public String getCodeRef() {
-    return codeRef;
   }
 
   public void setCodeRef(String codeRef) {
     this.codeRef = codeRef;
   }
 
-  public TestItemTypeEnum getType() {
-    return type;
-  }
-
   public void setType(TestItemTypeEnum type) {
     this.type = type;
-  }
-
-  public Instant getStartTime() {
-    return startTime;
   }
 
   public void setStartTime(Instant startTime) {
     this.startTime = startTime;
   }
 
-  public Instant getLastModified() {
-    return lastModified;
-  }
-
   public void setLastModified(Instant lastModified) {
     this.lastModified = lastModified;
-  }
-
-  public String getDescription() {
-    return description;
   }
 
   public void setDescription(String description) {
     this.description = description;
   }
 
-  public Set<Parameter> getParameters() {
-    return parameters;
-  }
-
   public void setParameters(Set<Parameter> parameters) {
     this.parameters = parameters;
-  }
-
-  public String getUniqueId() {
-    return uniqueId;
   }
 
   public void setUniqueId(String uniqueId) {
     this.uniqueId = uniqueId;
   }
 
-  public String getTestCaseId() {
-    return testCaseId;
-  }
-
   public void setTestCaseId(String testCaseId) {
     this.testCaseId = testCaseId;
-  }
-
-  public Integer getTestCaseHash() {
-    return testCaseHash;
   }
 
   public void setTestCaseHash(Integer testCaseHash) {
     this.testCaseHash = testCaseHash;
   }
 
-  public Long getLaunchId() {
-    return launchId;
-  }
-
   public void setLaunchId(Long launchId) {
     this.launchId = launchId;
-  }
-
-  public String getPath() {
-    return path;
   }
 
   public void setPath(String path) {
     this.path = path;
   }
 
-  public Long getRetryOf() {
-    return retryOf;
-  }
-
   public void setRetryOf(Long retryOf) {
     this.retryOf = retryOf;
-  }
-
-  public Long getParentId() {
-    return parentId;
   }
 
   public void setParentId(Long parentId) {
     this.parentId = parentId;
   }
 
-  public TestItemResults getItemResults() {
-    return itemResults;
-  }
-
   public void setItemResults(TestItemResults itemResults) {
     this.itemResults = itemResults;
-  }
-
-  public boolean isHasChildren() {
-    return hasChildren;
   }
 
   public void setHasChildren(boolean hasChildren) {
     this.hasChildren = hasChildren;
   }
 
-  public Set<PatternTemplateTestItem> getPatternTemplateTestItems() {
-    return patternTemplateTestItems;
-  }
-
   public void setPatternTemplateTestItems(Set<PatternTemplateTestItem> patternTemplateTestItems) {
     this.patternTemplateTestItems = patternTemplateTestItems;
-  }
-
-  public boolean isHasRetries() {
-    return hasRetries;
   }
 
   public void setHasRetries(boolean hasRetries) {
     this.hasRetries = hasRetries;
   }
 
-  public boolean isHasStats() {
-    return hasStats;
-  }
-
   public void setHasStats(boolean hasStats) {
     this.hasStats = hasStats;
   }
 
-  public Long getAnalysisOwnerId() {
-    return analysisOwnerId;
-  }
-
   public void setAnalysisOwnerId(Long analysisOwnerId) {
     this.analysisOwnerId = analysisOwnerId;
-  }
-
-  public Set<Attachment> getAttachments() {
-    return attachments;
   }
 
   public void setAttachments(Set<Attachment> attachments) {

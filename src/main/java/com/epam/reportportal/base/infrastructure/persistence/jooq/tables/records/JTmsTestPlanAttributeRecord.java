@@ -74,6 +74,6 @@ public class JTmsTestPlanAttributeRecord extends UpdatableRecordImpl<JTmsTestPla
 
         setAttributeId(attributeId);
         setTestPlanId(testPlanId);
-        resetChangedOnNotNull();
+        resetTouchedOnNotNull();
     }
 }

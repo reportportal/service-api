@@ -16,7 +16,6 @@
 
 package com.epam.reportportal.base.auth;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -26,11 +25,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
+import tools.jackson.databind.json.JsonMapper;
 
 public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
   @Autowired
-  ObjectMapper objectMapper;
+  JsonMapper objectMapper;
 
   /**
    * Handles an authentication failure by sending an HTTP 401 Unauthorized response with a JSON body containing error

@@ -17,6 +17,7 @@
 package com.epam.reportportal.base.core.analyzer.auto.impl;
 
 import static com.epam.reportportal.base.core.analyzer.auto.impl.AnalyzerStatusCache.AUTO_ANALYZER_KEY;
+import static com.epam.reportportal.base.infrastructure.persistence.entity.enums.StatusEnum.SKIPPED;
 
 import com.epam.reportportal.base.core.analytics.DefectUpdateStatisticsService;
 import com.epam.reportportal.base.core.analyzer.auto.AnalyzerService;
@@ -120,7 +121,10 @@ public class AnalyzerServiceImpl implements AnalyzerService {
         analyzerConfig);
     rqLaunch.ifPresent(rq -> {
       previousLaunchId.ifPresent(rq::setPreviousLaunchId);
-      defectUpdateStatisticsService.saveAutoAnalyzedDefectStatistics(toAnalyze.size(), 0, 0,
+      int skipped = (int) toAnalyze.stream()
+          .filter(ti -> ti.getItemResults().getStatus().equals(SKIPPED))
+          .count();
+      defectUpdateStatisticsService.saveAutoAnalyzedDefectStatistics(toAnalyze.size(), 0, skipped,
           launch.getProjectId());
       analyzerServicesClient.analyze(rq);
     });

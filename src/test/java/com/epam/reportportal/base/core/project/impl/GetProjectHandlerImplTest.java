@@ -75,7 +75,7 @@ class GetProjectHandlerImplTest {
     });
 
     assertEquals(
-        "Project 'o-slug.project-name' not found. Did you use correct project name?",
+        "Project 'o-slug.project-name' not found. Did you use correct project key?",
         exception.getMessage()
     );
   }
@@ -112,7 +112,7 @@ class GetProjectHandlerImplTest {
         assertThrows(ReportPortalException.class, () -> handler.getResource(projectKey, user));
 
     assertEquals(
-        "Project '" + projectKey + "' not found. Did you use correct project name?",
+        "Project '" + projectKey + "' not found. Did you use correct project key?",
         exception.getMessage()
     );
   }

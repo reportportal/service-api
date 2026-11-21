@@ -135,6 +135,6 @@ public class JWidgetRecord extends UpdatableRecordImpl<JWidgetRecord> {
         setWidgetType(widgetType);
         setItemsCount(itemsCount);
         setWidgetOptions(widgetOptions);
-        resetChangedOnNotNull();
+        resetTouchedOnNotNull();
     }
 }

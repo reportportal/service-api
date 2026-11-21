@@ -78,6 +78,6 @@ public class JTmsManualScenarioAttributeRecord extends UpdatableRecordImpl<JTmsM
 
         setAttributeId(attributeId);
         setManualScenarioId(manualScenarioId);
-        resetChangedOnNotNull();
+        resetTouchedOnNotNull();
     }
 }

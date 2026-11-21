@@ -8,6 +8,7 @@ import com.epam.reportportal.base.infrastructure.persistence.dao.converters.Jooq
 import com.epam.reportportal.base.infrastructure.persistence.jooq.Indexes;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.JPublic;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.Keys;
+import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JProject.JProjectPath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsEnvironment.JTmsEnvironmentPath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsManualScenarioPreconditions.JTmsManualScenarioPreconditionsPath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsManualScenarioPreconditionsAttachment.JTmsManualScenarioPreconditionsAttachmentPath;
@@ -37,13 +38,14 @@ import org.jooq.QueryPart;
 import org.jooq.Record;
 import org.jooq.SQL;
 import org.jooq.Schema;
-import org.jooq.Select;
 import org.jooq.Stringly;
 import org.jooq.Table;
 import org.jooq.TableField;
+import org.jooq.TableLike;
 import org.jooq.TableOptions;
 import org.jooq.UniqueKey;
 import org.jooq.impl.DSL;
+import org.jooq.impl.Internal;
 import org.jooq.impl.SQLDataType;
 import org.jooq.impl.TableImpl;
 
@@ -72,7 +74,7 @@ public class JTmsAttachment extends TableImpl<JTmsAttachmentRecord> {
     /**
      * The column <code>public.tms_attachment.id</code>.
      */
-    public final TableField<JTmsAttachmentRecord, Long> ID = createField(DSL.name("id"), SQLDataType.BIGINT.nullable(false).identity(true), this, "");
+    public final TableField<JTmsAttachmentRecord, Long> ID = createField(DSL.name("id"), SQLDataType.BIGINT.nullable(false).generatedByDefaultAsIdentity(), this, "");
 
     /**
      * The column <code>public.tms_attachment.file_name</code>.
@@ -108,6 +110,11 @@ public class JTmsAttachment extends TableImpl<JTmsAttachmentRecord> {
      * The column <code>public.tms_attachment.expires_at</code>.
      */
     public final TableField<JTmsAttachmentRecord, Instant> EXPIRES_AT = createField(DSL.name("expires_at"), SQLDataType.LOCALDATETIME(6), this, "", new JooqInstantConverter());
+
+    /**
+     * The column <code>public.tms_attachment.project_id</code>.
+     */
+    public final TableField<JTmsAttachmentRecord, Long> PROJECT_ID = createField(DSL.name("project_id"), SQLDataType.BIGINT.nullable(false), this, "");
 
     /**
      * The column <code>public.tms_attachment.environment_id</code>.
@@ -183,7 +190,7 @@ public class JTmsAttachment extends TableImpl<JTmsAttachmentRecord> {
 
     @Override
     public List<Index> getIndexes() {
-        return Arrays.asList(Indexes.IDX_TMS_ATTACHMENT_EXPIRES_AT, Indexes.IDX_TMS_ATTACHMENT_PATH);
+        return Arrays.asList(Indexes.IDX_TMS_ATTACHMENT_EXPIRES_AT, Indexes.IDX_TMS_ATTACHMENT_PATH, Indexes.IDX_TMS_ATTACHMENT_PROJECT_ID);
     }
 
     @Override
@@ -198,7 +205,7 @@ public class JTmsAttachment extends TableImpl<JTmsAttachmentRecord> {
 
     @Override
     public List<ForeignKey<JTmsAttachmentRecord, ?>> getReferences() {
-        return Arrays.asList(Keys.TMS_ATTACHMENT__TMS_ATTACHMENT_FK_ENVIRONMENT);
+        return Arrays.asList(Keys.TMS_ATTACHMENT__TMS_ATTACHMENT_FK_ENVIRONMENT, Keys.TMS_ATTACHMENT__TMS_ATTACHMENT_FK_PROJECT);
     }
 
     private transient JTmsEnvironmentPath _tmsEnvironment;
@@ -212,6 +219,18 @@ public class JTmsAttachment extends TableImpl<JTmsAttachmentRecord> {
             _tmsEnvironment = new JTmsEnvironmentPath(this, Keys.TMS_ATTACHMENT__TMS_ATTACHMENT_FK_ENVIRONMENT, null);
 
         return _tmsEnvironment;
+    }
+
+    private transient JProjectPath _project;
+
+    /**
+     * Get the implicit join path to the <code>public.project</code> table.
+     */
+    public JProjectPath project() {
+        if (_project == null)
+            _project = new JProjectPath(this, Keys.TMS_ATTACHMENT__TMS_ATTACHMENT_FK_PROJECT, null);
+
+        return _project;
     }
 
     private transient JTmsManualScenarioPreconditionsAttachmentPath _tmsManualScenarioPreconditionsAttachment;
@@ -342,7 +361,7 @@ public class JTmsAttachment extends TableImpl<JTmsAttachmentRecord> {
      */
     @Override
     public JTmsAttachment where(Condition condition) {
-        return new JTmsAttachment(getQualifiedName(), aliased() ? this : null, null, condition);
+        return new JTmsAttachment(getQualifiedName(), aliased() ? this : null, null, Internal.condition(this, condition));
     }
 
     /**
@@ -409,7 +428,7 @@ public class JTmsAttachment extends TableImpl<JTmsAttachmentRecord> {
      * Create an inline derived table from this table
      */
     @Override
-    public JTmsAttachment whereExists(Select<?> select) {
+    public JTmsAttachment whereExists(TableLike<?> select) {
         return where(DSL.exists(select));
     }
 
@@ -417,7 +436,7 @@ public class JTmsAttachment extends TableImpl<JTmsAttachmentRecord> {
      * Create an inline derived table from this table
      */
     @Override
-    public JTmsAttachment whereNotExists(Select<?> select) {
+    public JTmsAttachment whereNotExists(TableLike<?> select) {
         return where(DSL.notExists(select));
     }
 }

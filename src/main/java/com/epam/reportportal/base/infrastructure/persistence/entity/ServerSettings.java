@@ -24,9 +24,15 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.io.Serializable;
 import java.util.Objects;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Table(name = "server_settings", schema = "public")
+@Setter
+@Getter
+@NoArgsConstructor
 public class ServerSettings implements Serializable {
 
   @Id
@@ -40,35 +46,8 @@ public class ServerSettings implements Serializable {
   @Column(name = "value")
   private String value;
 
-  public ServerSettings() {
-  }
-
   public ServerSettings(String key, String value) {
     this.key = key;
-    this.value = value;
-  }
-
-  public Long getId() {
-    return id;
-  }
-
-  public void setId(Long id) {
-    this.id = id;
-  }
-
-  public String getKey() {
-    return key;
-  }
-
-  public void setKey(String key) {
-    this.key = key;
-  }
-
-  public String getValue() {
-    return value;
-  }
-
-  public void setValue(String value) {
     this.value = value;
   }
 

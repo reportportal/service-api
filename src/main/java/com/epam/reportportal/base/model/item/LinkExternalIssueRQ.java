@@ -34,10 +34,9 @@ import java.util.List;
 public class LinkExternalIssueRQ extends ExternalIssueRQ {
 
   @NotEmpty
-  @Valid
   @Size(max = 300)
   @JsonProperty(value = "issues")
-  private List<Issue.ExternalSystemIssue> issues;
+  private List<Issue.@Valid ExternalSystemIssue> issues;
 
   public void setIssues(List<Issue.ExternalSystemIssue> values) {
     this.issues = values;

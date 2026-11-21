@@ -21,16 +21,16 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.project.Proj
 import jakarta.persistence.Column;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.MapsId;
 import jakarta.persistence.Table;
 import java.io.Serializable;
 import java.util.Objects;
-import org.hibernate.annotations.JdbcType;
-import org.hibernate.dialect.PostgreSQLEnumJdbcType;
+import lombok.Getter;
+import lombok.Setter;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 /**
  * Project membership: user, project role, and when assigned.
@@ -39,6 +39,8 @@ import org.hibernate.dialect.PostgreSQLEnumJdbcType;
  */
 @Entity
 @Table(name = "project_user", schema = "public")
+@Setter
+@Getter
 public class ProjectUser implements Serializable {
 
   @EmbeddedId
@@ -53,41 +55,8 @@ public class ProjectUser implements Serializable {
   private User user;
 
   @Column(name = "project_role")
-  @Enumerated(EnumType.STRING)
-  @JdbcType(PostgreSQLEnumJdbcType.class)
+  @JdbcTypeCode(SqlTypes.NAMED_ENUM)
   private ProjectRole projectRole;
-
-  public ProjectUserId getId() {
-    return id;
-  }
-
-  public void setId(ProjectUserId id) {
-    this.id = id;
-  }
-
-  public Project getProject() {
-    return project;
-  }
-
-  public void setProject(Project project) {
-    this.project = project;
-  }
-
-  public User getUser() {
-    return user;
-  }
-
-  public void setUser(User user) {
-    this.user = user;
-  }
-
-  public ProjectRole getProjectRole() {
-    return projectRole;
-  }
-
-  public void setProjectRole(ProjectRole projectRole) {
-    this.projectRole = projectRole;
-  }
 
   public ProjectUser withProjectUserId(ProjectUserId id) {
     this.id = id;

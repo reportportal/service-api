@@ -32,6 +32,15 @@ apply from: "$scriptsUrl/build-info.gradle"
 apply from: "$scriptsUrl/release-service.gradle"
 apply from: "$scriptsUrl/signing.gradle"
 apply from: "$scriptsUrl/copy-database-scripts.gradle"
+apply from: 'jooq.gradle'
+
+// jOOQ codegen plugin always registers target.directory as a main source dir.
+// Generation writes into src/main/java, which the Java plugin already includes,
+// so the same files would otherwise be packed twice into sourcesJar.
+tasks.named('jooqCodegen').configure {
+    def javaSrc = sourceSets.main.java
+    javaSrc.setSrcDirs(javaSrc.srcDirs.collect { it.canonicalFile }.unique())
+}
 
 project.hasProperty('sealightsSession') && sealightsSession?.trim() ?
         apply(from: 'sealights.gradle') :
@@ -47,6 +56,18 @@ java {
 println("Release mode: $releaseMode")
 
 dependencies {
+    // Patch-level Snyk fixes newer than what the Spring Boot 4.2.0-M2 BOM (and its transitive consumers) resolve.
+    // TODO remove each pin once the Spring Boot BOM catches up
+    implementation(platform('com.fasterxml.jackson:jackson-bom:2.22.3'))
+    implementation(platform('tools.jackson:jackson-bom:3.2.3'))
+    constraints {
+        implementation('ch.qos.logback:logback-classic:1.6.5')
+        implementation('ch.qos.logback:logback-core:1.6.5')
+        implementation('com.rabbitmq:amqp-client:5.37.0')
+        implementation('org.bouncycastle:bcpkix-jdk18on:1.86')
+        implementation('org.bouncycastle:bcutil-jdk18on:1.86')
+    }
+
     implementation(platform(libs.zonky.postgres.bom))
     api(libs.embedded.postgres)
 
@@ -64,9 +85,8 @@ dependencies {
     api(libs.guava)
     api(libs.jasypt)
     api(libs.pf4j)
-    api(libs.jackson.databind)
-    api(libs.jackson.jsr310)
     api(libs.jooq)
+    api(libs.jooq.jpa.extensions) // jOOQ 3.20+: JPA-annotated POJO mapping needs an explicit member provider
     api(libs.apache.commons.collections4)
     api(libs.tika)
     api(libs.httpclient5) // supports gzip encoding
@@ -77,10 +97,14 @@ dependencies {
     api(libs.spring.security.core)
     api(libs.jakarta.inject.api)
     implementation(libs.spring.security.ldap)
-    implementation(libs.spring.security.saml2.service.provider)
-    implementation(libs.spring.security.oauth2.authorization.server)
-
-    runtimeOnly(libs.nimbus.oauth2.oidc.sdk)
+    implementation(libs.spring.security.saml2.service.provider) {
+        // TODO(jackson3): remove these excludes once Jackson 2 is gone from the project (Jasper, swagger-core and
+        //  the RabbitMQ http-client migrated to Jackson 3) or OpenSAML moves to Jackson 3; they become no-ops then.
+        exclude group: 'io.dropwizard.metrics', module: 'metrics-json'
+        exclude group: 'com.fasterxml.jackson.core', module: 'jackson-core'
+        exclude group: 'com.fasterxml.jackson.core', module: 'jackson-databind'
+        exclude group: 'com.fasterxml.jackson.datatype', module: 'jackson-datatype-jsr310'
+    }
 
     api(libs.spring.data.commons)
     api(libs.hibernate.core)
@@ -103,21 +127,23 @@ dependencies {
     jooqCodegen(libs.postgresql)
     implementation(libs.thumbnailator)
     implementation(libs.jakarta.xml.bind.api)
-    implementation(libs.jaxb.api)
-    implementation(libs.json) // TODO get rid of
-    implementation(libs.flyway.core) // TODO get rid of
-    implementation(libs.flyway.database.postgresql) // TODO get rid of
+    implementation(libs.opendal)
 
-    implementation "org.apache.opendal:opendal:0.49.0"
-    implementation "org.apache.opendal:opendal:0.49.0:$osdetector.classifier"
+    // The Docker build stage runs on BUILDPLATFORM and that one jar is published for
+    // both linux/amd64 and linux/arm64. OpenDAL loads /native/<classifier>/libopendal_java.so
+    // for the OS it actually runs on, so both Linux natives have to be in the jar.
+    // osdetector.classifier adds the host library for local macOS runs.
+    runtimeOnly(variantOf(libs.opendal) { classifier("linux-x86_64") })
+    runtimeOnly(variantOf(libs.opendal) { classifier("linux-aarch_64") })
+    runtimeOnly(variantOf(libs.opendal) { classifier(osdetector.classifier) })
 
-    // Optional for spring-boot-starter-amqp
     implementation(libs.rabbitmq.http.client)
 
-    // Check authentication error response format for versions higher than 6.21.3 TODO: consider upgrade to 7.0.1+
-    implementation(libs.jasperreports) {
-        exclude group: 'com.fasterxml.jackson.dataformat', module: 'jackson-dataformat-xml'
-    }
+    // JasperReports 7 is modular: core + PDF/XLS/JDT compiler.
+    implementation(libs.jasperreports)
+    implementation(libs.jasperreports.pdf)
+    implementation(libs.jasperreports.excel.poi)
+    implementation(libs.jasperreports.jdt)
 
     // JasperReport's export to XLS uses Apache POI and openpdf for PDF export
     implementation(libs.apache.poi)
@@ -125,7 +151,6 @@ dependencies {
     implementation(libs.apache.commons.commonscsv)
     implementation(libs.openpdf)
     implementation(libs.jakarta.mail)
-    implementation(libs.xerces)
     implementation(libs.bouncycastle)
     implementation(libs.google.api.client)
     implementation(libs.commons.validator) {
@@ -134,8 +159,13 @@ dependencies {
     implementation(libs.caffeine)
     implementation(libs.apache.commons.compress)
     implementation(libs.apache.commons.lang3)
-    implementation(libs.hibernate.validator)
-    implementation(libs.json.schema.validator)
+    implementation(libs.json.schema.validator) {
+        // TODO remove the excludes and the direct pins below once json-schema-validator requires tools.jackson >= 3.2.3
+        exclude group: 'tools.jackson.core', module: 'jackson-core'
+        exclude group: 'tools.jackson.core', module: 'jackson-databind'
+    }
+    implementation('tools.jackson.core:jackson-core:3.2.3')
+    implementation('tools.jackson.core:jackson-databind:3.2.3')
 
     // Add lombok support
     compileOnly(libs.lombok)
@@ -146,6 +176,8 @@ dependencies {
     annotationProcessor(libs.mapstruct.processor)
 
     //  Tests
+    testImplementation(libs.flyway.core)
+    testImplementation(libs.flyway.database.postgresql)
     testImplementation(libs.bundles.test.libs)
     testCompileOnly(libs.lombok)
     testAnnotationProcessor(libs.lombok)
@@ -182,6 +214,8 @@ openApiGenerate {
     inputSpec.set(file("$rootDir/api-registry/api/openapi/reportportal-api.yaml"))
     outputDir.set(layout.buildDirectory.dir("generated"))
     configFile.set(file("$rootDir/src/main/resources/openapi/config.json"))
+    // keeps the generator off the hand-written api/package-info.java (Modulith module declaration)
+    ignoreFileOverride.set(layout.projectDirectory.file(".openapi-generator-ignore"))
     skipOverwrite.set(false)
     cleanupOutput.set(false)
     workerIsolation.set("process")
@@ -236,6 +270,10 @@ bootJar {
     duplicatesStrategy = duplicatesStrategy.EXCLUDE
     project.hasProperty('gcp') ? getArchiveFileName().set('app.jar') : archiveClassifier.set('' + 'exec')
 }
+
+tasks.named('sourcesJar', Jar) {
+    duplicatesStrategy = duplicatesStrategy.EXCLUDE
+}
 jar.enabled = true
 jar.archiveClassifier.set('')
 
@@ -251,6 +289,7 @@ test {
         junitXml.required = true
     }
     maxHeapSize = '2g'
+    jvmArgs '-Duser.timezone=UTC'
 }
 
 compileJava.dependsOn tasks.named('openApiGenerate')

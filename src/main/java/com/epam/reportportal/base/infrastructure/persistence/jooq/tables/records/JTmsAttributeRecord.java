@@ -104,6 +104,6 @@ public class JTmsAttributeRecord extends UpdatableRecordImpl<JTmsAttributeRecord
         setKey(key);
         setValue(value);
         setProjectId(projectId);
-        resetChangedOnNotNull();
+        resetTouchedOnNotNull();
     }
 }

@@ -25,8 +25,6 @@ import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.google.common.collect.Lists;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -39,8 +37,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import org.hibernate.annotations.JdbcType;
-import org.hibernate.dialect.PostgreSQLEnumJdbcType;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import org.jooq.Operator;
 
 /**
@@ -48,7 +46,6 @@ import org.jooq.Operator;
  */
 @Entity
 @Table(name = "filter_condition", schema = "public")
-
 public class FilterCondition implements ConvertibleCondition, Serializable {
 
   private static final long serialVersionUID = 1L;
@@ -59,33 +56,32 @@ public class FilterCondition implements ConvertibleCondition, Serializable {
   private Long id;
 
   /**
-   * Filter Condition
+   * Filter Condition.
    */
-  @Enumerated(EnumType.STRING)
-  @JdbcType(PostgreSQLEnumJdbcType.class)
+  @JdbcTypeCode(SqlTypes.NAMED_ENUM)
   @Column(name = "condition")
   private Condition condition;
 
   /**
-   * Value to be filtered
+   * Value to be filtered.
    */
   @Column(name = "value")
   private String value;
 
   /**
-   * API Model Search Criteria
+   * API Model Search Criteria.
    */
   @Column(name = "search_criteria")
   private String searchCriteria;
 
   /**
-   * Whether this is 'NOT' filter
+   * Whether this is 'NOT' filter.
    */
   @Column(name = "negative")
   private boolean negative;
 
   /**
-   * Whether this is 'AND' or 'OR' filter
+   * Whether this is 'AND' or 'OR' filter.
    */
   @Transient
   private Operator operator = Operator.AND;

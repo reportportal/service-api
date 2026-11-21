@@ -16,16 +16,19 @@
 
 package com.epam.reportportal.base.infrastructure.persistence.entity.activity;
 
-import com.epam.reportportal.base.infrastructure.persistence.commons.JsonbUserType;
 import java.io.Serializable;
 import java.util.Objects;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * Single field change in an activity log (field name, old and new value).
  *
  * @author Ihar Kahadouski
  */
-public class HistoryField extends JsonbUserType implements Serializable {
+@Setter
+@Getter
+public class HistoryField implements Serializable {
 
   private String field;
   private String oldValue;
@@ -42,35 +45,6 @@ public class HistoryField extends JsonbUserType implements Serializable {
 
   public static HistoryField of(String field, String oldValue, String newValue) {
     return new HistoryField(field, oldValue, newValue);
-  }
-
-  @Override
-  public Class<?> returnedClass() {
-    return HistoryField.class;
-  }
-
-  public String getField() {
-    return field;
-  }
-
-  public void setField(String field) {
-    this.field = field;
-  }
-
-  public String getOldValue() {
-    return oldValue;
-  }
-
-  public void setOldValue(String oldValue) {
-    this.oldValue = oldValue;
-  }
-
-  public String getNewValue() {
-    return newValue;
-  }
-
-  public void setNewValue(String newValue) {
-    this.newValue = newValue;
   }
 
   @Override

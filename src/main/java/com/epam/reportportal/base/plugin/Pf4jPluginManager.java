@@ -49,11 +49,11 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
@@ -92,8 +92,8 @@ public class Pf4jPluginManager implements Pf4jPluginBox {
   /**
    * Per-plugin-id locks serializing load/unload so the async startup loader
    * ({@link com.epam.reportportal.base.plugin.PluginStartUpService}) and the scheduled
-   * {@link com.epam.reportportal.base.job.LoadPluginsJob} can't race to load/register the same
-   * plugin extension bean concurrently.
+   * {@link com.epam.reportportal.base.job.LoadPluginsJob} can't race to load/register the same plugin extension bean
+   * concurrently.
    */
   private final Map<String, Lock> pluginLocks = new ConcurrentHashMap<>();
 
@@ -122,7 +122,7 @@ public class Pf4jPluginManager implements Pf4jPluginBox {
     this.integrationTypeRepository = integrationTypeRepository;
     this.uploadingPlugins = CacheBuilder.newBuilder()
         .maximumSize(MAXIMUM_UPLOADED_PLUGINS)
-        .expireAfterWrite(PLUGIN_LIVE_TIME, TimeUnit.MINUTES)
+        .expireAfterWrite(Duration.ofMinutes(PLUGIN_LIVE_TIME))
         .build();
     this.pluginManager = pluginManager;
   }
@@ -302,8 +302,8 @@ public class Pf4jPluginManager implements Pf4jPluginBox {
   }
 
   /**
-   * Runs {@code action} while holding the lock for {@code pluginId}, serializing it against any
-   * other load/unload call for the same plugin id (see {@link #pluginLocks}).
+   * Runs {@code action} while holding the lock for {@code pluginId}, serializing it against any other load/unload call
+   * for the same plugin id (see {@link #pluginLocks}).
    */
   private <T> T withPluginLock(String pluginId, Supplier<T> action) {
     Lock lock = pluginLocks.computeIfAbsent(pluginId, id -> new ReentrantLock());

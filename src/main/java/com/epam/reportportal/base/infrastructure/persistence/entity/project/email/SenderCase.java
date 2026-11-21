@@ -41,9 +41,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.JdbcType;
-import org.hibernate.annotations.Type;
-import org.hibernate.dialect.PostgreSQLEnumJdbcType;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 
 /**
@@ -83,7 +82,6 @@ public class SenderCase implements Serializable {
 
   @Column(name = "send_case")
   @Enumerated(EnumType.STRING)
-  @JdbcType(PostgreSQLEnumJdbcType.class)
   private SendCase sendCase;
 
   @ManyToOne(fetch = FetchType.LAZY)
@@ -96,12 +94,11 @@ public class SenderCase implements Serializable {
   @Column(name = "rule_type")
   private String type;
 
-  @Type(SenderCaseOptions.class)
+  @JdbcTypeCode(SqlTypes.JSON)
   @Column(name = "rule_details")
   private SenderCaseOptions ruleDetails;
 
-  @Enumerated(EnumType.STRING)
-  @JdbcType(PostgreSQLEnumJdbcType.class)
+  @JdbcTypeCode(SqlTypes.NAMED_ENUM)
   @Column(name = "attributes_operator")
   private LogicalOperator attributesOperator;
 

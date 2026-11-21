@@ -170,6 +170,8 @@ public class OrganizationProjectHandlerImpl implements OrganizationProjectHandle
     expect(existingProject, not(isPresent())).verify(ErrorType.PROJECT_ALREADY_EXISTS, projectKey);
     existingProject = projectRepository.findByKey(projectKey);
     expect(existingProject, not(isPresent())).verify(ErrorType.PROJECT_ALREADY_EXISTS, projectKey);
+    existingProject = projectRepository.findBySlugAndOrganizationId(projectBase.getSlug(), orgId);
+    expect(existingProject, not(isPresent())).verify(ErrorType.PROJECT_ALREADY_EXISTS, projectKey);
 
     var projectToSave = generateProjectBody(orgId, projectBase, projectKey);
     Set<ProjectAttribute> projectAttributes = ProjectUtils.defaultProjectAttributes(projectToSave,

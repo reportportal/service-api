@@ -24,7 +24,6 @@ import static com.epam.reportportal.base.reporting.ValidationConstraints.MIN_NAM
 import com.epam.reportportal.base.infrastructure.annotations.In;
 import com.epam.reportportal.base.model.BaseEntityRQ;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
 import jakarta.validation.Valid;
@@ -36,6 +35,7 @@ import java.util.List;
 import java.util.Set;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import tools.jackson.databind.annotation.JsonDeserialize;
 
 /**
  * Domain object for filter actions
@@ -55,22 +55,20 @@ public class UpdateUserFilterRQ extends BaseEntityRQ {
   @NotBlank
   @JsonProperty(value = "type", required = true)
   @In(allowedValues = {"launch", "testItem", "log"})
-  @Schema(required = true, allowableValues = "launch, testitem, log")
+  @Schema(requiredMode = Schema.RequiredMode.REQUIRED, allowableValues = "launch, testitem, log")
   private String objectType;
 
-  @Valid
   @NotNull
   @Size(min = MIN_COLLECTION_SIZE, max = MAX_NUMBER_OF_FILTER_ENTITIES)
   @JsonProperty(value = "conditions", required = true)
   @JsonDeserialize(as = LinkedHashSet.class)
   @Schema(requiredMode = RequiredMode.REQUIRED)
-  private Set<UserFilterCondition> conditions;
+  private Set<@Valid UserFilterCondition> conditions;
 
-  @Valid
   @NotNull
   @Size(min = MIN_COLLECTION_SIZE)
   @JsonProperty(value = "orders", required = true)
   @Schema(requiredMode = RequiredMode.REQUIRED)
-  private List<Order> orders;
+  private List<@Valid Order> orders;
 
 }

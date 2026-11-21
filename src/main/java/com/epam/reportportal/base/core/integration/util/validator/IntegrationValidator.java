@@ -25,7 +25,7 @@ import com.epam.reportportal.base.infrastructure.rules.commons.validation.Busine
 import com.epam.reportportal.base.infrastructure.rules.commons.validation.Suppliers;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import java.util.Objects;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 
 /**
  * Validates integration requests and type-specific fields.
@@ -58,13 +58,11 @@ public final class IntegrationValidator {
             project.getIntegrations().stream().map(Integration::getType).noneMatch(it -> {
               IntegrationType integrationType = integration.getType();
               return it.getIntegrationGroup() == integrationType.getIntegrationGroup()
-                  && StringUtils.equalsIgnoreCase(it.getName(),
-                  integrationType.getName());
+                  && Strings.CI.equals(it.getName(), integrationType.getName());
             }), equalTo(true))
         .verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
-            Suppliers.formattedSupplier(
-                "Global integration with ID = '{}' has been found, but you cannot use it, because you have project-level integration(s) of that type",
-                integration.getId()
+            Suppliers.formattedSupplier("Global integration with ID = '{}' has been found, but you cannot use it, "
+                + "because you have project-level integration(s) of that type", integration.getId()
             ).get()
         );
   }

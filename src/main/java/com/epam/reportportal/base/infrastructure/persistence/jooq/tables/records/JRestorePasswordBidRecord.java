@@ -91,6 +91,6 @@ public class JRestorePasswordBidRecord extends UpdatableRecordImpl<JRestorePassw
         setUuid(uuid);
         setLastModified(lastModified);
         setEmail(email);
-        resetChangedOnNotNull();
+        resetTouchedOnNotNull();
     }
 }

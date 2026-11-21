@@ -16,10 +16,8 @@
 
 package com.epam.reportportal.base.infrastructure.persistence.entity.integration;
 
-import com.epam.reportportal.base.infrastructure.persistence.dao.converters.JpaInstantConverter;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.GeneratedValue;
@@ -34,7 +32,8 @@ import java.io.Serializable;
 import java.time.Instant;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.annotations.Type;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
@@ -70,7 +69,7 @@ public class Integration implements Serializable {
   @JoinColumn(name = "type")
   private IntegrationType type;
 
-  @Type(IntegrationParams.class)
+  @JdbcTypeCode(SqlTypes.JSON)
   @Column(name = "params")
   private IntegrationParams params;
 
@@ -82,7 +81,6 @@ public class Integration implements Serializable {
 
   @CreatedDate
   @Column(name = "creation_date")
-  @Convert(converter = JpaInstantConverter.class)
   private Instant creationDate;
 
   public Integration(Long id, Project project, IntegrationType type, IntegrationParams params,

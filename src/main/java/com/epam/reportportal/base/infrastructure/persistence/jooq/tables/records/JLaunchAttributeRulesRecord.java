@@ -104,6 +104,6 @@ public class JLaunchAttributeRulesRecord extends UpdatableRecordImpl<JLaunchAttr
         setSenderCaseId(senderCaseId);
         setKey(key);
         setValue(value);
-        resetChangedOnNotNull();
+        resetTouchedOnNotNull();
     }
 }

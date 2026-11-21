@@ -32,7 +32,6 @@ import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectUserRepo
 import com.epam.reportportal.base.infrastructure.persistence.dao.organization.OrganizationUserRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.ProjectUserId;
 import com.epam.reportportal.base.ws.BaseMvcTest;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
@@ -43,6 +42,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultMatcher;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import tools.jackson.databind.json.JsonMapper;
 
 @Slf4j
 @Sql("/db/organization/full_organization_samples.sql")
@@ -52,12 +52,10 @@ class OrganizationUsersControllerTest extends BaseMvcTest {
   private static final String WITH_USER_ID_URL = BASE_URL + "/%s";
   public static final Long ORG_ID_1 = 201L;
   public static final Long ORG_ID_2 = 202L;
-  public static final Long ORG_ID_3 = 203L;
-  public static final Long PRJ_ID_1 = 301L;
   public static final Long PRJ_ID_2 = 302L;
 
   @Autowired
-  private ObjectMapper objectMapper;
+  private JsonMapper objectMapper;
   @Autowired
   private ProjectUserRepository projectUserRepository;
   @Autowired

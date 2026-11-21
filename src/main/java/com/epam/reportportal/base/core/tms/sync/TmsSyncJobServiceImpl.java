@@ -180,7 +180,7 @@ public class TmsSyncJobServiceImpl implements TmsSyncJobService {
       if (job != null && job.getStatus() == TmsSyncStatus.PENDING) {
         job.setStatus(TmsSyncStatus.IN_PROGRESS);
         job.setStartedAt(Instant.now());
-        job.setCounters(new SyncCounters(0, 0, 0));
+        job.setCounters(new SyncCounters(0, 0, 0, 0));
         if (job.getErrorLog() == null) {
           job.setErrorLog(new SyncErrorLog(new ArrayList<>()));
         }
@@ -212,16 +212,9 @@ public class TmsSyncJobServiceImpl implements TmsSyncJobService {
       var folderIdMap = tmsFolderSyncService.syncFolders(executingJob, remoteFolders, localRootFolderId);
 
       // 2. Sync Test Cases
-      // An initial sync deliberately has no watermark to perform a full import.
-      var since = transactionTemplate.execute(status ->
-          tmsSyncJobRepository.findFirstByProjectIdAndIntegrationIdAndStatusAndRemoteFolderIdOrderByCompletedAtDesc(
-                  executingJob.getProject().getId(),
-                  integration.getId(),
-                  TmsSyncStatus.SUCCESS,
-                  remoteRootFolderId
-              ).map(TmsSyncJob::getCompletedAt)
-              .orElse(null)
-      );
+      // Every remote test case is fetched on every run; unchanged ones are detected per test case
+      // (source_updated_at) and reported as "skipped". A last-success watermark would hide them
+      // from the job statistics and could permanently skip cases that failed in an earlier run.
 
       for (var remoteFolder : remoteFolders) {
         if (isJobCanceled(jobId)) {
@@ -240,7 +233,7 @@ public class TmsSyncJobServiceImpl implements TmsSyncJobService {
           }
 
           var remoteTestCases = connector.fetchTestCases(
-              integration, remoteFolder, since, offset, BATCH_SIZE
+              integration, remoteFolder, null, offset, BATCH_SIZE
           );
 
           if (isJobCanceled(jobId)) {
@@ -250,7 +243,6 @@ public class TmsSyncJobServiceImpl implements TmsSyncJobService {
 
           var remoteTestCasesBatch = remoteTestCases.getTestCases();
           if (CollectionUtils.isNotEmpty(remoteTestCasesBatch)) {
-            updateJobTotalCounter(jobId, remoteTestCasesBatch.size());
             tmsTestCaseSyncService.processTestCaseBatch(
                 jobId,
                 executingJob.getProject().getId(),
@@ -295,20 +287,6 @@ public class TmsSyncJobServiceImpl implements TmsSyncJobService {
         return null;
       });
     }
-  }
-
-  private void updateJobTotalCounter(Long jobId, int totalCount) {
-    if (totalCount <= 0) {
-      return;
-    }
-    transactionTemplate.execute(status -> {
-      var job = tmsSyncJobRepository.findById(jobId).orElseThrow();
-      if (job.getStatus() == TmsSyncStatus.IN_PROGRESS) {
-        job.getCounters().setTotal(job.getCounters().getTotal() + totalCount);
-        return tmsSyncJobRepository.save(job);
-      }
-      return job;
-    });
   }
 
   private boolean isJobCanceled(Long jobId) {

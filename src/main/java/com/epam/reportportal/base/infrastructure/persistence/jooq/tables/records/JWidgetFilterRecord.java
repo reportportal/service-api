@@ -74,6 +74,6 @@ public class JWidgetFilterRecord extends UpdatableRecordImpl<JWidgetFilterRecord
 
         setWidgetId(widgetId);
         setFilterId(filterId);
-        resetChangedOnNotNull();
+        resetTouchedOnNotNull();
     }
 }

@@ -15,9 +15,9 @@ import com.epam.reportportal.base.core.launch.attribute.impl.RetentionPolicyAttr
 import com.epam.reportportal.base.core.project.ProjectService;
 import com.epam.reportportal.base.core.settings.ServerSettingsService;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
-import com.epam.reportportal.base.infrastructure.persistence.entity.ItemAttribute;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.RetentionPolicyEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
+import com.epam.reportportal.base.infrastructure.persistence.entity.launch.LaunchAttribute;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
 import java.util.HashSet;
 import java.util.Set;
@@ -53,7 +53,7 @@ public class RetentionPolicyAttributeHandlerTest {
   @Test
   public void testHandleLaunchStartWithBothAttributes() {
     Launch launch = new Launch();
-    Set<ItemAttribute> attributes = new HashSet<>();
+    Set<LaunchAttribute> attributes = new HashSet<>();
     attributes.add(createSystemAttribute("important"));
     attributes.add(createSystemAttribute("regular"));
     launch.setAttributes(attributes);
@@ -67,7 +67,7 @@ public class RetentionPolicyAttributeHandlerTest {
   @Test
   public void testHandleLaunchStartWithRegularAttribute() {
     Launch launch = new Launch();
-    Set<ItemAttribute> attributes = new HashSet<>();
+    Set<LaunchAttribute> attributes = new HashSet<>();
     attributes.add(createSystemAttribute("regular"));
     launch.setAttributes(attributes);
 
@@ -80,7 +80,7 @@ public class RetentionPolicyAttributeHandlerTest {
   @Test
   public void testHandleLaunchStartWithImportantAttribute() {
     Launch launch = new Launch();
-    Set<ItemAttribute> attributes = new HashSet<>();
+    Set<LaunchAttribute> attributes = new HashSet<>();
     attributes.add(createSystemAttribute("important"));
     launch.setAttributes(attributes);
 
@@ -101,7 +101,7 @@ public class RetentionPolicyAttributeHandlerTest {
   @Test
   public void testHandleLaunchUpdateWithImportantOldAttributeAndRegularNew() {
     Launch launch = new Launch();
-    Set<ItemAttribute> attributes = new HashSet<>();
+    Set<LaunchAttribute> attributes = new HashSet<>();
     attributes.add(createSystemAttribute("important"));
     attributes.add(createAttribute("regular"));
     launch.setAttributes(attributes);
@@ -120,7 +120,7 @@ public class RetentionPolicyAttributeHandlerTest {
   @Test
   public void testHandleLaunchUpdateWithRegularOldAttributeAndImportantNew() {
     Launch launch = new Launch();
-    Set<ItemAttribute> attributes = new HashSet<>();
+    Set<LaunchAttribute> attributes = new HashSet<>();
     attributes.add(createSystemAttribute("regular"));
     attributes.add(createAttribute("important"));
     launch.setAttributes(attributes);
@@ -140,7 +140,7 @@ public class RetentionPolicyAttributeHandlerTest {
   public void testHandleLaunchUpdateWithSameOldAndNewAttributes() {
     Launch launch = new Launch();
     launch.setRetentionPolicy(RetentionPolicyEnum.REGULAR);
-    Set<ItemAttribute> attributes = new HashSet<>();
+    Set<LaunchAttribute> attributes = new HashSet<>();
     attributes.add(createSystemAttribute("regular"));
     attributes.add(createAttribute("regular"));
     launch.setAttributes(attributes);
@@ -159,7 +159,7 @@ public class RetentionPolicyAttributeHandlerTest {
   public void testDoNotHandleImportantUpdateIfFeatureDisabled() {
     Launch launch = new Launch();
     launch.setRetentionPolicy(RetentionPolicyEnum.REGULAR);
-    Set<ItemAttribute> attributes = new HashSet<>();
+    Set<LaunchAttribute> attributes = new HashSet<>();
     attributes.add(createSystemAttribute("regular"));
     attributes.add(createAttribute("regular"));
     launch.setAttributes(attributes);
@@ -173,16 +173,16 @@ public class RetentionPolicyAttributeHandlerTest {
     verifyNoInteractions(eventPublisher);
   }
 
-  private ItemAttribute createSystemAttribute(String value) {
-    ItemAttribute attribute = new ItemAttribute();
+  private LaunchAttribute createSystemAttribute(String value) {
+    LaunchAttribute attribute = new LaunchAttribute();
     attribute.setKey("retentionPolicy");
     attribute.setValue(value);
     attribute.setSystem(true);
     return attribute;
   }
 
-  private ItemAttribute createAttribute(String value) {
-    ItemAttribute attribute = new ItemAttribute();
+  private LaunchAttribute createAttribute(String value) {
+    LaunchAttribute attribute = new LaunchAttribute();
     attribute.setKey("retentionPolicy");
     attribute.setValue(value);
     attribute.setSystem(false);

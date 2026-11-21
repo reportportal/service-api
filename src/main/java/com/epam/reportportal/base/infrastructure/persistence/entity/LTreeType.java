@@ -21,8 +21,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
-import org.apache.commons.lang3.StringUtils;
-import org.hibernate.engine.spi.SharedSessionContractImplementor;
+import org.apache.commons.lang3.Strings;
+import org.hibernate.type.descriptor.WrapperOptions;
 import org.hibernate.usertype.UserType;
 
 public class LTreeType implements UserType<String> {
@@ -40,7 +40,7 @@ public class LTreeType implements UserType<String> {
 
   @Override
   public boolean equals(String s, String j1) {
-    return StringUtils.equals(s, j1);
+    return Strings.CS.equals(s, j1);
   }
 
   @Override
@@ -49,8 +49,7 @@ public class LTreeType implements UserType<String> {
   }
 
   @Override
-  public String nullSafeGet(ResultSet rs, int position, SharedSessionContractImplementor session,
-      Object owner) throws SQLException {
+  public String nullSafeGet(ResultSet rs, int position, WrapperOptions options) throws SQLException {
     return rs.getString(position);
   }
 
@@ -60,8 +59,7 @@ public class LTreeType implements UserType<String> {
   }
 
   @Override
-  public void nullSafeSet(PreparedStatement st, String value, int index,
-      SharedSessionContractImplementor session) throws SQLException {
+  public void nullSafeSet(PreparedStatement st, String value, int index, WrapperOptions options) throws SQLException {
     st.setObject(index, value, Types.OTHER);
   }
 

@@ -4,21 +4,21 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseExportFormat;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseRS;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Arrays;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpServletResponse;
+import tools.jackson.databind.json.JsonMapper;
 
 class TmsTestCaseJsonExporterTest {
 
   private TmsTestCaseJsonExporter jsonExporter;
-  private ObjectMapper objectMapper;
+  private JsonMapper objectMapper;
 
   @BeforeEach
   void setUp() {
-    objectMapper = new ObjectMapper();
+    objectMapper = JsonMapper.builder().build();
     jsonExporter = new TmsTestCaseJsonExporter(objectMapper);
   }
 

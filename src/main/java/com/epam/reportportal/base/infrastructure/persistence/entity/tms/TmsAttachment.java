@@ -1,8 +1,6 @@
 package com.epam.reportportal.base.infrastructure.persistence.entity.tms;
 
-import com.epam.reportportal.base.infrastructure.persistence.dao.converters.JpaInstantConverter;
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.FetchType;
@@ -59,12 +57,10 @@ public class TmsAttachment implements Serializable {
   private Long projectId;
 
   @Column(name = "expires_at")
-  @Convert(converter = JpaInstantConverter.class)
   private Instant expiresAt;
 
   @CreatedDate
   @Column(name = "created_at", nullable = false)
-  @Convert(converter = JpaInstantConverter.class)
   private Instant createdAt;
 
   @ManyToMany(mappedBy = "attachments")

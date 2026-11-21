@@ -16,7 +16,7 @@
 
 package com.epam.reportportal.base.ws.converter.resource.handler.attribute.resolver;
 
-import com.epam.reportportal.base.infrastructure.persistence.entity.ItemAttribute;
+import com.epam.reportportal.base.infrastructure.persistence.entity.Attribute;
 import com.epam.reportportal.base.ws.converter.resource.handler.attribute.ItemAttributeType;
 import com.epam.reportportal.base.ws.converter.resource.handler.attribute.matcher.ItemAttributeTypeMatcher;
 import java.util.List;
@@ -36,7 +36,7 @@ public class ItemAttributeTypeResolverDelegate implements ItemAttributeTypeResol
   }
 
   @Override
-  public Optional<ItemAttributeType> resolve(ItemAttribute attribute) {
+  public Optional<ItemAttributeType> resolve(Attribute attribute) {
     return matchers.stream().filter(m -> m.matches(attribute)).findFirst()
         .map(ItemAttributeTypeMatcher::getType);
   }

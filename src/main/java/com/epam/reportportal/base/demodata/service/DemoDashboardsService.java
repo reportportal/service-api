@@ -44,8 +44,6 @@ import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.model.widget.WidgetRQ;
 import com.epam.reportportal.base.ws.converter.builders.WidgetBuilder;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
 import java.io.IOException;
 import java.time.Instant;
@@ -58,6 +56,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.json.JsonMapper;
 
 @Service
 class DemoDashboardsService {
@@ -77,7 +78,7 @@ class DemoDashboardsService {
 
   private final ProjectRepository projectRepository;
 
-  private final ObjectMapper objectMapper;
+  private final JsonMapper objectMapper;
 
   private Resource resource;
 
@@ -85,7 +86,7 @@ class DemoDashboardsService {
   public DemoDashboardsService(UserFilterRepository userFilterRepository,
       DashboardRepository dashboardRepository, DashboardWidgetRepository dashboardWidgetRepository,
       WidgetRepository widgetRepository, ProjectRepository projectRepository,
-      ObjectMapper objectMapper) {
+      JsonMapper objectMapper) {
     this.userFilterRepository = userFilterRepository;
     this.dashboardRepository = dashboardRepository;
     this.dashboardWidgetRepository = dashboardWidgetRepository;
@@ -119,22 +120,25 @@ class DemoDashboardsService {
       TypeReference<List<WidgetRQ>> type = new TypeReference<>() {
       };
 
-      List<Widget> widgets = objectMapper.readValue(resource.getURL(), type).stream().map(it -> {
-        final WidgetBuilder widgetBuilder =
-            new WidgetBuilder().addWidgetRq(it).addProject(projectId).addOwner(user.getUsername());
-        final WidgetType widgetType = WidgetType.findByName(it.getWidgetType()).orElseThrow(
-            () -> new ReportPortalException(ErrorType.UNABLE_TO_CREATE_WIDGET,
-                "Widget type '" + it.getWidgetType() + "' does not exists"
-            ));
-        if (!WidgetType.FLAKY_TEST_CASES.equals(widgetType) || !WidgetType.TOP_TEST_CASES.equals(
-            widgetType)) {
-          widgetBuilder.addFilters(Sets.newHashSet(filter));
-        }
-        return widgetBuilder.get();
-      }).collect(toList());
+      List<Widget> widgets;
+      try (var input = resource.getURL().openStream()) {
+        widgets = objectMapper.readValue(input, type).stream().map(it -> {
+          final WidgetBuilder widgetBuilder =
+              new WidgetBuilder().addWidgetRq(it).addProject(projectId).addOwner(user.getUsername());
+          final WidgetType widgetType = WidgetType.findByName(it.getWidgetType()).orElseThrow(
+              () -> new ReportPortalException(ErrorType.UNABLE_TO_CREATE_WIDGET,
+                  "Widget type '" + it.getWidgetType() + "' does not exists"
+              ));
+          if (!WidgetType.FLAKY_TEST_CASES.equals(widgetType) || !WidgetType.TOP_TEST_CASES.equals(
+              widgetType)) {
+            widgetBuilder.addFilters(Sets.newHashSet(filter));
+          }
+          return widgetBuilder.get();
+        }).collect(toList());
+      }
       widgetRepository.saveAll(widgets);
       return widgets;
-    } catch (IOException e) {
+    } catch (IOException | JacksonException e) {
       throw new ReportPortalException("Unable to load demo_widgets.json. " + e.getMessage(), e);
     }
   }

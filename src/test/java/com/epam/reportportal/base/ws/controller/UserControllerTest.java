@@ -16,6 +16,7 @@
 
 package com.epam.reportportal.base.ws.controller;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
@@ -25,6 +26,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -41,7 +43,6 @@ import com.epam.reportportal.base.model.user.EditUserRQ;
 import com.epam.reportportal.base.model.user.ResetPasswordRQ;
 import com.epam.reportportal.base.model.user.RestorePasswordRQ;
 import com.epam.reportportal.base.ws.BaseMvcTest;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -53,8 +54,8 @@ import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -69,7 +70,7 @@ class UserControllerTest extends BaseMvcTest {
   @Autowired
   ApiKeyHandler apiKeyHandler;
   @Autowired
-  private ObjectMapper objectMapper;
+  private JsonMapper objectMapper;
   @Autowired
   private UserRepository userRepository;
 
@@ -335,12 +336,14 @@ class UserControllerTest extends BaseMvcTest {
   @Test
   void exportUsers() throws Exception {
     mockMvc.perform(get(USERS_URL + "export").with(token(oAuthHelper.getSuperadminToken())))
-        .andExpect(status().isOk());
+        .andExpect(status().isOk())
+        .andExpect(content().string(containsString("Full name,Type,Email,Last login,Organizations")))
+        .andExpect(content().string(containsString("tester,INTERNAL,admin@reportportal.internal,")));
   }
 
   @Test
   void userPhoto() throws Exception {
-    final MockHttpServletRequestBuilder requestBuilder = MockMvcRequestBuilders.multipart(
+    var requestBuilder = MockMvcRequestBuilders.multipart(
             "/users/2/avatar")
         .file(new MockMultipartFile("file", "file", "image/png",
             new ClassPathResource("image/image.png").getInputStream()))

@@ -18,10 +18,12 @@ import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JDashbo
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JFilter;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JFilterCondition;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JFilterSort;
+import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JGrafanaSession;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JGroups;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JGroupsProjects;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JGroupsUsers;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JIntegration;
+import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JIntegrationBackup;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JIntegrationType;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JIssue;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JIssueGroup;
@@ -30,9 +32,12 @@ import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JIssueT
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JIssueTypeProject;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JItemAttribute;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JLaunch;
+import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JLaunchAttribute;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JLaunchAttributeRules;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JLaunchNames;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JLaunchNumber;
+import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JLaunchStatistics;
+import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JLaunchesModified;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JLog;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JLogType;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JOrganization;
@@ -48,6 +53,7 @@ import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JProjec
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JProjectUser;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JRecipients;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JRestorePasswordBid;
+import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JRevokedToken;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JSenderCase;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JServerSettings;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JShedlock;
@@ -76,6 +82,7 @@ import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsSte
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsStepAttachment;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsStepExecution;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsStepsManualScenario;
+import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsSyncJob;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTestCase;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTestCaseAttribute;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTmsTestCaseExecution;
@@ -178,6 +185,11 @@ public class Tables {
     public static final JFilterSort FILTER_SORT = JFilterSort.FILTER_SORT;
 
     /**
+     * The table <code>public.grafana_session</code>.
+     */
+    public static final JGrafanaSession GRAFANA_SESSION = JGrafanaSession.GRAFANA_SESSION;
+
+    /**
      * The table <code>public.groups</code>.
      */
     public static final JGroups GROUPS = JGroups.GROUPS;
@@ -196,6 +208,11 @@ public class Tables {
      * The table <code>public.integration</code>.
      */
     public static final JIntegration INTEGRATION = JIntegration.INTEGRATION;
+
+    /**
+     * The table <code>public.integration_backup</code>.
+     */
+    public static final JIntegrationBackup INTEGRATION_BACKUP = JIntegrationBackup.INTEGRATION_BACKUP;
 
     /**
      * The table <code>public.integration_type</code>.
@@ -238,6 +255,11 @@ public class Tables {
     public static final JLaunch LAUNCH = JLaunch.LAUNCH;
 
     /**
+     * The table <code>public.launch_attribute</code>.
+     */
+    public static final JLaunchAttribute LAUNCH_ATTRIBUTE = JLaunchAttribute.LAUNCH_ATTRIBUTE;
+
+    /**
      * The table <code>public.launch_attribute_rules</code>.
      */
     public static final JLaunchAttributeRules LAUNCH_ATTRIBUTE_RULES = JLaunchAttributeRules.LAUNCH_ATTRIBUTE_RULES;
@@ -251,6 +273,16 @@ public class Tables {
      * The table <code>public.launch_number</code>.
      */
     public static final JLaunchNumber LAUNCH_NUMBER = JLaunchNumber.LAUNCH_NUMBER;
+
+    /**
+     * The table <code>public.launch_statistics</code>.
+     */
+    public static final JLaunchStatistics LAUNCH_STATISTICS = JLaunchStatistics.LAUNCH_STATISTICS;
+
+    /**
+     * The table <code>public.launches_modified</code>.
+     */
+    public static final JLaunchesModified LAUNCHES_MODIFIED = JLaunchesModified.LAUNCHES_MODIFIED;
 
     /**
      * The table <code>public.log</code>.
@@ -309,7 +341,7 @@ public class Tables {
           Configuration configuration
         , String __1
     ) {
-        return configuration.dsl().selectFrom(JPgpArmorHeaders.PGP_ARMOR_HEADERS.call(
+        return configuration.dsl().selectFrom(com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JPgpArmorHeaders.PGP_ARMOR_HEADERS.call(
               __1
         )).fetch();
     }
@@ -320,7 +352,7 @@ public class Tables {
     public static JPgpArmorHeaders PGP_ARMOR_HEADERS(
           String __1
     ) {
-        return JPgpArmorHeaders.PGP_ARMOR_HEADERS.call(
+        return com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JPgpArmorHeaders.PGP_ARMOR_HEADERS.call(
             __1
         );
     }
@@ -331,7 +363,7 @@ public class Tables {
     public static JPgpArmorHeaders PGP_ARMOR_HEADERS(
           Field<String> __1
     ) {
-        return JPgpArmorHeaders.PGP_ARMOR_HEADERS.call(
+        return com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JPgpArmorHeaders.PGP_ARMOR_HEADERS.call(
             __1
         );
     }
@@ -360,6 +392,11 @@ public class Tables {
      * The table <code>public.restore_password_bid</code>.
      */
     public static final JRestorePasswordBid RESTORE_PASSWORD_BID = JRestorePasswordBid.RESTORE_PASSWORD_BID;
+
+    /**
+     * The table <code>public.revoked_token</code>.
+     */
+    public static final JRevokedToken REVOKED_TOKEN = JRevokedToken.REVOKED_TOKEN;
 
     /**
      * The table <code>public.sender_case</code>.
@@ -503,6 +540,11 @@ public class Tables {
     public static final JTmsStepsManualScenario TMS_STEPS_MANUAL_SCENARIO = JTmsStepsManualScenario.TMS_STEPS_MANUAL_SCENARIO;
 
     /**
+     * The table <code>public.tms_sync_job</code>.
+     */
+    public static final JTmsSyncJob TMS_SYNC_JOB = JTmsSyncJob.TMS_SYNC_JOB;
+
+    /**
      * The table <code>public.tms_test_case</code>.
      */
     public static final JTmsTestCase TMS_TEST_CASE = JTmsTestCase.TMS_TEST_CASE;
@@ -526,10 +568,6 @@ public class Tables {
      * The table <code>public.tms_test_case_execution_comment_attachment</code>.
      */
     public static final JTmsTestCaseExecutionCommentAttachment TMS_TEST_CASE_EXECUTION_COMMENT_ATTACHMENT = JTmsTestCaseExecutionCommentAttachment.TMS_TEST_CASE_EXECUTION_COMMENT_ATTACHMENT;
-
-    /**
-     * The table <code>public.tms_test_case_execution_comment_bts_ticket</code>.
-     */
 
     /**
      * The table <code>public.tms_test_case_version</code>.

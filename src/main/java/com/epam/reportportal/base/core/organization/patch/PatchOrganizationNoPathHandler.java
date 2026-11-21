@@ -17,12 +17,12 @@
 package com.epam.reportportal.base.core.organization.patch;
 
 import com.epam.reportportal.base.core.organization.OrganizationUserService;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
- * Handler for patching an organization when no specific path is provided.
- * Extends {@link BasePatchOrganizationHandler} to leverage common patch logic.
+ * Handler for patching an organization when no specific path is provided. Extends {@link BasePatchOrganizationHandler}
+ * to leverage common patch logic.
  */
 @Service
 public class PatchOrganizationNoPathHandler extends BasePatchOrganizationHandler {
@@ -34,7 +34,7 @@ public class PatchOrganizationNoPathHandler extends BasePatchOrganizationHandler
    */
   protected PatchOrganizationNoPathHandler(
       OrganizationUserService organizationUserService,
-      ObjectMapper objectMapper
+      JsonMapper objectMapper
   ) {
     super(organizationUserService, objectMapper);
   }

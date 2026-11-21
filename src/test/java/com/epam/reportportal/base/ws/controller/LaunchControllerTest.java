@@ -23,6 +23,7 @@ import static java.util.stream.Collectors.toMap;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.matchesPattern;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
@@ -39,20 +40,18 @@ import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchRepositor
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.LaunchModeEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.StatusEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
-import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.model.BulkRQ;
 import com.epam.reportportal.base.model.DeleteBulkRQ;
 import com.epam.reportportal.base.model.launch.AnalyzeLaunchRQ;
 import com.epam.reportportal.base.model.launch.UpdateLaunchRQ;
+import com.epam.reportportal.base.reporting.AttributeResource;
 import com.epam.reportportal.base.reporting.BulkInfoUpdateRQ;
 import com.epam.reportportal.base.reporting.FinishExecutionRQ;
-import com.epam.reportportal.base.reporting.ItemAttributeResource;
 import com.epam.reportportal.base.reporting.ItemAttributesRQ;
 import com.epam.reportportal.base.reporting.MergeLaunchesRQ;
 import com.epam.reportportal.base.reporting.StartLaunchRQ;
 import com.epam.reportportal.base.reporting.UpdateItemAttributeRQ;
 import com.epam.reportportal.base.ws.BaseMvcTest;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import java.time.Instant;
@@ -63,9 +62,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.jdbc.Sql;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -74,10 +76,13 @@ import org.springframework.test.context.jdbc.Sql;
 class LaunchControllerTest extends BaseMvcTest {
 
   @Autowired
-  private ObjectMapper objectMapper;
+  private JsonMapper objectMapper;
 
   @Autowired
   private LaunchRepository launchRepository;
+
+  @Autowired
+  private JdbcTemplate jdbcTemplate;
 
   @Test
   void happyCreateLaunch() throws Exception {
@@ -113,7 +118,7 @@ class LaunchControllerTest extends BaseMvcTest {
     UpdateLaunchRQ rq = new UpdateLaunchRQ();
     rq.setMode(DEFAULT);
     rq.setDescription("description");
-    rq.setAttributes(Sets.newHashSet(new ItemAttributeResource("test", "test")));
+    rq.setAttributes(Sets.newHashSet(new AttributeResource("test", "test")));
     mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/launch/3/update").with(
             token(oAuthHelper.getDefaultToken())).content(objectMapper.writeValueAsBytes(rq))
         .contentType(APPLICATION_JSON)).andExpect(status().is(200));
@@ -204,6 +209,71 @@ class LaunchControllerTest extends BaseMvcTest {
         .andExpect(jsonPath("$.startTime").isNumber());
   }
 
+  @Test
+  void deepMergeLaunchesMovesItemsAndExtendsSuitesDescription() throws Exception {
+    MergeLaunchesRQ rq = new MergeLaunchesRQ();
+    rq.setLaunches(new HashSet<>(List.of(1L, 2L)));
+    rq.setName("Deep merged");
+    rq.setMergeStrategyType("DEEP");
+    rq.setExtendSuitesDescription(true);
+
+    String response = mockMvc.perform(
+            post(DEFAULT_PROJECT_BASE_URL + "/launch/merge").contentType(APPLICATION_JSON)
+                .with(token(oAuthHelper.getDefaultToken()))
+                .content(objectMapper.writeValueAsBytes(rq)))
+        .andExpect(status().is(200))
+        .andReturn().getResponse().getContentAsString();
+    Long newLaunchId = objectMapper.readTree(response).get("id").asLong();
+
+    assertTrue(launchRepository.findAllById(List.of(1L, 2L)).isEmpty());
+    assertEquals(0, jdbcTemplate.queryForObject(
+        "SELECT count(*) FROM test_item WHERE launch_id IN (1, 2)", Integer.class));
+    assertEquals(0, jdbcTemplate.queryForObject(
+        "SELECT count(*) FROM log WHERE launch_id IN (1, 2)", Integer.class));
+
+    List<Map<String, Object>> suites = jdbcTemplate.queryForList(
+        "SELECT description, unique_id FROM test_item WHERE launch_id = ? AND type = 'SUITE'",
+        newLaunchId
+    );
+    assertFalse(suites.isEmpty());
+    suites.forEach(suite -> {
+      assertTrue(((String) suite.get("description")).contains("@launch 'Test launch"));
+      assertFalse(Stream.of("auto:5cec611c1def5b9ca8c88a53085823d6",
+              "auto:6bac3cae67ef43f2aa252b36a8d246cd")
+          .anyMatch(uniqueId -> uniqueId.equals(suite.get("unique_id"))));
+    });
+  }
+
+  @Test
+  void mergeLaunchesRegeneratesUniqueIdsWhenNameChanged() throws Exception {
+    jdbcTemplate.update("INSERT INTO parameter (item_id, key, value) VALUES (3, 'key', 'value')");
+
+    MergeLaunchesRQ rq = new MergeLaunchesRQ();
+    rq.setLaunches(new HashSet<>(List.of(1L, 2L)));
+    rq.setName("Renamed merged");
+    rq.setMergeStrategyType("BASIC");
+
+    String response = mockMvc.perform(
+            post(DEFAULT_PROJECT_BASE_URL + "/launch/merge").contentType(APPLICATION_JSON)
+                .with(token(oAuthHelper.getDefaultToken()))
+                .content(objectMapper.writeValueAsBytes(rq)))
+        .andExpect(status().is(200))
+        .andReturn().getResponse().getContentAsString();
+    Long newLaunchId = objectMapper.readTree(response).get("id").asLong();
+
+    Map<Long, String> uniqueIds = jdbcTemplate.queryForList(
+            "SELECT item_id, unique_id FROM test_item WHERE item_id IN (1, 3) AND launch_id = ?",
+            newLaunchId
+        ).stream()
+        .collect(Collectors.toMap(row -> ((Number) row.get("item_id")).longValue(),
+            row -> (String) row.get("unique_id")));
+
+    assertEquals("auto:" + DigestUtils.md5Hex("2;Renamed merged;Test suite"), uniqueIds.get(1L));
+    assertEquals(
+        "auto:" + DigestUtils.md5Hex("2;Renamed merged;Test suite;Test item 1;Step item 1;key=value"),
+        uniqueIds.get(3L)
+    );
+  }
 
   @Test
   void deleteLaunchPositive() throws Exception {
@@ -355,7 +425,7 @@ class LaunchControllerTest extends BaseMvcTest {
   @Test
   void bulkUpdateItemAttributes() throws Exception {
     BulkInfoUpdateRQ request = new BulkInfoUpdateRQ();
-    List<Long> launchIds = Arrays.asList(1L, 2L, 3L, 4L);
+    List<Long> launchIds = Arrays.asList(1L, 2L, 3L);
     request.setIds(launchIds);
     BulkInfoUpdateRQ.Description description = new BulkInfoUpdateRQ.Description();
     description.setAction(BulkInfoUpdateRQ.Action.CREATE);
@@ -364,8 +434,8 @@ class LaunchControllerTest extends BaseMvcTest {
     request.setDescription(description);
     UpdateItemAttributeRQ updateItemAttributeRQ = new UpdateItemAttributeRQ();
     updateItemAttributeRQ.setAction(BulkInfoUpdateRQ.Action.UPDATE);
-    updateItemAttributeRQ.setFrom(new ItemAttributeResource("testKey", "testValue"));
-    updateItemAttributeRQ.setTo(new ItemAttributeResource("updatedKey", "updatedValue"));
+    updateItemAttributeRQ.setFrom(new AttributeResource("testKey", "testValue"));
+    updateItemAttributeRQ.setTo(new AttributeResource("updatedKey", "updatedValue"));
     request.setAttributes(Lists.newArrayList(updateItemAttributeRQ));
 
     mockMvc.perform(
@@ -390,7 +460,7 @@ class LaunchControllerTest extends BaseMvcTest {
   @Test
   void bulkCreateAttributes() throws Exception {
     BulkInfoUpdateRQ request = new BulkInfoUpdateRQ();
-    List<Long> launchIds = Arrays.asList(1L, 2L, 3L, 4L);
+    List<Long> launchIds = Arrays.asList(1L, 2L, 3L);
     request.setIds(launchIds);
     BulkInfoUpdateRQ.Description description = new BulkInfoUpdateRQ.Description();
     description.setAction(BulkInfoUpdateRQ.Action.UPDATE);
@@ -399,7 +469,7 @@ class LaunchControllerTest extends BaseMvcTest {
     request.setDescription(description);
     UpdateItemAttributeRQ updateItemAttributeRQ = new UpdateItemAttributeRQ();
     updateItemAttributeRQ.setAction(BulkInfoUpdateRQ.Action.CREATE);
-    updateItemAttributeRQ.setTo(new ItemAttributeResource("createdKey", "createdValue"));
+    updateItemAttributeRQ.setTo(new AttributeResource("createdKey", "createdValue"));
     request.setAttributes(Lists.newArrayList(updateItemAttributeRQ));
 
     mockMvc.perform(
@@ -422,7 +492,7 @@ class LaunchControllerTest extends BaseMvcTest {
   @Test
   void bulkDeleteAttributes() throws Exception {
     BulkInfoUpdateRQ request = new BulkInfoUpdateRQ();
-    List<Long> launchIds = Arrays.asList(1L, 2L, 3L, 4L);
+    List<Long> launchIds = Arrays.asList(1L, 2L, 3L);
     request.setIds(launchIds);
     BulkInfoUpdateRQ.Description description = new BulkInfoUpdateRQ.Description();
     description.setAction(BulkInfoUpdateRQ.Action.CREATE);
@@ -431,7 +501,7 @@ class LaunchControllerTest extends BaseMvcTest {
     request.setDescription(description);
     UpdateItemAttributeRQ updateItemAttributeRQ = new UpdateItemAttributeRQ();
     updateItemAttributeRQ.setAction(BulkInfoUpdateRQ.Action.DELETE);
-    updateItemAttributeRQ.setFrom(new ItemAttributeResource("testKey", "testValue"));
+    updateItemAttributeRQ.setFrom(new AttributeResource("testKey", "testValue"));
     request.setAttributes(Lists.newArrayList(updateItemAttributeRQ));
 
     mockMvc.perform(

@@ -24,6 +24,7 @@ import com.epam.reportportal.base.infrastructure.persistence.dao.UserRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.ApiKey;
 import jakarta.xml.bind.DatatypeConverter;
 import java.time.LocalDate;
+import java.time.ZoneOffset;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.converter.Converter;
@@ -72,7 +73,7 @@ public class ApiKeyAuthenticationProvider implements AuthenticationProvider {
       return userRepository.findReportPortalUser(apiKey.getUserId())
           .filter(ReportPortalUser::isEnabled)
           .map(user -> {
-            LocalDate today = LocalDate.now();
+            LocalDate today = LocalDate.now(ZoneOffset.UTC);
             if (apiKey.getLastUsedAt() == null || !apiKey.getLastUsedAt().equals(today)) {
               apiKeyRepository.updateLastUsedAt(apiKey.getId(), hashedKey, today);
             }

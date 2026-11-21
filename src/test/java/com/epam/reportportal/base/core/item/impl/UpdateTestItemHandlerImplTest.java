@@ -31,6 +31,7 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -222,6 +223,32 @@ class UpdateTestItemHandlerImplTest {
     assertEquals("'Project 1' not found. Did you use correct ID?",
         exception.getMessage()
     );
+  }
+
+  @Test
+  void defineIssuesFromAnotherProject() {
+    ReportPortalUser user =
+        getRpUser("user", UserRole.USER, OrganizationRole.MANAGER, ProjectRole.EDITOR, 1L);
+    TestItem item = new TestItem();
+    item.setItemId(2L);
+    Launch launch = new Launch();
+    launch.setProjectId(2L);
+
+    IssueDefinition issueDefinition = new IssueDefinition();
+    issueDefinition.setId(item.getItemId());
+    DefineIssueRQ request = new DefineIssueRQ();
+    request.setIssues(Collections.singletonList(issueDefinition));
+
+    when(projectRepository.findById(1L)).thenReturn(Optional.of(new Project()));
+    when(itemRepository.findById(item.getItemId())).thenReturn(Optional.of(item));
+    when(testItemService.getEffectiveLaunch(item)).thenReturn(launch);
+
+    ReportPortalException exception = assertThrows(ReportPortalException.class,
+        () -> handler.defineTestItemsIssues(rpUserToMembership(user), request, user));
+
+    assertEquals("You do not have enough permissions. Launch is not under the specified project.",
+        exception.getMessage());
+    verify(itemRepository, never()).save(item);
   }
 
   @Test
@@ -463,5 +490,27 @@ class UpdateTestItemHandlerImplTest {
 
     assertEquals(user.getUserId(), item.getAnalysisOwnerId());
     verify(itemRepository, times(1)).saveAll(anyList());
+  }
+
+  @Test
+  void linkExternalIssueFromAnotherProject() {
+    ReportPortalUser user =
+        getRpUser("user", UserRole.USER, OrganizationRole.MANAGER, ProjectRole.EDITOR, 1L);
+    TestItem item = new TestItem();
+    item.setItemId(2L);
+    Launch launch = new Launch();
+    launch.setProjectId(2L);
+    LinkExternalIssueRQ request = new LinkExternalIssueRQ();
+    request.setTestItemIds(Collections.singletonList(item.getItemId()));
+
+    when(itemRepository.findAllById(anyList())).thenReturn(Collections.singletonList(item));
+    when(testItemService.getEffectiveLaunch(item)).thenReturn(launch);
+
+    ReportPortalException exception = assertThrows(ReportPortalException.class,
+        () -> handler.processExternalIssues(request, rpUserToMembership(user), user));
+
+    assertEquals("You do not have enough permissions. Launch is not under the specified project.",
+        exception.getMessage());
+    verify(itemRepository, never()).saveAll(anyList());
   }
 }

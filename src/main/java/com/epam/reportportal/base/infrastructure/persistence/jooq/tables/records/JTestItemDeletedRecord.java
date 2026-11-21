@@ -91,6 +91,6 @@ public class JTestItemDeletedRecord extends UpdatableRecordImpl<JTestItemDeleted
         setId(id);
         setItemId(itemId);
         setDeletedAt(deletedAt);
-        resetChangedOnNotNull();
+        resetTouchedOnNotNull();
     }
 }

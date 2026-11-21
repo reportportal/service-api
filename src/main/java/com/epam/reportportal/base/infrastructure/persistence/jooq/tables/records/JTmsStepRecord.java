@@ -119,6 +119,6 @@ public class JTmsStepRecord extends UpdatableRecordImpl<JTmsStepRecord> {
         setExpectedResult(expectedResult);
         setNumber(number);
         setStepsManualScenarioId(stepsManualScenarioId);
-        resetChangedOnNotNull();
+        resetTouchedOnNotNull();
     }
 }

@@ -35,13 +35,14 @@ import org.jooq.QueryPart;
 import org.jooq.Record;
 import org.jooq.SQL;
 import org.jooq.Schema;
-import org.jooq.Select;
 import org.jooq.Stringly;
 import org.jooq.Table;
 import org.jooq.TableField;
+import org.jooq.TableLike;
 import org.jooq.TableOptions;
 import org.jooq.UniqueKey;
 import org.jooq.impl.DSL;
+import org.jooq.impl.Internal;
 import org.jooq.impl.SQLDataType;
 import org.jooq.impl.TableImpl;
 
@@ -70,7 +71,7 @@ public class JOrganization extends TableImpl<JOrganizationRecord> {
     /**
      * The column <code>public.organization.id</code>.
      */
-    public final TableField<JOrganizationRecord, Long> ID = createField(DSL.name("id"), SQLDataType.BIGINT.nullable(false).identity(true), this, "");
+    public final TableField<JOrganizationRecord, Long> ID = createField(DSL.name("id"), SQLDataType.BIGINT.nullable(false).generatedByDefaultAsIdentity(), this, "");
 
     /**
      * The column <code>public.organization.created_at</code>.
@@ -191,7 +192,7 @@ public class JOrganization extends TableImpl<JOrganizationRecord> {
 
     @Override
     public List<UniqueKey<JOrganizationRecord>> getUniqueKeys() {
-        return Arrays.asList(Keys.ORGANIZATION_EXTERNAL_ID_KEY, Keys.ORGANIZATION_NAME_KEY, Keys.ORGANIZATION_OWNER_ID_KEY, Keys.ORGANIZATION_SLUG_KEY);
+        return Arrays.asList(Keys.ORGANIZATION_EXTERNAL_ID_KEY, Keys.ORGANIZATION_OWNER_ID_KEY);
     }
 
     @Override
@@ -333,7 +334,7 @@ public class JOrganization extends TableImpl<JOrganizationRecord> {
      */
     @Override
     public JOrganization where(Condition condition) {
-        return new JOrganization(getQualifiedName(), aliased() ? this : null, null, condition);
+        return new JOrganization(getQualifiedName(), aliased() ? this : null, null, Internal.condition(this, condition));
     }
 
     /**
@@ -400,7 +401,7 @@ public class JOrganization extends TableImpl<JOrganizationRecord> {
      * Create an inline derived table from this table
      */
     @Override
-    public JOrganization whereExists(Select<?> select) {
+    public JOrganization whereExists(TableLike<?> select) {
         return where(DSL.exists(select));
     }
 
@@ -408,7 +409,7 @@ public class JOrganization extends TableImpl<JOrganizationRecord> {
      * Create an inline derived table from this table
      */
     @Override
-    public JOrganization whereNotExists(Select<?> select) {
+    public JOrganization whereNotExists(TableLike<?> select) {
         return where(DSL.notExists(select));
     }
 }

@@ -23,15 +23,17 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.enums.Status
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.TestItemIssueGroup;
 import com.epam.reportportal.base.infrastructure.persistence.entity.statistics.Statistics;
 import com.epam.reportportal.base.infrastructure.persistence.entity.statistics.StatisticsField;
+import com.epam.reportportal.base.infrastructure.persistence.entity.statistics.StatisticsView;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import java.util.Arrays;
-import java.util.Set;
+import java.util.Collection;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 /**
- * Utility class providing helper methods for building test execution and defect statistics queries.
+ * Utility class providing helper methods for building test execution and defect statistics
+ * queries.
  *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
@@ -41,7 +43,7 @@ public final class StatisticsHelper {
   private static final String PASSED = "statistics$executions$passed";
   private static final String SKIPPED = "statistics$executions$skipped";
   private static final String FAILED = "statistics$executions$failed";
-  private final static Predicate<Statistics> FAILED_PREDICATE = statistics -> {
+  private final static Predicate<StatisticsView> FAILED_PREDICATE = statistics -> {
     StatisticsField statisticsField = ofNullable(statistics.getStatisticsField()).orElseThrow(
         () -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
             "Statistics should contain a name field."
@@ -57,16 +59,18 @@ public final class StatisticsHelper {
     //static only
   }
 
-  public static StatusEnum getStatusFromStatistics(Set<Statistics> statistics) {
+  public static StatusEnum getStatusFromStatistics(
+      Collection<? extends StatisticsView> statistics) {
     return statistics.stream().anyMatch(FAILED_PREDICATE) ? StatusEnum.FAILED : StatusEnum.PASSED;
   }
 
-  public static Integer extractStatisticsCount(String statisticsField, Set<Statistics> statistics) {
+  public static Integer extractStatisticsCount(String statisticsField,
+      Collection<? extends StatisticsView> statistics) {
     return statistics.stream()
         .filter(it -> it.getStatisticsField().getName().equalsIgnoreCase(statisticsField))
         .findFirst()
-        .orElse(new Statistics())
-        .getCounter();
+        .map(StatisticsView::getCounter)
+        .orElse(new Statistics().getCounter());
   }
 
   public static Stream<String> defaultStatisticsFields() {

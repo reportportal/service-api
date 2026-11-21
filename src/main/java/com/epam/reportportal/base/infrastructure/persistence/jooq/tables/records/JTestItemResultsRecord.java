@@ -107,6 +107,6 @@ public class JTestItemResultsRecord extends UpdatableRecordImpl<JTestItemResults
         setStatus(status);
         setEndTime(endTime);
         setDuration(duration);
-        resetChangedOnNotNull();
+        resetTouchedOnNotNull();
     }
 }

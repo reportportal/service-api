@@ -17,9 +17,9 @@
 package com.epam.reportportal.base.core.jasper.util;
 
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItem;
-import com.epam.reportportal.base.infrastructure.persistence.entity.statistics.Statistics;
+import com.epam.reportportal.base.infrastructure.persistence.entity.statistics.StatisticsView;
 import java.time.Duration;
-import java.util.Set;
+import java.util.Collection;
 import java.util.concurrent.TimeUnit;
 import org.apache.commons.lang3.StringUtils;
 
@@ -34,11 +34,12 @@ public class ExportUtils {
   public static final String DESCRIPTION_PREFIX = "\r\n" + " ITEM DESCRIPTION: ";
   private static final String SHIFT_PREFIX = "    ";
 
-  public static int getStatisticsCounter(Set<Statistics> statistics, String statisticsFieldName) {
+  public static int getStatisticsCounter(Collection<? extends StatisticsView> statistics,
+      String statisticsFieldName) {
     return statistics.stream()
         .filter(it -> !StringUtils.isEmpty(it.getStatisticsField().getName()))
         .filter(it -> it.getStatisticsField().getName().equals(statisticsFieldName))
-        .mapToInt(Statistics::getCounter)
+        .mapToInt(StatisticsView::getCounter)
         .findAny()
         .orElse(0);
   }

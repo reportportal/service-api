@@ -74,6 +74,6 @@ public class JTmsTestCaseAttributeRecord extends UpdatableRecordImpl<JTmsTestCas
 
         setAttributeId(attributeId);
         setTestCaseId(testCaseId);
-        resetChangedOnNotNull();
+        resetTouchedOnNotNull();
     }
 }

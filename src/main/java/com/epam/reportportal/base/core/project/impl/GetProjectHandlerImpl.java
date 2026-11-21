@@ -94,7 +94,7 @@ public class GetProjectHandlerImpl implements GetProjectHandler {
       Filter filter,
       Pageable pageable, ReportPortalUser user) {
     Project project = projectRepository.findByKey(membershipDetails.getProjectKey())
-        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND,
+        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_KEY_NOT_FOUND,
             membershipDetails.getProjectKey()));
     if (CollectionUtils.isEmpty(project.getUsers())) {
       return PagedResourcesAssembler.pageConverter(UserConverter.TO_RESOURCE).apply(Page.empty(pageable));
@@ -120,8 +120,9 @@ public class GetProjectHandlerImpl implements GetProjectHandler {
 
   @Override
   public Project get(MembershipDetails membershipDetails) {
-    return projectRepository.findById(membershipDetails.getProjectId()).orElseThrow(
-        () -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, membershipDetails.getProjectName()));
+    return projectRepository.findById(membershipDetails.getProjectId())
+        .orElseThrow(() ->
+            new ReportPortalException(ErrorType.PROJECT_KEY_NOT_FOUND, membershipDetails.getProjectKey()));
   }
 
   @Override
@@ -131,22 +132,22 @@ public class GetProjectHandlerImpl implements GetProjectHandler {
   }
 
   @Override
-  public Project get(String name) {
-    return projectRepository.findByKey(name)
-        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, name));
+  public Project get(String key) {
+    return projectRepository.findByKey(key)
+        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_KEY_NOT_FOUND, key));
   }
 
   @Override
   public Project getRaw(String name) {
     return projectRepository.findRawByName(name)
-        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, name));
+        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NAME_NOT_FOUND, name));
   }
 
   @Override
   public ProjectResource getResource(String projectKey, ReportPortalUser user) {
 
     Project project = projectRepository.findByKey(projectKey)
-        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectKey));
+        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_KEY_NOT_FOUND, projectKey));
 
     return projectConverter.TO_PROJECT_RESOURCE.apply(project);
   }

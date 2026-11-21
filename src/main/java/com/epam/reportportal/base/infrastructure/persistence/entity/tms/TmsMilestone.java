@@ -5,8 +5,6 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.tms.enums.Tm
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.enums.TmsMilestoneType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -23,8 +21,8 @@ import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
-import org.hibernate.annotations.JdbcType;
-import org.hibernate.dialect.PostgreSQLEnumJdbcType;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Entity
 @Table(name = "tms_milestone", schema = "public")
@@ -56,13 +54,11 @@ public class TmsMilestone {
   private LocalDateTime endDate;
 
   @Column(name = "type", nullable = false)
-  @Enumerated(EnumType.STRING)
-  @JdbcType(PostgreSQLEnumJdbcType.class)
+  @JdbcTypeCode(SqlTypes.NAMED_ENUM)
   private TmsMilestoneType type;
 
   @Column(name = "status", nullable = false)
-  @Enumerated(EnumType.STRING)
-  @JdbcType(PostgreSQLEnumJdbcType.class)
+  @JdbcTypeCode(SqlTypes.NAMED_ENUM)
   private TmsMilestoneStatus status;
 
   @ManyToOne

@@ -21,10 +21,10 @@ import static java.util.Optional.ofNullable;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ImmutableMap;
+import java.time.Duration;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 
@@ -54,15 +54,15 @@ public class AnalyzerStatusCache {
   public AnalyzerStatusCache() {
     Cache<Long, Long> autoAnalysisStatusCache = CacheBuilder.newBuilder()
         .maximumSize(MAXIMUM_SIZE)
-        .expireAfterWrite(CACHE_ITEM_LIVE, TimeUnit.MINUTES)
+        .expireAfterWrite(Duration.ofMinutes(CACHE_ITEM_LIVE))
         .build();
     Cache<Long, Long> patternAnalysisCache = CacheBuilder.newBuilder()
         .maximumSize(MAXIMUM_SIZE)
-        .expireAfterWrite(CACHE_ITEM_LIVE, TimeUnit.MINUTES)
+        .expireAfterWrite(Duration.ofMinutes(CACHE_ITEM_LIVE))
         .build();
     Cache<Long, Long> clusterCache = CacheBuilder.newBuilder()
         .maximumSize(MAXIMUM_SIZE)
-        .expireAfterWrite(CLUSTER_ITEM_LIVE, TimeUnit.MINUTES)
+        .expireAfterWrite(Duration.ofMinutes(CLUSTER_ITEM_LIVE))
         .build();
     analyzeStatus = ImmutableMap.<String, Cache<Long, Long>>builder()
         .put(AUTO_ANALYZER_KEY, autoAnalysisStatusCache)

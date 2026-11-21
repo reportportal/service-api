@@ -27,13 +27,14 @@ import org.jooq.QueryPart;
 import org.jooq.Record;
 import org.jooq.SQL;
 import org.jooq.Schema;
-import org.jooq.Select;
 import org.jooq.Stringly;
 import org.jooq.Table;
 import org.jooq.TableField;
+import org.jooq.TableLike;
 import org.jooq.TableOptions;
 import org.jooq.UniqueKey;
 import org.jooq.impl.DSL;
+import org.jooq.impl.Internal;
 import org.jooq.impl.SQLDataType;
 import org.jooq.impl.TableImpl;
 
@@ -62,7 +63,7 @@ public class JLogType extends TableImpl<JLogTypeRecord> {
     /**
      * The column <code>public.log_type.id</code>.
      */
-    public final TableField<JLogTypeRecord, Long> ID = createField(DSL.name("id"), SQLDataType.BIGINT.nullable(false).identity(true), this, "");
+    public final TableField<JLogTypeRecord, Long> ID = createField(DSL.name("id"), SQLDataType.BIGINT.nullable(false).generatedByDefaultAsIdentity(), this, "");
 
     /**
      * The column <code>public.log_type.project_id</code>.
@@ -262,7 +263,7 @@ public class JLogType extends TableImpl<JLogTypeRecord> {
      */
     @Override
     public JLogType where(Condition condition) {
-        return new JLogType(getQualifiedName(), aliased() ? this : null, null, condition);
+        return new JLogType(getQualifiedName(), aliased() ? this : null, null, Internal.condition(this, condition));
     }
 
     /**
@@ -329,7 +330,7 @@ public class JLogType extends TableImpl<JLogTypeRecord> {
      * Create an inline derived table from this table
      */
     @Override
-    public JLogType whereExists(Select<?> select) {
+    public JLogType whereExists(TableLike<?> select) {
         return where(DSL.exists(select));
     }
 
@@ -337,7 +338,7 @@ public class JLogType extends TableImpl<JLogTypeRecord> {
      * Create an inline derived table from this table
      */
     @Override
-    public JLogType whereNotExists(Select<?> select) {
+    public JLogType whereNotExists(TableLike<?> select) {
         return where(DSL.notExists(select));
     }
 }

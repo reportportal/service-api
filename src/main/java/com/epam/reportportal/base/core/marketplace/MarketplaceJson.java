@@ -16,24 +16,23 @@
 
 package com.epam.reportportal.base.core.marketplace;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.json.JsonMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
- * Jackson setup for registry wire types. Own mapper, not the application one: the registry adds
- * fields additively (ADR-006), so unknown properties must never fail a response.
+ * Jackson setup for registry wire types. Own mapper, not the application one: the registry adds fields additively
+ * (ADR-006), so unknown properties must never fail a response.
  */
 public final class MarketplaceJson {
 
   private MarketplaceJson() {
   }
 
-  /** The mapper every marketplace body is read and written with. */
-  public static ObjectMapper mapper() {
+  /**
+   * The mapper every marketplace body is read and written with.
+   */
+  public static JsonMapper mapper() {
     return JsonMapper.builder()
-        .addModule(new JavaTimeModule())
         .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
         .build();
   }

@@ -119,6 +119,6 @@ public class JTmsTestCaseVersionRecord extends UpdatableRecordImpl<JTmsTestCaseV
         setIsDefault(isDefault);
         setIsDraft(isDraft);
         setTestCaseId(testCaseId);
-        resetChangedOnNotNull();
+        resetTouchedOnNotNull();
     }
 }

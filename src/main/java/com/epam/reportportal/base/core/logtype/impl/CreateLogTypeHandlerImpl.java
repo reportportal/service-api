@@ -58,7 +58,7 @@ public class CreateLogTypeHandlerImpl implements CreateLogTypeHandler {
   public LogTypeResponse createLogType(String projectKey, LogTypeRequest logType,
       ReportPortalUser user) {
     Project project = projectRepository.findByKey(projectKey)
-        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectKey));
+        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_KEY_NOT_FOUND, projectKey));
     Long projectId = project.getId();
 
     validateLogType(projectId, logType);

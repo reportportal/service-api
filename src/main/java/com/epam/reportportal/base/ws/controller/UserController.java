@@ -23,6 +23,7 @@ import static com.epam.reportportal.base.core.jasper.ReportFormat.CSV;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
+import com.epam.reportportal.base.core.integration.grafana.GrafanaSessionCookieIssuer;
 import com.epam.reportportal.base.core.jasper.GetJasperReportHandler;
 import com.epam.reportportal.base.core.jasper.ReportFormat;
 import com.epam.reportportal.base.core.launch.util.LinkGenerator;
@@ -37,6 +38,7 @@ import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Co
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Queryable;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.User;
+import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserExportProjection;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRole;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
@@ -101,16 +103,16 @@ public class UserController {
 
   private final GetUserHandler getUserHandler;
 
-  private final GetJasperReportHandler<User> jasperReportHandler;
+  private final GetJasperReportHandler<UserExportProjection> jasperReportHandler;
   private final LinkGenerator linkGenerator;
-
+  private final GrafanaSessionCookieIssuer grafanaSessionCookieIssuer;
 
   @Autowired
   public UserController(CreateUserHandler createUserMessageHandler,
       EditUserHandler editUserMessageHandler, DeleteUserHandler deleteUserHandler,
       GetUserHandler getUserHandler,
-      @Qualifier("userJasperReportHandler") GetJasperReportHandler<User> jasperReportHandler,
-      ApiKeyHandler apiKeyHandler, LinkGenerator linkGenerator) {
+      @Qualifier("userJasperReportHandler") GetJasperReportHandler<UserExportProjection> jasperReportHandler,
+      ApiKeyHandler apiKeyHandler, LinkGenerator linkGenerator, GrafanaSessionCookieIssuer grafanaSessionCookieIssuer) {
     this.createUserMessageHandler = createUserMessageHandler;
     this.editUserMessageHandler = editUserMessageHandler;
     this.deleteUserHandler = deleteUserHandler;
@@ -118,6 +120,7 @@ public class UserController {
     this.jasperReportHandler = jasperReportHandler;
     this.apiKeyHandler = apiKeyHandler;
     this.linkGenerator = linkGenerator;
+    this.grafanaSessionCookieIssuer = grafanaSessionCookieIssuer;
   }
 
   @DeleteMapping(value = "/{id}")
@@ -156,11 +159,13 @@ public class UserController {
     return getUserHandler.getUser(EntityUtils.normalizeId(login), currentUser);
   }
 
-  @Transactional(readOnly = true)
+  @Transactional
   @GetMapping(value = {"", "/"})
   @Operation(summary = "Return information about current logged-in user")
-  public UserResource getMyself(@AuthenticationPrincipal ReportPortalUser currentUser) {
-    return getUserHandler.getUser(currentUser);
+  public UserResource getMyself(@AuthenticationPrincipal ReportPortalUser reportPortalUser, HttpServletRequest request,
+      HttpServletResponse response) {
+    grafanaSessionCookieIssuer.issue(reportPortalUser, request, response);
+    return getUserHandler.getUser(reportPortalUser);
   }
 
   @Transactional(readOnly = true)

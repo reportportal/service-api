@@ -27,17 +27,17 @@ import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.util.SecurityContextUtils;
 import com.epam.reportportal.base.ws.converter.converters.UserConverter;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
- * Handler for patch operations related to organization user.
- * Extends {@link BasePatchOrganizationHandler} to provide user-specific patch logic.
+ * Handler for patch operations related to organization user. Extends {@link BasePatchOrganizationHandler} to provide
+ * user-specific patch logic.
  */
 @Service
 @Slf4j
@@ -58,7 +58,7 @@ public class PatchOrganizationUserAddHandler extends BasePatchOrganizationHandle
   protected PatchOrganizationUserAddHandler(
       UserRepository userRepository,
       OrganizationUserService organizationUserService,
-      ObjectMapper objectMapper,
+      JsonMapper objectMapper,
       OrganizationRepositoryCustom organizationRepository,
       ApplicationEventPublisher applicationEventPublisher,
       OrganizationUserRepository organizationUserRepository) {

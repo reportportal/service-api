@@ -91,6 +91,6 @@ public class JStaleMaterializedViewRecord extends UpdatableRecordImpl<JStaleMate
         setId(id);
         setName(name);
         setCreationDate(creationDate);
-        resetChangedOnNotNull();
+        resetTouchedOnNotNull();
     }
 }

@@ -17,13 +17,13 @@
 package com.epam.reportportal.base.info;
 
 import java.util.Map;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.actuate.info.Info.Builder;
 import org.springframework.boot.actuate.info.InfoContributor;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.RestClient;
 
 
 /**
@@ -32,28 +32,27 @@ import org.springframework.web.client.RestTemplate;
  * @author Siarhei Hrabko
  */
 @Component
+@Slf4j
+@RequiredArgsConstructor
 public class JobsInfoContributor implements InfoContributor {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(JobsInfoContributor.class);
-
-  private final RestTemplate restTemplate;
+  private final RestClient restClient;
 
   @Value("${rp.jobs.baseUrl}")
   private String jobsBaseUrl;
 
-  public JobsInfoContributor(RestTemplate restTemplate) {
-    this.restTemplate = restTemplate;
-  }
-
   @Override
   public void contribute(Builder builder) {
     try {
-      var jobsInfoRs = restTemplate.getForObject(jobsBaseUrl + "/info", Map.class);
+      var jobsInfoRs = restClient.get()
+          .uri(jobsBaseUrl + "/info")
+          .retrieve()
+          .body(Map.class);
       builder
           .withDetail("jobsInfo", jobsInfoRs)
           .build();
     } catch (Exception e) {
-      LOGGER.error("Jobs service was not found");
+      log.error("Jobs service was not found");
     }
   }
 }

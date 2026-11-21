@@ -97,6 +97,6 @@ public class JTmsTextManualScenarioAttachmentRecord extends UpdatableRecordImpl<
         setTextManualScenarioId(textManualScenarioId);
         setAttachmentId(attachmentId);
         setCreatedAt(createdAt);
-        resetChangedOnNotNull();
+        resetTouchedOnNotNull();
     }
 }

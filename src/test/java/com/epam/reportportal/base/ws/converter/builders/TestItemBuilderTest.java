@@ -28,7 +28,7 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.item.Paramet
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItem;
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItemResults;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
-import com.epam.reportportal.base.reporting.ItemAttributeResource;
+import com.epam.reportportal.base.reporting.AttributeResource;
 import com.epam.reportportal.base.reporting.ItemAttributesRQ;
 import com.epam.reportportal.base.reporting.ParameterResource;
 import com.epam.reportportal.base.reporting.StartTestItemRQ;
@@ -118,7 +118,7 @@ class TestItemBuilderTest {
 
     final TestItem resultItem = new TestItemBuilder(item).addTestItemResults(itemResults)
         .addStatus(StatusEnum.PASSED)
-        .overwriteAttributes(Sets.newHashSet(new ItemAttributeResource("k", "v")))
+        .overwriteAttributes(Sets.newHashSet(new AttributeResource("k", "v")))
         .get();
 
     assertEquals(120, resultItem.getItemResults().getDuration(), 0.1);

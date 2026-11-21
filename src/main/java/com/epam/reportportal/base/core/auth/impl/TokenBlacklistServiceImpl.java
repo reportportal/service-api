@@ -17,6 +17,7 @@
 package com.epam.reportportal.base.core.auth.impl;
 
 import com.epam.reportportal.base.core.auth.TokenBlacklistService;
+import com.epam.reportportal.base.core.integration.grafana.GrafanaSessionService;
 import com.epam.reportportal.base.infrastructure.persistence.dao.RevokedTokenRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.RevokedToken;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.User;
@@ -37,6 +38,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class TokenBlacklistServiceImpl implements TokenBlacklistService {
 
   private final RevokedTokenRepository revokedTokenRepository;
+  private final GrafanaSessionService grafanaSessionService;
 
   @Override
   @Transactional
@@ -63,6 +65,7 @@ public class TokenBlacklistServiceImpl implements TokenBlacklistService {
     if (StringUtils.isNotBlank(user.getExternalId())) {
       revokeSubject(user.getExternalId());
     }
+    grafanaSessionService.revokeForSubject(user.getLogin());
   }
 
   @Override

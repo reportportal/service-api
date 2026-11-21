@@ -28,13 +28,14 @@ import org.jooq.QueryPart;
 import org.jooq.Record;
 import org.jooq.SQL;
 import org.jooq.Schema;
-import org.jooq.Select;
 import org.jooq.Stringly;
 import org.jooq.Table;
 import org.jooq.TableField;
+import org.jooq.TableLike;
 import org.jooq.TableOptions;
 import org.jooq.UniqueKey;
 import org.jooq.impl.DSL;
+import org.jooq.impl.Internal;
 import org.jooq.impl.SQLDataType;
 import org.jooq.impl.TableImpl;
 
@@ -63,7 +64,7 @@ public class JTmsTestCaseVersion extends TableImpl<JTmsTestCaseVersionRecord> {
     /**
      * The column <code>public.tms_test_case_version.id</code>.
      */
-    public final TableField<JTmsTestCaseVersionRecord, Long> ID = createField(DSL.name("id"), SQLDataType.BIGINT.nullable(false).identity(true), this, "");
+    public final TableField<JTmsTestCaseVersionRecord, Long> ID = createField(DSL.name("id"), SQLDataType.BIGINT.nullable(false).generatedByDefaultAsIdentity(), this, "");
 
     /**
      * The column <code>public.tms_test_case_version.name</code>.
@@ -244,7 +245,7 @@ public class JTmsTestCaseVersion extends TableImpl<JTmsTestCaseVersionRecord> {
      */
     @Override
     public JTmsTestCaseVersion where(Condition condition) {
-        return new JTmsTestCaseVersion(getQualifiedName(), aliased() ? this : null, null, condition);
+        return new JTmsTestCaseVersion(getQualifiedName(), aliased() ? this : null, null, Internal.condition(this, condition));
     }
 
     /**
@@ -311,7 +312,7 @@ public class JTmsTestCaseVersion extends TableImpl<JTmsTestCaseVersionRecord> {
      * Create an inline derived table from this table
      */
     @Override
-    public JTmsTestCaseVersion whereExists(Select<?> select) {
+    public JTmsTestCaseVersion whereExists(TableLike<?> select) {
         return where(DSL.exists(select));
     }
 
@@ -319,7 +320,7 @@ public class JTmsTestCaseVersion extends TableImpl<JTmsTestCaseVersionRecord> {
      * Create an inline derived table from this table
      */
     @Override
-    public JTmsTestCaseVersion whereNotExists(Select<?> select) {
+    public JTmsTestCaseVersion whereNotExists(TableLike<?> select) {
         return where(DSL.notExists(select));
     }
 }

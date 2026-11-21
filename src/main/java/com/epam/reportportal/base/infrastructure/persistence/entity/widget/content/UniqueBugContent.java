@@ -16,23 +16,25 @@
 
 package com.epam.reportportal.base.infrastructure.persistence.entity.widget.content;
 
-import com.epam.reportportal.base.infrastructure.persistence.dao.converters.JpaInstantConverter;
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.ItemAttributePojo;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import jakarta.persistence.Convert;
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.List;
 import java.util.Set;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * Unique bug table row: sub-type, launch, URL, and statistics link.
  *
  * @author Ivan Budayeu
  */
+@Setter
+@Getter
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class UniqueBugContent implements Serializable {
 
@@ -43,44 +45,13 @@ public class UniqueBugContent implements Serializable {
   private String url;
 
   @JsonProperty(value = "submitDate")
-  @Convert(converter = JpaInstantConverter.class)
   private Instant submitDate;
 
   @JsonProperty(value = "items")
   private List<ItemInfo> items = Lists.newArrayList();
 
-  public String getSubmitter() {
-    return submitter;
-  }
-
-  public void setSubmitter(String submitter) {
-    this.submitter = submitter;
-  }
-
-  public String getUrl() {
-    return url;
-  }
-
-  public void setUrl(String url) {
-    this.url = url;
-  }
-
-  public Instant getSubmitDate() {
-    return submitDate;
-  }
-
-  public void setSubmitDate(Instant submitDate) {
-    this.submitDate = submitDate;
-  }
-
-  public List<ItemInfo> getItems() {
-    return items;
-  }
-
-  public void setItems(List<ItemInfo> items) {
-    this.items = items;
-  }
-
+  @Setter
+  @Getter
   public static class ItemInfo implements Serializable {
 
     @JsonProperty(value = "itemId")
@@ -98,44 +69,5 @@ public class UniqueBugContent implements Serializable {
     @JsonProperty(value = "attributes")
     private Set<ItemAttributePojo> itemAttributeResources = Sets.newHashSet();
 
-    public Long getTestItemId() {
-      return testItemId;
-    }
-
-    public void setTestItemId(Long testItemId) {
-      this.testItemId = testItemId;
-    }
-
-    public String getTestItemName() {
-      return testItemName;
-    }
-
-    public void setTestItemName(String testItemName) {
-      this.testItemName = testItemName;
-    }
-
-    public Long getLaunchId() {
-      return launchId;
-    }
-
-    public void setLaunchId(Long launchId) {
-      this.launchId = launchId;
-    }
-
-    public String getPath() {
-      return path;
-    }
-
-    public void setPath(String path) {
-      this.path = path;
-    }
-
-    public Set<ItemAttributePojo> getItemAttributeResources() {
-      return itemAttributeResources;
-    }
-
-    public void setItemAttributeResources(Set<ItemAttributePojo> itemAttributeResources) {
-      this.itemAttributeResources = itemAttributeResources;
-    }
   }
 }

@@ -7,6 +7,7 @@ package com.epam.reportportal.base.infrastructure.persistence.jooq.tables;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.JPublic;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.Keys;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JLaunch.JLaunchPath;
+import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JLaunchStatistics.JLaunchStatisticsPath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JStatistics.JStatisticsPath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JTestItem.JTestItemPath;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.tables.records.JStatisticsFieldRecord;
@@ -27,13 +28,14 @@ import org.jooq.QueryPart;
 import org.jooq.Record;
 import org.jooq.SQL;
 import org.jooq.Schema;
-import org.jooq.Select;
 import org.jooq.Stringly;
 import org.jooq.Table;
 import org.jooq.TableField;
+import org.jooq.TableLike;
 import org.jooq.TableOptions;
 import org.jooq.UniqueKey;
 import org.jooq.impl.DSL;
+import org.jooq.impl.Internal;
 import org.jooq.impl.SQLDataType;
 import org.jooq.impl.TableImpl;
 
@@ -62,7 +64,7 @@ public class JStatisticsField extends TableImpl<JStatisticsFieldRecord> {
     /**
      * The column <code>public.statistics_field.sf_id</code>.
      */
-    public final TableField<JStatisticsFieldRecord, Long> SF_ID = createField(DSL.name("sf_id"), SQLDataType.BIGINT.nullable(false).identity(true), this, "");
+    public final TableField<JStatisticsFieldRecord, Long> SF_ID = createField(DSL.name("sf_id"), SQLDataType.BIGINT.nullable(false).generatedByDefaultAsIdentity(), this, "");
 
     /**
      * The column <code>public.statistics_field.name</code>.
@@ -151,6 +153,19 @@ public class JStatisticsField extends TableImpl<JStatisticsFieldRecord> {
         return Arrays.asList(Keys.STATISTICS_FIELD_NAME_KEY);
     }
 
+    private transient JLaunchStatisticsPath _launchStatistics;
+
+    /**
+     * Get the implicit to-many join path to the
+     * <code>public.launch_statistics</code> table
+     */
+    public JLaunchStatisticsPath launchStatistics() {
+        if (_launchStatistics == null)
+            _launchStatistics = new JLaunchStatisticsPath(this, null, Keys.LAUNCH_STATISTICS__LAUNCH_STATISTICS_STATISTICS_FIELD_ID_FKEY.getInverseKey());
+
+        return _launchStatistics;
+    }
+
     private transient JStatisticsPath _statistics;
 
     /**
@@ -165,19 +180,19 @@ public class JStatisticsField extends TableImpl<JStatisticsFieldRecord> {
     }
 
     /**
+     * Get the implicit many-to-many join path to the <code>public.launch</code>
+     * table
+     */
+    public JLaunchPath launch() {
+        return launchStatistics().launch();
+    }
+
+    /**
      * Get the implicit many-to-many join path to the
      * <code>public.test_item</code> table
      */
     public JTestItemPath testItem() {
         return statistics().testItem();
-    }
-
-    /**
-     * Get the implicit many-to-many join path to the <code>public.launch</code>
-     * table
-     */
-    public JLaunchPath launch() {
-        return statistics().launch();
     }
 
     @Override
@@ -224,7 +239,7 @@ public class JStatisticsField extends TableImpl<JStatisticsFieldRecord> {
      */
     @Override
     public JStatisticsField where(Condition condition) {
-        return new JStatisticsField(getQualifiedName(), aliased() ? this : null, null, condition);
+        return new JStatisticsField(getQualifiedName(), aliased() ? this : null, null, Internal.condition(this, condition));
     }
 
     /**
@@ -291,7 +306,7 @@ public class JStatisticsField extends TableImpl<JStatisticsFieldRecord> {
      * Create an inline derived table from this table
      */
     @Override
-    public JStatisticsField whereExists(Select<?> select) {
+    public JStatisticsField whereExists(TableLike<?> select) {
         return where(DSL.exists(select));
     }
 
@@ -299,7 +314,7 @@ public class JStatisticsField extends TableImpl<JStatisticsFieldRecord> {
      * Create an inline derived table from this table
      */
     @Override
-    public JStatisticsField whereNotExists(Select<?> select) {
+    public JStatisticsField whereNotExists(TableLike<?> select) {
         return where(DSL.notExists(select));
     }
 }

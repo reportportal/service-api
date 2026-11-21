@@ -169,6 +169,6 @@ public class JIntegrationTypeRecord extends UpdatableRecordImpl<JIntegrationType
         setEnabled(enabled);
         setDetails(details);
         setPluginType(pluginType);
-        resetChangedOnNotNull();
+        resetTouchedOnNotNull();
     }
 }

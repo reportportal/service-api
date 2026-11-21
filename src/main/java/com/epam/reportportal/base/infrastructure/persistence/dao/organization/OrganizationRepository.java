@@ -28,4 +28,6 @@ public interface OrganizationRepository extends ReportPortalRepository<Organizat
 
   Optional<Organization> findByOwnerIdAndOrganizationType(Long ownerId, OrganizationType organizationType);
 
+  Optional<Organization> findByNameIgnoreCase(String name);
+
 }

@@ -49,11 +49,10 @@ import java.util.List;
 @JsonInclude(Include.NON_NULL)
 public class UpdateIssueSubTypeRQ {
 
-  @Valid
   @NotEmpty
   @JsonProperty(value = "ids", required = true)
   @Schema(requiredMode = RequiredMode.REQUIRED)
-  private List<UpdateOneIssueSubTypeRQ> ids;
+  private List<@Valid UpdateOneIssueSubTypeRQ> ids;
 
   public UpdateIssueSubTypeRQ() {
   }

@@ -18,6 +18,7 @@ import com.epam.reportportal.base.core.tms.mapper.TmsAttributeMapper;
 import com.epam.reportportal.base.core.tms.mapper.TmsTestCaseAttributeMapper;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsAttributeRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestCaseAttributeRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestCaseRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsAttribute;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCase;
@@ -52,6 +53,9 @@ class TmsTestCaseAttributeServiceImplTest {
 
   @Mock
   private TmsTestCaseAttributeRepository tmsTestCaseAttributeRepository;
+
+  @Mock
+  private TmsTestCaseRepository tmsTestCaseRepository;
 
   @Mock
   private TmsAttributeService tmsAttributeService;
@@ -235,6 +239,48 @@ class TmsTestCaseAttributeServiceImplTest {
   }
 
   @Test
+  void createTestCaseAttributes_ShouldCollapseDuplicateAttributes() {
+    // Given
+    var rq1 = new TmsTestCaseAttributeRQ();
+    rq1.setKey("smoke");
+    var rq2 = new TmsTestCaseAttributeRQ();
+    rq2.setKey("smoke");
+
+    when(tmsAttributeService.findOrCreateTag(PROJECT_ID, "smoke")).thenReturn(tmsAttribute);
+    when(tmsTestCaseAttributeMapper.createTestCaseAttribute(testCase, tmsAttribute))
+        .thenReturn(testCaseAttributes.iterator().next());
+
+    // When
+    sut.createTestCaseAttributes(PROJECT_ID, testCase, List.of(rq1, rq2));
+
+    // Then
+    verify(tmsTestCaseAttributeMapper, org.mockito.Mockito.times(1))
+        .createTestCaseAttribute(testCase, tmsAttribute);
+    var captor = org.mockito.ArgumentCaptor.forClass(java.util.Collection.class);
+    verify(tmsTestCaseAttributeRepository).saveAll(captor.capture());
+    assertEquals(1, captor.getValue().size());
+  }
+
+  @Test
+  void createTestCaseAttributes_ShouldSkipAlreadyExistingPairs() {
+    // Given
+    when(tmsAttributeService.getEntityById(PROJECT_ID, 2L)).thenReturn(tmsAttribute);
+    when(tmsTestCaseAttributeMapper.createTestCaseAttribute(testCase, tmsAttribute))
+        .thenReturn(testCaseAttributes.iterator().next());
+    when(tmsTestCaseAttributeRepository.findExistingIds(any(), any()))
+        .thenReturn(List.of(new TmsTestCaseAttributeId(testCase.getId(), 2L)));
+
+    // When
+    sut.createTestCaseAttributes(PROJECT_ID, testCase, attributeRQs);
+
+    // Then
+    var captor = org.mockito.ArgumentCaptor.forClass(java.util.Collection.class);
+    verify(tmsTestCaseAttributeRepository).saveAll(captor.capture());
+    assertEquals(0, captor.getValue().size());
+    assertEquals(1, testCase.getAttributes().size());
+  }
+
+  @Test
   void createTestCaseAttributes_ShouldHandleMixedIdAndKey() {
     // Given
     var attributeRQ1 = new TmsTestCaseAttributeRQ();
@@ -269,6 +315,32 @@ class TmsTestCaseAttributeServiceImplTest {
     verify(tmsTestCaseAttributeMapper).createTestCaseAttribute(testCase, tmsAttribute);
     verify(tmsTestCaseAttributeMapper).createTestCaseAttribute(testCase, tmsAttribute2);
     verify(tmsTestCaseAttributeRepository).saveAll(any(Set.class));
+  }
+
+  @Test
+  void createTestCaseAttributesByIds_ShouldAttachWithoutFetchingAttributes() {
+    // Given
+    var attr2Ref = attributeReference(2L);
+    var attr3Ref = attributeReference(3L);
+    var testCaseAttribute1 = new TmsTestCaseAttribute();
+    var testCaseAttribute2 = new TmsTestCaseAttribute();
+
+    when(tmsAttributeRepository.getReferenceById(2L)).thenReturn(attr2Ref);
+    when(tmsAttributeRepository.getReferenceById(3L)).thenReturn(attr3Ref);
+    when(tmsTestCaseAttributeMapper.createTestCaseAttribute(testCase, attr2Ref))
+        .thenReturn(testCaseAttribute1);
+    when(tmsTestCaseAttributeMapper.createTestCaseAttribute(testCase, attr3Ref))
+        .thenReturn(testCaseAttribute2);
+
+    // When
+    sut.createTestCaseAttributesByIds(testCase, List.of(2L, 3L));
+
+    // Then
+    verifyNoInteractions(tmsAttributeService);
+    verify(tmsTestCaseAttributeMapper).createTestCaseAttribute(testCase, attr2Ref);
+    verify(tmsTestCaseAttributeMapper).createTestCaseAttribute(testCase, attr3Ref);
+    verify(tmsTestCaseAttributeRepository).saveAll(any(Set.class));
+    assertEquals(2, testCase.getAttributes().size());
   }
 
   @Test
@@ -672,21 +744,47 @@ class TmsTestCaseAttributeServiceImplTest {
 
   // Tests for addAttributesToTestCases method
 
+  private TmsTestCase testCaseReference(Long id) {
+    var reference = new TmsTestCase();
+    reference.setId(id);
+    return reference;
+  }
+
+  private TmsAttribute attributeReference(Long id) {
+    var reference = new TmsAttribute();
+    reference.setId(id);
+    return reference;
+  }
+
   @Test
   void addAttributesToTestCases_WithMultipleTestCasesAndAttributes_ShouldCreateAllCombinations() {
     // Given
     var testCaseIds = Arrays.asList(1L, 2L);
     Collection<Long> attributeIds = Arrays.asList(10L, 20L);
 
+    var testCase1Ref = testCaseReference(1L);
+    var testCase2Ref = testCaseReference(2L);
+    var attr10Ref = attributeReference(10L);
+    var attr20Ref = attributeReference(20L);
+
     var attr1TestCase1 = new TmsTestCaseAttribute();
     var attr2TestCase1 = new TmsTestCaseAttribute();
     var attr1TestCase2 = new TmsTestCaseAttribute();
     var attr2TestCase2 = new TmsTestCaseAttribute();
 
-    when(tmsTestCaseAttributeMapper.createTestCaseAttribute(1L, 10L)).thenReturn(attr1TestCase1);
-    when(tmsTestCaseAttributeMapper.createTestCaseAttribute(1L, 20L)).thenReturn(attr2TestCase1);
-    when(tmsTestCaseAttributeMapper.createTestCaseAttribute(2L, 10L)).thenReturn(attr1TestCase2);
-    when(tmsTestCaseAttributeMapper.createTestCaseAttribute(2L, 20L)).thenReturn(attr2TestCase2);
+    when(tmsTestCaseRepository.getReferenceById(1L)).thenReturn(testCase1Ref);
+    when(tmsTestCaseRepository.getReferenceById(2L)).thenReturn(testCase2Ref);
+    when(tmsAttributeRepository.getReferenceById(10L)).thenReturn(attr10Ref);
+    when(tmsAttributeRepository.getReferenceById(20L)).thenReturn(attr20Ref);
+
+    when(tmsTestCaseAttributeMapper.createTestCaseAttribute(testCase1Ref, attr10Ref))
+        .thenReturn(attr1TestCase1);
+    when(tmsTestCaseAttributeMapper.createTestCaseAttribute(testCase1Ref, attr20Ref))
+        .thenReturn(attr2TestCase1);
+    when(tmsTestCaseAttributeMapper.createTestCaseAttribute(testCase2Ref, attr10Ref))
+        .thenReturn(attr1TestCase2);
+    when(tmsTestCaseAttributeMapper.createTestCaseAttribute(testCase2Ref, attr20Ref))
+        .thenReturn(attr2TestCase2);
 
     // Order matters - matches flatMap logic
     var expectedAttributes = Arrays.asList(
@@ -696,10 +794,10 @@ class TmsTestCaseAttributeServiceImplTest {
     sut.addAttributesToTestCases(testCaseIds, attributeIds);
 
     // Then
-    verify(tmsTestCaseAttributeMapper).createTestCaseAttribute(1L, 10L);
-    verify(tmsTestCaseAttributeMapper).createTestCaseAttribute(1L, 20L);
-    verify(tmsTestCaseAttributeMapper).createTestCaseAttribute(2L, 10L);
-    verify(tmsTestCaseAttributeMapper).createTestCaseAttribute(2L, 20L);
+    verify(tmsTestCaseAttributeMapper).createTestCaseAttribute(testCase1Ref, attr10Ref);
+    verify(tmsTestCaseAttributeMapper).createTestCaseAttribute(testCase1Ref, attr20Ref);
+    verify(tmsTestCaseAttributeMapper).createTestCaseAttribute(testCase2Ref, attr10Ref);
+    verify(tmsTestCaseAttributeMapper).createTestCaseAttribute(testCase2Ref, attr20Ref);
     verify(tmsTestCaseAttributeRepository).saveAll(expectedAttributes);
   }
 
@@ -709,13 +807,26 @@ class TmsTestCaseAttributeServiceImplTest {
     var testCaseIds = List.of(1L);
     Collection<Long> attributeIds = Arrays.asList(10L, 20L, 30L);
 
+    var testCase1Ref = testCaseReference(1L);
+    var attr10Ref = attributeReference(10L);
+    var attr20Ref = attributeReference(20L);
+    var attr30Ref = attributeReference(30L);
+
     var attr1 = new TmsTestCaseAttribute();
     var attr2 = new TmsTestCaseAttribute();
     var attr3 = new TmsTestCaseAttribute();
 
-    when(tmsTestCaseAttributeMapper.createTestCaseAttribute(1L, 10L)).thenReturn(attr1);
-    when(tmsTestCaseAttributeMapper.createTestCaseAttribute(1L, 20L)).thenReturn(attr2);
-    when(tmsTestCaseAttributeMapper.createTestCaseAttribute(1L, 30L)).thenReturn(attr3);
+    when(tmsTestCaseRepository.getReferenceById(1L)).thenReturn(testCase1Ref);
+    when(tmsAttributeRepository.getReferenceById(10L)).thenReturn(attr10Ref);
+    when(tmsAttributeRepository.getReferenceById(20L)).thenReturn(attr20Ref);
+    when(tmsAttributeRepository.getReferenceById(30L)).thenReturn(attr30Ref);
+
+    when(tmsTestCaseAttributeMapper.createTestCaseAttribute(testCase1Ref, attr10Ref))
+        .thenReturn(attr1);
+    when(tmsTestCaseAttributeMapper.createTestCaseAttribute(testCase1Ref, attr20Ref))
+        .thenReturn(attr2);
+    when(tmsTestCaseAttributeMapper.createTestCaseAttribute(testCase1Ref, attr30Ref))
+        .thenReturn(attr3);
 
     var expectedAttributes = Arrays.asList(attr1, attr2, attr3);
 
@@ -723,9 +834,9 @@ class TmsTestCaseAttributeServiceImplTest {
     sut.addAttributesToTestCases(testCaseIds, attributeIds);
 
     // Then
-    verify(tmsTestCaseAttributeMapper).createTestCaseAttribute(1L, 10L);
-    verify(tmsTestCaseAttributeMapper).createTestCaseAttribute(1L, 20L);
-    verify(tmsTestCaseAttributeMapper).createTestCaseAttribute(1L, 30L);
+    verify(tmsTestCaseAttributeMapper).createTestCaseAttribute(testCase1Ref, attr10Ref);
+    verify(tmsTestCaseAttributeMapper).createTestCaseAttribute(testCase1Ref, attr20Ref);
+    verify(tmsTestCaseAttributeMapper).createTestCaseAttribute(testCase1Ref, attr30Ref);
     verify(tmsTestCaseAttributeRepository).saveAll(expectedAttributes);
   }
 
@@ -735,13 +846,26 @@ class TmsTestCaseAttributeServiceImplTest {
     var testCaseIds = Arrays.asList(1L, 2L, 3L);
     Collection<Long> attributeIds = List.of(10L);
 
+    var testCase1Ref = testCaseReference(1L);
+    var testCase2Ref = testCaseReference(2L);
+    var testCase3Ref = testCaseReference(3L);
+    var attr10Ref = attributeReference(10L);
+
     var attr1 = new TmsTestCaseAttribute();
     var attr2 = new TmsTestCaseAttribute();
     var attr3 = new TmsTestCaseAttribute();
 
-    when(tmsTestCaseAttributeMapper.createTestCaseAttribute(1L, 10L)).thenReturn(attr1);
-    when(tmsTestCaseAttributeMapper.createTestCaseAttribute(2L, 10L)).thenReturn(attr2);
-    when(tmsTestCaseAttributeMapper.createTestCaseAttribute(3L, 10L)).thenReturn(attr3);
+    when(tmsTestCaseRepository.getReferenceById(1L)).thenReturn(testCase1Ref);
+    when(tmsTestCaseRepository.getReferenceById(2L)).thenReturn(testCase2Ref);
+    when(tmsTestCaseRepository.getReferenceById(3L)).thenReturn(testCase3Ref);
+    when(tmsAttributeRepository.getReferenceById(10L)).thenReturn(attr10Ref);
+
+    when(tmsTestCaseAttributeMapper.createTestCaseAttribute(testCase1Ref, attr10Ref))
+        .thenReturn(attr1);
+    when(tmsTestCaseAttributeMapper.createTestCaseAttribute(testCase2Ref, attr10Ref))
+        .thenReturn(attr2);
+    when(tmsTestCaseAttributeMapper.createTestCaseAttribute(testCase3Ref, attr10Ref))
+        .thenReturn(attr3);
 
     var expectedAttributes = Arrays.asList(attr1, attr2, attr3);
 
@@ -749,9 +873,9 @@ class TmsTestCaseAttributeServiceImplTest {
     sut.addAttributesToTestCases(testCaseIds, attributeIds);
 
     // Then
-    verify(tmsTestCaseAttributeMapper).createTestCaseAttribute(1L, 10L);
-    verify(tmsTestCaseAttributeMapper).createTestCaseAttribute(2L, 10L);
-    verify(tmsTestCaseAttributeMapper).createTestCaseAttribute(3L, 10L);
+    verify(tmsTestCaseAttributeMapper).createTestCaseAttribute(testCase1Ref, attr10Ref);
+    verify(tmsTestCaseAttributeMapper).createTestCaseAttribute(testCase2Ref, attr10Ref);
+    verify(tmsTestCaseAttributeMapper).createTestCaseAttribute(testCase3Ref, attr10Ref);
     verify(tmsTestCaseAttributeRepository).saveAll(expectedAttributes);
   }
 
@@ -761,9 +885,14 @@ class TmsTestCaseAttributeServiceImplTest {
     var testCaseIds = List.of(1L);
     Collection<Long> attributeIds = List.of(10L);
 
+    var testCase1Ref = testCaseReference(1L);
+    var attr10Ref = attributeReference(10L);
     var attribute = new TmsTestCaseAttribute();
 
-    when(tmsTestCaseAttributeMapper.createTestCaseAttribute(1L, 10L)).thenReturn(attribute);
+    when(tmsTestCaseRepository.getReferenceById(1L)).thenReturn(testCase1Ref);
+    when(tmsAttributeRepository.getReferenceById(10L)).thenReturn(attr10Ref);
+    when(tmsTestCaseAttributeMapper.createTestCaseAttribute(testCase1Ref, attr10Ref))
+        .thenReturn(attribute);
 
     var expectedAttributes = List.of(attribute);
 
@@ -771,7 +900,7 @@ class TmsTestCaseAttributeServiceImplTest {
     sut.addAttributesToTestCases(testCaseIds, attributeIds);
 
     // Then
-    verify(tmsTestCaseAttributeMapper).createTestCaseAttribute(1L, 10L);
+    verify(tmsTestCaseAttributeMapper).createTestCaseAttribute(testCase1Ref, attr10Ref);
     verify(tmsTestCaseAttributeRepository).saveAll(expectedAttributes);
   }
 
@@ -781,18 +910,27 @@ class TmsTestCaseAttributeServiceImplTest {
     var testCaseIds = List.of(1L);
     Collection<Long> attributeIds = Set.of(10L, 20L); // Using Set instead of List
 
+    var testCase1Ref = testCaseReference(1L);
+    var attr10Ref = attributeReference(10L);
+    var attr20Ref = attributeReference(20L);
+
     var attr1 = new TmsTestCaseAttribute();
     var attr2 = new TmsTestCaseAttribute();
 
-    when(tmsTestCaseAttributeMapper.createTestCaseAttribute(1L, 10L)).thenReturn(attr1);
-    when(tmsTestCaseAttributeMapper.createTestCaseAttribute(1L, 20L)).thenReturn(attr2);
+    when(tmsTestCaseRepository.getReferenceById(1L)).thenReturn(testCase1Ref);
+    when(tmsAttributeRepository.getReferenceById(10L)).thenReturn(attr10Ref);
+    when(tmsAttributeRepository.getReferenceById(20L)).thenReturn(attr20Ref);
+    when(tmsTestCaseAttributeMapper.createTestCaseAttribute(testCase1Ref, attr10Ref))
+        .thenReturn(attr1);
+    when(tmsTestCaseAttributeMapper.createTestCaseAttribute(testCase1Ref, attr20Ref))
+        .thenReturn(attr2);
 
     // When
     sut.addAttributesToTestCases(testCaseIds, attributeIds);
 
     // Then
-    verify(tmsTestCaseAttributeMapper).createTestCaseAttribute(1L, 10L);
-    verify(tmsTestCaseAttributeMapper).createTestCaseAttribute(1L, 20L);
+    verify(tmsTestCaseAttributeMapper).createTestCaseAttribute(testCase1Ref, attr10Ref);
+    verify(tmsTestCaseAttributeMapper).createTestCaseAttribute(testCase1Ref, attr20Ref);
 
     // Use ArgumentCaptor to verify the list contents since Set order may vary
     var captor = ArgumentCaptor.forClass(List.class);
@@ -810,6 +948,12 @@ class TmsTestCaseAttributeServiceImplTest {
     var testCaseIds = Arrays.asList(1L, 2L, 3L);
     Collection<Long> attributeIds = Arrays.asList(10L, 20L);
 
+    var testCase1Ref = testCaseReference(1L);
+    var testCase2Ref = testCaseReference(2L);
+    var testCase3Ref = testCaseReference(3L);
+    var attr10Ref = attributeReference(10L);
+    var attr20Ref = attributeReference(20L);
+
     // Create all possible combinations
     var attr10TestCase1 = new TmsTestCaseAttribute();
     var attr20TestCase1 = new TmsTestCaseAttribute();
@@ -818,12 +962,24 @@ class TmsTestCaseAttributeServiceImplTest {
     var attr10TestCase3 = new TmsTestCaseAttribute();
     var attr20TestCase3 = new TmsTestCaseAttribute();
 
-    when(tmsTestCaseAttributeMapper.createTestCaseAttribute(1L, 10L)).thenReturn(attr10TestCase1);
-    when(tmsTestCaseAttributeMapper.createTestCaseAttribute(1L, 20L)).thenReturn(attr20TestCase1);
-    when(tmsTestCaseAttributeMapper.createTestCaseAttribute(2L, 10L)).thenReturn(attr10TestCase2);
-    when(tmsTestCaseAttributeMapper.createTestCaseAttribute(2L, 20L)).thenReturn(attr20TestCase2);
-    when(tmsTestCaseAttributeMapper.createTestCaseAttribute(3L, 10L)).thenReturn(attr10TestCase3);
-    when(tmsTestCaseAttributeMapper.createTestCaseAttribute(3L, 20L)).thenReturn(attr20TestCase3);
+    when(tmsTestCaseRepository.getReferenceById(1L)).thenReturn(testCase1Ref);
+    when(tmsTestCaseRepository.getReferenceById(2L)).thenReturn(testCase2Ref);
+    when(tmsTestCaseRepository.getReferenceById(3L)).thenReturn(testCase3Ref);
+    when(tmsAttributeRepository.getReferenceById(10L)).thenReturn(attr10Ref);
+    when(tmsAttributeRepository.getReferenceById(20L)).thenReturn(attr20Ref);
+
+    when(tmsTestCaseAttributeMapper.createTestCaseAttribute(testCase1Ref, attr10Ref))
+        .thenReturn(attr10TestCase1);
+    when(tmsTestCaseAttributeMapper.createTestCaseAttribute(testCase1Ref, attr20Ref))
+        .thenReturn(attr20TestCase1);
+    when(tmsTestCaseAttributeMapper.createTestCaseAttribute(testCase2Ref, attr10Ref))
+        .thenReturn(attr10TestCase2);
+    when(tmsTestCaseAttributeMapper.createTestCaseAttribute(testCase2Ref, attr20Ref))
+        .thenReturn(attr20TestCase2);
+    when(tmsTestCaseAttributeMapper.createTestCaseAttribute(testCase3Ref, attr10Ref))
+        .thenReturn(attr10TestCase3);
+    when(tmsTestCaseAttributeMapper.createTestCaseAttribute(testCase3Ref, attr20Ref))
+        .thenReturn(attr20TestCase3);
 
     // Expected order according to flatMap logic
     var expectedAttributes = Arrays.asList(

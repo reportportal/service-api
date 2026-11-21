@@ -36,14 +36,15 @@ import org.jooq.QueryPart;
 import org.jooq.Record;
 import org.jooq.SQL;
 import org.jooq.Schema;
-import org.jooq.Select;
 import org.jooq.Stringly;
 import org.jooq.Table;
 import org.jooq.TableField;
+import org.jooq.TableLike;
 import org.jooq.TableOptions;
 import org.jooq.UniqueKey;
 import org.jooq.impl.DSL;
 import org.jooq.impl.DefaultDataType;
+import org.jooq.impl.Internal;
 import org.jooq.impl.SQLDataType;
 import org.jooq.impl.TableImpl;
 
@@ -72,7 +73,7 @@ public class JTmsTestPlan extends TableImpl<JTmsTestPlanRecord> {
     /**
      * The column <code>public.tms_test_plan.id</code>.
      */
-    public final TableField<JTmsTestPlanRecord, Long> ID = createField(DSL.name("id"), SQLDataType.BIGINT.nullable(false).identity(true), this, "");
+    public final TableField<JTmsTestPlanRecord, Long> ID = createField(DSL.name("id"), SQLDataType.BIGINT.nullable(false).generatedByDefaultAsIdentity(), this, "");
 
     /**
      * The column <code>public.tms_test_plan.name</code>.
@@ -82,7 +83,7 @@ public class JTmsTestPlan extends TableImpl<JTmsTestPlanRecord> {
     /**
      * The column <code>public.tms_test_plan.description</code>.
      */
-    public final TableField<JTmsTestPlanRecord, String> DESCRIPTION = createField(DSL.name("description"), SQLDataType.VARCHAR(255), this, "");
+    public final TableField<JTmsTestPlanRecord, String> DESCRIPTION = createField(DSL.name("description"), SQLDataType.VARCHAR(2048), this, "");
 
     /**
      * The column <code>public.tms_test_plan.created_at</code>.
@@ -348,7 +349,7 @@ public class JTmsTestPlan extends TableImpl<JTmsTestPlanRecord> {
      */
     @Override
     public JTmsTestPlan where(Condition condition) {
-        return new JTmsTestPlan(getQualifiedName(), aliased() ? this : null, null, condition);
+        return new JTmsTestPlan(getQualifiedName(), aliased() ? this : null, null, Internal.condition(this, condition));
     }
 
     /**
@@ -415,7 +416,7 @@ public class JTmsTestPlan extends TableImpl<JTmsTestPlanRecord> {
      * Create an inline derived table from this table
      */
     @Override
-    public JTmsTestPlan whereExists(Select<?> select) {
+    public JTmsTestPlan whereExists(TableLike<?> select) {
         return where(DSL.exists(select));
     }
 
@@ -423,7 +424,7 @@ public class JTmsTestPlan extends TableImpl<JTmsTestPlanRecord> {
      * Create an inline derived table from this table
      */
     @Override
-    public JTmsTestPlan whereNotExists(Select<?> select) {
+    public JTmsTestPlan whereNotExists(TableLike<?> select) {
         return where(DSL.notExists(select));
     }
 }

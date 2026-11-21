@@ -27,7 +27,7 @@ import static com.epam.reportportal.base.infrastructure.persistence.entity.enums
 import static com.epam.reportportal.base.infrastructure.rules.commons.validation.BusinessRule.expect;
 import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.FORBIDDEN_OPERATION;
 import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.ISSUE_TYPE_NOT_FOUND;
-import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.PROJECT_NOT_FOUND;
+import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.PROJECT_KEY_NOT_FOUND;
 import static com.epam.reportportal.base.ws.converter.converters.IssueTypeConverter.TO_ACTIVITY_RESOURCE;
 import static java.util.Optional.ofNullable;
 
@@ -86,7 +86,7 @@ public class UpdateProjectSettingsHandlerImpl implements UpdateProjectSettingsHa
     );
 
     Project project = projectRepository.findByKey(projectKey)
-        .orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectKey));
+        .orElseThrow(() -> new ReportPortalException(PROJECT_KEY_NOT_FOUND, projectKey));
 
     List<IssueTypeActivityResource> issueTypeActivityResources =
         updateIssueSubTypeRQ.getIds().stream().map(subTypeRQ -> TO_ACTIVITY_RESOURCE.apply(
@@ -107,7 +107,7 @@ public class UpdateProjectSettingsHandlerImpl implements UpdateProjectSettingsHa
       UpdatePatternTemplateRQ updatePatternTemplateRQ, ReportPortalUser user) {
 
     Project project = projectRepository.findByKey(projectKey)
-        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectKey));
+        .orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_KEY_NOT_FOUND, projectKey));
 
     PatternTemplate patternTemplate = patternTemplateRepository.findByIdAndProjectId(id,
         project.getId()).orElseThrow(

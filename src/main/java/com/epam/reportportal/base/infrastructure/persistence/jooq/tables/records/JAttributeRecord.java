@@ -74,6 +74,6 @@ public class JAttributeRecord extends UpdatableRecordImpl<JAttributeRecord> {
 
         setId(id);
         setName(name);
-        resetChangedOnNotNull();
+        resetTouchedOnNotNull();
     }
 }

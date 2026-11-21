@@ -8,7 +8,10 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsManua
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -38,12 +41,20 @@ public class TmsManualScenarioRequirementServiceImpl implements
       return;
     }
 
+    var requestedIds = requirements.stream()
+        .map(TmsRequirementRQ::getId)
+        .filter(Objects::nonNull)
+        .toList();
+
+    var existingById = tmsManualScenarioRequirementRepository.findAllById(requestedIds)
+        .stream()
+        .collect(Collectors.toMap(TmsManualScenarioRequirement::getId, Function.identity()));
+
     var entities = new ArrayList<TmsManualScenarioRequirement>();
     for (int i = 0; i < requirements.size(); i++) {
       var requirementRQ = requirements.get(i);
-      var existingOpt = tmsManualScenarioRequirementRepository.findById(requirementRQ.getId());
-      if (existingOpt.isPresent()) {
-        var existing = existingOpt.get();
+      var existing = existingById.get(requirementRQ.getId());
+      if (existing != null) {
         existing.setValue(requirementRQ.getValue());
         existing.setManualScenario(tmsManualScenario);
         existing.setNumber(i);
@@ -60,6 +71,66 @@ public class TmsManualScenarioRequirementServiceImpl implements
 
     log.debug("Created {} requirements for manual scenario: {}",
         entities.size(), tmsManualScenario.getId());
+  }
+
+  @Override
+  @Transactional
+  public void createRequirementsBatch(List<TmsManualScenario> manualScenarios,
+      List<List<TmsRequirementRQ>> requirementsPerScenario) {
+
+    var pending = new ArrayList<PendingRequirement>();
+    for (int i = 0; i < manualScenarios.size(); i++) {
+      var requirements = requirementsPerScenario.get(i);
+      if (CollectionUtils.isEmpty(requirements)) {
+        continue;
+      }
+      var scenario = manualScenarios.get(i);
+      for (int number = 0; number < requirements.size(); number++) {
+        pending.add(new PendingRequirement(scenario, requirements.get(number), number));
+      }
+    }
+
+    if (pending.isEmpty()) {
+      return;
+    }
+
+    var requestedIds = pending.stream()
+        .map(p -> p.rq().getId())
+        .filter(Objects::nonNull)
+        .toList();
+
+    var existingById = requestedIds.isEmpty()
+        ? Map.<String, TmsManualScenarioRequirement>of()
+        : tmsManualScenarioRequirementRepository.findAllById(requestedIds)
+            .stream()
+            .collect(Collectors.toMap(TmsManualScenarioRequirement::getId, Function.identity()));
+
+    var entitiesByScenario =
+        new LinkedHashMap<TmsManualScenario, List<TmsManualScenarioRequirement>>();
+    var allEntities = new ArrayList<TmsManualScenarioRequirement>();
+
+    for (var p : pending) {
+      var existing = existingById.get(p.rq().getId());
+      TmsManualScenarioRequirement entity;
+      if (existing != null) {
+        existing.setValue(p.rq().getValue());
+        existing.setManualScenario(p.scenario());
+        existing.setNumber(p.number());
+        entity = existing;
+      } else {
+        entity = tmsManualScenarioRequirementMapper.toEntity(p.rq());
+        entity.setManualScenario(p.scenario());
+        entity.setNumber(p.number());
+      }
+      allEntities.add(entity);
+      entitiesByScenario.computeIfAbsent(p.scenario(), k -> new ArrayList<>()).add(entity);
+    }
+
+    tmsManualScenarioRequirementRepository.saveAll(allEntities);
+    entitiesByScenario.forEach(TmsManualScenario::setRequirements);
+
+    log.debug("Created {} requirements across {} manual scenarios",
+        allEntities.size(), entitiesByScenario.size());
   }
 
   @Override
@@ -212,5 +283,9 @@ public class TmsManualScenarioRequirementServiceImpl implements
 
     log.debug("Duplicated {} requirements from manual scenario: {} to: {}",
         duplicatedEntities.size(), originalScenario.getId(), duplicatedScenario.getId());
+  }
+
+  private record PendingRequirement(TmsManualScenario scenario, TmsRequirementRQ rq, int number) {
+
   }
 }

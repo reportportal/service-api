@@ -29,13 +29,14 @@ import org.jooq.QueryPart;
 import org.jooq.Record;
 import org.jooq.SQL;
 import org.jooq.Schema;
-import org.jooq.Select;
 import org.jooq.Stringly;
 import org.jooq.Table;
 import org.jooq.TableField;
+import org.jooq.TableLike;
 import org.jooq.TableOptions;
 import org.jooq.UniqueKey;
 import org.jooq.impl.DSL;
+import org.jooq.impl.Internal;
 import org.jooq.impl.SQLDataType;
 import org.jooq.impl.TableImpl;
 
@@ -64,7 +65,7 @@ public class JTmsTestCaseExecution extends TableImpl<JTmsTestCaseExecutionRecord
     /**
      * The column <code>public.tms_test_case_execution.id</code>.
      */
-    public final TableField<JTmsTestCaseExecutionRecord, Long> ID = createField(DSL.name("id"), SQLDataType.BIGINT.nullable(false).identity(true), this, "");
+    public final TableField<JTmsTestCaseExecutionRecord, Long> ID = createField(DSL.name("id"), SQLDataType.BIGINT.nullable(false).generatedByDefaultAsIdentity(), this, "");
 
     /**
      * The column <code>public.tms_test_case_execution.name</code>.
@@ -79,7 +80,7 @@ public class JTmsTestCaseExecution extends TableImpl<JTmsTestCaseExecutionRecord
     /**
      * The column <code>public.tms_test_case_execution.priority</code>.
      */
-    public final TableField<JTmsTestCaseExecutionRecord, String> PRIORITY = createField(DSL.name("priority"), SQLDataType.VARCHAR(255), this, "");
+    public final TableField<JTmsTestCaseExecutionRecord, String> PRIORITY = createField(DSL.name("priority"), SQLDataType.VARCHAR(255).nullable(false).defaultValue(DSL.field(DSL.raw("'UNSPECIFIED'::character varying"), SQLDataType.VARCHAR)), this, "");
 
     /**
      * The column <code>public.tms_test_case_execution.test_case_id</code>.
@@ -271,7 +272,7 @@ public class JTmsTestCaseExecution extends TableImpl<JTmsTestCaseExecutionRecord
      */
     @Override
     public JTmsTestCaseExecution where(Condition condition) {
-        return new JTmsTestCaseExecution(getQualifiedName(), aliased() ? this : null, null, condition);
+        return new JTmsTestCaseExecution(getQualifiedName(), aliased() ? this : null, null, Internal.condition(this, condition));
     }
 
     /**
@@ -338,7 +339,7 @@ public class JTmsTestCaseExecution extends TableImpl<JTmsTestCaseExecutionRecord
      * Create an inline derived table from this table
      */
     @Override
-    public JTmsTestCaseExecution whereExists(Select<?> select) {
+    public JTmsTestCaseExecution whereExists(TableLike<?> select) {
         return where(DSL.exists(select));
     }
 
@@ -346,7 +347,7 @@ public class JTmsTestCaseExecution extends TableImpl<JTmsTestCaseExecutionRecord
      * Create an inline derived table from this table
      */
     @Override
-    public JTmsTestCaseExecution whereNotExists(Select<?> select) {
+    public JTmsTestCaseExecution whereNotExists(TableLike<?> select) {
         return where(DSL.notExists(select));
     }
 }

@@ -89,6 +89,6 @@ public class JTmsDatasetRecord extends UpdatableRecordImpl<JTmsDatasetRecord> {
         setId(id);
         setName(name);
         setProjectId(projectId);
-        resetChangedOnNotNull();
+        resetTouchedOnNotNull();
     }
 }

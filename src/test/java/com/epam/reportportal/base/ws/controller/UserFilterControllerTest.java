@@ -34,8 +34,6 @@ import com.epam.reportportal.base.model.filter.Order;
 import com.epam.reportportal.base.model.filter.UpdateUserFilterRQ;
 import com.epam.reportportal.base.model.filter.UserFilterCondition;
 import com.epam.reportportal.base.ws.BaseMvcTest;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import java.util.Optional;
@@ -44,6 +42,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MvcResult;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -52,7 +52,7 @@ import org.springframework.test.web.servlet.MvcResult;
 class UserFilterControllerTest extends BaseMvcTest {
 
   @Autowired
-  private ObjectMapper objectMapper;
+  private JsonMapper objectMapper;
 
   @Autowired
   private UserFilterRepository repository;

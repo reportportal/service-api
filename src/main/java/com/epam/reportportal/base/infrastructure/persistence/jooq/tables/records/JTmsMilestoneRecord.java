@@ -183,6 +183,6 @@ public class JTmsMilestoneRecord extends UpdatableRecordImpl<JTmsMilestoneRecord
         setStatus(status);
         setDisplayId(displayId);
         setProductVersionId(productVersionId);
-        resetChangedOnNotNull();
+        resetTouchedOnNotNull();
     }
 }

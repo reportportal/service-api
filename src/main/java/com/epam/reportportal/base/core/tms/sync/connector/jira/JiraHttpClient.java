@@ -10,7 +10,6 @@ import java.net.URISyntaxException;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.config.RequestConfig;
-import org.apache.hc.client5.http.impl.DefaultHttpRequestRetryStrategy;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
@@ -19,11 +18,11 @@ import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.ParseException;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.StringEntity;
-import org.apache.hc.core5.util.TimeValue;
 import org.apache.hc.core5.util.Timeout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -36,7 +35,11 @@ public class JiraHttpClient implements DisposableBean {
 
   private final CloseableHttpClient httpClient;
 
-  public JiraHttpClient() {
+  public JiraHttpClient(
+      @Value("${rp.tms.sync.jira.retry.max-retries:4}") int maxRetries,
+      @Value("${rp.tms.sync.jira.retry.initial-interval-ms:5000}") long initialIntervalMs,
+      @Value("${rp.tms.sync.jira.retry.max-interval-ms:60000}") long maxIntervalMs,
+      @Value("${rp.tms.sync.jira.retry.status-codes:408,429,500,502,503,504}") String statusCodes) {
     var requestConfig = RequestConfig.custom()
         .setConnectTimeout(Timeout.ofSeconds(30))
         .setResponseTimeout(Timeout.ofSeconds(60))
@@ -50,7 +53,7 @@ public class JiraHttpClient implements DisposableBean {
     this.httpClient = HttpClients.custom()
         .setConnectionManager(connectionManager)
         .setDefaultRequestConfig(requestConfig)
-        .setRetryStrategy(new DefaultHttpRequestRetryStrategy(3, TimeValue.ofSeconds(1L)))
+        .setRetryStrategy(new JiraHttpRetryStrategy(maxRetries, initialIntervalMs, maxIntervalMs, statusCodes))
         .disableRedirectHandling()
         .build();
   }

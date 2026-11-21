@@ -166,6 +166,6 @@ public class JTicketRecord extends UpdatableRecordImpl<JTicketRecord> {
         setBtsProject(btsProject);
         setUrl(url);
         setPluginName(pluginName);
-        resetChangedOnNotNull();
+        resetTouchedOnNotNull();
     }
 }

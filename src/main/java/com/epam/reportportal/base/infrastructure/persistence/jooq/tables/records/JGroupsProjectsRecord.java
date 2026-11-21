@@ -121,6 +121,6 @@ public class JGroupsProjectsRecord extends UpdatableRecordImpl<JGroupsProjectsRe
         setProjectRole(projectRole);
         setCreatedAt(createdAt);
         setUpdatedAt(updatedAt);
-        resetChangedOnNotNull();
+        resetTouchedOnNotNull();
     }
 }

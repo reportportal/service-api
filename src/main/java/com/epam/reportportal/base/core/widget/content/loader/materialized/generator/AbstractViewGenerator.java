@@ -25,8 +25,7 @@ import com.epam.reportportal.base.infrastructure.persistence.dao.WidgetRepositor
 import com.epam.reportportal.base.infrastructure.persistence.entity.widget.Widget;
 import com.epam.reportportal.base.infrastructure.persistence.entity.widget.WidgetState;
 import com.epam.reportportal.base.ws.converter.builders.WidgetBuilder;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
+import java.time.Instant;
 import java.util.Date;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -79,7 +78,7 @@ public abstract class AbstractViewGenerator implements ViewGenerator {
     LOGGER.debug("Widget {} - {}. Generation finished", widget.getWidgetType(), widget.getId());
     widgetRepository.save(new WidgetBuilder(widget).addOption(STATE, WidgetState.READY.getValue())
         .addOption(VIEW_NAME, viewName)
-        .addOption(LAST_REFRESH, Date.from(LocalDateTime.now().atZone(ZoneOffset.UTC).toInstant()))
+        .addOption(LAST_REFRESH, Date.from(Instant.now()))
         .get());
     LOGGER.debug("Widget {} - {}. State updated to: {}",
         widget.getWidgetType(),

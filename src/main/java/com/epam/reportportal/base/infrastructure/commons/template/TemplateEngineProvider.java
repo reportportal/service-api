@@ -2,11 +2,11 @@ package com.epam.reportportal.base.infrastructure.commons.template;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 
-import com.google.common.base.Charsets;
 import com.google.common.base.Preconditions;
 import freemarker.template.TemplateExceptionHandler;
 import freemarker.template.Version;
 import jakarta.inject.Provider;
+import java.nio.charset.StandardCharsets;
 import java.util.Locale;
 
 /**
@@ -39,7 +39,7 @@ public class TemplateEngineProvider implements Provider<TemplateEngine> {
     cfg.setClassForTemplateLoading(this.getClass(), basePackagePath);
 
     cfg.setIncompatibleImprovements(version);
-    cfg.setDefaultEncoding(Charsets.UTF_8.toString());
+    cfg.setDefaultEncoding(StandardCharsets.UTF_8.toString());
     cfg.setLocale(Locale.US);
     cfg.setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER);
 

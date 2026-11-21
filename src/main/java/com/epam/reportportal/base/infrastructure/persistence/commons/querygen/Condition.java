@@ -33,10 +33,11 @@ import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorTyp
 import static java.lang.Long.parseLong;
 import static java.util.Date.from;
 import static org.jooq.impl.DSL.any;
+import static org.jooq.impl.DSL.arrayOverlap;
+import static org.jooq.impl.DSL.arrayRemove;
 import static org.jooq.impl.DSL.field;
 import static org.jooq.impl.DSL.function;
 import static org.jooq.util.postgres.PostgresDSL.arrayLength;
-import static org.jooq.util.postgres.PostgresDSL.arrayRemove;
 
 import com.epam.reportportal.base.infrastructure.persistence.commons.Predicates;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
@@ -49,7 +50,6 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.jooq.Field;
 import org.jooq.Operator;
 import org.jooq.impl.DSL;
-import org.jooq.util.postgres.PostgresDSL;
 
 /**
  * Types of supported filtering
@@ -351,7 +351,7 @@ public enum Condition {
           INCORRECT_FILTER_PARAMETERS);
       if (String.class.equals(criteriaHolder.getDataType())) {
         return DSL.condition(Operator.AND,
-            PostgresDSL.arrayOverlap(
+            arrayOverlap(
                 field(criteriaHolder.getAggregateCriteria(), String[][].class),
                 DSL.array(DSL.val(
                         this.castValue(criteriaHolder, filter.getValue(), INCORRECT_FILTER_PARAMETERS))
@@ -362,7 +362,7 @@ public enum Condition {
       }
       if (String[].class.equals(criteriaHolder.getDataType())) {
         return DSL.condition(Operator.AND,
-            PostgresDSL.arrayOverlap(
+            arrayOverlap(
                 field(criteriaHolder.getAggregateCriteria(), String[].class),
                 DSL.cast(
                     this.castValue(criteriaHolder, filter.getValue(), INCORRECT_FILTER_PARAMETERS),
@@ -371,7 +371,7 @@ public enum Condition {
         );
       }
       return DSL.condition(Operator.AND,
-          PostgresDSL.arrayOverlap(field(criteriaHolder.getAggregateCriteria(), Object[].class),
+          arrayOverlap(field(criteriaHolder.getAggregateCriteria(), Object[].class),
               DSL.array((Object[]) this.castValue(criteriaHolder, filter.getValue(),
                   INCORRECT_FILTER_PARAMETERS))
           ));

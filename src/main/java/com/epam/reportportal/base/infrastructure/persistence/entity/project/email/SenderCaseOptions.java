@@ -16,10 +16,10 @@
 
 package com.epam.reportportal.base.infrastructure.persistence.entity.project.email;
 
-import com.epam.reportportal.base.infrastructure.persistence.commons.JsonbUserType;
 import java.io.Serializable;
 import java.util.Map;
 import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -30,17 +30,13 @@ import lombok.ToString;
  *
  * @author <a href="mailto:andrei_piankouski@epam.com">Andrei Piankouski</a>
  */
+@EqualsAndHashCode
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString
-public class SenderCaseOptions extends JsonbUserType<SenderCaseOptions> implements Serializable {
+public class SenderCaseOptions implements Serializable {
 
   private Map<String, Object> options;
-
-  @Override
-  public Class<SenderCaseOptions> returnedClass() {
-    return SenderCaseOptions.class;
-  }
 }

@@ -33,13 +33,14 @@ import org.jooq.QueryPart;
 import org.jooq.Record;
 import org.jooq.SQL;
 import org.jooq.Schema;
-import org.jooq.Select;
 import org.jooq.Stringly;
 import org.jooq.Table;
 import org.jooq.TableField;
+import org.jooq.TableLike;
 import org.jooq.TableOptions;
 import org.jooq.UniqueKey;
 import org.jooq.impl.DSL;
+import org.jooq.impl.Internal;
 import org.jooq.impl.SQLDataType;
 import org.jooq.impl.TableImpl;
 
@@ -68,7 +69,7 @@ public class JTmsMilestone extends TableImpl<JTmsMilestoneRecord> {
     /**
      * The column <code>public.tms_milestone.id</code>.
      */
-    public final TableField<JTmsMilestoneRecord, Long> ID = createField(DSL.name("id"), SQLDataType.BIGINT.nullable(false).identity(true), this, "");
+    public final TableField<JTmsMilestoneRecord, Long> ID = createField(DSL.name("id"), SQLDataType.BIGINT.nullable(false).generatedByDefaultAsIdentity(), this, "");
 
     /**
      * The column <code>public.tms_milestone.name</code>.
@@ -279,7 +280,7 @@ public class JTmsMilestone extends TableImpl<JTmsMilestoneRecord> {
      */
     @Override
     public JTmsMilestone where(Condition condition) {
-        return new JTmsMilestone(getQualifiedName(), aliased() ? this : null, null, condition);
+        return new JTmsMilestone(getQualifiedName(), aliased() ? this : null, null, Internal.condition(this, condition));
     }
 
     /**
@@ -346,7 +347,7 @@ public class JTmsMilestone extends TableImpl<JTmsMilestoneRecord> {
      * Create an inline derived table from this table
      */
     @Override
-    public JTmsMilestone whereExists(Select<?> select) {
+    public JTmsMilestone whereExists(TableLike<?> select) {
         return where(DSL.exists(select));
     }
 
@@ -354,7 +355,7 @@ public class JTmsMilestone extends TableImpl<JTmsMilestoneRecord> {
      * Create an inline derived table from this table
      */
     @Override
-    public JTmsMilestone whereNotExists(Select<?> select) {
+    public JTmsMilestone whereNotExists(TableLike<?> select) {
         return where(DSL.notExists(select));
     }
 }

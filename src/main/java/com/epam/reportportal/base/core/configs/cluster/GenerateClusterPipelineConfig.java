@@ -23,7 +23,7 @@ import com.epam.reportportal.base.core.launch.cluster.pipeline.SaveClusterDataPa
 import com.epam.reportportal.base.core.launch.cluster.pipeline.SaveLastRunAttributePartProvider;
 import com.epam.reportportal.base.core.launch.cluster.pipeline.data.resolver.ClusterDataProviderResolver;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ClusterRepository;
-import com.epam.reportportal.base.infrastructure.persistence.dao.ItemAttributeRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchAttributeRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.LogRepository;
 import com.epam.reportportal.base.pipeline.PipelineConstructor;
 import java.util.List;
@@ -45,18 +45,18 @@ public class GenerateClusterPipelineConfig {
 
   private final ClusterRepository clusterRepository;
   private final LogRepository logRepository;
-  private final ItemAttributeRepository itemAttributeRepository;
+  private final LaunchAttributeRepository launchAttributeRepository;
 
   @Autowired
   public GenerateClusterPipelineConfig(CreateClusterHandler createClusterHandler,
       ClusterDataProviderResolver clusterDataProviderResolver,
       ClusterRepository clusterRepository, LogRepository logRepository,
-      ItemAttributeRepository itemAttributeRepository) {
+      LaunchAttributeRepository launchAttributeRepository) {
     this.createClusterHandler = createClusterHandler;
     this.clusterDataProviderResolver = clusterDataProviderResolver;
     this.clusterRepository = clusterRepository;
     this.logRepository = logRepository;
-    this.itemAttributeRepository = itemAttributeRepository;
+    this.launchAttributeRepository = launchAttributeRepository;
   }
 
   @Bean
@@ -79,6 +79,6 @@ public class GenerateClusterPipelineConfig {
 
   @Bean
   public SaveLastRunAttributePartProvider saveLastRunAttributePartProvider() {
-    return new SaveLastRunAttributePartProvider(itemAttributeRepository);
+    return new SaveLastRunAttributePartProvider(launchAttributeRepository);
   }
 }

@@ -35,7 +35,6 @@ import com.epam.reportportal.base.model.marketplace.MarketplaceVersionList;
 import com.epam.reportportal.base.model.marketplace.MarketplaceVersionSummary;
 import com.epam.reportportal.base.model.marketplace.PluginTombstoneBody;
 import com.epam.reportportal.base.model.marketplace.RegistryErrorBody;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.InterruptedIOException;
 import java.net.URI;
 import java.util.HashMap;
@@ -44,16 +43,15 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.ResourceAccessException;
+import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestClientResponseException;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Read-only client of the Go marketplace registry (/api/v1). Every failure leaves here as a typed
@@ -65,8 +63,8 @@ public class MarketplaceClient {
 
   private static final String PLUGINS_PATH = "/api/v1/plugins";
 
-  private final RestTemplate restTemplate;
-  private final ObjectMapper objectMapper = MarketplaceJson.mapper();
+  private final RestClient restClient;
+  private final JsonMapper objectMapper = MarketplaceJson.mapper();
   private final String registryUrl;
   private final String registryHost;
   private final MarketplaceInstanceId instanceId;
@@ -75,36 +73,36 @@ public class MarketplaceClient {
   /**
    * Creates a client that reports no instance id — analytics off.
    *
-   * @param restTemplate the marketplace-only template, with its own timeouts
-   * @param registryUrl  registry base URL, e.g. {@code https://marketplace.reportportal.io}
+   * @param restClient  the marketplace-only client, with its own timeouts
+   * @param registryUrl registry base URL, e.g. {@code https://marketplace.reportportal.io}
    */
-  public MarketplaceClient(RestTemplate restTemplate, String registryUrl) {
-    this(restTemplate, registryUrl, Optional::empty);
+  public MarketplaceClient(RestClient restClient, String registryUrl) {
+    this(restClient, registryUrl, Optional::empty);
   }
 
   /**
    * A client that will not put a credential on a plaintext connection to a remote host.
    *
-   * @param restTemplate the marketplace-only template, with its own timeouts
-   * @param registryUrl  registry base URL
-   * @param instanceId   the opaque id sent with an artifact request, or empty when opted out
+   * @param restClient  the marketplace-only client, with its own timeouts
+   * @param registryUrl registry base URL
+   * @param instanceId  the opaque id sent with an artifact request, or empty when opted out
    */
-  public MarketplaceClient(RestTemplate restTemplate, String registryUrl,
+  public MarketplaceClient(RestClient restClient, String registryUrl,
       MarketplaceInstanceId instanceId) {
-    this(restTemplate, registryUrl, instanceId, new CredentialTransport(false));
+    this(restClient, registryUrl, instanceId, new CredentialTransport(false));
   }
 
   /**
    * Creates a client.
    *
-   * @param restTemplate the marketplace-only template, with its own timeouts
-   * @param registryUrl  registry base URL, e.g. {@code https://marketplace.reportportal.io}
-   * @param instanceId   the opaque id sent with an artifact request, or empty when opted out
-   * @param transport    whether this registry URL may carry a credential
+   * @param restClient  the marketplace-only client, with its own timeouts
+   * @param registryUrl registry base URL, e.g. {@code https://marketplace.reportportal.io}
+   * @param instanceId  the opaque id sent with an artifact request, or empty when opted out
+   * @param transport   whether this registry URL may carry a credential
    */
-  public MarketplaceClient(RestTemplate restTemplate, String registryUrl,
+  public MarketplaceClient(RestClient restClient, String registryUrl,
       MarketplaceInstanceId instanceId, CredentialTransport transport) {
-    this.restTemplate = restTemplate;
+    this.restClient = restClient;
     this.registryUrl = registryUrl;
     this.instanceId = instanceId;
     this.transport = transport;
@@ -201,8 +199,8 @@ public class MarketplaceClient {
     ResponseEntity<String> response;
     try {
       // String, not the DTO: the 302 carries an HTML body no JSON converter can read.
-      response = restTemplate.exchange(uri, HttpMethod.GET, new HttpEntity<>(headers),
-          String.class);
+      response = restClient.get().uri(uri).headers(h -> h.addAll(headers)).retrieve()
+          .toEntity(String.class);
     } catch (RestClientResponseException e) {
       throw mapArtifactError(e, pluginId, version);
     } catch (RestClientException e) {
@@ -276,7 +274,7 @@ public class MarketplaceClient {
 
   private <T> T get(URI uri, Class<T> type, String pluginId, String version) {
     try {
-      return restTemplate.getForObject(uri, type);
+      return restClient.get().uri(uri).retrieve().body(type);
     } catch (RestClientResponseException e) {
       throw mapError(e, pluginId, version);
     } catch (RestClientException e) {

@@ -39,7 +39,7 @@ import static com.epam.reportportal.base.infrastructure.persistence.entity.proje
 import static com.epam.reportportal.base.infrastructure.persistence.entity.project.email.ProjectInfoWidget.ISSUES_CHART;
 import static com.epam.reportportal.base.infrastructure.persistence.entity.project.email.ProjectInfoWidget.LAUNCHES_QUANTITY;
 import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.BAD_REQUEST_ERROR;
-import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.PROJECT_NOT_FOUND;
+import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.PROJECT_KEY_NOT_FOUND;
 import static com.epam.reportportal.base.ws.converter.converters.ActivityConverter.TO_RESOURCE;
 import static com.epam.reportportal.base.ws.converter.converters.ActivityConverter.TO_RESOURCE_WITH_USER;
 import static java.util.Optional.ofNullable;
@@ -178,7 +178,7 @@ public class GetProjectInfoHandlerImpl implements GetProjectInfoHandler {
   public ProjectInfoResource getProjectInfo(String projectKey, String interval) {
 
     Project project = projectRepository.findByKey(normalizeId(projectKey))
-        .orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectKey));
+        .orElseThrow(() -> new ReportPortalException(PROJECT_KEY_NOT_FOUND, projectKey));
 
     InfoInterval infoInterval = InfoInterval.findByInterval(interval)
         .orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR, interval));
@@ -190,7 +190,7 @@ public class GetProjectInfoHandlerImpl implements GetProjectInfoHandler {
         projectRepository.findProjectInfoByFilter(filter, Pageable.unpaged());
     ProjectInfoResource projectInfoResource =
         ProjectSettingsConverter.TO_PROJECT_INFO_RESOURCE.apply(result.get().findFirst()
-            .orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectKey)));
+            .orElseThrow(() -> new ReportPortalException(PROJECT_KEY_NOT_FOUND, projectKey)));
 
     Instant startIntervalDate = getStartIntervalDate(infoInterval);
 
@@ -221,7 +221,7 @@ public class GetProjectInfoHandlerImpl implements GetProjectInfoHandler {
   public Map<String, ?> getProjectInfoWidgetContent(String projectKey, String interval,
       String widgetCode) {
     Project project = projectRepository.findByKey(projectKey)
-        .orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectKey));
+        .orElseThrow(() -> new ReportPortalException(PROJECT_KEY_NOT_FOUND, projectKey));
 
     InfoInterval infoInterval = InfoInterval.findByInterval(interval)
         .orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR, interval));

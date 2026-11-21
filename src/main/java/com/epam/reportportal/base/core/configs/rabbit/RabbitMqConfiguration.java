@@ -19,10 +19,10 @@ package com.epam.reportportal.base.core.configs.rabbit;
 import com.epam.reportportal.base.core.configs.Conditions;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rabbitmq.http.client.Client;
 import java.net.URI;
 import org.springframework.amqp.core.AmqpAdmin;
+import org.springframework.amqp.listener.ConditionalRejectingErrorHandler;
 import org.springframework.amqp.rabbit.annotation.EnableRabbit;
 import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
@@ -30,8 +30,7 @@ import org.springframework.amqp.rabbit.connection.CachingConnectionFactory.Confi
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.amqp.rabbit.listener.ConditionalRejectingErrorHandler;
-import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
+import org.springframework.amqp.support.converter.JacksonJsonMessageConverter;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -40,6 +39,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Main application RabbitMQ exchanges, queues, and listeners.
@@ -52,7 +52,7 @@ import org.springframework.context.annotation.Primary;
 public class RabbitMqConfiguration {
 
   @Autowired
-  private ObjectMapper objectMapper;
+  private JsonMapper objectMapper;
 
   /**
    * Message converter for publishing messages.
@@ -60,7 +60,7 @@ public class RabbitMqConfiguration {
   @Bean
   @Primary
   public MessageConverter jsonMessageConverter() {
-    return new Jackson2JsonMessageConverter(objectMapper);
+    return new JacksonJsonMessageConverter(objectMapper);
   }
 
   /**
@@ -69,7 +69,7 @@ public class RabbitMqConfiguration {
    */
   @Bean
   public MessageConverter jsonMessageConverterWithFallback(FallbackEventTypeMapper typeMapper) {
-    Jackson2JsonMessageConverter converter = new Jackson2JsonMessageConverter(objectMapper);
+    JacksonJsonMessageConverter converter = new JacksonJsonMessageConverter(objectMapper);
     converter.setJavaTypeMapper(typeMapper);
     return converter;
   }
@@ -86,8 +86,7 @@ public class RabbitMqConfiguration {
           "Unable to create RabbitMq virtual host: " + e.getMessage()
       );
     }
-    final CachingConnectionFactory cachingConnectionFactory = new CachingConnectionFactory(
-        addresses);
+    final CachingConnectionFactory cachingConnectionFactory = new CachingConnectionFactory(addresses);
     cachingConnectionFactory.setVirtualHost(virtualHost);
     cachingConnectionFactory.setPublisherConfirmType(ConfirmType.SIMPLE);
     return cachingConnectionFactory;
@@ -99,8 +98,7 @@ public class RabbitMqConfiguration {
   }
 
   @Bean(name = "rabbitTemplate")
-  public RabbitTemplate rabbitTemplate(
-      @Autowired @Qualifier("connectionFactory") ConnectionFactory connectionFactory) {
+  public RabbitTemplate rabbitTemplate(@Autowired @Qualifier("connectionFactory") ConnectionFactory connectionFactory) {
     RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
     rabbitTemplate.setMessageConverter(jsonMessageConverter());
     return rabbitTemplate;

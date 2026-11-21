@@ -25,13 +25,14 @@ import org.jooq.QueryPart;
 import org.jooq.Record;
 import org.jooq.SQL;
 import org.jooq.Schema;
-import org.jooq.Select;
 import org.jooq.Stringly;
 import org.jooq.Table;
 import org.jooq.TableField;
+import org.jooq.TableLike;
 import org.jooq.TableOptions;
 import org.jooq.UniqueKey;
 import org.jooq.impl.DSL;
+import org.jooq.impl.Internal;
 import org.jooq.impl.SQLDataType;
 import org.jooq.impl.TableImpl;
 
@@ -257,7 +258,7 @@ public class JDashboardWidget extends TableImpl<JDashboardWidgetRecord> {
      */
     @Override
     public JDashboardWidget where(Condition condition) {
-        return new JDashboardWidget(getQualifiedName(), aliased() ? this : null, null, condition);
+        return new JDashboardWidget(getQualifiedName(), aliased() ? this : null, null, Internal.condition(this, condition));
     }
 
     /**
@@ -324,7 +325,7 @@ public class JDashboardWidget extends TableImpl<JDashboardWidgetRecord> {
      * Create an inline derived table from this table
      */
     @Override
-    public JDashboardWidget whereExists(Select<?> select) {
+    public JDashboardWidget whereExists(TableLike<?> select) {
         return where(DSL.exists(select));
     }
 
@@ -332,7 +333,7 @@ public class JDashboardWidget extends TableImpl<JDashboardWidgetRecord> {
      * Create an inline derived table from this table
      */
     @Override
-    public JDashboardWidget whereNotExists(Select<?> select) {
+    public JDashboardWidget whereNotExists(TableLike<?> select) {
         return where(DSL.notExists(select));
     }
 }

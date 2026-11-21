@@ -64,6 +64,6 @@ public class JContentFieldRecord extends TableRecordImpl<JContentFieldRecord> {
 
         setId(id);
         setField(field);
-        resetChangedOnNotNull();
+        resetTouchedOnNotNull();
     }
 }

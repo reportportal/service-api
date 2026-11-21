@@ -20,13 +20,11 @@ import static com.epam.reportportal.base.infrastructure.persistence.commons.Pred
 import static com.epam.reportportal.base.infrastructure.persistence.commons.Predicates.not;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.Predicates.notNull;
 import static com.epam.reportportal.base.infrastructure.persistence.entity.enums.StatusEnum.IN_PROGRESS;
-import static com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRole.ADMINISTRATOR;
 import static com.epam.reportportal.base.infrastructure.rules.commons.validation.BusinessRule.expect;
-import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.ACCESS_DENIED;
 import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.FORBIDDEN_OPERATION;
 import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.LAUNCH_IS_NOT_FINISHED;
 import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.LAUNCH_NOT_FOUND;
-import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.PROJECT_NOT_FOUND;
+import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.PROJECT_NAME_NOT_FOUND;
 import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.UNSUPPORTED_MERGE_STRATEGY_TYPE;
 
 import com.epam.reportportal.base.core.analyzer.auto.LogIndexer;
@@ -35,13 +33,13 @@ import com.epam.reportportal.base.core.item.impl.merge.strategy.LaunchMergeFacto
 import com.epam.reportportal.base.core.item.impl.merge.strategy.MergeStrategyType;
 import com.epam.reportportal.base.core.launch.MergeLaunchHandler;
 import com.epam.reportportal.base.core.statistics.StatisticsHelper;
+import com.epam.reportportal.base.infrastructure.model.project.AnalyzerConfig;
 import com.epam.reportportal.base.infrastructure.persistence.commons.Preconditions;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.MembershipDetails;
-import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationRole;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
 import com.epam.reportportal.base.infrastructure.rules.commons.validation.Suppliers;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
@@ -91,7 +89,7 @@ public class MergeLaunchHandlerImpl implements MergeLaunchHandler {
   public LaunchResource mergeLaunches(MembershipDetails membershipDetails,
       ReportPortalUser user, MergeLaunchesRQ rq) {
     Project project = projectRepository.findById(membershipDetails.getProjectId()).orElseThrow(
-        () -> new ReportPortalException(PROJECT_NOT_FOUND, membershipDetails.getProjectName()));
+        () -> new ReportPortalException(PROJECT_NAME_NOT_FOUND, membershipDetails.getProjectName()));
 
     Set<Long> launchesIds = rq.getLaunches();
 
@@ -113,14 +111,17 @@ public class MergeLaunchHandlerImpl implements MergeLaunchHandler {
     MergeStrategyType type = MergeStrategyType.fromValue(rq.getMergeStrategyType());
     expect(type, notNull()).verify(UNSUPPORTED_MERGE_STRATEGY_TYPE, type);
 
+    AnalyzerConfig analyzerConfig = AnalyzerUtils.getAnalyzerConfig(project);
+
     Launch newLaunch = launchMergeFactory.getLaunchMergeStrategy(type)
         .mergeLaunches(membershipDetails, user, rq, launchesList);
     newLaunch.setStatus(StatisticsHelper.getStatusFromStatistics(newLaunch.getStatistics()));
 
-    launchesList.forEach(launch -> launch.getAttributes().clear());
-    launchRepository.deleteAll(launchesList);
+    List<Launch> mergedLaunches = launchRepository.findAllById(launchesIds);
+    mergedLaunches.forEach(launch -> launch.getAttributes().clear());
+    launchRepository.deleteAll(mergedLaunches);
 
-    logIndexer.indexLaunchLogs(newLaunch, AnalyzerUtils.getAnalyzerConfig(project));
+    logIndexer.indexLaunchLogs(newLaunch, analyzerConfig);
 
     return launchConverter.TO_RESOURCE.apply(newLaunch);
   }

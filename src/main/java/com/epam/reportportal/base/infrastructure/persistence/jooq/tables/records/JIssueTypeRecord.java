@@ -134,6 +134,6 @@ public class JIssueTypeRecord extends UpdatableRecordImpl<JIssueTypeRecord> {
         setIssueName(issueName);
         setAbbreviation(abbreviation);
         setHexColor(hexColor);
-        resetChangedOnNotNull();
+        resetTouchedOnNotNull();
     }
 }

@@ -4,6 +4,8 @@ import com.epam.reportportal.base.core.tms.dto.TmsManualScenarioPreconditionsRQ;
 import com.epam.reportportal.base.core.tms.mapper.TmsManualScenarioPreconditionsMapper;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsManualScenarioPreconditionRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsManualScenario;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsManualScenarioPreconditions;
+import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -50,6 +52,46 @@ public class TmsManualScenarioPreconditionsServiceImpl implements
 
     log.debug("Created preconditions with ID: {} for manual scenario: {}",
         savedPreconditions.getId(), tmsManualScenario.getId());
+  }
+
+  @Override
+  @Transactional
+  public void createPreconditionsBatch(Long projectId, List<TmsManualScenario> manualScenarios,
+      List<TmsManualScenarioPreconditionsRQ> preconditionsPerScenario) {
+
+    var scenarios = new ArrayList<TmsManualScenario>();
+    var rqs = new ArrayList<TmsManualScenarioPreconditionsRQ>();
+    var entities = new ArrayList<TmsManualScenarioPreconditions>();
+
+    for (int i = 0; i < manualScenarios.size(); i++) {
+      var rq = preconditionsPerScenario.get(i);
+      if (rq == null) {
+        continue;
+      }
+      var scenario = manualScenarios.get(i);
+      var entity = tmsManualScenarioPreconditionsMapper.toEntity(rq);
+      entity.setManualScenario(scenario);
+
+      scenarios.add(scenario);
+      rqs.add(rq);
+      entities.add(entity);
+    }
+
+    if (entities.isEmpty()) {
+      return;
+    }
+
+    var savedEntities = tmsManualScenarioPreconditionRepository.saveAll(entities);
+
+    for (int i = 0; i < savedEntities.size(); i++) {
+      var saved = savedEntities.get(i);
+      scenarios.get(i).setPreconditions(saved);
+      tmsManualScenarioPreconditionsAttachmentService.createAttachments(projectId, saved,
+          rqs.get(i));
+    }
+
+    log.debug("Created {} preconditions across {} manual scenarios",
+        savedEntities.size(), manualScenarios.size());
   }
 
   @Override

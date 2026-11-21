@@ -29,13 +29,14 @@ import org.jooq.QueryPart;
 import org.jooq.Record;
 import org.jooq.SQL;
 import org.jooq.Schema;
-import org.jooq.Select;
 import org.jooq.Stringly;
 import org.jooq.Table;
 import org.jooq.TableField;
+import org.jooq.TableLike;
 import org.jooq.TableOptions;
 import org.jooq.UniqueKey;
 import org.jooq.impl.DSL;
+import org.jooq.impl.Internal;
 import org.jooq.impl.SQLDataType;
 import org.jooq.impl.TableImpl;
 
@@ -64,7 +65,7 @@ public class JTmsEnvironment extends TableImpl<JTmsEnvironmentRecord> {
     /**
      * The column <code>public.tms_environment.id</code>.
      */
-    public final TableField<JTmsEnvironmentRecord, Long> ID = createField(DSL.name("id"), SQLDataType.BIGINT.nullable(false).identity(true), this, "");
+    public final TableField<JTmsEnvironmentRecord, Long> ID = createField(DSL.name("id"), SQLDataType.BIGINT.nullable(false).generatedByDefaultAsIdentity(), this, "");
 
     /**
      * The column <code>public.tms_environment.name</code>.
@@ -261,7 +262,7 @@ public class JTmsEnvironment extends TableImpl<JTmsEnvironmentRecord> {
      */
     @Override
     public JTmsEnvironment where(Condition condition) {
-        return new JTmsEnvironment(getQualifiedName(), aliased() ? this : null, null, condition);
+        return new JTmsEnvironment(getQualifiedName(), aliased() ? this : null, null, Internal.condition(this, condition));
     }
 
     /**
@@ -328,7 +329,7 @@ public class JTmsEnvironment extends TableImpl<JTmsEnvironmentRecord> {
      * Create an inline derived table from this table
      */
     @Override
-    public JTmsEnvironment whereExists(Select<?> select) {
+    public JTmsEnvironment whereExists(TableLike<?> select) {
         return where(DSL.exists(select));
     }
 
@@ -336,7 +337,7 @@ public class JTmsEnvironment extends TableImpl<JTmsEnvironmentRecord> {
      * Create an inline derived table from this table
      */
     @Override
-    public JTmsEnvironment whereNotExists(Select<?> select) {
+    public JTmsEnvironment whereNotExists(TableLike<?> select) {
         return where(DSL.notExists(select));
     }
 }

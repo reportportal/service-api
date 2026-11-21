@@ -63,9 +63,9 @@ public enum ErrorType {
   PAID_PLUGIN_REQUIRED(4021, "Plugin '{}' is required. {}"),
 
   /**
-   * If specified by id Project or by ProjectName not found
+   * If specified by id Project or by Project key not found
    */
-  PROJECT_NOT_FOUND(4040, "Project '{}' not found. Did you use correct project name?"),
+  PROJECT_KEY_NOT_FOUND(4040, "Project '{}' not found. Did you use correct project key?"),
 
   /**
    * If specified by id Launch not found
@@ -112,6 +112,16 @@ public enum ErrorType {
    * If specified by id Dashboard not found
    */
   DASHBOARD_NOT_FOUND(4049, "Dashboard with ID '{}' not found. Did you use correct Dashboard ID?"),
+
+  /**
+   * If specified by id Project or by Project name not found
+   */
+  PROJECT_NAME_NOT_FOUND(4050, "Project '{}' not found. Did you use correct project name?"),
+
+  /**
+   * If specified by id Project not found
+   */
+  PROJECT_ID_NOT_FOUND(4051, "Project id '{}' not found. Did you use correct project id?"),
 
   /**
    * If specified by id UserFilter not found

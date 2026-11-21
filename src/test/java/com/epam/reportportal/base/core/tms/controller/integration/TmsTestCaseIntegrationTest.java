@@ -52,21 +52,19 @@ import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTextManu
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCase;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCaseVersion;
 import com.epam.reportportal.base.ws.BaseMvcTest;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.jdbc.Sql;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Integration tests for TestCaseController
@@ -114,7 +112,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
   @PersistenceContext
   private EntityManager entityManager;
 
-  private final ObjectMapper mapper = new ObjectMapper();
+  private final JsonMapper mapper = JsonMapper.builder().build();
 
   @Test
   void createTestCaseWithoutManualScenarioIntegrationTest() throws Exception {
@@ -776,6 +774,37 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     assertEquals(testCaseRQ.getName(), testCase.get().getName());
     assertEquals(testCaseRQ.getDescription(), testCase.get().getDescription());
     assertEquals(testCaseRQ.getTestFolderId(), testCase.get().getTestFolder().getId());
+    // Priority must stay unchanged when it is omitted from the PATCH request
+    // (regression test for the "move resets priority to UNSPECIFIED" bug)
+    assertEquals("LOW", testCase.get().getPriority());
+  }
+
+  @Test
+  void patchTestCaseWithoutPriorityShouldNotResetExistingPriorityIntegrationTest()
+      throws Exception {
+    // Given - test case 6 has priority LOW
+    Optional<TmsTestCase> before = testCaseRepository.findById(6L);
+    assertTrue(before.isPresent());
+    assertEquals("LOW", before.get().getPriority());
+
+    TmsTestCaseRQ testCaseRQ = new TmsTestCaseRQ();
+    testCaseRQ.setTestFolderId(6L);
+    // priority is intentionally omitted, simulating e.g. a Move / drag-and-drop
+    // PATCH, or any other partial update that does not send priority
+
+    String jsonContent = mapper.writeValueAsString(testCaseRQ);
+
+    // When
+    mockMvc.perform(patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/6")
+            .contentType("application/json")
+            .content(jsonContent)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk());
+
+    // Then - priority must remain untouched
+    Optional<TmsTestCase> testCase = testCaseRepository.findById(6L);
+    assertTrue(testCase.isPresent());
+    assertEquals("LOW", testCase.get().getPriority());
   }
 
   @Test
@@ -814,6 +843,8 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
 
     assertTrue(testFolder.isPresent());
     assertEquals("Patched New Folder", testFolder.get().getName());
+    // Priority must stay unchanged when it is omitted from the PATCH request
+    assertEquals("LOW", testCase.get().getPriority());
   }
 
   @Test
@@ -1190,7 +1221,8 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
             .content(jsonContent)
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isBadRequest())
-        .andExpect(content().string(containsString("Either testFolderId or testFolderName must be provided and not empty")));
+        .andExpect(
+            content().string(containsString("Either testFolderId or testFolderName must be provided and not empty")));
   }
 
   @Test
@@ -1314,9 +1346,10 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
   @Test
   void importTestCasesFromCsvIntegrationTest() throws Exception {
     // Given
-    var csvContent = "path,priority,summary,test steps,expected result,status,test type,description,labels,components,versions,bugs (not imported),requirements\n"
-        + "APP/Settings/Update user preferences,High,CSV Test Case 1,\"# Open 'Preferences' tab\n#* 'Theme' dropdown\n#* 'Language' dropdown\n#* 'Notifications' toggle\n#* 'Privacy' settings section\n# Save changes\",\"# 'Theme' dropdown shows available themes\n# 'Language' dropdown lists supported languages\n# 'Notifications' toggle is present and can be switched\n# 'Privacy' section is visible\n# Changes are saved and confirmation message appears\",Untested,Manual,,SmokeTest;v1.0,User management,,,REQ-1001\n"
-        + "APP/Settings/Update user preferences,Medium,CSV Test Case 2,\"# Click on 'Language' dropdown\n# Select 'Spanish'\n# Save changes\n# Refresh the page\",\"# 'Language' dropdown expands\n# 'Spanish' is selected\n# Confirmation message appears\n# Interface language changes to Spanish after refresh\",Untested,Manual,,Regression;v1.0,User management,,,REQ-1002";
+    var csvContent =
+        "path,priority,summary,test steps,expected result,status,test type,description,labels,components,versions,bugs (not imported),requirements\n"
+            + "APP/Settings/Update user preferences,High,CSV Test Case 1,\"# Open 'Preferences' tab\n#* 'Theme' dropdown\n#* 'Language' dropdown\n#* 'Notifications' toggle\n#* 'Privacy' settings section\n# Save changes\",\"# 'Theme' dropdown shows available themes\n# 'Language' dropdown lists supported languages\n# 'Notifications' toggle is present and can be switched\n# 'Privacy' section is visible\n# Changes are saved and confirmation message appears\",Untested,Manual,,SmokeTest;v1.0,User management,,,REQ-1001\n"
+            + "APP/Settings/Update user preferences,Medium,CSV Test Case 2,\"# Click on 'Language' dropdown\n# Select 'Spanish'\n# Save changes\n# Refresh the page\",\"# 'Language' dropdown expands\n# 'Spanish' is selected\n# Confirmation message appears\n# Interface language changes to Spanish after refresh\",Untested,Manual,,Regression;v1.0,User management,,,REQ-1002";
 
     MockMultipartFile file = new MockMultipartFile(
         "file",
@@ -1943,7 +1976,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
                 .content(jsonContent)
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk());
-    
+
     // No error expected
   }
 
@@ -1979,7 +2012,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
             .contentType("application/json")
             .content(jsonContent)
             .with(token(oAuthHelper.getSuperadminToken())))
-        .andExpect(status().isNoContent());
+        .andExpect(status().isNotFound());
   }
 
   @Test
@@ -3108,6 +3141,7 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
     var patchRequest = TmsTestCaseRQ.builder()
         .manualScenario(TmsTextManualScenarioRQ
             .builder()
+            .manualScenarioType(TmsManualScenarioType.TEXT)
             .preconditions(preconditionsRQ)
             .build())
         .build();

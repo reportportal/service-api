@@ -18,7 +18,7 @@ package com.epam.reportportal.base.core.configs.resource;
 
 import static com.epam.reportportal.base.core.launch.cluster.pipeline.SaveLastRunAttributePartProvider.RP_CLUSTER_LAST_RUN_KEY;
 
-import com.epam.reportportal.base.infrastructure.persistence.entity.ItemAttribute;
+import com.epam.reportportal.base.infrastructure.persistence.entity.Attribute;
 import com.epam.reportportal.base.reporting.LaunchResource;
 import com.epam.reportportal.base.ws.converter.resource.handler.attribute.ItemAttributeType;
 import com.epam.reportportal.base.ws.converter.resource.handler.attribute.ResourceAttributeHandler;
@@ -61,7 +61,7 @@ public class ResourceAttributeHandlerConfig {
 
   @Bean
   public ItemAttributeTypeMatcher systemAttributeTypePredicateMatcher() {
-    return new PredicateItemAttributeTypeMatcher(ItemAttribute::isSystem, ItemAttributeType.SYSTEM);
+    return new PredicateItemAttributeTypeMatcher(Attribute::isSystem, ItemAttributeType.SYSTEM);
   }
 
   @Bean

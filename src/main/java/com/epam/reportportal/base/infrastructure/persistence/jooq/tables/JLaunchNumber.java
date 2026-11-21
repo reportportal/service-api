@@ -25,13 +25,14 @@ import org.jooq.QueryPart;
 import org.jooq.Record;
 import org.jooq.SQL;
 import org.jooq.Schema;
-import org.jooq.Select;
 import org.jooq.Stringly;
 import org.jooq.Table;
 import org.jooq.TableField;
+import org.jooq.TableLike;
 import org.jooq.TableOptions;
 import org.jooq.UniqueKey;
 import org.jooq.impl.DSL;
+import org.jooq.impl.Internal;
 import org.jooq.impl.SQLDataType;
 import org.jooq.impl.TableImpl;
 
@@ -60,7 +61,7 @@ public class JLaunchNumber extends TableImpl<JLaunchNumberRecord> {
     /**
      * The column <code>public.launch_number.id</code>.
      */
-    public final TableField<JLaunchNumberRecord, Long> ID = createField(DSL.name("id"), SQLDataType.BIGINT.nullable(false).identity(true), this, "");
+    public final TableField<JLaunchNumberRecord, Long> ID = createField(DSL.name("id"), SQLDataType.BIGINT.nullable(false).generatedByDefaultAsIdentity(), this, "");
 
     /**
      * The column <code>public.launch_number.project_id</code>.
@@ -220,7 +221,7 @@ public class JLaunchNumber extends TableImpl<JLaunchNumberRecord> {
      */
     @Override
     public JLaunchNumber where(Condition condition) {
-        return new JLaunchNumber(getQualifiedName(), aliased() ? this : null, null, condition);
+        return new JLaunchNumber(getQualifiedName(), aliased() ? this : null, null, Internal.condition(this, condition));
     }
 
     /**
@@ -287,7 +288,7 @@ public class JLaunchNumber extends TableImpl<JLaunchNumberRecord> {
      * Create an inline derived table from this table
      */
     @Override
-    public JLaunchNumber whereExists(Select<?> select) {
+    public JLaunchNumber whereExists(TableLike<?> select) {
         return where(DSL.exists(select));
     }
 
@@ -295,7 +296,7 @@ public class JLaunchNumber extends TableImpl<JLaunchNumberRecord> {
      * Create an inline derived table from this table
      */
     @Override
-    public JLaunchNumber whereNotExists(Select<?> select) {
+    public JLaunchNumber whereNotExists(TableLike<?> select) {
         return where(DSL.notExists(select));
     }
 }

@@ -9,6 +9,7 @@ import com.epam.reportportal.base.core.tms.dto.TmsTestCaseRS;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchTestCaseOperationResultRS;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
+import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItem;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.MembershipDetails;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCaseExecution;
@@ -16,6 +17,7 @@ import com.epam.reportportal.base.model.Page;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import org.springframework.data.domain.Pageable;
 
 public interface TmsTestCaseExecutionService {
@@ -52,9 +54,34 @@ public interface TmsTestCaseExecutionService {
    * @param testCase  test case entity
    * @param launch    launch entity
    */
-
   void createExecution(long projectId, TmsTestCaseRS testCase, Launch launch);
 
+  /**
+   * Same as {@link #createExecution(long, TmsTestCaseRS, Launch)}, but reuses caller-provided
+   * caches of resolved SUITE items ({@code suiteItemsByIds}) and parent item names
+   * ({@code testItemNamesByIds}) shared across a batch of test cases added to the same launch.
+   */
+  default void createExecution(long projectId,
+      TmsTestCaseRS testCase, Launch launch,
+      Map<Long, TestItem> suiteItemsByIds,
+      Map<Long, String> testItemNamesByIds) {
+    createExecution(projectId, testCase, launch);
+  }
+
+  /**
+   * Same as {@link #createExecution(long, TmsTestCaseRS, Launch, Map, Map)}, but additionally
+   * accepts {@code existingExecutionTestCaseIds}, a caller-provided set of test case IDs that
+   * already have an execution in the launch, to skip the per-call existence check against the
+   * database.
+   */
+  default void createExecution(long projectId,
+      TmsTestCaseRS testCase,
+      Launch launch,
+      Map<Long, TestItem> suiteItemsByIds,
+      Map<Long, String> testItemNamesByIds,
+      Set<Long> existingExecutionTestCaseIds) {
+    createExecution(projectId, testCase, launch, suiteItemsByIds, testItemNamesByIds);
+  }
 
   /**
    * Adds test cases to launch (creates executions).

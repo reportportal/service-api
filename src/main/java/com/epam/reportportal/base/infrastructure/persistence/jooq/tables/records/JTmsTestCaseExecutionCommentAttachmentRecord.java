@@ -98,6 +98,6 @@ public class JTmsTestCaseExecutionCommentAttachmentRecord extends UpdatableRecor
         setExecutionCommentId(executionCommentId);
         setAttachmentId(attachmentId);
         setCreatedAt(createdAt);
-        resetChangedOnNotNull();
+        resetTouchedOnNotNull();
     }
 }

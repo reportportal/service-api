@@ -26,12 +26,13 @@ import org.jooq.QueryPart;
 import org.jooq.Record;
 import org.jooq.SQL;
 import org.jooq.Schema;
-import org.jooq.Select;
 import org.jooq.Stringly;
 import org.jooq.Table;
 import org.jooq.TableField;
+import org.jooq.TableLike;
 import org.jooq.TableOptions;
 import org.jooq.impl.DSL;
+import org.jooq.impl.Internal;
 import org.jooq.impl.SQLDataType;
 import org.jooq.impl.TableImpl;
 
@@ -200,7 +201,7 @@ public class JContentField extends TableImpl<JContentFieldRecord> {
      */
     @Override
     public JContentField where(Condition condition) {
-        return new JContentField(getQualifiedName(), aliased() ? this : null, null, condition);
+        return new JContentField(getQualifiedName(), aliased() ? this : null, null, Internal.condition(this, condition));
     }
 
     /**
@@ -267,7 +268,7 @@ public class JContentField extends TableImpl<JContentFieldRecord> {
      * Create an inline derived table from this table
      */
     @Override
-    public JContentField whereExists(Select<?> select) {
+    public JContentField whereExists(TableLike<?> select) {
         return where(DSL.exists(select));
     }
 
@@ -275,7 +276,7 @@ public class JContentField extends TableImpl<JContentFieldRecord> {
      * Create an inline derived table from this table
      */
     @Override
-    public JContentField whereNotExists(Select<?> select) {
+    public JContentField whereNotExists(TableLike<?> select) {
         return where(DSL.notExists(select));
     }
 }

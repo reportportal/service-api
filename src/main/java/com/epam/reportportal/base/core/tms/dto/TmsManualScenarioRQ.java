@@ -24,6 +24,7 @@ import lombok.experimental.SuperBuilder;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonTypeInfo(
     use = JsonTypeInfo.Id.NAME,
+    include = JsonTypeInfo.As.EXISTING_PROPERTY,
     property = "manualScenarioType",
     visible = true
 )
@@ -43,8 +44,7 @@ public abstract class TmsManualScenarioRQ {
   /**
    * Requirements linked to the manual scenario.
    */
-  @Valid
-  protected List<TmsRequirementRQ> requirements;
+  protected List<@Valid TmsRequirementRQ> requirements;
 
   /**
    * Type of manual scenario (STEPS or TEXT). Required for proper JSON deserialization.
@@ -60,6 +60,5 @@ public abstract class TmsManualScenarioRQ {
   /**
    * Attributes of the manual scenario.
    */
-  @Valid
-  protected List<TmsManualScenarioAttributeRQ> attributes;
+  protected List<@Valid TmsManualScenarioAttributeRQ> attributes;
 }

@@ -21,7 +21,8 @@ import static java.util.stream.Collectors.toMap;
 
 import com.epam.reportportal.base.core.item.merge.StatisticsCalculationStrategy;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
-import com.epam.reportportal.base.infrastructure.persistence.entity.statistics.Statistics;
+import com.epam.reportportal.base.infrastructure.persistence.entity.launch.LaunchStatistics;
+import com.epam.reportportal.base.infrastructure.persistence.entity.statistics.StatisticsView;
 import java.util.Collection;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -34,16 +35,21 @@ import java.util.stream.Collectors;
 public class BasicStatisticsCalculationStrategy implements StatisticsCalculationStrategy {
 
   @Override
-  public Set<Statistics> recalculateLaunchStatistics(Launch newLaunch,
+  public Set<LaunchStatistics> recalculateLaunchStatistics(Launch newLaunch,
       Collection<Launch> launches) {
     return launches.stream()
         .filter(l -> ofNullable(l.getStatistics()).isPresent())
         .flatMap(l -> l.getStatistics().stream())
         .filter(s -> ofNullable(s.getStatisticsField()).isPresent())
-        .collect(toMap(Statistics::getStatisticsField, Statistics::getCounter, Integer::sum))
+        .collect(
+            toMap(StatisticsView::getStatisticsField, StatisticsView::getCounter, Integer::sum))
         .entrySet()
         .stream()
-        .map(entry -> new Statistics(entry.getKey(), entry.getValue(), newLaunch.getId()))
+        .map(entry -> {
+          LaunchStatistics statistics = new LaunchStatistics(entry.getKey(), entry.getValue());
+          statistics.setLaunch(newLaunch);
+          return statistics;
+        })
         .collect(Collectors.toSet());
   }
 }

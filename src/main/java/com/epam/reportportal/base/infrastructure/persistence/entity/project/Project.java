@@ -43,7 +43,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.annotations.Type;
 import org.hibernate.type.SqlTypes;
 
 /**
@@ -93,7 +92,6 @@ public class Project implements Serializable {
 
   @JdbcTypeCode(SqlTypes.JSON)
   @Column(name = "metadata")
-  @Type(Metadata.class)
   private Metadata metadata;
 
   // TODO: rename to meaningful variable. eg. orgSlug, orgKey or else

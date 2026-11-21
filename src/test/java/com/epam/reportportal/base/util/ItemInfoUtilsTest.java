@@ -20,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.epam.reportportal.base.infrastructure.persistence.entity.ItemAttribute;
-import com.epam.reportportal.base.reporting.ItemAttributeResource;
+import com.epam.reportportal.base.reporting.AttributeResource;
 import com.google.common.collect.Lists;
 import java.util.Collections;
 import java.util.List;
@@ -70,14 +70,14 @@ class ItemInfoUtilsTest {
 
   @Test
   void nullAttributeResourceCollectionTest() {
-    Optional<ItemAttributeResource> itemAttributeResource = ItemInfoUtils.extractAttributeResource(
+    Optional<AttributeResource> itemAttributeResource = ItemInfoUtils.extractAttributeResource(
         null, "key");
     assertTrue(itemAttributeResource.isEmpty());
   }
 
   @Test
   void emptyAttributeResourcesCollectionTest() {
-    Optional<ItemAttributeResource> itemAttributeResource = ItemInfoUtils.extractAttributeResource(
+    Optional<AttributeResource> itemAttributeResource = ItemInfoUtils.extractAttributeResource(
         Collections.emptyList(), "key");
     assertTrue(itemAttributeResource.isEmpty());
   }
@@ -85,7 +85,7 @@ class ItemInfoUtilsTest {
   @Test
   void shouldFindAttributeResource() {
     String key = "key1";
-    Optional<ItemAttributeResource> itemAttributeResource = ItemInfoUtils.extractAttributeResource(
+    Optional<AttributeResource> itemAttributeResource = ItemInfoUtils.extractAttributeResource(
         getAttributeResources(), key);
     assertTrue(itemAttributeResource.isPresent());
     assertEquals(key, itemAttributeResource.get().getKey());
@@ -94,7 +94,7 @@ class ItemInfoUtilsTest {
   @Test
   void shouldNotFindAttributeResource() {
     String key = "not-exist";
-    Optional<ItemAttributeResource> itemAttributeResource = ItemInfoUtils.extractAttributeResource(
+    Optional<AttributeResource> itemAttributeResource = ItemInfoUtils.extractAttributeResource(
         getAttributeResources(), key);
     assertTrue(itemAttributeResource.isEmpty());
   }
@@ -107,8 +107,8 @@ class ItemInfoUtilsTest {
     );
   }
 
-  private List<ItemAttributeResource> getAttributeResources() {
-    return Lists.newArrayList(new ItemAttributeResource("key1", "value1"),
-        new ItemAttributeResource("key2", "value2"));
+  private List<AttributeResource> getAttributeResources() {
+    return Lists.newArrayList(new AttributeResource("key1", "value1"),
+        new AttributeResource("key2", "value2"));
   }
 }

@@ -3,6 +3,7 @@ package com.epam.reportportal.base.core.tms.mapper;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCase;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCaseVersion;
 import com.epam.reportportal.base.core.tms.mapper.config.CommonMapperConfig;
+import java.time.Instant;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -16,6 +17,7 @@ public interface TmsTestCaseVersionMapper {
   default TmsTestCaseVersion createDefaultTestCaseVersion() {
     var testCaseVersion = new TmsTestCaseVersion();
     testCaseVersion.setDefault(true);
+    testCaseVersion.setUpdatedAt(Instant.now());
     return testCaseVersion;
   }
 

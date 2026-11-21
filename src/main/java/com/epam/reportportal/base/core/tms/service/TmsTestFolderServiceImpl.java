@@ -31,6 +31,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -420,7 +421,8 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
         targetParentFolderId,
         inputDto.getIndex(),
         folderStatistics,
-        testCaseStatistics
+        testCaseStatistics,
+        new HashSet<>()
     );
 
     var testCaseCount = tmsTestFolderRepository.countTestCasesByFolderId(
@@ -751,6 +753,8 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
    * @param targetParentFolderId The ID of the parent folder for the duplicate
    * @param folderStatistics     Statistics collector for folder duplication
    * @param testCaseStatistics   Statistics collector for test case duplication
+   * @param visitedFolderIds     IDs of source folders already duplicated and of created copies
+   *                             (guards against a parent cycle and copying a copy)
    * @return The duplicated folder entity
    */
   private TmsTestFolder duplicateFolderHierarchy(
@@ -761,8 +765,10 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
       Long targetParentFolderId,
       Integer targetIndex,
       FolderDuplicationStatistics folderStatistics,
-      TestCaseDuplicationStatistics testCaseStatistics) {
+      TestCaseDuplicationStatistics testCaseStatistics,
+      Set<Long> visitedFolderIds) {
 
+    visitedFolderIds.add(sourceFolder.getId());
     try {
       var projectId = membershipDetails.getProjectId();
       TmsTestFolder targetParentFolder = null;
@@ -789,6 +795,7 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
       }
 
       duplicatedFolder = tmsTestFolderRepository.save(duplicatedFolder);
+      visitedFolderIds.add(duplicatedFolder.getId());
       folderStatistics.addSuccess(duplicatedFolder.getId());
 
       duplicateTestCasesInFolder(
@@ -800,7 +807,10 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
       );
 
       if (CollectionUtils.isNotEmpty(sourceFolder.getSubFolders())) {
-        for (var subFolder : sourceFolder.getSubFolders()) {
+        for (var subFolder : List.copyOf(sourceFolder.getSubFolders())) {
+          if (visitedFolderIds.contains(subFolder.getId())) {
+            continue;
+          }
           try {
             var duplicatedSubFolder = duplicateFolderHierarchy(
                 membershipDetails,
@@ -810,7 +820,8 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
                 duplicatedFolder.getId(),
                 subFolder.getIndex(),
                 folderStatistics,
-                testCaseStatistics
+                testCaseStatistics,
+                visitedFolderIds
             );
             duplicatedFolder.getSubFolders().add(duplicatedSubFolder);
           } catch (Exception e) {

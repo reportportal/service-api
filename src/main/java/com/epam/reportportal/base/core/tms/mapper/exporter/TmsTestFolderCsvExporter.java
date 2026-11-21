@@ -6,7 +6,9 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -38,7 +40,8 @@ public class TmsTestFolderCsvExporter implements TmsTestFolderExporter {
 
       // Collect all folders into a flat list for export
       var foldersToExport = new ArrayList<FolderExportData>();
-      collectFoldersForExport(tmsTestFolder, foldersToExport, 0, tmsTestFolder.getName());
+      collectFoldersForExport(tmsTestFolder, foldersToExport, 0, tmsTestFolder.getName(),
+          new HashSet<>());
 
       // Write each folder to CSV
       for (FolderExportData folderData : foldersToExport) {
@@ -76,12 +79,17 @@ public class TmsTestFolderCsvExporter implements TmsTestFolderExporter {
    * @param result     List to collect data into
    * @param level      Current nesting level (0 for root folder)
    * @param parentPath Path of the parent folder
+   * @param visitedIds IDs of folders already collected (guards against a parent cycle)
    */
   private void collectFoldersForExport(
       TmsTestFolder folder,
       List<FolderExportData> result,
       int level,
-      String parentPath) {
+      String parentPath,
+      Set<Long> visitedIds) {
+    if (!visitedIds.add(folder.getId())) {
+      return;
+    }
     var path = level == 0 ? folder.getName() : parentPath + " -> " + folder.getName();
 
     result.add(new FolderExportData(
@@ -95,7 +103,7 @@ public class TmsTestFolderCsvExporter implements TmsTestFolderExporter {
 
     if (folder.getSubFolders() != null) {
       for (var subFolder : folder.getSubFolders()) {
-        collectFoldersForExport(subFolder, result, level + 1, path);
+        collectFoldersForExport(subFolder, result, level + 1, path, visitedIds);
       }
     }
   }

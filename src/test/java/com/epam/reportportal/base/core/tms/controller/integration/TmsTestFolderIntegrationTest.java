@@ -571,6 +571,39 @@ class TmsTestFolderIntegrationTest extends BaseMvcTest {
   }
 
   @Test
+  void findAllFolderIdsInHierarchy_TerminatesOnCycleAndSkipsOtherProjects() {
+    // 3 -> 6 -> 8 and 8 -> 3 closes a cycle; folder 901 of project 2 hangs under 3
+    entityManager.createNativeQuery("UPDATE tms_test_folder SET parent_id = 8 WHERE id = 3")
+        .executeUpdate();
+    entityManager.createNativeQuery(
+        "INSERT INTO tms_test_folder (id, project_id, \"name\", \"index\", parent_id) "
+            + "VALUES (901, 2, 'foreign_child', 0, 3)").executeUpdate();
+
+    var ids = tmsTestFolderRepository.findAllFolderIdsInHierarchy(1L, 3L);
+
+    assertEquals(ids.size(), ids.stream().distinct().count());
+    assertTrue(ids.containsAll(List.of(3L, 6L, 7L, 8L)));
+    assertFalse(ids.contains(901L));
+  }
+
+  @Test
+  void exportFolderToCsv_WithParentCycle_ExportsEachFolderOnce() throws Exception {
+    entityManager.createNativeQuery("UPDATE tms_test_folder SET parent_id = 8 WHERE id = 3")
+        .executeUpdate();
+    entityManager.clear();
+
+    var content = mockMvc.perform(
+            get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/folder/{folderId}/export/{fileType}",
+                3L, TmsTestFolderExportFileType.CSV)
+                .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andReturn().getResponse().getContentAsString();
+
+    assertEquals(1, content.lines().filter(line -> line.startsWith("3,")).count());
+    assertEquals(1, content.lines().filter(line -> line.startsWith("8,")).count());
+  }
+
+  @Test
   void testExportFolderToCsvWithHierarchy() throws Exception {
     // This test assumes folder 3 has subfolders
     long folderId = 3L;

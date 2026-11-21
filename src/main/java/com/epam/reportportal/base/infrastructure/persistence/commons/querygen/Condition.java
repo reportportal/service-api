@@ -129,7 +129,7 @@ public enum Condition {
       this.validate(criteriaHolder, filter.getValue(), filter.isNegative(),
           INCORRECT_FILTER_PARAMETERS);
       return field(criteriaHolder.getAggregateCriteria()).likeIgnoreCase(
-              DSL.inline("%" + DSL.escape(filter.getValue(), '\\') + "%"))
+              DSL.val("%" + DSL.escape(filter.getValue(), '\\') + "%"))
           .and(field(criteriaHolder.getAggregateCriteria()).isNotNull());
     }
 

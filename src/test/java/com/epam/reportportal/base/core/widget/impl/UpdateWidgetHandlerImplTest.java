@@ -24,6 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -31,6 +32,10 @@ import com.epam.reportportal.base.core.widget.content.updater.validator.WidgetVa
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.dao.UserFilterRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.WidgetRepository;
+import com.epam.reportportal.base.infrastructure.persistence.entity.dashboard.Dashboard;
+import com.epam.reportportal.base.infrastructure.persistence.entity.dashboard.DashboardWidget;
+import com.epam.reportportal.base.infrastructure.persistence.entity.dashboard.DashboardWidgetId;
+import com.epam.reportportal.base.infrastructure.persistence.entity.filter.UserFilter;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.MembershipDetails;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationRole;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
@@ -63,6 +68,8 @@ import tools.jackson.databind.json.JsonMapper;
 @ExtendWith(MockitoExtension.class)
 class UpdateWidgetHandlerImplTest {
 
+  private static final String LOCKED_WIDGET_ERROR =
+      "You do not have enough permissions. Widget is on a locked dashboard. Only that dashboard's owner, an organization manager or an administrator can change it.";
   private static final Long WIDGET_ID = 1L;
   private static final Long PROJECT_ID = 1L;
   private static final String WIDGET_NAME = "Test Widget";
@@ -161,7 +168,7 @@ class UpdateWidgetHandlerImplTest {
   }
 
   @Test
-  void updateLockedWidgetWithFilterOnlyChangeShouldSucceedForMember() throws Exception {
+  void updateLockedWidgetWithFilterOnlyChangeShouldFailForNonOwnerMember() {
     // given
     ReportPortalUser user = getRpUser("member", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, PROJECT_ID);
     MembershipDetails projectDetails = extractProjectDetails(user, "test_project");
@@ -170,10 +177,45 @@ class UpdateWidgetHandlerImplTest {
 
     when(widgetRepository.findByIdAndProjectId(WIDGET_ID, PROJECT_ID))
         .thenReturn(Optional.of(lockedWidget));
-    when(filterRepository.findByFilter(any(), any()))
-        .thenReturn(new PageImpl<>(List.of()));
-    doNothing().when(widgetContentFieldsValidator).validate(any(Widget.class));
-    when(widgetRepository.save(any(Widget.class))).thenReturn(lockedWidget);
+
+    // when & then
+    ReportPortalException exception = assertThrows(ReportPortalException.class,
+        () -> handler.updateWidget(WIDGET_ID, request, projectDetails, user));
+    assertEquals(LOCKED_WIDGET_ERROR, exception.getMessage());
+    verify(widgetRepository, never()).save(any(Widget.class));
+  }
+
+  @Test
+  void updateLockedWidgetWithFilterOnlyChangeShouldFailForNonOwnerEditor() {
+    // given
+    ReportPortalUser user = getRpUser("editor", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.EDITOR, PROJECT_ID);
+    MembershipDetails projectDetails = extractProjectDetails(user, "test_project");
+
+    when(widgetRepository.findByIdAndProjectId(WIDGET_ID, PROJECT_ID))
+        .thenReturn(Optional.of(lockedWidget));
+
+    // when & then
+    ReportPortalException exception = assertThrows(ReportPortalException.class,
+        () -> handler.updateWidget(WIDGET_ID, createFilterOnlyUpdateRequest(), projectDetails, user));
+    assertEquals(LOCKED_WIDGET_ERROR, exception.getMessage());
+    verify(widgetRepository, never()).save(any(Widget.class));
+  }
+
+  @Test
+  void updateLockedWidgetWithUnchangedFiltersShouldSucceedForNonOwnerEditor() throws Exception {
+    // given
+    ReportPortalUser user = getRpUser("editor", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.EDITOR, PROJECT_ID);
+    MembershipDetails projectDetails = extractProjectDetails(user, "test_project");
+    UserFilter filter = new UserFilter();
+    filter.setId(100L);
+    lockedWidget.setFilters(Sets.newHashSet(filter));
+
+    WidgetRQ request = createFilterOnlyUpdateRequest();
+    request.setFilterIds(List.of(100L));
+
+    when(widgetRepository.findByIdAndProjectId(WIDGET_ID, PROJECT_ID))
+        .thenReturn(Optional.of(lockedWidget));
+    when(filterRepository.findByFilter(any(), any())).thenReturn(new PageImpl<>(List.of(filter)));
     when(objectMapper.writeValueAsString(any())).thenReturn("{}");
 
     // when
@@ -181,7 +223,126 @@ class UpdateWidgetHandlerImplTest {
 
     // then
     assertEquals("Widget with ID = '1' successfully updated.", result.getResultMessage());
+  }
+
+  @Test
+  void updateLockedWidgetWithFilterOnlyChangeShouldSucceedForOwner() throws Exception {
+    // given
+    ReportPortalUser user = getRpUser("owner", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, PROJECT_ID);
+    MembershipDetails projectDetails = extractProjectDetails(user, "test_project");
+    lockedWidget.setOwner("widget-creator");
+    lockedWidget.getDashboardWidgets().iterator().next().getDashboard().setOwner("owner");
+
+    when(widgetRepository.findByIdAndProjectId(WIDGET_ID, PROJECT_ID))
+        .thenReturn(Optional.of(lockedWidget));
+    when(filterRepository.findByFilter(any(), any())).thenReturn(new PageImpl<>(List.of()));
+    when(objectMapper.writeValueAsString(any())).thenReturn("{}");
+
+    // when
+    OperationCompletionRS result =
+        handler.updateWidget(WIDGET_ID, createFilterOnlyUpdateRequest(), projectDetails, user);
+
+    // then
+    assertEquals("Widget with ID = '1' successfully updated.", result.getResultMessage());
     verify(widgetRepository).save(any(Widget.class));
+  }
+
+  @Test
+  void updateLockedWidgetWithStructuralChangeShouldSucceedForOwner() throws Exception {
+    // given
+    ReportPortalUser user = getRpUser("owner", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, PROJECT_ID);
+    MembershipDetails projectDetails = extractProjectDetails(user, "test_project");
+    lockedWidget.setOwner("widget-creator");
+    lockedWidget.getDashboardWidgets().iterator().next().getDashboard().setOwner("owner");
+
+    when(widgetRepository.findByIdAndProjectId(WIDGET_ID, PROJECT_ID))
+        .thenReturn(Optional.of(lockedWidget));
+    when(objectMapper.writeValueAsString(any())).thenReturn("{}");
+
+    // when
+    OperationCompletionRS result =
+        handler.updateWidget(WIDGET_ID, createStructuralUpdateRequest(), projectDetails, user);
+
+    // then
+    assertEquals("Widget with ID = '1' successfully updated.", result.getResultMessage());
+  }
+
+  @Test
+  void updateLockedWidgetShouldBeRefusedForTheWidgetCreatorWhoDoesNotOwnTheLockedDashboard() {
+    ReportPortalUser user = getRpUser("widget-creator", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.EDITOR, PROJECT_ID);
+    MembershipDetails projectDetails = extractProjectDetails(user, "test_project");
+    lockedWidget.setOwner("widget-creator");
+
+    when(widgetRepository.findByIdAndProjectId(WIDGET_ID, PROJECT_ID)).thenReturn(Optional.of(lockedWidget));
+
+    ReportPortalException exception = assertThrows(ReportPortalException.class,
+        () -> handler.updateWidget(WIDGET_ID, createStructuralUpdateRequest(), projectDetails, user));
+    assertEquals(LOCKED_WIDGET_ERROR, exception.getMessage());
+  }
+
+  @Test
+  void updateLockedWidgetShouldSucceedForDashboardOwnerWhoDidNotCreateIt() throws Exception {
+    ReportPortalUser user = getRpUser("dash-owner", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.EDITOR, PROJECT_ID);
+    MembershipDetails projectDetails = extractProjectDetails(user, "test_project");
+    lockedWidget.setOwner("widget-creator");
+
+    when(widgetRepository.findByIdAndProjectId(WIDGET_ID, PROJECT_ID)).thenReturn(Optional.of(lockedWidget));
+    when(objectMapper.writeValueAsString(any())).thenReturn("{}");
+
+    OperationCompletionRS result =
+        handler.updateWidget(WIDGET_ID, createStructuralUpdateRequest(), projectDetails, user);
+    assertEquals("Widget with ID = '1' successfully updated.", result.getResultMessage());
+  }
+
+  @Test
+  void updateWidgetOnTwoLockedDashboardsOfDifferentOwnersShouldBeRefusedForEachOwnerButAllowedForManager()
+      throws Exception {
+    holdOnDashboard(lockedWidget, 101L, true, "other-owner");
+    when(widgetRepository.findByIdAndProjectId(WIDGET_ID, PROJECT_ID)).thenReturn(Optional.of(lockedWidget));
+
+    for (String login : List.of("dash-owner", "other-owner")) {
+      ReportPortalUser user = getRpUser(login, UserRole.USER, OrganizationRole.MEMBER, ProjectRole.EDITOR, PROJECT_ID);
+      MembershipDetails details = extractProjectDetails(user, "test_project");
+      assertThrows(ReportPortalException.class,
+          () -> handler.updateWidget(WIDGET_ID, createStructuralUpdateRequest(), details, user));
+    }
+
+    when(objectMapper.writeValueAsString(any())).thenReturn("{}");
+    ReportPortalUser manager = getRpUser("mgr", UserRole.USER, OrganizationRole.MANAGER, ProjectRole.VIEWER, PROJECT_ID);
+    OperationCompletionRS result = handler.updateWidget(WIDGET_ID, createStructuralUpdateRequest(),
+        extractProjectDetails(manager, "test_project"), manager);
+    assertEquals("Widget with ID = '1' successfully updated.", result.getResultMessage());
+  }
+
+  @Test
+  void updateWidgetWhoseLockedDashboardWasUnlockedShouldSucceedForAnyEditor() throws Exception {
+    // stale locked flag, but the only dashboard holding the widget is unlocked
+    Widget stale = createWidget(false, lockedWidget.getProject());
+    stale.setLocked(true);
+    holdOnDashboard(stale, 102L, false, "dash-owner");
+    ReportPortalUser user = getRpUser("editor", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.EDITOR, PROJECT_ID);
+
+    when(widgetRepository.findByIdAndProjectId(WIDGET_ID, PROJECT_ID)).thenReturn(Optional.of(stale));
+    when(objectMapper.writeValueAsString(any())).thenReturn("{}");
+
+    OperationCompletionRS result = handler.updateWidget(WIDGET_ID, createStructuralUpdateRequest(),
+        extractProjectDetails(user, "test_project"), user);
+    assertEquals("Widget with ID = '1' successfully updated.", result.getResultMessage());
+  }
+
+  @Test
+  void updateLockedWidgetWithStructuralChangeShouldFailForNonOwnerEditor() {
+    // given
+    ReportPortalUser user = getRpUser("editor", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.EDITOR, PROJECT_ID);
+    MembershipDetails projectDetails = extractProjectDetails(user, "test_project");
+
+    when(widgetRepository.findByIdAndProjectId(WIDGET_ID, PROJECT_ID))
+        .thenReturn(Optional.of(lockedWidget));
+
+    // when & then
+    ReportPortalException exception = assertThrows(ReportPortalException.class,
+        () -> handler.updateWidget(WIDGET_ID, createStructuralUpdateRequest(), projectDetails, user));
+    assertEquals(LOCKED_WIDGET_ERROR, exception.getMessage());
   }
 
   @Test
@@ -200,7 +361,7 @@ class UpdateWidgetHandlerImplTest {
         () -> handler.updateWidget(WIDGET_ID, request, projectDetails, user));
 
     assertEquals(
-        "You do not have enough permissions. Widget is used in a locked dashboard. Action is not permitted for your role.",
+        LOCKED_WIDGET_ERROR,
         exception.getMessage());
   }
 
@@ -291,7 +452,7 @@ class UpdateWidgetHandlerImplTest {
         () -> handler.updateWidget(WIDGET_ID, request, projectDetails, user));
 
     assertEquals(
-        "You do not have enough permissions. Widget is used in a locked dashboard. Action is not permitted for your role.",
+        LOCKED_WIDGET_ERROR,
         exception.getMessage());
   }
 
@@ -318,8 +479,22 @@ class UpdateWidgetHandlerImplTest {
         () -> handler.updateWidget(WIDGET_ID, request, projectDetails, user));
 
     assertEquals(
-        "You do not have enough permissions. Widget is used in a locked dashboard. Action is not permitted for your role.",
+        LOCKED_WIDGET_ERROR,
         exception.getMessage());
+  }
+
+  private static final String DASHBOARD_OWNER = "dash-owner";
+
+  private static void holdOnDashboard(Widget widget, Long dashboardId, boolean locked, String owner) {
+    Dashboard dashboard = new Dashboard();
+    dashboard.setId(dashboardId);
+    dashboard.setLocked(locked);
+    dashboard.setOwner(owner);
+    DashboardWidget link = new DashboardWidget();
+    link.setId(new DashboardWidgetId(dashboardId, widget.getId()));
+    link.setDashboard(dashboard);
+    link.setWidget(widget);
+    widget.getDashboardWidgets().add(link);
   }
 
   private Widget createWidget(boolean locked, Project project) {
@@ -329,6 +504,9 @@ class UpdateWidgetHandlerImplTest {
     widget.setWidgetType(UpdateWidgetHandlerImplTest.WIDGET_TYPE);
     widget.setDescription(null);
     widget.setLocked(locked);
+    if (locked) {
+      holdOnDashboard(widget, 100L, true, DASHBOARD_OWNER);
+    }
     widget.setProject(project);
     widget.setItemsCount(10);
     widget.setContentFields(Sets.newHashSet("field1"));

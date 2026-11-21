@@ -64,7 +64,8 @@ public interface DashboardRepository extends ReportPortalRepository<Dashboard, L
 
 
   /**
-   * Toggles the lock flag for the specified dashboard and all related widgets.
+   * Toggles the lock flag for the specified dashboard and all related widgets. Unlocking leaves a widget locked if it
+   * is also placed on another locked dashboard.
    *
    * <p>Performs native update statements:
    * <ul>
@@ -86,7 +87,14 @@ public interface DashboardRepository extends ReportPortalRepository<Dashboard, L
 
   @Modifying
   @Query(value = """
-           WITH widget_ids AS (SELECT widget_id FROM dashboard_widget WHERE dashboard_id = :dashboardId)
+           WITH widget_ids AS (
+               SELECT dw.widget_id FROM dashboard_widget dw
+               WHERE dw.dashboard_id = :dashboardId
+                 AND NOT EXISTS (SELECT 1 FROM dashboard_widget other
+                                 JOIN owned_entity other_dashboard ON other_dashboard.id = other.dashboard_id
+                                 WHERE other.widget_id = dw.widget_id
+                                   AND other.dashboard_id <> :dashboardId
+                                   AND other_dashboard.locked = true))
            UPDATE owned_entity SET locked = false
            WHERE id = :dashboardId
            OR id IN (SELECT widget_id FROM widget_ids);

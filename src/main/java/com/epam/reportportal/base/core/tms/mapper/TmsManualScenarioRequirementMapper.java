@@ -47,6 +47,7 @@ public interface TmsManualScenarioRequirementMapper {
    * @param original the original requirement entity
    * @return the duplicated requirement entity
    */
+  @Mapping(target = "id", ignore = true)
   @Mapping(target = "manualScenario", ignore = true)
   TmsManualScenarioRequirement duplicate(TmsManualScenarioRequirement original);
 }

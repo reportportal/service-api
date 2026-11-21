@@ -23,6 +23,11 @@ import com.epam.reportportal.base.core.tms.dto.NewTestFolderRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestFolderExportFileType;
 import com.epam.reportportal.base.core.tms.dto.TmsTestFolderRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestFolderRS;
+import com.epam.reportportal.base.core.tms.dto.TmsManualScenarioType;
+import com.epam.reportportal.base.core.tms.dto.TmsRequirementRQ;
+import com.epam.reportportal.base.core.tms.dto.TmsTestCaseRQ;
+import com.epam.reportportal.base.core.tms.dto.TmsTestCaseRS;
+import com.epam.reportportal.base.core.tms.dto.TmsTextManualScenarioRQ;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestCaseRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestFolderRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestPlanTestCaseRepository;
@@ -33,6 +38,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -692,6 +698,39 @@ class TmsTestFolderIntegrationTest extends BaseMvcTest {
     assertNotNull(response.getFolderDuplicationStatistic());
     assertTrue(response.getFolderDuplicationStatistic().getSuccessCount() > 0);
     assertEquals(0, response.getFolderDuplicationStatistic().getFailureCount());
+  }
+
+  @Test
+  void duplicateFolder_WithTestCaseHavingRequirements_CopiesRequirementsWithNewIds()
+      throws Exception {
+    var originalId = createTextTestCaseWithTwoRequirements(9L);
+    var originalRequirements = findRequirementsOfTestCase(originalId);
+
+    var request = TmsTestFolderRQ.builder().name("Folder copy with requirements").build();
+    var result = mockMvc.perform(
+            post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/folder/{folderId}/duplicate", 9L)
+                .contentType("application/json")
+                .content(requirementsMapper.writeValueAsString(request))
+                .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andReturn();
+    var folderCopyId = requirementsMapper.readValue(result.getResponse().getContentAsString(),
+        DuplicateTmsTestFolderRS.class).getId();
+
+    entityManager.flush();
+    var copiedTestCaseIds = entityManager.createNativeQuery(
+            "SELECT id FROM tms_test_case WHERE test_folder_id = :folderId AND name = "
+                + "(SELECT name FROM tms_test_case WHERE id = :originalId)")
+        .setParameter("folderId", folderCopyId)
+        .setParameter("originalId", originalId)
+        .getResultList();
+    assertEquals(1, copiedTestCaseIds.size());
+    var copyId = ((Number) copiedTestCaseIds.getFirst()).longValue();
+
+    assertRequirementsCopied(originalRequirements, findRequirementsOfTestCase(copyId));
+    var originalAfter = findRequirementsOfTestCase(originalId);
+    assertEquals(originalRequirements.get(0)[0], originalAfter.get(0)[0]);
+    assertEquals(originalRequirements.get(1)[0], originalAfter.get(1)[0]);
   }
 
   @Test
@@ -1472,5 +1511,60 @@ class TmsTestFolderIntegrationTest extends BaseMvcTest {
         .andExpect(jsonPath("$.content").isArray())
         .andExpect(jsonPath("$.content[0].id").value(3))
         .andExpect(jsonPath("$.content[0].countOfTestCases").value(1));
+  }
+
+  private final JsonMapper requirementsMapper = JsonMapper.builder().build();
+
+  private Long createTextTestCaseWithTwoRequirements(Long folderId) throws Exception {
+    var manualScenarioRQ = TmsTextManualScenarioRQ.builder()
+        .manualScenarioType(TmsManualScenarioType.TEXT)
+        .requirements(List.of(
+            TmsRequirementRQ.builder().id(UUID.randomUUID().toString()).value("req-value-1")
+                .build(),
+            TmsRequirementRQ.builder().id(UUID.randomUUID().toString()).value("req-value-2")
+                .build()))
+        .instructions("instructions")
+        .expectedResult("expected")
+        .build();
+    var testCaseRQ = TmsTestCaseRQ.builder()
+        .name("Test case with requirements " + UUID.randomUUID())
+        .testFolderId(folderId)
+        .manualScenario(manualScenarioRQ)
+        .build();
+
+    var result = mockMvc.perform(post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case")
+            .contentType("application/json")
+            .content(requirementsMapper.writeValueAsString(testCaseRQ))
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andReturn();
+    return requirementsMapper.readValue(result.getResponse().getContentAsString(),
+        TmsTestCaseRS.class).getId();
+  }
+
+  /**
+   * Returns (id, value) of the requirements of a test case, ordered by number.
+   */
+  @SuppressWarnings("unchecked")
+  private List<Object[]> findRequirementsOfTestCase(Long testCaseId) {
+    entityManager.flush();
+    return entityManager.createNativeQuery(
+            "SELECT r.id, r.value FROM tms_manual_scenario_requirement r "
+                + "JOIN tms_manual_scenario ms ON ms.id = r.manual_scenario_id "
+                + "JOIN tms_test_case_version v ON v.id = ms.test_case_version_id "
+                + "WHERE v.test_case_id = :testCaseId ORDER BY r.number")
+        .setParameter("testCaseId", testCaseId)
+        .getResultList();
+  }
+
+  private void assertRequirementsCopied(List<Object[]> original, List<Object[]> copy) {
+    assertEquals(2, original.size());
+    assertEquals(2, copy.size());
+    for (int i = 0; i < 2; i++) {
+      assertEquals(original.get(i)[1], copy.get(i)[1]);
+      assertNotEquals(original.get(i)[0], copy.get(i)[0]);
+    }
+    assertEquals("req-value-1", original.get(0)[1]);
+    assertEquals("req-value-2", original.get(1)[1]);
   }
 }

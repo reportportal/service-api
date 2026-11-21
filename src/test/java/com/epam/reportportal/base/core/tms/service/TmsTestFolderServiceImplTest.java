@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -1509,7 +1510,18 @@ class TmsTestFolderServiceImplTest {
     // Called because no index specified in request
     when(tmsTestFolderRepository.findMaxIndex(projectId, null)).thenReturn(5);
     when(tmsTestFolderRepository.save(any(TmsTestFolder.class)))
-        .thenReturn(duplicatedFolder);
+        .thenAnswer(invocation -> invocation.getArgument(0));
+    // Subfolders are duplicated under the new root folder
+    when(tmsTestFolderRepository.findByIdAndProjectId(100L, projectId))
+        .thenReturn(Optional.of(duplicatedFolder));
+    var duplicatedFirstSubfolder = new TmsTestFolder();
+    duplicatedFirstSubfolder.setId(101L);
+    var duplicatedSecondSubfolder = new TmsTestFolder();
+    duplicatedSecondSubfolder.setId(102L);
+    when(tmsTestFolderMapper.duplicateTestFolder(eq(firstSubfolder), eq(duplicatedFolder)))
+        .thenReturn(duplicatedFirstSubfolder);
+    when(tmsTestFolderMapper.duplicateTestFolder(eq(secondSubfolder), eq(duplicatedFolder)))
+        .thenReturn(duplicatedSecondSubfolder);
 
     // Mock test case duplication
     when(tmsTestFolderRepository.findTestCaseIdsByFolderId(anyLong()))
@@ -2369,7 +2381,7 @@ class TmsTestFolderServiceImplTest {
   }
 
   @Test
-  void testDuplicateFolder_WithTestCaseDuplicationException_RecordsAllTestCasesAsErrors() {
+  void testDuplicateFolder_WithTestCaseDuplicationException_FailsWholeRequest() {
     // Arrange
     var duplicateRQ = TmsTestFolderRQ.builder()
         .name("Duplicated Folder")
@@ -2380,12 +2392,6 @@ class TmsTestFolderServiceImplTest {
     duplicatedFolder.setName("Duplicated Folder");
 
     var testCaseIds = Arrays.asList(1L, 2L);
-
-    var expectedResponse = DuplicateTmsTestFolderRS.builder()
-        .id(100L)
-        .name("Duplicated Folder")
-        .countOfTestCases(0L)
-        .build();
 
     // Mock hierarchy loading
     var folderIds = Collections.singletonList(rootFolderId);
@@ -2406,24 +2412,16 @@ class TmsTestFolderServiceImplTest {
     // Mock test case duplication with exception
     when(tmsTestFolderRepository.findTestCaseIdsByFolderId(rootFolderId))
         .thenReturn(testCaseIds);
+    var failure = new RuntimeException("Test case duplication failed");
     when(tmsTestCaseService.duplicateTestCases(membershipDetails, user, duplicatedFolder, testCaseIds))
-        .thenThrow(new RuntimeException("Test case duplication failed"));
+        .thenThrow(failure);
 
-    when(tmsTestFolderRepository.countTestCasesByFolderId(100L)).thenReturn(0L);
-    when(tmsTestFolderMapper.convertToDuplicateTmsTestFolderRS(
-        eq(duplicatedFolder),
-        eq(0L),
-        any(FolderDuplicationStatistics.class),
-        any(TestCaseDuplicationStatistics.class)
-    )).thenReturn(expectedResponse);
-
-    // Act
-    var result = sut.duplicateFolder(membershipDetails, user, rootFolderId, duplicateRQ);
-
-    // Assert
-    assertNotNull(result);
-
-    verify(tmsTestCaseService).duplicateTestCases(membershipDetails, user, duplicatedFolder, testCaseIds);
+    // Act & Assert: the original exception propagates (no conversion to 400, no partial result)
+    var thrown = assertThrows(RuntimeException.class,
+        () -> sut.duplicateFolder(membershipDetails, user, rootFolderId, duplicateRQ));
+    assertSame(failure, thrown);
+    verify(tmsTestFolderMapper, never()).convertToDuplicateTmsTestFolderRS(any(), any(), any(),
+        any());
   }
 
   @Test

@@ -22,7 +22,6 @@ import com.epam.reportportal.base.core.tms.dto.batch.BatchDuplicateTestCasesRS;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchPatchTestCaseAttributesRQ;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchPatchTestCasesRQ;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchPatchTestCasesRS;
-import com.epam.reportportal.base.core.tms.dto.batch.BatchTestCaseOperationError;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchTestCaseOperationResultRS;
 import com.epam.reportportal.base.core.tms.mapper.TmsTestCaseActivityResourceMapper;
 import com.epam.reportportal.base.core.tms.mapper.TmsTestCaseMapper;
@@ -773,22 +772,18 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
   @Transactional
   public BatchTestCaseOperationResultRS duplicateTestCases(MembershipDetails membershipDetails,
       ReportPortalUser user, TmsTestFolder targetFolder, List<Long> testCaseIds) {
-    var errors = new ArrayList<BatchTestCaseOperationError>();
     var successfulIds = new ArrayList<Long>();
     var projectId = membershipDetails.getProjectId();
 
+    // All-or-nothing: a failure fails the whole request (and rolls back the transaction) instead
+    // of reporting a partial success that cannot be committed
     for (var testCaseId : testCaseIds) {
-      try {
-        var duplicated = duplicateTestCaseInternal(membershipDetails, user, projectId,
-            testCaseId, targetFolder);
-        successfulIds.add(duplicated.testCase().getId());
-      } catch (Exception e) {
-        errors.add(new BatchTestCaseOperationError(testCaseId,
-            "Failed to duplicate test case: " + e.getMessage()));
-      }
+      var duplicated = duplicateTestCaseInternal(membershipDetails, user, projectId,
+          testCaseId, targetFolder);
+      successfulIds.add(duplicated.testCase().getId());
     }
 
-    return tmsTestCaseMapper.toBatchOperationResult(successfulIds, errors);
+    return tmsTestCaseMapper.toBatchOperationResult(successfulIds, List.of());
   }
 
   private Long getTestFolderId(long projectId, Long testFolderId,

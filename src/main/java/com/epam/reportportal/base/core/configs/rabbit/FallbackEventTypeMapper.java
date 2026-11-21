@@ -45,6 +45,7 @@ import tools.jackson.databind.type.TypeFactory;
 @Component
 public class FallbackEventTypeMapper implements JacksonJavaTypeMapper {
 
+  private static final String TRUSTED_PACKAGE_PREFIX = "com.epam.reportportal.";
   private static final String TYPE_ID_HEADER = "__TypeId__";
   private static final TypeFactory TYPE_FACTORY = TypeFactory.createDefaultInstance();
 
@@ -76,11 +77,20 @@ public class FallbackEventTypeMapper implements JacksonJavaTypeMapper {
   public Class<?> toClass(MessageProperties properties) {
     var typeId = getRequiredHeader(properties);
 
-    try {
-      return Class.forName(typeId);
-    } catch (ClassNotFoundException e) {
-      return resolveFallback(typeId);
+    var registered = registry.get(typeId.substring(typeId.lastIndexOf('.') + 1));
+    if (registered != null && registered.getName().equals(typeId)) {
+      return registered;
     }
+
+    // the header is controlled by whoever can publish to the broker, so never load foreign classes
+    if (typeId.startsWith(TRUSTED_PACKAGE_PREFIX)) {
+      try {
+        return Class.forName(typeId);
+      } catch (ClassNotFoundException e) {
+        return resolveFallback(typeId);
+      }
+    }
+    return resolveFallback(typeId);
   }
 
   /**

@@ -286,6 +286,7 @@ class TmsTestFolderServiceImplTest {
         .build();
 
     when(tmsTestFolderMapper.convertFromRQ(projectId, rqWithIndex)).thenReturn(testFolder);
+    when(tmsTestFolderRepository.findMaxIndex(projectId, null)).thenReturn(4);
     doNothing().when(tmsTestFolderRepository).shiftIndexes(projectId, null, 2, 1);
     when(tmsTestFolderRepository.save(testFolder)).thenReturn(testFolder);
     when(tmsTestFolderMapper.convertFromTmsTestFolderToRS(testFolder)).thenReturn(testFolderRS);
@@ -298,7 +299,6 @@ class TmsTestFolderServiceImplTest {
     assertEquals(2, testFolder.getIndex());
 
     verify(tmsTestFolderRepository).shiftIndexes(projectId, null, 2, 1);
-    verify(tmsTestFolderRepository, never()).findMaxIndex(anyLong(), any());
     verify(tmsTestFolderRepository).save(testFolder);
   }
 
@@ -489,6 +489,7 @@ class TmsTestFolderServiceImplTest {
     when(tmsTestFolderMapper.convertFromRQ(projectId, rqWithNewIndex)).thenReturn(new TmsTestFolder());
     when(tmsTestFolderRepository.existsByIdAndProjectId(3L, projectId)).thenReturn(true);
     when(tmsTestFolderMapper.convertFromId(3L)).thenReturn(parentTestFolder);
+    when(tmsTestFolderRepository.findMaxIndex(projectId, 3L)).thenReturn(6);
     doNothing().when(tmsTestFolderRepository).shiftIndexesBetween(projectId, 3L, 3, 5, -1);
     when(tmsTestFolderRepository.save(testFolder)).thenReturn(testFolder);
     when(tmsTestFolderMapper.convertFromTmsTestFolderToRS(testFolder)).thenReturn(testFolderRS);
@@ -502,6 +503,59 @@ class TmsTestFolderServiceImplTest {
 
     verify(tmsTestFolderRepository).shiftIndexesBetween(projectId, 3L, 3, 5, -1);
     verify(tmsTestFolderRepository).save(testFolder);
+  }
+
+  @Test
+  void testCreateWithoutParent_WithIndexBeyondEnd_ClampsToMaxPlusOne() {
+    testFolder.setParentTestFolder(null);
+    var rq = TmsTestFolderRQ.builder().name("Test Folder").index(10_000).build();
+
+    when(tmsTestFolderMapper.convertFromRQ(projectId, rq)).thenReturn(testFolder);
+    when(tmsTestFolderRepository.findMaxIndex(projectId, null)).thenReturn(4);
+    when(tmsTestFolderRepository.save(testFolder)).thenReturn(testFolder);
+    when(tmsTestFolderMapper.convertFromTmsTestFolderToRS(testFolder)).thenReturn(testFolderRS);
+
+    sut.create(projectId, rq);
+
+    assertEquals(5, testFolder.getIndex());
+    verify(tmsTestFolderRepository).shiftIndexes(projectId, null, 5, 1);
+  }
+
+  @Test
+  void testCreateWithoutParent_WithNegativeIndex_ClampsToZero() {
+    testFolder.setParentTestFolder(null);
+    var rq = TmsTestFolderRQ.builder().name("Test Folder").index(-5).build();
+
+    when(tmsTestFolderMapper.convertFromRQ(projectId, rq)).thenReturn(testFolder);
+    when(tmsTestFolderRepository.findMaxIndex(projectId, null)).thenReturn(4);
+    when(tmsTestFolderRepository.save(testFolder)).thenReturn(testFolder);
+    when(tmsTestFolderMapper.convertFromTmsTestFolderToRS(testFolder)).thenReturn(testFolderRS);
+
+    sut.create(projectId, rq);
+
+    assertEquals(0, testFolder.getIndex());
+    verify(tmsTestFolderRepository).shiftIndexes(projectId, null, 0, 1);
+  }
+
+  @Test
+  void testUpdate_WithIndexBeyondEnd_SameParent_ClampsToMax() {
+    testFolder.setIndex(2);
+    var rq = TmsTestFolderRQ.builder().name("Test Folder").parentTestFolderId(3L).index(99)
+        .build();
+
+    when(tmsTestFolderRepository.findByIdAndProjectId(testFolderId, projectId))
+        .thenReturn(Optional.of(testFolder));
+    when(tmsTestFolderMapper.convertFromRQ(projectId, rq)).thenReturn(new TmsTestFolder());
+    when(tmsTestFolderRepository.existsByIdAndProjectId(3L, projectId)).thenReturn(true);
+    when(tmsTestFolderMapper.convertFromId(3L)).thenReturn(parentTestFolder);
+    when(tmsTestFolderRepository.findMaxIndex(projectId, 3L)).thenReturn(4);
+    when(tmsTestFolderRepository.save(testFolder)).thenReturn(testFolder);
+    when(tmsTestFolderMapper.convertFromTmsTestFolderToRS(testFolder)).thenReturn(testFolderRS);
+
+    sut.update(projectId, testFolderId, rq);
+
+    assertEquals(4, testFolder.getIndex());
+    verify(tmsTestFolderRepository).shiftIndexesBetween(projectId, 3L, 3, 4, -1);
   }
 
   @Test
@@ -519,6 +573,7 @@ class TmsTestFolderServiceImplTest {
     when(tmsTestFolderMapper.convertFromRQ(projectId, rqWithNewIndex)).thenReturn(new TmsTestFolder());
     when(tmsTestFolderRepository.existsByIdAndProjectId(3L, projectId)).thenReturn(true);
     when(tmsTestFolderMapper.convertFromId(3L)).thenReturn(parentTestFolder);
+    when(tmsTestFolderRepository.findMaxIndex(projectId, 3L)).thenReturn(6);
     doNothing().when(tmsTestFolderRepository).shiftIndexesBetween(projectId, 3L, 2, 4, 1);
     when(tmsTestFolderRepository.save(testFolder)).thenReturn(testFolder);
     when(tmsTestFolderMapper.convertFromTmsTestFolderToRS(testFolder)).thenReturn(testFolderRS);
@@ -607,6 +662,7 @@ class TmsTestFolderServiceImplTest {
     when(tmsTestFolderMapper.convertFromId(newParentId)).thenReturn(newParent);
 
     doNothing().when(tmsTestFolderRepository).shiftIndexes(projectId, oldParentId, 3, -1);
+    when(tmsTestFolderRepository.findMaxIndex(projectId, newParentId)).thenReturn(4);
     doNothing().when(tmsTestFolderRepository).shiftIndexes(projectId, newParentId, 3, 1);
     when(tmsTestFolderRepository.save(testFolder)).thenReturn(testFolder);
     when(tmsTestFolderMapper.convertFromTmsTestFolderToRS(testFolder)).thenReturn(testFolderRS);

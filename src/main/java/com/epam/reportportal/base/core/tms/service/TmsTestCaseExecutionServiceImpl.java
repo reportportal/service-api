@@ -698,7 +698,8 @@ public class TmsTestCaseExecutionServiceImpl implements TmsTestCaseExecutionServ
                 );
               }
               // Add the test case to test plan for PASSED or FAILED status
-              addTestCaseToTestPlan(execution, request.getStatus());
+              addTestCaseToTestPlan(membershipDetails.getProjectId(), execution,
+                  request.getStatus());
               updated = true;
             }
           }
@@ -725,10 +726,12 @@ public class TmsTestCaseExecutionServiceImpl implements TmsTestCaseExecutionServ
   /**
    * Adds a test case to test plan if test item status is PASSED or FAILED.
    *
+   * @param projectId the project ID of the launch
    * @param execution the test case execution
    * @param status    the new status
    */
-  private void addTestCaseToTestPlan(TmsTestCaseExecution execution, String status) {
+  private void addTestCaseToTestPlan(Long projectId, TmsTestCaseExecution execution,
+      String status) {
     if (status == null) {
       return;
     }
@@ -742,7 +745,8 @@ public class TmsTestCaseExecutionServiceImpl implements TmsTestCaseExecutionServ
               testPlanId -> {
                 var testCaseId = execution.getTestCaseId();
 
-                var added = tmsTestPlanService.addTestCaseToTestPlan(testPlanId, testCaseId);
+                var added = tmsTestPlanService.addTestCaseToTestPlan(projectId, testPlanId,
+                    testCaseId);
 
                 if (added) {
                   log.debug("Added test case: {} to test plan: {} due to {} status",

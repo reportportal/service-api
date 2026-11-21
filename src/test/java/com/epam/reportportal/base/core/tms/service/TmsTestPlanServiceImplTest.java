@@ -261,6 +261,7 @@ class TmsTestPlanServiceImplTest {
 
     assertDoesNotThrow(() -> sut.delete(projectId, testPlanId));
 
+    verify(launchRepository).clearTestPlanIdsByProjectIdAndTestPlanIds(projectId, List.of(testPlanId));
     verify(tmsTestPlanAttributeService).deleteAllByTestPlanId(testPlanId);
     verify(testPlanRepository).delete(any(TmsTestPlan.class));
   }
@@ -466,8 +467,8 @@ class TmsTestPlanServiceImplTest {
     when(testPlanRepository.existsByIdAndProject_Id(testPlanId, projectId)).thenReturn(true);
     when(tmsTestCaseService.getExistingTestCaseIds(projectId, testCaseIds)).thenReturn(List.of(10L, 20L, 30L));
     when(tmsTestPlanTestCaseRepository.findTestCaseIdsByTestPlanId(testPlanId)).thenReturn(List.of(10L));
-    when(tmsTestPlanTestCaseRepository.insertTestPlanTestCaseIgnoreConflict(testPlanId, 20L)).thenReturn(1);
-    when(tmsTestPlanTestCaseRepository.insertTestPlanTestCaseIgnoreConflict(testPlanId, 30L)).thenReturn(1);
+    when(tmsTestPlanTestCaseRepository.insertTestPlanTestCaseInProject(projectId, testPlanId, 20L)).thenReturn(1);
+    when(tmsTestPlanTestCaseRepository.insertTestPlanTestCaseInProject(projectId, testPlanId, 30L)).thenReturn(1);
     when(tmsTestPlanMapper.convertToRS(anyInt(), anyInt(), anyList())).thenReturn(expectedResult);
 
     var result = sut.addTestCasesToPlan(projectId, testPlanId, testCaseIds);
@@ -490,7 +491,7 @@ class TmsTestPlanServiceImplTest {
     when(testPlanRepository.existsByIdAndProject_Id(testPlanId, projectId)).thenReturn(true);
     when(tmsTestCaseService.getExistingTestCaseIds(projectId, testCaseIds)).thenReturn(List.of(10L));
     when(tmsTestPlanTestCaseRepository.findTestCaseIdsByTestPlanId(testPlanId)).thenReturn(List.of());
-    when(tmsTestPlanTestCaseRepository.insertTestPlanTestCaseIgnoreConflict(testPlanId, 10L)).thenReturn(1);
+    when(tmsTestPlanTestCaseRepository.insertTestPlanTestCaseInProject(projectId, testPlanId, 10L)).thenReturn(1);
     when(tmsTestPlanMapper.convertToRS(anyInt(), anyInt(), anyList())).thenReturn(expectedResult);
 
     var result = sut.addTestCasesToPlan(projectId, testPlanId, testCaseIds);
@@ -610,12 +611,12 @@ class TmsTestPlanServiceImplTest {
     var testPlanId = 1L;
     var testCaseId = 2L;
 
-    when(tmsTestPlanTestCaseRepository.insertTestPlanTestCaseIgnoreConflict(testPlanId, testCaseId)).thenReturn(1);
+    when(tmsTestPlanTestCaseRepository.insertTestPlanTestCaseInProject(projectId, testPlanId, testCaseId)).thenReturn(1);
 
-    var result = sut.addTestCaseToTestPlan(testPlanId, testCaseId);
+    var result = sut.addTestCaseToTestPlan(projectId, testPlanId, testCaseId);
 
     assertTrue(result);
-    verify(tmsTestPlanTestCaseRepository).insertTestPlanTestCaseIgnoreConflict(testPlanId, testCaseId);
+    verify(tmsTestPlanTestCaseRepository).insertTestPlanTestCaseInProject(projectId, testPlanId, testCaseId);
   }
 
   @Test
@@ -623,26 +624,24 @@ class TmsTestPlanServiceImplTest {
     var testPlanId = 1L;
     var testCaseId = 2L;
 
-    when(tmsTestPlanTestCaseRepository.insertTestPlanTestCaseIgnoreConflict(testPlanId, testCaseId)).thenReturn(0);
+    when(tmsTestPlanTestCaseRepository.insertTestPlanTestCaseInProject(projectId, testPlanId, testCaseId)).thenReturn(0);
 
-    var result = sut.addTestCaseToTestPlan(testPlanId, testCaseId);
+    var result = sut.addTestCaseToTestPlan(projectId, testPlanId, testCaseId);
 
     assertFalse(result);
-    verify(tmsTestPlanTestCaseRepository).insertTestPlanTestCaseIgnoreConflict(testPlanId, testCaseId);
+    verify(tmsTestPlanTestCaseRepository).insertTestPlanTestCaseInProject(projectId, testPlanId, testCaseId);
   }
 
   @Test
-  void shouldHandleExceptionWhenAddingTestCaseToTestPlan() {
+  void shouldPropagateExceptionWhenAddingTestCaseToTestPlan() {
     var testPlanId = 1L;
     var testCaseId = 2L;
 
-    when(tmsTestPlanTestCaseRepository.insertTestPlanTestCaseIgnoreConflict(testPlanId, testCaseId))
+    when(tmsTestPlanTestCaseRepository.insertTestPlanTestCaseInProject(projectId, testPlanId, testCaseId))
         .thenThrow(new RuntimeException("Database error"));
 
-    var result = sut.addTestCaseToTestPlan(testPlanId, testCaseId);
-
-    assertFalse(result);
-    verify(tmsTestPlanTestCaseRepository).insertTestPlanTestCaseIgnoreConflict(testPlanId, testCaseId);
+    assertThrows(RuntimeException.class,
+        () -> sut.addTestCaseToTestPlan(projectId, testPlanId, testCaseId));
   }
 
   @Test
@@ -672,17 +671,15 @@ class TmsTestPlanServiceImplTest {
   }
 
   @Test
-  void shouldHandleExceptionWhenRemovingSingleTestCaseFromPlan() {
+  void shouldPropagateExceptionWhenRemovingSingleTestCaseFromPlan() {
     var testPlanId = 1L;
     var testCaseId = 2L;
 
     when(tmsTestPlanTestCaseRepository.deleteByTestPlanIdAndTestCaseId(testPlanId, testCaseId))
         .thenThrow(new RuntimeException("Database error"));
 
-    var result = sut.removeSingleTestCaseFromPlan(testPlanId, testCaseId);
-
-    assertFalse(result);
-    verify(tmsTestPlanTestCaseRepository).deleteByTestPlanIdAndTestCaseId(testPlanId, testCaseId);
+    assertThrows(RuntimeException.class,
+        () -> sut.removeSingleTestCaseFromPlan(testPlanId, testCaseId));
   }
 
   @Test
@@ -709,7 +706,7 @@ class TmsTestPlanServiceImplTest {
     when(tmsTestCaseService.duplicateTestCases(membershipDetails, user, originalTestCaseIds)).thenReturn(duplicationResult);
     when(tmsTestCaseService.getExistingTestCaseIds(projectId, duplicatedTestCaseIds)).thenReturn(duplicatedTestCaseIds);
     when(tmsTestPlanTestCaseRepository.findTestCaseIdsByTestPlanId(3L)).thenReturn(List.of());
-    when(tmsTestPlanTestCaseRepository.insertTestPlanTestCaseIgnoreConflict(eq(3L), anyLong())).thenReturn(1);
+    when(tmsTestPlanTestCaseRepository.insertTestPlanTestCaseInProject(eq(projectId), eq(3L), anyLong())).thenReturn(1);
     when(testPlanRepository.existsByIdAndProject_Id(3L, projectId)).thenReturn(true);
     when(tmsTestPlanMapper.convertToRS(anyInt(), anyInt(), anyList())).thenReturn(addToPlanResult);
     when(tmsTestPlanMapper.combineDuplicateTestPlanBatchResults(duplicationResult, addToPlanResult)).thenReturn(combinedResult);

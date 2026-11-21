@@ -141,6 +141,7 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
         projectId).orElseThrow(() -> new ReportPortalException(
         NOT_FOUND, TMS_TEST_PLAN_NOT_FOUND_BY_ID.formatted(testPlanId, projectId))
     );
+    launchRepository.clearTestPlanIdsByProjectIdAndTestPlanIds(projectId, List.of(testPlanId));
     tmsTestPlanAttributeService.deleteAllByTestPlanId(testPlanId);
     testPlanRepository.delete(tmsTestPlan);
   }
@@ -216,7 +217,7 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
         }
 
         // Try to add a test case
-        if (addTestCaseToTestPlan(testPlanId, testCaseId)) {
+        if (addTestCaseToTestPlan(projectId, testPlanId, testCaseId)) {
           successCount++;
           testCaseIdsAreInTestPlan.add(testCaseId);
         } else {
@@ -277,14 +278,9 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
 
   @Override
   @Transactional
-  public boolean addTestCaseToTestPlan(Long testPlanId, Long testCaseId) {
-    try {
-      int inserted = tmsTestPlanTestCaseRepository.insertTestPlanTestCaseIgnoreConflict(testPlanId,
-          testCaseId);
-      return inserted == 1;
-    } catch (Exception e) {
-      return false;
-    }
+  public boolean addTestCaseToTestPlan(Long projectId, Long testPlanId, Long testCaseId) {
+    return tmsTestPlanTestCaseRepository.insertTestPlanTestCaseInProject(projectId, testPlanId,
+        testCaseId) == 1;
   }
 
   @Override
@@ -364,13 +360,8 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
   @Override
   @Transactional
   public boolean removeSingleTestCaseFromPlan(Long testPlanId, Long testCaseId) {
-    try {
-      int deleted = tmsTestPlanTestCaseRepository.deleteByTestPlanIdAndTestCaseId(testPlanId,
-          testCaseId);
-      return deleted == 1;
-    } catch (Exception e) {
-      return false;
-    }
+    return tmsTestPlanTestCaseRepository.deleteByTestPlanIdAndTestCaseId(testPlanId, testCaseId)
+        == 1;
   }
 
   @Override

@@ -218,7 +218,7 @@ class TmsAttachmentControllerTest {
                 .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
         .andExpect(header().string(HttpHeaders.CONTENT_DISPOSITION,
-            "attachment; filename=\"test.txt\""))
+            "attachment; filename=\"test.txt\"; filename*=UTF-8''test.txt"))
         .andExpect(header().string(HttpHeaders.CONTENT_TYPE, "text/plain"))
         .andExpect(header().string(HttpHeaders.CONTENT_LENGTH, "22"));
 
@@ -250,7 +250,7 @@ class TmsAttachmentControllerTest {
                 .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
         .andExpect(header().string(HttpHeaders.CONTENT_DISPOSITION,
-            "attachment; filename=\"image.png\""))
+            "attachment; filename=\"image.png\"; filename*=UTF-8''image.png"))
         .andExpect(header().string(HttpHeaders.CONTENT_TYPE, "image/png"))
         .andExpect(header().string(HttpHeaders.CONTENT_LENGTH, "1024"));
 
@@ -432,7 +432,7 @@ class TmsAttachmentControllerTest {
                 .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
         .andExpect(header().string(HttpHeaders.CONTENT_DISPOSITION,
-            "attachment; filename=\"" + fileName + "\""))
+            "attachment; filename=\"" + fileName + "\"; filename*=UTF-8''test%20file%20with%20russian%20characters.txt"))
         .andExpect(header().string(HttpHeaders.CONTENT_TYPE, "text/plain"))
         .andExpect(header().string(HttpHeaders.CONTENT_LENGTH, "22"));
 

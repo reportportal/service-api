@@ -39,8 +39,8 @@ public class TmsTestCaseCsvExporter implements TmsTestCaseExporter {
       for (var testCase : (Iterable<TmsTestCaseRS>) testCases::iterator) {
         csvPrinter.printRecord(
             testCase.getId(),
-            testCase.getName(),
-            testCase.getDescription(),
+            CsvCellSanitizer.sanitize(testCase.getName()),
+            CsvCellSanitizer.sanitize(testCase.getDescription()),
             testCase.getTestFolder() != null ? testCase.getTestFolder().getId() : "",
             testCase.getPriority()
         );

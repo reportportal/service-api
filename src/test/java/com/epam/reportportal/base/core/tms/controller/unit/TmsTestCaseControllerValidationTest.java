@@ -17,9 +17,11 @@
 package com.epam.reportportal.base.core.tms.controller.unit;
 
 import static com.epam.reportportal.base.util.StandaloneMockMvcSupport.standaloneJsonSetup;
+import static org.hamcrest.Matchers.containsString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -90,7 +92,7 @@ class TmsTestCaseControllerValidationTest {
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.errorCode").value(4001))
         .andExpect(jsonPath("$.message").value(
-            org.hamcrest.Matchers.containsString("[Field 'manualScenario.executionEstimationTime' should be greater or equal than '1'.]")));
+            containsString("[Field 'manualScenario.executionEstimationTime' should be greater or equal than '1'.]")));
     verifyNoInteractions(tmsTestCaseService);
   }
 
@@ -100,7 +102,7 @@ class TmsTestCaseControllerValidationTest {
             .contentType(MediaType.APPLICATION_JSON).content("{\"name\": \"tc\"}"))
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.errorCode").value(4001))
-        .andExpect(jsonPath("$.message").value(org.hamcrest.Matchers.containsString(
+        .andExpect(jsonPath("$.message").value(containsString(
             "[Either testFolderId or testFolderName must be provided and not empty]")));
     verifyNoInteractions(tmsTestCaseService);
   }
@@ -112,11 +114,10 @@ class TmsTestCaseControllerValidationTest {
          "manualScenario": {"manualScenarioType": "TEXT", "executionEstimationTime": 0}}
         """;
 
-    mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders
-            .put("/v1/project/{projectKey}/tms/test-case/{id}", "project", 1)
+    mockMvc.perform(put("/v1/project/{projectKey}/tms/test-case/{id}", "project", 1)
             .contentType(MediaType.APPLICATION_JSON).content(body))
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.message").value(
-            org.hamcrest.Matchers.containsString("[Field 'manualScenario.executionEstimationTime' should be greater or equal than '1'.]")));
+            containsString("[Field 'manualScenario.executionEstimationTime' should be greater or equal than '1'.]")));
   }
 }

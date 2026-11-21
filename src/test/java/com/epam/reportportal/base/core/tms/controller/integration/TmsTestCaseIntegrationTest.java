@@ -3289,6 +3289,164 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
             jsonPath("$.lastExecutionAt").isNotEmpty()); // Should have the latest execution
   }
 
+  @Test
+  void createTestCaseWithoutRequirementIds_ServerMintsUuids() throws Exception {
+    var testCaseId = createTextTestCase(7L, List.of(
+        TmsRequirementRQ.builder().value("no-id-1").build(),
+        TmsRequirementRQ.builder().value("no-id-2").build()));
+
+    var requirements = findRequirementsOfTestCase(testCaseId);
+    assertEquals(2, requirements.size());
+    assertEquals("no-id-1", requirements.get(0)[1]);
+    assertEquals("no-id-2", requirements.get(1)[1]);
+    requirements.forEach(r -> assertTrue(UUID.fromString((String) r[0]) != null));
+    assertNotEquals(requirements.get(0)[0], requirements.get(1)[0]);
+  }
+
+  @Test
+  void createTestCaseWithBlankRequirementId_TreatedAsAbsent() throws Exception {
+    var json = "{\"name\":\"Blank req id " + UUID.randomUUID() + "\",\"testFolderId\":7,"
+        + "\"manualScenario\":{\"manualScenarioType\":\"TEXT\",\"instructions\":\"i\","
+        + "\"expectedResult\":\"e\",\"requirements\":[{\"id\":\"\",\"value\":\"blank-id\"}]}}";
+
+    var result = mockMvc.perform(post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case")
+            .contentType("application/json")
+            .content(json)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andReturn();
+    var testCaseId = mapper.readValue(result.getResponse().getContentAsString(),
+        TmsTestCaseRS.class).getId();
+
+    var requirements = findRequirementsOfTestCase(testCaseId);
+    assertEquals(1, requirements.size());
+    assertEquals(36, ((String) requirements.get(0)[0]).length());
+  }
+
+  @Test
+  void createTestCaseWithRequirementIdOfAnotherTestCase_Conflict() throws Exception {
+    var firstId = createTextTestCaseWithTwoRequirements(7L);
+    var foreignId = (String) findRequirementsOfTestCase(firstId).get(0)[0];
+
+    var testCaseRQ = TmsTestCaseRQ.builder()
+        .name("Foreign req id " + UUID.randomUUID())
+        .testFolderId(7L)
+        .manualScenario(textScenario(
+            List.of(TmsRequirementRQ.builder().id(foreignId).value("hijack").build())))
+        .build();
+    postTestCase(testCaseRQ).andExpect(status().isConflict());
+
+    assertEquals("req-value-1", findRequirementsOfTestCase(firstId).get(0)[1]);
+  }
+
+  @Test
+  void patchTestCaseAddingRequirementWithoutId_AppendsWithUuid() throws Exception {
+    var testCaseId = createTextTestCaseWithTwoRequirements(7L);
+    var before = findRequirementsOfTestCase(testCaseId);
+
+    var patchRQ = TmsTestCaseRQ.builder()
+        .manualScenario(textScenario(List.of(TmsRequirementRQ.builder().value("appended").build())))
+        .build();
+    mockMvc.perform(patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/" + testCaseId)
+            .contentType("application/json")
+            .content(mapper.writeValueAsString(patchRQ))
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk());
+
+    var after = findRequirementsOfTestCase(testCaseId);
+    assertEquals(3, after.size());
+    assertEquals(before.get(0)[0], after.get(0)[0]);
+    assertEquals(before.get(1)[0], after.get(1)[0]);
+    assertEquals("appended", after.get(2)[1]);
+    assertEquals(36, ((String) after.get(2)[0]).length());
+  }
+
+  @Test
+  void putTestCaseResendingSameRequirementIds_KeepsIds() throws Exception {
+    var testCaseId = createTextTestCaseWithTwoRequirements(7L);
+    var before = findRequirementsOfTestCase(testCaseId);
+
+    putTestCase(testCaseId, List.of(
+        TmsRequirementRQ.builder().id((String) before.get(0)[0]).value("renamed-1").build(),
+        TmsRequirementRQ.builder().id((String) before.get(1)[0]).value("renamed-2").build()));
+
+    var after = findRequirementsOfTestCase(testCaseId);
+    assertEquals(2, after.size());
+    assertEquals(before.get(0)[0], after.get(0)[0]);
+    assertEquals(before.get(1)[0], after.get(1)[0]);
+    assertEquals("renamed-1", after.get(0)[1]);
+    assertEquals("renamed-2", after.get(1)[1]);
+  }
+
+  @Test
+  void putTestCaseWithRequirementIdsOmitted_ReplacesWithNewUuids() throws Exception {
+    var testCaseId = createTextTestCaseWithTwoRequirements(7L);
+    var before = findRequirementsOfTestCase(testCaseId);
+
+    putTestCase(testCaseId, List.of(
+        TmsRequirementRQ.builder().value("fresh-1").build(),
+        TmsRequirementRQ.builder().value("fresh-2").build()));
+
+    var after = findRequirementsOfTestCase(testCaseId);
+    assertEquals(2, after.size());
+    assertEquals("fresh-1", after.get(0)[1]);
+    assertEquals("fresh-2", after.get(1)[1]);
+    for (var row : after) {
+      assertEquals(36, ((String) row[0]).length());
+      assertNotEquals(before.get(0)[0], row[0]);
+      assertNotEquals(before.get(1)[0], row[0]);
+    }
+    var remainingOldRows = entityManager.createNativeQuery(
+            "SELECT count(*) FROM tms_manual_scenario_requirement WHERE id IN (:ids)")
+        .setParameter("ids", List.of(before.get(0)[0], before.get(1)[0]))
+        .getSingleResult();
+    assertEquals(0L, ((Number) remainingOldRows).longValue());
+  }
+
+  private TmsTextManualScenarioRQ textScenario(List<TmsRequirementRQ> requirements) {
+    return TmsTextManualScenarioRQ.builder()
+        .manualScenarioType(TmsManualScenarioType.TEXT)
+        .requirements(requirements)
+        .instructions("instructions")
+        .expectedResult("expected")
+        .build();
+  }
+
+  private org.springframework.test.web.servlet.ResultActions postTestCase(TmsTestCaseRQ rq)
+      throws Exception {
+    return mockMvc.perform(post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case")
+        .contentType("application/json")
+        .content(mapper.writeValueAsString(rq))
+        .with(token(oAuthHelper.getSuperadminToken())));
+  }
+
+  private Long createTextTestCase(Long folderId, List<TmsRequirementRQ> requirements)
+      throws Exception {
+    var result = postTestCase(TmsTestCaseRQ.builder()
+        .name("Test case " + UUID.randomUUID())
+        .testFolderId(folderId)
+        .manualScenario(textScenario(requirements))
+        .build())
+        .andExpect(status().isOk())
+        .andReturn();
+    return mapper.readValue(result.getResponse().getContentAsString(),
+        TmsTestCaseRS.class).getId();
+  }
+
+  private void putTestCase(Long testCaseId, List<TmsRequirementRQ> requirements)
+      throws Exception {
+    var rq = TmsTestCaseRQ.builder()
+        .name("Updated " + UUID.randomUUID())
+        .testFolderId(7L)
+        .manualScenario(textScenario(requirements))
+        .build();
+    mockMvc.perform(put("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/" + testCaseId)
+            .contentType("application/json")
+            .content(mapper.writeValueAsString(rq))
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk());
+  }
+
   private Long createTextTestCaseWithTwoRequirements(Long folderId) throws Exception {
     var manualScenarioRQ = TmsTextManualScenarioRQ.builder()
         .manualScenarioType(TmsManualScenarioType.TEXT)

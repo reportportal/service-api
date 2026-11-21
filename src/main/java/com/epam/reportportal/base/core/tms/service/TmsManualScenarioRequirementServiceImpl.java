@@ -20,6 +20,7 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -46,7 +47,7 @@ public class TmsManualScenarioRequirementServiceImpl implements
 
     var requestedIds = requirements.stream()
         .map(TmsRequirementRQ::getId)
-        .filter(Objects::nonNull)
+        .filter(StringUtils::isNotBlank)
         .toList();
 
     var existingById = tmsManualScenarioRequirementRepository.findAllById(requestedIds)
@@ -64,6 +65,7 @@ public class TmsManualScenarioRequirementServiceImpl implements
         entities.add(existing);
       } else {
         var entity = tmsManualScenarioRequirementMapper.toEntity(requirementRQ);
+        assignIdIfMissing(entity);
         entity.setManualScenario(tmsManualScenario);
         entity.setNumber(i);
         entities.add(entity);
@@ -99,7 +101,7 @@ public class TmsManualScenarioRequirementServiceImpl implements
 
     var requestedIds = pending.stream()
         .map(p -> p.rq().getId())
-        .filter(Objects::nonNull)
+        .filter(StringUtils::isNotBlank)
         .toList();
 
     var existingById = requestedIds.isEmpty()
@@ -113,7 +115,8 @@ public class TmsManualScenarioRequirementServiceImpl implements
     var allEntities = new ArrayList<TmsManualScenarioRequirement>();
 
     for (var p : pending) {
-      var existing = existingById.get(p.rq().getId());
+      var existing = StringUtils.isBlank(p.rq().getId()) ? null
+          : existingById.get(p.rq().getId());
       TmsManualScenarioRequirement entity;
       if (existing != null) {
         verifyBelongsToScenario(existing, p.scenario());
@@ -122,6 +125,7 @@ public class TmsManualScenarioRequirementServiceImpl implements
         entity = existing;
       } else {
         entity = tmsManualScenarioRequirementMapper.toEntity(p.rq());
+        assignIdIfMissing(entity);
         entity.setManualScenario(p.scenario());
         entity.setNumber(p.number());
       }
@@ -191,11 +195,12 @@ public class TmsManualScenarioRequirementServiceImpl implements
       } else {
         // The id is the primary key: an id used by another scenario is a conflict, it is never
         // moved over to this scenario
-        if (requirementRQ.getId() != null
+        if (StringUtils.isNotBlank(requirementRQ.getId())
             && tmsManualScenarioRequirementRepository.existsById(requirementRQ.getId())) {
           throw requirementIdConflict(requirementRQ.getId());
         }
         var entity = tmsManualScenarioRequirementMapper.toEntity(requirementRQ);
+        assignIdIfMissing(entity);
         entity.setManualScenario(existingManualScenario);
         entity.setNumber(++maxNumber);
         entitiesToSave.add(entity);
@@ -285,6 +290,16 @@ public class TmsManualScenarioRequirementServiceImpl implements
 
     log.debug("Duplicated {} requirements from manual scenario: {} to: {}",
         duplicatedEntities.size(), originalScenario.getId(), duplicatedScenario.getId());
+  }
+
+  /**
+   * The id is the table's primary key. A client may omit it (or send a blank one) for a new
+   * requirement, in which case the server mints an opaque UUID; a client-supplied id is kept.
+   */
+  private static void assignIdIfMissing(TmsManualScenarioRequirement entity) {
+    if (StringUtils.isBlank(entity.getId())) {
+      entity.setId(UUID.randomUUID().toString());
+    }
   }
 
   /**

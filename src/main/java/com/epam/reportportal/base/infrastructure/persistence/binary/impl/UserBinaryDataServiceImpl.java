@@ -126,8 +126,11 @@ public class UserBinaryDataServiceImpl implements UserBinaryDataService {
     try {
       if (fileId.isPresent()) {
         contentType = (String) user.getMetadata().getMetadata().get(ATTACHMENT_CONTENT_TYPE);
-        data = dataStoreService.load(fileId.get()).orElseThrow(
-            () -> new ReportPortalException(ErrorType.UNABLE_TO_LOAD_BINARY_DATA, fileId.get()));
+        // avatars are small, buffer them to know the length without an extra storage request
+        try (InputStream photo = dataStoreService.load(fileId.get()).orElseThrow(
+            () -> new ReportPortalException(ErrorType.UNABLE_TO_LOAD_BINARY_DATA, fileId.get()))) {
+          data = new ByteArrayInputStream(photo.readAllBytes());
+        }
       } else {
         data = new ClassPathResource(DEFAULT_USER_PHOTO).getInputStream();
         contentType = MimeTypeUtils.IMAGE_JPEG_VALUE;

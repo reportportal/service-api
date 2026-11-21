@@ -156,9 +156,13 @@ class TestCaseFixRoundE2eIntegrationTest extends BaseMvcTest {
     assertEquals("NOT_SENT", first.get("state").asText());
     assertEquals(2, first.get("stepNumber").asInt());
     assertFalse(second.has("stepNumber"));
+    assertEquals(first.get("authorId").asLong(), first.get("author").get("id").asLong(), "a name to show, not only an id");
+    var authorLogin = first.get("author").get("login").asText();
+    assertFalse(authorLogin.isBlank());
 
     var review = send(get(reviewUrl("")), null, HttpStatus.OK);
     assertEquals(2, review.get("comments").size());
+    assertEquals(authorLogin, review.get("comments").get(0).get("author").get("login").asText());
     assertEquals(2, review.get("unsentCount").asInt());
     assertFalse(review.get("fixInProgress").asBoolean());
 

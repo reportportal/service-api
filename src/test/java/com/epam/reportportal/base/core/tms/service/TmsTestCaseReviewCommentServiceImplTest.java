@@ -6,11 +6,14 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.epam.reportportal.base.core.tms.dto.TmsReviewCommentRQ;
+import com.epam.reportportal.base.core.tms.mapper.TmsReviewCommentAssembler;
+import com.epam.reportportal.base.infrastructure.persistence.dao.UserRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestCaseFixRoundRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestCaseRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestCaseReviewCommentRepository;
@@ -32,6 +35,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
@@ -47,6 +51,9 @@ class TmsTestCaseReviewCommentServiceImplTest {
   private TmsTestCaseReviewCommentRepository commentRepository;
   @Mock
   private TmsTestCaseFixRoundRepository fixRoundRepository;
+
+  @Spy
+  private TmsReviewCommentAssembler commentAssembler = new TmsReviewCommentAssembler(mock(UserRepository.class));
 
   @InjectMocks
   private TmsTestCaseReviewCommentServiceImpl sut;

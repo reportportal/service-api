@@ -9,7 +9,7 @@ import com.epam.reportportal.base.core.aifactory.connector.CiTriggerConnector;
 import com.epam.reportportal.base.core.aifactory.model.PipelineExecution;
 import com.epam.reportportal.base.core.aifactory.service.PipelineCiConnectionService;
 import com.epam.reportportal.base.core.tms.dto.TmsFixRoundRS;
-import com.epam.reportportal.base.core.tms.mapper.TmsReviewCommentMapper;
+import com.epam.reportportal.base.core.tms.mapper.TmsReviewCommentAssembler;
 import com.epam.reportportal.base.infrastructure.persistence.dao.aifactory.PipelineIterationRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.aifactory.PipelineStageRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.PipelineStageTestCaseRepository;
@@ -65,6 +65,7 @@ public class TmsTestCaseFixRoundStartService {
   private final PipelineStageRepository stageRepository;
   private final PipelineCiConnectionService ciConnectionService;
   private final Map<String, CiTriggerConnector> connectorsByType;
+  private final TmsReviewCommentAssembler commentAssembler;
   private final TransactionTemplate transactionTemplate;
 
   public TmsTestCaseFixRoundStartService(TmsTestCaseRepository testCaseRepository,
@@ -74,6 +75,7 @@ public class TmsTestCaseFixRoundStartService {
       PipelineIterationRepository iterationRepository,
       PipelineStageRepository stageRepository,
       PipelineCiConnectionService ciConnectionService,
+      TmsReviewCommentAssembler commentAssembler,
       List<CiTriggerConnector> connectors,
       PlatformTransactionManager transactionManager) {
     this.testCaseRepository = testCaseRepository;
@@ -83,6 +85,7 @@ public class TmsTestCaseFixRoundStartService {
     this.iterationRepository = iterationRepository;
     this.stageRepository = stageRepository;
     this.ciConnectionService = ciConnectionService;
+    this.commentAssembler = commentAssembler;
     this.connectorsByType = connectors.stream()
         .collect(Collectors.toMap(CiTriggerConnector::getSupportedExecutorType, Function.identity()));
     this.transactionTemplate = new TransactionTemplate(transactionManager);
@@ -250,7 +253,7 @@ public class TmsTestCaseFixRoundStartService {
         .finishedAt(round.getFinishedAt())
         .workflowUrl(round.getWorkflowUrl())
         .failureReason(round.getFailureReason())
-        .comments(comments == null ? null : comments.stream().map(TmsReviewCommentMapper::toRS).toList())
+        .comments(comments == null ? null : commentAssembler.toRS(comments))
         .build();
   }
 

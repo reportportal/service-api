@@ -8,7 +8,7 @@ import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorTyp
 import com.epam.reportportal.base.core.tms.dto.TmsReviewCommentRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsReviewCommentRS;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseReviewRS;
-import com.epam.reportportal.base.core.tms.mapper.TmsReviewCommentMapper;
+import com.epam.reportportal.base.core.tms.mapper.TmsReviewCommentAssembler;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestCaseFixRoundRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestCaseRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestCaseReviewCommentRepository;
@@ -33,14 +33,13 @@ public class TmsTestCaseReviewCommentServiceImpl implements TmsTestCaseReviewCom
   private final TmsTestCaseRepository testCaseRepository;
   private final TmsTestCaseReviewCommentRepository commentRepository;
   private final TmsTestCaseFixRoundRepository fixRoundRepository;
+  private final TmsReviewCommentAssembler commentAssembler;
 
   @Override
   @Transactional(readOnly = true)
   public TmsTestCaseReviewRS getReview(long projectId, Long testCaseId) {
     findTestCase(projectId, testCaseId);
-    var comments = commentRepository.findByTestCaseIdOrderByCreatedAtAscIdAsc(testCaseId).stream()
-        .map(TmsReviewCommentMapper::toRS)
-        .toList();
+    var comments = commentAssembler.toRS(commentRepository.findByTestCaseIdOrderByCreatedAtAscIdAsc(testCaseId));
     var unsent = comments.stream().filter(comment -> comment.getState() == TmsReviewCommentState.NOT_SENT).count();
     var pendingRound = fixRoundRepository.findByTestCaseIdAndStatus(testCaseId, TmsFixRoundStatus.PENDING);
     return TmsTestCaseReviewRS.builder()
@@ -67,7 +66,7 @@ public class TmsTestCaseReviewCommentServiceImpl implements TmsTestCaseReviewCom
     comment.setAuthorId(authorId);
     comment.setCreatedAt(Instant.now());
     comment.setState(TmsReviewCommentState.NOT_SENT);
-    return TmsReviewCommentMapper.toRS(commentRepository.save(comment));
+    return commentAssembler.toRS(commentRepository.save(comment));
   }
 
   @Override

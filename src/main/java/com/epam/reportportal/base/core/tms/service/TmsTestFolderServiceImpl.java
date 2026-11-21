@@ -770,74 +770,63 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
       Set<Long> visitedFolderIds) {
 
     visitedFolderIds.add(sourceFolder.getId());
-    try {
-      var projectId = membershipDetails.getProjectId();
-      TmsTestFolder targetParentFolder = null;
-      if (nonNull(targetParentFolderId)) {
-        targetParentFolder = getEntityById(projectId, targetParentFolderId);
-      }
-
-      var uniqueName = generateUniqueFolderName(
-          projectId, targetName, targetParentFolderId
-      );
-
-      var duplicatedFolder = tmsTestFolderMapper.duplicateTestFolder(
-          sourceFolder,
-          targetParentFolder
-      );
-      duplicatedFolder.setName(uniqueName);
-      duplicatedFolder.setSubFolders(new ArrayList<>());
-
-      if (targetIndex != null) {
-        duplicatedFolder.setIndex(targetIndex);
-      } else {
-        var max = tmsTestFolderRepository.findMaxIndex(projectId, targetParentFolderId);
-        duplicatedFolder.setIndex(max != null ? max + 1 : 0);
-      }
-
-      duplicatedFolder = tmsTestFolderRepository.save(duplicatedFolder);
-      visitedFolderIds.add(duplicatedFolder.getId());
-      folderStatistics.addSuccess(duplicatedFolder.getId());
-
-      duplicateTestCasesInFolder(
-          membershipDetails,
-          user,
-          sourceFolder,
-          duplicatedFolder,
-          testCaseStatistics
-      );
-
-      if (CollectionUtils.isNotEmpty(sourceFolder.getSubFolders())) {
-        for (var subFolder : List.copyOf(sourceFolder.getSubFolders())) {
-          if (visitedFolderIds.contains(subFolder.getId())) {
-            continue;
-          }
-          try {
-            var duplicatedSubFolder = duplicateFolderHierarchy(
-                membershipDetails,
-                user,
-                subFolder,
-                subFolder.getName() + "-copy",
-                duplicatedFolder.getId(),
-                subFolder.getIndex(),
-                folderStatistics,
-                testCaseStatistics,
-                visitedFolderIds
-            );
-            duplicatedFolder.getSubFolders().add(duplicatedSubFolder);
-          } catch (Exception e) {
-            folderStatistics.addError(subFolder.getId(), e.getMessage());
-          }
-        }
-      }
-      return duplicatedFolder;
-    } catch (Exception e) {
-      folderStatistics.addError(sourceFolder.getId(), e.getMessage());
-      throw new ReportPortalException(
-          ErrorType.BAD_REQUEST_ERROR,
-          "Failed to duplicate folder: " + e.getMessage()
-      );
+    // All-or-nothing: a failure anywhere in the hierarchy fails the whole request
+    var projectId = membershipDetails.getProjectId();
+    TmsTestFolder targetParentFolder = null;
+    if (nonNull(targetParentFolderId)) {
+      targetParentFolder = getEntityById(projectId, targetParentFolderId);
     }
+
+    var uniqueName = generateUniqueFolderName(
+        projectId, targetName, targetParentFolderId
+    );
+
+    var duplicatedFolder = tmsTestFolderMapper.duplicateTestFolder(
+        sourceFolder,
+        targetParentFolder
+    );
+    duplicatedFolder.setName(uniqueName);
+    duplicatedFolder.setSubFolders(new ArrayList<>());
+
+    if (targetIndex != null) {
+      duplicatedFolder.setIndex(targetIndex);
+    } else {
+      var max = tmsTestFolderRepository.findMaxIndex(projectId, targetParentFolderId);
+      duplicatedFolder.setIndex(max != null ? max + 1 : 0);
+    }
+
+    duplicatedFolder = tmsTestFolderRepository.save(duplicatedFolder);
+    visitedFolderIds.add(duplicatedFolder.getId());
+    folderStatistics.addSuccess(duplicatedFolder.getId());
+
+    duplicateTestCasesInFolder(
+        membershipDetails,
+        user,
+        sourceFolder,
+        duplicatedFolder,
+        testCaseStatistics
+    );
+
+    if (CollectionUtils.isNotEmpty(sourceFolder.getSubFolders())) {
+      for (var subFolder : List.copyOf(sourceFolder.getSubFolders())) {
+        if (visitedFolderIds.contains(subFolder.getId())) {
+          continue;
+        }
+        var duplicatedSubFolder = duplicateFolderHierarchy(
+            membershipDetails,
+            user,
+            subFolder,
+            subFolder.getName() + "-copy",
+            duplicatedFolder.getId(),
+            subFolder.getIndex(),
+            folderStatistics,
+            testCaseStatistics,
+            visitedFolderIds
+        );
+        duplicatedFolder.getSubFolders().add(duplicatedSubFolder);
+      }
+    }
+    return duplicatedFolder;
   }
 
   private String generateUniqueFolderName(long projectId, String baseName, Long parentFolderId) {
@@ -866,16 +855,11 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
       return;
     }
 
-    try {
-      var duplicateTestCasesResult = tmsTestCaseService.duplicateTestCases(
-          membershipDetails, user, targetFolder, testCaseIds
-      );
+    var duplicateTestCasesResult = tmsTestCaseService.duplicateTestCases(
+        membershipDetails, user, targetFolder, testCaseIds
+    );
 
-      testCaseStatistics.merge(duplicateTestCasesResult);
-
-    } catch (Exception e) {
-      testCaseIds.forEach(id -> testCaseStatistics.addError(id, e.getMessage()));
-    }
+    testCaseStatistics.merge(duplicateTestCasesResult);
   }
 
   private Long findOrCreateFolder(Long projectId, Long parentId, String folderName) {

@@ -4,11 +4,13 @@ import static com.epam.reportportal.base.ReportPortalUserUtil.getRpUser;
 import static com.epam.reportportal.base.core.item.impl.status.ToSkippedStatusChangingStrategy.SKIPPED_ISSUE_KEY;
 import static com.epam.reportportal.base.infrastructure.persistence.util.MembershipUtils.rpUserToMembership;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -41,7 +43,10 @@ import java.time.Month;
 import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.LongStream;
 import org.junit.jupiter.api.Test;
+import org.mockito.InOrder;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -78,15 +83,11 @@ class FinishLaunchHierarchyHandlerTest {
     List<Long> idsWithoutChildren = Lists.newArrayList(3L, 4L);
 
     when(testItemRepository.findIdsByHasChildrenAndLaunchIdAndStatusOrderedByPathLevel(
-        eq(launch.getId()),
-        eq(StatusEnum.IN_PROGRESS),
-        anyInt(),
-        anyLong()
+        launch.getId(),
+        StatusEnum.IN_PROGRESS
     )).thenReturn(idsWithChildren);
-    when(testItemRepository.findIdsByNotHasChildrenAndLaunchIdAndStatus(eq(launch.getId()),
-        eq(StatusEnum.IN_PROGRESS),
-        anyInt(),
-        anyLong()
+    when(testItemRepository.findIdsByNotHasChildrenAndLaunchIdAndStatus(launch.getId(),
+        StatusEnum.IN_PROGRESS
     )).thenReturn(idsWithoutChildren);
 
     Instant endTime = LocalDate.of(2020, Month.OCTOBER, 30)
@@ -129,15 +130,11 @@ class FinishLaunchHierarchyHandlerTest {
     List<Long> idsWithChildren = Lists.newArrayList(2L, 1L);
     List<Long> idsWithoutChildren = Lists.newArrayList(3L, 4L);
     when(testItemRepository.findIdsByHasChildrenAndLaunchIdAndStatusOrderedByPathLevel(
-        eq(launch.getId()),
-        eq(StatusEnum.IN_PROGRESS),
-        anyInt(),
-        anyLong()
+        launch.getId(),
+        StatusEnum.IN_PROGRESS
     )).thenReturn(idsWithChildren);
-    when(testItemRepository.findIdsByNotHasChildrenAndLaunchIdAndStatus(eq(launch.getId()),
-        eq(StatusEnum.IN_PROGRESS),
-        anyInt(),
-        anyLong()
+    when(testItemRepository.findIdsByNotHasChildrenAndLaunchIdAndStatus(launch.getId(),
+        StatusEnum.IN_PROGRESS
     )).thenReturn(idsWithoutChildren);
 
     Instant endTime = LocalDate.of(2020, Month.OCTOBER, 30)
@@ -159,6 +156,71 @@ class FinishLaunchHierarchyHandlerTest {
     verify(changeStatusHandler, times(2)).changeParentStatus(any(TestItem.class), any(), any());
     verify(issueEntityRepository, times(2)).save(any());
 
+  }
+
+  @Test
+  void finishCollectsIdsOnceAndProcessesThemInChunks() {
+    Launch launch = getLaunch();
+    List<Long> leafIds = LongStream.rangeClosed(1, 120).boxed().collect(Collectors.toList());
+    when(testItemRepository.findIdsByNotHasChildrenAndLaunchIdAndStatus(launch.getId(),
+        StatusEnum.IN_PROGRESS
+    )).thenReturn(leafIds);
+    when(testItemRepository.findIdsByHasChildrenAndLaunchIdAndStatusOrderedByPathLevel(
+        launch.getId(),
+        StatusEnum.IN_PROGRESS
+    )).thenReturn(List.of());
+    when(testItemRepository.findAllById(anyList())).thenAnswer(invocation -> {
+      List<Long> ids = invocation.getArgument(0);
+      return ids.stream().map(id -> getInProgressStep(launch, id)).collect(Collectors.toList());
+    });
+    ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
+
+    int finished = finishLaunchHierarchyHandler.finishDescendants(launch, StatusEnum.PASSED,
+        Instant.now(), rpUser, rpUserToMembership(rpUser));
+
+    assertEquals(120, finished);
+    verify(testItemRepository, times(1)).findIdsByNotHasChildrenAndLaunchIdAndStatus(launch.getId(),
+        StatusEnum.IN_PROGRESS);
+    verify(testItemRepository).findAllById(leafIds.subList(0, 50));
+    verify(testItemRepository).findAllById(leafIds.subList(50, 100));
+    verify(testItemRepository).findAllById(leafIds.subList(100, 120));
+    verify(statisticsService, times(120)).addStatistics(any(TestItem.class));
+  }
+
+  @Test
+  void finishTakesLaunchLockBeforeReadingIdsAndSkipsAlreadyFinishedItems() {
+    Launch launch = getLaunch();
+    TestItem finishedMeanwhile = getInProgressStep(launch, 3L);
+    finishedMeanwhile.getItemResults().setStatus(StatusEnum.PASSED);
+    when(testItemRepository.findIdsByNotHasChildrenAndLaunchIdAndStatus(launch.getId(),
+        StatusEnum.IN_PROGRESS
+    )).thenReturn(List.of(3L));
+    when(testItemRepository.findAllById(List.of(3L))).thenReturn(List.of(finishedMeanwhile));
+    ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L);
+
+    int finished = finishLaunchHierarchyHandler.finishDescendants(launch, StatusEnum.INTERRUPTED,
+        Instant.now(), rpUser, rpUserToMembership(rpUser));
+
+    assertEquals(0, finished);
+    assertEquals(StatusEnum.PASSED, finishedMeanwhile.getItemResults().getStatus());
+    verify(statisticsService, never()).addStatistics(any(TestItem.class));
+    InOrder inOrder = inOrder(statisticsService, testItemRepository);
+    inOrder.verify(statisticsService).acquireAdvisoryLock(launch.getId());
+    inOrder.verify(testItemRepository).findIdsByNotHasChildrenAndLaunchIdAndStatus(launch.getId(),
+        StatusEnum.IN_PROGRESS);
+  }
+
+  private TestItem getInProgressStep(Launch launch, Long id) {
+    TestItem item = new TestItem();
+    item.setItemId(id);
+    item.setType(TestItemTypeEnum.STEP);
+    item.setLaunchId(launch.getId());
+    item.setPath("1." + id);
+    item.setHasStats(true);
+    TestItemResults results = new TestItemResults();
+    results.setStatus(StatusEnum.IN_PROGRESS);
+    item.setItemResults(results);
+    return item;
   }
 
   private Launch getLaunch() {

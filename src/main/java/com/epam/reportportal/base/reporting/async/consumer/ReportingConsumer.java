@@ -18,31 +18,74 @@ package com.epam.reportportal.base.reporting.async.consumer;
 
 import com.epam.reportportal.base.reporting.async.config.MessageHeaders;
 import com.epam.reportportal.base.reporting.async.config.RequestType;
+import com.epam.reportportal.base.reporting.async.exception.ReportingFailureClassifier;
 import com.epam.reportportal.base.reporting.async.handler.ReportingMessageHandler;
 import com.epam.reportportal.base.reporting.async.handler.provider.ReportingHandlerProvider;
 import java.util.Optional;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageListener;
 
 /**
  * RabbitMQ message listener that receives reporting messages and dispatches them to the appropriate
  * {@link com.epam.reportportal.base.reporting.async.handler.ReportingMessageHandler}.
+ * <p>
+ * A lock conflict (deadlock, serialization failure, lock wait timeout) is retried a few times in the consumer thread
+ * before the failure reaches the error handler: the consumer is the only one of its queue, so this keeps the order of
+ * the messages of a launch, while the retry queues put the message behind later ones.
  *
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
+@Slf4j
 public class ReportingConsumer implements MessageListener {
+
+  private static final long[] LOCK_CONFLICT_RETRY_DELAYS_MS = {50, 200, 1000};
 
   private final ReportingHandlerProvider handlerProvider;
 
+  private final long[] lockConflictRetryDelaysMs;
+
   public ReportingConsumer(ReportingHandlerProvider handlerProvider) {
+    this(handlerProvider, LOCK_CONFLICT_RETRY_DELAYS_MS);
+  }
+
+  ReportingConsumer(ReportingHandlerProvider handlerProvider, long[] lockConflictRetryDelaysMs) {
     this.handlerProvider = handlerProvider;
+    this.lockConflictRetryDelaysMs = lockConflictRetryDelaysMs;
   }
 
   @Override
   public void onMessage(Message message) {
     RequestType requestType = getRequestType(message);
     Optional<ReportingMessageHandler> messageHandler = handlerProvider.provideHandler(requestType);
-    messageHandler.ifPresent(handler -> handler.handleMessage(message));
+    messageHandler.ifPresent(handler -> handleWithLockConflictRetry(handler, message, requestType));
+  }
+
+  private void handleWithLockConflictRetry(ReportingMessageHandler handler, Message message,
+      RequestType requestType) {
+    for (int attempt = 0; ; attempt++) {
+      try {
+        handler.handleMessage(message);
+        return;
+      } catch (RuntimeException e) {
+        if (attempt >= lockConflictRetryDelaysMs.length || !ReportingFailureClassifier.isLockConflict(e)) {
+          throw e;
+        }
+        log.warn("Lock conflict while handling reporting message, retrying in {} ms. Request Type: {}, "
+                + "Launch UUID: {}, Cause: {}", lockConflictRetryDelaysMs[attempt], requestType,
+            message.getMessageProperties().getHeader(MessageHeaders.HASH_ON), e.getClass().getSimpleName());
+        sleep(lockConflictRetryDelaysMs[attempt], e);
+      }
+    }
+  }
+
+  private static void sleep(long delayMs, RuntimeException failure) {
+    try {
+      Thread.sleep(delayMs);
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw failure;
+    }
   }
 
   private RequestType getRequestType(Message message) {

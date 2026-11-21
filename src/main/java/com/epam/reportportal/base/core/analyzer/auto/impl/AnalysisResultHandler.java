@@ -118,6 +118,11 @@ public class AnalysisResultHandler {
       TestItem testItem = itemsById.get(itemId);
       if (testItem != null) {
         TestItem resolvedItem = resolveRetryItem(testItem);
+        if (resolvedItem.getItemResults() == null || resolvedItem.getItemResults().getIssue() == null) {
+          log.info("Skipping analysis result for item {}: it no longer has an issue",
+              resolvedItem.getItemId());
+          return;
+        }
         resolvedItemsById.put(resolvedItem.getItemId(), resolvedItem);
         resolvedAnalyzedResultMap.put(resolvedItem.getItemId(), analyzedItemResult);
       }

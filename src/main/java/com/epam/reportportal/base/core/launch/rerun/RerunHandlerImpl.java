@@ -22,16 +22,20 @@ import static com.epam.reportportal.base.infrastructure.persistence.commons.quer
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.TestItemCriteriaConstant.CRITERIA_TEST_CASE_HASH;
 import static java.util.Optional.ofNullable;
 
+import com.epam.reportportal.base.core.analyzer.auto.LogIndexer;
 import com.epam.reportportal.base.core.item.identity.IdentityUtil;
 import com.epam.reportportal.base.core.item.identity.TestCaseHashGenerator;
 import com.epam.reportportal.base.core.item.identity.UniqueIdGenerator;
 import com.epam.reportportal.base.core.item.impl.rerun.RerunSearcher;
 import com.epam.reportportal.base.core.item.impl.retry.RetryHandler;
+import com.epam.reportportal.base.core.item.repository.TestItemPathContext;
 import com.epam.reportportal.base.core.item.validator.parent.ParentItemValidator;
+import com.epam.reportportal.base.core.statistics.TestItemStatisticsService;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Condition;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.FilterCondition;
+import com.epam.reportportal.base.infrastructure.persistence.dao.IssueEntityRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.TestItemRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.StatusEnum;
@@ -71,12 +75,17 @@ public class RerunHandlerImpl implements RerunHandler {
   private final RerunSearcher rerunSearcher;
   private final List<ParentItemValidator> parentItemValidators;
   private final RetryHandler retryHandler;
+  private final TestItemStatisticsService testItemStatisticsService;
+  private final IssueEntityRepository issueEntityRepository;
+  private final LogIndexer logIndexer;
 
   @Autowired
   public RerunHandlerImpl(TestItemRepository testItemRepository, LaunchRepository launchRepository,
       UniqueIdGenerator uniqueIdGenerator, TestCaseHashGenerator testCaseHashGenerator,
       ApplicationEventPublisher eventPublisher, RerunSearcher rerunSearcher,
-      List<ParentItemValidator> parentItemValidators, RetryHandler retryHandler) {
+      List<ParentItemValidator> parentItemValidators, RetryHandler retryHandler,
+      TestItemStatisticsService testItemStatisticsService,
+      IssueEntityRepository issueEntityRepository, LogIndexer logIndexer) {
     this.testItemRepository = testItemRepository;
     this.launchRepository = launchRepository;
     this.uniqueIdGenerator = uniqueIdGenerator;
@@ -85,6 +94,9 @@ public class RerunHandlerImpl implements RerunHandler {
     this.rerunSearcher = rerunSearcher;
     this.parentItemValidators = parentItemValidators;
     this.retryHandler = retryHandler;
+    this.testItemStatisticsService = testItemStatisticsService;
+    this.issueEntityRepository = issueEntityRepository;
+    this.logIndexer = logIndexer;
   }
 
   @Override
@@ -129,7 +141,7 @@ public class RerunHandlerImpl implements RerunHandler {
     final Integer testCaseHash = getTestCaseHash(request, launch);
     final Filter parentItemFilter = getRootItemFilter(launch, testCaseHash, request.getName());
     return rerunSearcher.findItem(parentItemFilter).flatMap(testItemRepository::findById)
-        .map(it -> updateRootItem(request, it));
+        .map(it -> updateRootItem(request, launch, it));
   }
 
   private Integer getTestCaseHash(StartTestItemRQ request, Launch launch) {
@@ -177,13 +189,13 @@ public class RerunHandlerImpl implements RerunHandler {
           }
 
           if (foundItem.getName().equals(newItem.getName())) {
-            return Optional.of(updateRootItem(request, foundItem));
+            return Optional.of(updateRootItem(request, launch, foundItem));
           }
 
           childItemFilter.withCondition(
               new FilterCondition(Condition.EQUALS, false, newItem.getName(), CRITERIA_NAME));
           return rerunSearcher.findItem(childItemFilter).flatMap(testItemRepository::findById)
-              .map(it -> updateRootItem(request, it));
+              .map(it -> updateRootItem(request, launch, it));
         });
   }
 
@@ -221,10 +233,35 @@ public class RerunHandlerImpl implements RerunHandler {
     }
   }
 
-  private ItemCreatedRS updateRootItem(StartTestItemRQ request, TestItem foundItem) {
+  private ItemCreatedRS updateRootItem(StartTestItemRQ request, Launch launch,
+      TestItem foundItem) {
+    if (request.getUuid() != null && request.getUuid().equals(foundItem.getUuid())) {
+      // This START was already applied (e.g. redelivered message): do not reopen the item again
+      return new ItemCreatedRS(foundItem.getUuid(), foundItem.getUniqueId());
+    }
+    if (StatusEnum.IN_PROGRESS != foundItem.getItemResults().getStatus()
+        && !foundItem.isHasChildren()) {
+      resetLeafResults(launch, foundItem);
+    }
     foundItem = new TestItemBuilder(foundItem).addDescription(request.getDescription())
         .overwriteAttributes(request.getAttributes()).addStatus(StatusEnum.IN_PROGRESS).get();
     ofNullable(request.getUuid()).ifPresent(foundItem::setUuid);
     return new ItemCreatedRS(foundItem.getUuid(), foundItem.getUniqueId());
+  }
+
+  /**
+   * Removes statistics and issue of a finished leaf item being reopened, so its next finish recomputes them.
+   */
+  private void resetLeafResults(Launch launch, TestItem foundItem) {
+    testItemStatisticsService.deleteItemStatistics(
+        new TestItemPathContext(foundItem.getItemId(), foundItem.getLaunchId(),
+            foundItem.getPath()));
+    ofNullable(foundItem.getItemResults().getIssue()).ifPresent(issue -> {
+      issue.setTestItemResults(null);
+      issueEntityRepository.delete(issue);
+      foundItem.getItemResults().setIssue(null);
+      logIndexer.indexItemsRemoveAsync(launch.getProjectId(),
+          Collections.singletonList(foundItem.getItemId()));
+    });
   }
 }

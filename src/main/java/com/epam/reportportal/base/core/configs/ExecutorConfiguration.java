@@ -165,7 +165,28 @@ public class ExecutorConfiguration {
     threadPoolTaskExecutor.setQueueCapacity(queueCapacity);
     threadPoolTaskExecutor.setAllowCoreThreadTimeOut(true);
     threadPoolTaskExecutor.setThreadNamePrefix("event-listener-exec");
-    threadPoolTaskExecutor.setRejectedExecutionHandler(new ThreadPoolExecutor.DiscardPolicy());
+    threadPoolTaskExecutor.setRejectedExecutionHandler(
+        new LoggingDiscardPolicy("eventListenerExecutor"));
+    return threadPoolTaskExecutor;
+  }
+
+  /**
+   * Low-volume events that must not be lost (launch finished, domain events, plugin broadcasts). Kept apart from the
+   * per-item {@code eventListenerExecutor}; when saturated, the publishing thread runs the task itself.
+   */
+  @Bean(name = "domainEventExecutor")
+  public TaskExecutor domainEventExecutor(
+      @Value("${rp.environment.variable.executor.pool.domain-event.core:5}") Integer corePoolSize,
+      @Value("${rp.environment.variable.executor.pool.domain-event.max:10}") Integer maxPoolSize,
+      @Value("${rp.environment.variable.executor.pool.domain-event.queue:1000}")
+      Integer queueCapacity) {
+    final ThreadPoolTaskExecutor threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
+    threadPoolTaskExecutor.setCorePoolSize(corePoolSize);
+    threadPoolTaskExecutor.setMaxPoolSize(maxPoolSize);
+    threadPoolTaskExecutor.setQueueCapacity(queueCapacity);
+    threadPoolTaskExecutor.setAllowCoreThreadTimeOut(true);
+    threadPoolTaskExecutor.setThreadNamePrefix("domain-event-exec");
+    threadPoolTaskExecutor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
     return threadPoolTaskExecutor;
   }
 

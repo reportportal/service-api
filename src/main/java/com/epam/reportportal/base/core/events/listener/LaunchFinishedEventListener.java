@@ -36,7 +36,7 @@ public class LaunchFinishedEventListener {
     this.subscribers = subscribers;
   }
 
-  @Async(value = "eventListenerExecutor")
+  @Async(value = "domainEventExecutor")
   @TransactionalEventListener
   public void onApplicationEvent(LaunchFinishedEvent event) {
     if (LaunchModeEnum.DEBUG == event.getMode()) {

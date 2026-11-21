@@ -38,6 +38,8 @@ import jakarta.inject.Provider;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -53,6 +55,8 @@ import org.springframework.web.multipart.MultipartFile;
  */
 @Service
 public class LogProducer implements CreateLogHandler {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(LogProducer.class);
 
   @Autowired
   private Provider<SaveLogBinaryDataTaskAsync> saveLogBinaryDataTask;
@@ -80,7 +84,18 @@ public class LogProducer implements CreateLogHandler {
               .withRequest(request)
               .withFile(file)
               .withProjectId(membershipDetails.getProjectId()), taskExecutor)
-          .thenAccept(metaInfo -> sendMessage(request, metaInfo, membershipDetails.getProjectId()));
+          .exceptionally(e -> {
+            // the response is already sent, so keep the log text even if the attachment is lost
+            LOGGER.error("Unable to save binary data of log '{}', publishing it without attachment",
+                request.getUuid(), e);
+            return null;
+          })
+          .thenAccept(metaInfo -> sendMessage(request, metaInfo, membershipDetails.getProjectId()))
+          .exceptionally(e -> {
+            LOGGER.error("Unable to publish log '{}' to the reporting exchange", request.getUuid(),
+                e);
+            return null;
+          });
     } else {
       sendMessage(request, null, membershipDetails.getProjectId());
     }

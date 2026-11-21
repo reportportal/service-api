@@ -51,6 +51,7 @@ import com.epam.reportportal.base.core.item.attribute.TestItemAttributeHandlerSe
 import com.epam.reportportal.base.core.item.impl.retry.RetryHandler;
 import com.epam.reportportal.base.core.item.impl.status.ChangeStatusHandler;
 import com.epam.reportportal.base.core.item.impl.status.StatusChangingStrategy;
+import com.epam.reportportal.base.core.item.repository.TestItemPathContext;
 import com.epam.reportportal.base.core.statistics.TestItemStatisticsService;
 import com.epam.reportportal.base.infrastructure.persistence.commons.Preconditions;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
@@ -399,6 +400,9 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
     }
 
     resolvedIssue.ifPresent(issue -> {
+      // Statistics were counted for the previous issue: drop them so the final addStatistics counts the new one
+      testItemStatisticsService.deleteItemStatistics(
+          new TestItemPathContext(testItem.getItemId(), testItem.getLaunchId(), testItem.getPath()));
       updateItemIssue(testItemResults, issue);
       if (ITEM_CAN_BE_INDEXED.test(testItem)) {
         eventPublisher.publishEvent(

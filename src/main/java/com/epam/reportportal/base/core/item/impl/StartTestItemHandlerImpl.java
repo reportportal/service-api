@@ -117,6 +117,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 
     Launch launch = launchRepository.findByUuid(rq.getLaunchUuid())
         .orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, rq.getLaunchUuid()));
+    validateLaunch(user, membershipDetails, rq, launch);
 
     if (launch.isRerun()) {
       Optional<ItemCreatedRS> rerunCreatedRs = rerunHandler.handleChildItem(rq, launch, parentId);
@@ -127,6 +128,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 
     TestItem treeParent = testItemRepository.findByUuid(parentId)
         .orElseThrow(() -> new ReportPortalException(TEST_ITEM_NOT_FOUND, parentId));
+    validateParentLaunch(treeParent, launch);
 
     parentItemValidators.forEach(v -> v.validate(rq, treeParent));
 
@@ -189,6 +191,16 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
    */
   private void validate(ReportPortalUser user, MembershipDetails membershipDetails,
       StartTestItemRQ rq, Launch launch) {
+    validateLaunch(user, membershipDetails, rq, launch);
+    expect(isTrue(BooleanUtils.toBoolean(rq.getRetry())), equalTo(false)).verify(BAD_REQUEST_ERROR,
+        "Root test item can't be a retry.");
+  }
+
+  /**
+   * Validates {@link Launch} affiliation to the {@link Project} and the item start time against the launch start time
+   */
+  private void validateLaunch(ReportPortalUser user, MembershipDetails membershipDetails,
+      StartTestItemRQ rq, Launch launch) {
     if (!UserRole.ADMINISTRATOR.equals(user.getUserRole())) {
       expect(membershipDetails.getProjectId(), equalTo(launch.getProjectId())).verify(ACCESS_DENIED);
     }
@@ -198,8 +210,19 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
         launch.getStartTime(),
         launch.getId()
     );
-    expect(isTrue(BooleanUtils.toBoolean(rq.getRetry())), equalTo(false)).verify(BAD_REQUEST_ERROR,
-        "Root test item can't be a retry.");
+  }
+
+  /**
+   * Validates that the parent item belongs to the launch from the request. A retry parent has no launch of its own
+   * (only nested steps may be started under it), so its main item's launch is used.
+   */
+  private void validateParentLaunch(TestItem treeParent, Launch launch) {
+    Long parentLaunchId = Optional.ofNullable(treeParent.getLaunchId())
+        .orElseGet(() -> Optional.ofNullable(treeParent.getRetryOf())
+            .flatMap(testItemRepository::findById).map(TestItem::getLaunchId).orElse(null));
+    expect(launch.getId(), equalTo(parentLaunchId)).verify(BAD_REQUEST_ERROR,
+        "Parent item '" + treeParent.getUuid() + "' does not belong to launch '" + launch.getUuid()
+            + "'");
   }
 
 }

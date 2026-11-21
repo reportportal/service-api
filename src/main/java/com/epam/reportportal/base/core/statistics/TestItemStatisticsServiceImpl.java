@@ -20,16 +20,24 @@ import com.epam.reportportal.base.core.item.repository.TestItemPathContext;
 import com.epam.reportportal.base.core.statistics.repository.StatisticsRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.StatisticsFieldRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.StatusEnum;
+import com.epam.reportportal.base.infrastructure.persistence.entity.enums.TestItemIssueGroup;
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItem;
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.issue.IssueEntity;
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.issue.IssueType;
 import com.epam.reportportal.base.infrastructure.persistence.entity.statistics.StatisticsField;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 /**
  * JPA-based implementation of {@link TestItemStatisticsService}.
@@ -50,8 +58,29 @@ TestItemStatisticsServiceImpl implements TestItemStatisticsService {
   private static final String EXECUTIONS_PREFIX = "statistics$executions$";
   private static final String DEFECTS_PREFIX = "statistics$defects$";
 
+  /**
+   * The predefined fields created by the schema migration, which are never deleted: total/passed/failed/skipped
+   * executions and, per defect group, the total and the default sub-type. Other fields are not cached: custom sub-type
+   * fields are deleted with the sub-type, and the demo data flush deletes every non-predefined field.
+   */
+  private static final Set<String> PREDEFINED_FIELDS = Stream.concat(
+      Stream.of(EXECUTIONS_TOTAL, EXECUTIONS_PREFIX + "passed", EXECUTIONS_PREFIX + "failed",
+          EXECUTIONS_PREFIX + "skipped"),
+      Arrays.stream(TestItemIssueGroup.values())
+          .filter(group -> group != TestItemIssueGroup.NOT_ISSUE_FLAG)
+          .flatMap(group -> Stream.of(
+              DEFECTS_PREFIX + group.getValue().toLowerCase() + "$total",
+              DEFECTS_PREFIX + group.getValue().toLowerCase() + "$" + group.getLocator())))
+      .collect(Collectors.toUnmodifiableSet());
+
   private final StatisticsRepository statisticsRepository;
   private final StatisticsFieldRepository statisticsFieldRepository;
+
+  /**
+   * Ids of predefined statistics fields by name. Filled only after the transaction that read or created the field has
+   * committed, so a rolled back insert is never cached.
+   */
+  private final Map<String, Long> predefinedFieldIds = new ConcurrentHashMap<>();
 
 
   @Override
@@ -197,19 +226,55 @@ TestItemStatisticsServiceImpl implements TestItemStatisticsService {
    * Ensures the statistics field exists and returns it.
    */
   private StatisticsField ensureStatisticsField(String name) {
-    Optional<StatisticsField> existing = statisticsFieldRepository.findByName(name);
-    if (existing.isPresent()) {
-      return existing.get();
+    StatisticsField cached = getCachedStatisticsField(name);
+    if (cached != null) {
+      return cached;
     }
-    StatisticsField field = new StatisticsField(name);
-    return statisticsFieldRepository.save(field);
+    StatisticsField field = statisticsFieldRepository.findByName(name)
+        .orElseGet(() -> statisticsFieldRepository.save(new StatisticsField(name)));
+    cacheStatisticsField(field);
+    return field;
   }
 
   /**
    * Resolves the statistics field by name. Returns null if not found.
    */
   private StatisticsField resolveStatisticsField(String name) {
-    return statisticsFieldRepository.findByName(name).orElse(null);
+    StatisticsField cached = getCachedStatisticsField(name);
+    if (cached != null) {
+      return cached;
+    }
+    Optional<StatisticsField> field = statisticsFieldRepository.findByName(name);
+    field.ifPresent(this::cacheStatisticsField);
+    return field.orElse(null);
+  }
+
+  private StatisticsField getCachedStatisticsField(String name) {
+    Long id = predefinedFieldIds.get(name);
+    if (id == null) {
+      return null;
+    }
+    StatisticsField field = new StatisticsField(name);
+    field.setId(id);
+    return field;
+  }
+
+  private void cacheStatisticsField(StatisticsField field) {
+    if (!PREDEFINED_FIELDS.contains(field.getName()) || field.getId() == null) {
+      return;
+    }
+    String name = field.getName();
+    Long id = field.getId();
+    if (TransactionSynchronizationManager.isSynchronizationActive()) {
+      TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+        @Override
+        public void afterCommit() {
+          predefinedFieldIds.put(name, id);
+        }
+      });
+    } else {
+      predefinedFieldIds.put(name, id);
+    }
   }
 
   /**

@@ -22,17 +22,20 @@ import static com.epam.reportportal.base.reporting.async.config.ReportingTopolog
 import static com.epam.reportportal.base.reporting.async.config.ReportingTopologyConfiguration.TTL_QUEUE_MS;
 import static com.epam.reportportal.base.reporting.async.config.ReportingTopologyConfiguration.TTL_QUEUE_S;
 
-import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
-import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.reporting.async.config.MessageHeaders;
-import com.google.common.collect.Lists;
-import java.util.List;
+import com.epam.reportportal.base.reporting.async.config.RequestType;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Metrics;
+import java.util.Arrays;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.ImmediateRequeueAmqpException;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.listener.ListenerExecutionFailedException;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ErrorHandler;
@@ -40,63 +43,117 @@ import org.springframework.util.ErrorHandler;
 /**
  * Error handler for RabbitMQ reporting listeners that decides whether a failed message should be retried or discarded.
  *
+ * <p>The container nacks the original message without requeue after this handler returns, so the copy published here
+ * is the only one left. It is published with a publisher confirm; if that fails, the handler throws
+ * {@link ImmediateRequeueAmqpException} so that the container requeues the original instead of dropping it.
+ *
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 @Slf4j
 @Component
 public class ReportingErrorHandler implements ErrorHandler {
 
-  private static final List<ErrorType> RETRYABLE_ERROR_TYPES = Lists.newArrayList(
-      ErrorType.LAUNCH_NOT_FOUND,
-      ErrorType.TEST_SUITE_NOT_FOUND,
-      ErrorType.TEST_ITEM_NOT_FOUND);
+  static final String RETRIED_METRIC = "reporting.messages.retried";
+  static final String PARKED_METRIC = "reporting.messages.parked";
+  static final long CONFIRM_TIMEOUT_MS = 5_000;
+
+  private static final long REQUEUE_DELAY_MS = 1_000;
 
   private final RabbitTemplate rabbitTemplate;
+
+  private final MeterRegistry meterRegistry;
 
   private final String RETRY_COUNT_HEADER = "x-retry-count";
 
   @Value("${reporting.retry.max-count:20}")
   private Integer maxRetryCount;
 
-  public ReportingErrorHandler(RabbitTemplate rabbitTemplate) {
+  @Autowired
+  public ReportingErrorHandler(RabbitTemplate rabbitTemplate,
+      ObjectProvider<MeterRegistry> meterRegistry) {
+    this(rabbitTemplate, meterRegistry.getIfAvailable(() -> Metrics.globalRegistry));
+  }
+
+  ReportingErrorHandler(RabbitTemplate rabbitTemplate, MeterRegistry meterRegistry) {
     this.rabbitTemplate = rabbitTemplate;
+    this.meterRegistry = meterRegistry;
   }
 
   @Override
   public void handleError(Throwable t) {
-    if (t instanceof ListenerExecutionFailedException executionFailedException) {
-      Message failedMessage = executionFailedException.getFailedMessage();
-      failedMessage.getMessageProperties().getHeaders()
-          .put("exception", executionFailedException.getCause().getMessage());
-
-      int retryCount = getRetryCount(failedMessage.getMessageProperties());
-      if (retryCount > 0) {
-        log.warn(
-            "Retrying reporting message. Attempt count is {}. Request Type: {}, Launch UUID: {} ",
-            retryCount,
-            failedMessage.getMessageProperties().getHeader(MessageHeaders.REQUEST_TYPE),
-            failedMessage.getMessageProperties().getHeader(MessageHeaders.HASH_ON));
-      }
-
-      if (checkRetryExceeded(retryCount)) {
-        log.warn("Number of retries exceeded max {} retry count.", maxRetryCount);
-        log.warn("Rejecting message to parking lot queue. Message: {}",
-            new String(failedMessage.getBody()));
-        rabbitTemplate.send(REPORTING_PARKING_LOT, failedMessage);
-        return;
-      }
-
-      if (executionFailedException.getCause() instanceof ReportPortalException reportPortalException) {
-        if (RETRYABLE_ERROR_TYPES.contains(reportPortalException.getErrorType())) {
-          failedMessage.getMessageProperties().setHeader(RETRY_COUNT_HEADER, retryCount + 1);
-          rabbitTemplate.send(RETRY_EXCHANGE, getRetryTtlQueue(retryCount), failedMessage);
-          return;
-        }
-      }
-      log.error("Message rejected to the parking lot queue: {}",
-          new String(failedMessage.getBody()));
-      rabbitTemplate.send(REPORTING_PARKING_LOT, failedMessage);
+    if (!(t instanceof ListenerExecutionFailedException executionFailedException)
+        || executionFailedException.getFailedMessage() == null) {
+      log.error("Reporting listener failed outside of message processing, requeueing the message", t);
+      requeue("Unexpected reporting listener failure", t);
+      return;
     }
+    Message failedMessage = executionFailedException.getFailedMessage();
+    MessageProperties properties = failedMessage.getMessageProperties();
+    Throwable cause = Optional.ofNullable(executionFailedException.getCause())
+        .orElse(executionFailedException);
+    properties.getHeaders().put("exception", String.valueOf(cause.getMessage()));
+
+    Object requestType = properties.getHeader(MessageHeaders.REQUEST_TYPE);
+    Object launchUuid = properties.getHeader(MessageHeaders.HASH_ON);
+    String reason = cause.getClass().getSimpleName();
+
+    int retryCount = getRetryCount(properties);
+    if (checkRetryExceeded(retryCount)) {
+      log.warn("Number of retries exceeded max {} retry count. Rejecting message to parking lot queue. "
+          + "Request Type: {}, Launch UUID: {}, Cause: {}", maxRetryCount, requestType, launchUuid, reason);
+      park(failedMessage, requestType, "retries_exceeded");
+      return;
+    }
+
+    if (ReportingFailureClassifier.isRetryable(cause, toRequestType(requestType))) {
+      log.warn("Retrying reporting message. Attempt count is {}. Request Type: {}, Launch UUID: {}, Cause: {}",
+          retryCount + 1, requestType, launchUuid, reason);
+      properties.setHeader(RETRY_COUNT_HEADER, retryCount + 1);
+      publishWithConfirm(RETRY_EXCHANGE, getRetryTtlQueue(retryCount), failedMessage);
+      meterRegistry.counter(RETRIED_METRIC, "requestType", String.valueOf(requestType), "reason", reason)
+          .increment();
+      return;
+    }
+
+    log.error("Message rejected to the parking lot queue. Request Type: {}, Launch UUID: {}",
+        requestType, launchUuid, cause);
+    park(failedMessage, requestType, reason);
+  }
+
+  private void park(Message failedMessage, Object requestType, String reason) {
+    publishWithConfirm("", REPORTING_PARKING_LOT, failedMessage);
+    meterRegistry.counter(PARKED_METRIC, "requestType", String.valueOf(requestType), "reason", reason)
+        .increment();
+  }
+
+  private void publishWithConfirm(String exchange, String routingKey, Message message) {
+    try {
+      rabbitTemplate.invoke(operations -> {
+        operations.send(exchange, routingKey, message);
+        operations.waitForConfirmsOrDie(CONFIRM_TIMEOUT_MS);
+        return null;
+      });
+    } catch (RuntimeException e) {
+      log.error("Unable to republish failed reporting message to '{}', requeueing it", routingKey, e);
+      requeue("Republishing of the failed reporting message failed", e);
+    }
+  }
+
+  private void requeue(String reason, Throwable cause) {
+    try {
+      // avoid a hot redelivery loop while the broker or the database is unavailable
+      Thread.sleep(REQUEUE_DELAY_MS);
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+    }
+    throw new ImmediateRequeueAmqpException(reason, cause);
+  }
+
+  private RequestType toRequestType(Object requestType) {
+    return Arrays.stream(RequestType.values())
+        .filter(type -> type.name().equals(String.valueOf(requestType)))
+        .findFirst()
+        .orElse(null);
   }
 
   /**

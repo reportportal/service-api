@@ -133,12 +133,7 @@ public class AttachmentStreamResponseFactory {
 
     headers.set(HttpHeaders.ACCEPT_RANGES, "bytes");
 
-    Optional.ofNullable(binaryData.getContentType()).map(MediaType::parseMediaType)
-        .ifPresent(headers::setContentType);
-
-    Optional.ofNullable(binaryData.getFileName())
-        .map(n -> ContentDisposition.builder("inline").filename(sanitizeFileName(n)).build())
-        .ifPresent(headers::setContentDisposition);
+    applyContentHeaders(headers, binaryData);
 
     var fileLength = binaryData.getLength();
     var requestHeader = request.getHeader(HttpHeaders.RANGE);
@@ -205,12 +200,41 @@ public class AttachmentStreamResponseFactory {
   private HttpHeaders createHeaders(BinaryData binaryData) {
     var headers = new HttpHeaders();
     headers.set(HttpHeaders.ACCEPT_RANGES, "bytes");
-    Optional.ofNullable(binaryData.getContentType()).map(MediaType::parseMediaType)
-        .ifPresent(headers::setContentType);
-    Optional.ofNullable(binaryData.getFileName())
-        .map(n -> ContentDisposition.builder("inline").filename(sanitizeFileName(n)).build())
-        .ifPresent(headers::setContentDisposition);
+    applyContentHeaders(headers, binaryData);
     return headers;
+  }
+
+  /**
+   * The content type is client-supplied, so only types that cannot execute script in the browser
+   * are rendered inline; everything else is forced to download.
+   */
+  private void applyContentHeaders(HttpHeaders headers, BinaryData binaryData) {
+    var mediaType = Optional.ofNullable(binaryData.getContentType()).map(MediaType::parseMediaType);
+    mediaType.ifPresent(headers::setContentType);
+
+    var disposition = mediaType.filter(AttachmentStreamResponseFactory::isInlineSafe).isPresent()
+        ? "inline" : "attachment";
+    Optional.ofNullable(binaryData.getFileName())
+        .map(n -> ContentDisposition.builder(disposition).filename(sanitizeFileName(n)).build())
+        .ifPresentOrElse(headers::setContentDisposition, () -> {
+          if ("attachment".equals(disposition)) {
+            headers.set(HttpHeaders.CONTENT_DISPOSITION, disposition);
+          }
+        });
+
+    headers.set("X-Content-Type-Options", "nosniff");
+    headers.set("Content-Security-Policy", "sandbox");
+  }
+
+  private static boolean isInlineSafe(MediaType type) {
+    var main = type.getType();
+    var subtype = type.getSubtype();
+    if ("image".equals(main)) {
+      return !"svg+xml".equalsIgnoreCase(subtype) && !"svg".equalsIgnoreCase(subtype);
+    }
+    return "video".equals(main) || "audio".equals(main)
+        || ("application".equals(main) && "pdf".equals(subtype))
+        || ("text".equals(main) && "plain".equals(subtype));
   }
 
   private void close(InputStream inputStream) {

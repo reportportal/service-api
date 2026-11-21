@@ -203,6 +203,7 @@ public interface StatisticsRepository extends ReportPortalRepository<Statistics,
       AND    ti.has_children = false
       AND    ti.has_stats = true
       AND    tir.status = 'INTERRUPTED'
+      AND    NOT EXISTS (SELECT 1 FROM statistics s WHERE s.item_id = ti.item_id)
       """, nativeQuery = true)
   List<TestItemPathContext> selectInterruptedItems(Long launchId);
 

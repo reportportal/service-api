@@ -296,4 +296,42 @@ class OrganizationIntegrationHandlerImplTest {
         () -> handler.checkConnection(ORG_ID, 901L));
     assertEquals(ErrorType.INTEGRATION_NOT_FOUND, ex.getErrorType());
   }
+
+  @Test
+  @DisplayName("Should reject AUTH group integration at organization scope")
+  void createOrganizationIntegrationWithAuthGroupShouldThrow() {
+    var ldap = new IntegrationType();
+    ldap.setId(8L);
+    ldap.setName("ldap");
+    ldap.setIntegrationGroup(com.epam.reportportal.base.infrastructure.persistence.entity.enums.IntegrationGroupEnum.AUTH);
+    when(organizationRepository.findById(ORG_ID)).thenReturn(Optional.of(new Organization()));
+    when(integrationTypeRepository.findByName("ldap")).thenReturn(Optional.of(ldap));
+
+    var request = new IntegrationRQ();
+    request.setName("ldap-1");
+
+    var ex = assertThrows(ReportPortalException.class,
+        () -> handler.createOrganizationIntegration(ORG_ID, "ldap", request));
+    assertEquals(ErrorType.INCORRECT_REQUEST, ex.getErrorType());
+  }
+
+  @Test
+  @DisplayName("Should reject url change without a new secret on organization integration update")
+  void updateOrganizationIntegrationWithTargetChangeAndNoSecretShouldThrow() {
+    var integration = new Integration();
+    integration.setId(901L);
+    integration.setType(integrationType);
+    integration.setParams(new com.epam.reportportal.base.infrastructure.persistence.entity.integration
+        .IntegrationParams(new java.util.HashMap<>(Map.of("url", "https://jira.old", "apiToken", "cipher"))));
+    mockedSecurityContextUtils.when(SecurityContextUtils::getPrincipal).thenReturn(principal);
+    when(organizationRepository.findById(ORG_ID)).thenReturn(Optional.of(new Organization()));
+    when(integrationRepository.findByIdAndOrganizationId(901L, ORG_ID)).thenReturn(Optional.of(integration));
+
+    var request = new IntegrationRQ();
+    request.setIntegrationParams(Map.of("url", "https://evil.example"));
+
+    var ex = assertThrows(ReportPortalException.class,
+        () -> handler.updateOrganizationIntegration(ORG_ID, 901L, request));
+    assertEquals(ErrorType.INCORRECT_REQUEST, ex.getErrorType());
+  }
 }

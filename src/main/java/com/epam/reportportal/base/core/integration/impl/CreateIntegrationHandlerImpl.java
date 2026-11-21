@@ -24,6 +24,7 @@ import com.epam.reportportal.base.core.events.domain.IntegrationCreatedEvent;
 import com.epam.reportportal.base.core.events.domain.IntegrationUpdatedEvent;
 import com.epam.reportportal.base.core.integration.CreateIntegrationHandler;
 import com.epam.reportportal.base.core.integration.util.IntegrationService;
+import com.epam.reportportal.base.core.integration.util.IntegrationTargetChangeValidator;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationTypeRepository;
@@ -140,6 +141,8 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
     IntegrationType integrationType = integrationTypeRepository.findByName(pluginName)
         .orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, pluginName));
 
+    rejectAuthGroup(integrationType);
+
     IntegrationService integrationService =
         integrationServiceMapping.getOrDefault(integrationType.getName(),
             this.basicIntegrationService
@@ -223,6 +226,8 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
       updateRequest.setName(name);
     });
 
+    IntegrationTargetChangeValidator.validate(integration, updateRequest.getIntegrationParams());
+
     IntegrationService integrationService =
         integrationServiceMapping.getOrDefault(integration.getType().getName(),
             this.basicIntegrationService
@@ -238,6 +243,13 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
 
     return new OperationCompletionRS(
         "Integration with id = " + updatedIntegration.getId() + " has been successfully updated.");
+  }
+
+  private void rejectAuthGroup(IntegrationType integrationType) {
+    if (IntegrationGroupEnum.AUTH == integrationType.getIntegrationGroup()) {
+      throw new ReportPortalException(ErrorType.INCORRECT_REQUEST,
+          "Authentication integrations can only be created at instance level");
+    }
   }
 
   private void validateGlobalIntegrationName(String integrationName,

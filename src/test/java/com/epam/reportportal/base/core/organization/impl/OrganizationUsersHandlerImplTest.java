@@ -298,4 +298,22 @@ class OrganizationUsersHandlerImplTest {
       verify(projectUserRepository, never()).save(any());
     }
   }
+
+  @Test
+  @DisplayName("Upsert of a UPSA user into an external organization should be denied")
+  void updateOrganizationUserDetailsWhenUpsaUserInExternalOrganizationShouldThrow() {
+    organization.setOrganizationType(OrganizationType.EXTERNAL);
+    User user = organizationUser.getUser();
+    user.setUserType(com.epam.reportportal.base.infrastructure.persistence.entity.user.UserType.UPSA);
+    when(organizationRepositoryCustom.findById(ORG_ID)).thenReturn(Optional.of(organization));
+    when(userRepository.findById(USER_ID)).thenReturn(Optional.of(user));
+    when(organizationUserRepository.findByUserIdAndOrganization_Id(USER_ID, ORG_ID)).thenReturn(Optional.empty());
+
+    OrgUserUpdateRequest updateRequest = new OrgUserUpdateRequest().orgRole(OrgRole.MEMBER).projects(List.of());
+
+    ReportPortalException exception = assertThrows(ReportPortalException.class,
+        () -> organizationUsersHandler.updateOrganizationUserDetails(ORG_ID, USER_ID, updateRequest));
+    assertEquals(ErrorType.UPSA_USER_DENIED, exception.getErrorType());
+    verify(organizationUserRepository, never()).save(any());
+  }
 }

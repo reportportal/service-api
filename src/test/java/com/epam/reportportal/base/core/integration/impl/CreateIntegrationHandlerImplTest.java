@@ -119,4 +119,44 @@ class CreateIntegrationHandlerImplTest {
         () -> handler.createProjectIntegration(PROJECT_KEY, request, "email", rpUser));
     assertEquals(ErrorType.INTEGRATION_ALREADY_EXISTS, ex.getErrorType());
   }
+
+  @Test
+  @DisplayName("Should reject AUTH group integration at project scope")
+  void createProjectIntegrationWithAuthGroupShouldThrow() {
+    var project = new Project();
+    project.setId(20L);
+    var ldap = new IntegrationType();
+    ldap.setName("ldap");
+    ldap.setIntegrationGroup(com.epam.reportportal.base.infrastructure.persistence.entity.enums.IntegrationGroupEnum.AUTH);
+    when(projectRepository.findByKey(PROJECT_KEY)).thenReturn(Optional.of(project));
+    when(integrationTypeRepository.findByName("ldap")).thenReturn(Optional.of(ldap));
+
+    var request = new IntegrationRQ();
+    request.setName("ldap-1");
+
+    var ex = assertThrows(ReportPortalException.class,
+        () -> handler.createProjectIntegration(PROJECT_KEY, request, "ldap", rpUser));
+    assertEquals(ErrorType.INCORRECT_REQUEST, ex.getErrorType());
+  }
+
+  @Test
+  @DisplayName("Should reject host change without a new secret on project integration update")
+  void updateProjectIntegrationWithTargetChangeAndNoSecretShouldThrow() {
+    var project = new Project();
+    project.setId(20L);
+    var integration = new com.epam.reportportal.base.infrastructure.persistence.entity.integration.Integration();
+    integration.setType(emailType);
+    integration.setParams(new com.epam.reportportal.base.infrastructure.persistence.entity.integration
+        .IntegrationParams(new java.util.HashMap<>(Map.of("host", "smtp.old", "password", "cipher"))));
+    when(projectRepository.findByKey(PROJECT_KEY)).thenReturn(Optional.of(project));
+    when(integrationRepository.findByIdAndProjectId(5L, 20L)).thenReturn(Optional.of(integration));
+
+    var request = new IntegrationRQ();
+    request.setIntegrationParams(Map.of("host", "evil.example"));
+
+    var ex = assertThrows(ReportPortalException.class,
+        () -> handler.updateProjectIntegration(5L, PROJECT_KEY, request, rpUser));
+    assertEquals(ErrorType.INCORRECT_REQUEST, ex.getErrorType());
+    org.mockito.Mockito.verifyNoInteractions(basicIntegrationService);
+  }
 }

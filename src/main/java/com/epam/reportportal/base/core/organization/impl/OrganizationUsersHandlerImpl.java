@@ -64,6 +64,7 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.user.User;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRole;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
+import com.epam.reportportal.base.util.OrganizationUserValidator;
 import com.epam.reportportal.base.util.SecurityContextUtils;
 import com.epam.reportportal.base.ws.converter.converters.UserConverter;
 import java.util.List;
@@ -259,6 +260,8 @@ public class OrganizationUsersHandlerImpl implements OrganizationUsersHandler {
     Optional<OrganizationUser> userOrganization = organizationUserRepository.findByUserIdAndOrganization_Id(
         userId, orgId);
 
+    validateUserType(organization, user);
+
     assignToOrganization(orgUserUpdateRequest, userOrganization, organization, user);
 
     List<UserProjectInfo> projects = orgUserUpdateRequest.getProjects();
@@ -330,17 +333,8 @@ public class OrganizationUsersHandlerImpl implements OrganizationUsersHandler {
 
   private void validateManagerChangingRole(OrgRole newOrgRole, User assignedUser,
       Optional<OrganizationUser> userOrganization) {
-    var rpUser = SecurityContextUtils.getPrincipal();
-
-    // Only check if the current user is trying to change their own role
-    if (Objects.equals(rpUser.getUserId(), assignedUser.getId())
-        && !rpUser.getUserRole().equals(UserRole.ADMINISTRATOR)
-        && userOrganization.isPresent()
-        && userOrganization.get().getOrganizationRole().equals(OrganizationRole.MANAGER)
-        && !newOrgRole.equals(MANAGER)
-    ) {
-      throw new ReportPortalException(ErrorType.ACCESS_DENIED, "Impossible to change the role of the own account");
-    }
+    OrganizationUserValidator.validateManagerChangingRole(SecurityContextUtils.getPrincipal(), assignedUser.getId(),
+        userOrganization.map(OrganizationUser::getOrganizationRole).orElse(null),
+        OrganizationRole.valueOf(newOrgRole.getValue()));
   }
 }
-

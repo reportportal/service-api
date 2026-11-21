@@ -28,6 +28,8 @@ import com.epam.reportportal.base.core.events.domain.IntegrationCreatedEvent;
 import com.epam.reportportal.base.core.events.domain.IntegrationDeletedEvent;
 import com.epam.reportportal.base.core.events.domain.IntegrationUpdatedEvent;
 import com.epam.reportportal.base.core.integration.util.IntegrationService;
+import com.epam.reportportal.base.core.integration.util.IntegrationTargetChangeValidator;
+import com.epam.reportportal.base.infrastructure.persistence.entity.enums.IntegrationGroupEnum;
 import com.epam.reportportal.base.core.organization.OrganizationIntegrationHandler;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationTypeRepository;
@@ -111,6 +113,10 @@ public class OrganizationIntegrationHandlerImpl implements OrganizationIntegrati
     IntegrationType integrationType = integrationTypeRepository.findByName(pluginName)
         .orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_TYPE_NOT_FOUND, pluginName));
 
+    if (IntegrationGroupEnum.AUTH == integrationType.getIntegrationGroup()) {
+      throw new ReportPortalException(ErrorType.INCORRECT_REQUEST,
+          "Authentication integrations can only be created at instance level");
+    }
     validateSingleInstanceTypeOrg(integrationType, orgId);
     String integrationName = ofNullable(createRequest.getName())
         .map(name -> {
@@ -154,6 +160,8 @@ public class OrganizationIntegrationHandlerImpl implements OrganizationIntegrati
       }
       updateRequest.setName(name);
     });
+
+    IntegrationTargetChangeValidator.validate(integration, updateRequest.getIntegrationParams());
 
     IntegrationService integrationService =
         integrationServiceMapping.getOrDefault(integration.getType().getName(), basicIntegrationService);

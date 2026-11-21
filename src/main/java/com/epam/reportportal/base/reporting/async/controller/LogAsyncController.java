@@ -48,6 +48,8 @@ import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.MediaType;
@@ -73,6 +75,8 @@ import org.springframework.web.multipart.MultipartFile;
 @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
 @Tag(name = "Log Async", description = "Logs Async API collection")
 public class LogAsyncController {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(LogAsyncController.class);
 
   private final ProjectExtractor projectExtractor;
   private final CreateLogHandler createLogHandler;
@@ -172,8 +176,8 @@ public class LogAsyncController {
         }
         response.addResponse(new BatchElementCreatedRS(responseItem.getId()));
       } catch (Exception e) {
-        response.addResponse(new BatchElementCreatedRS(ExceptionUtils.getStackTrace(e),
-            ExceptionUtils.getMessage(e)));
+        LOGGER.error("Unable to save log from the batch request", e);
+        response.addResponse(new BatchElementCreatedRS(ExceptionUtils.getMessage(e), null));
       }
     }
     return new ResponseEntity<>(response, CREATED);

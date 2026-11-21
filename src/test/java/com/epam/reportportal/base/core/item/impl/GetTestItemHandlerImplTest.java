@@ -28,6 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import com.epam.reportportal.base.core.item.TestItemService;
@@ -36,6 +37,7 @@ import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Co
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.FilterCondition;
 import com.epam.reportportal.base.infrastructure.persistence.dao.TestItemRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.TicketRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.UserFilterRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.LaunchModeEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.filter.ObjectType;
@@ -87,6 +89,9 @@ class GetTestItemHandlerImplTest {
 
   @Mock
   private ResourceUpdaterProvider<TestItemUpdaterContent, TestItemResource> provider;
+
+  @Mock
+  private TicketRepository ticketRepository;
 
   @InjectMocks
   private GetTestItemHandlerImpl handler;
@@ -386,5 +391,17 @@ class GetTestItemHandlerImplTest {
         "Error in handled Request. Please, check specified parameters: 'Launches limit should be greater than 0'",
         exception.getMessage()
     );
+  }
+
+  @Test
+  void getTicketIdsValidatesLaunchAgainstProject() {
+    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MANAGER, ProjectRole.EDITOR, 1L);
+    final var membership = rpUserToMembership(rpUser);
+    doThrow(new ReportPortalException("forbidden")).when(launchAccessValidator)
+        .validate(5L, membership, rpUser);
+
+    assertThrows(ReportPortalException.class,
+        () -> handler.getTicketIds(5L, membership, rpUser, "term"));
+    verifyNoInteractions(ticketRepository);
   }
 }

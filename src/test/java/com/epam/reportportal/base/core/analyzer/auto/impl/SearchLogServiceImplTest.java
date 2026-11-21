@@ -19,6 +19,7 @@ package com.epam.reportportal.base.core.analyzer.auto.impl;
 import static com.epam.reportportal.base.core.analyzer.auto.strategy.search.SearchLogsMode.CURRENT_LAUNCH;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import com.epam.reportportal.base.core.analyzer.auto.client.AnalyzerServiceClient;
@@ -43,6 +44,8 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.organization
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationRole;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectRole;
+import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
+import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.model.analyzer.SearchRq;
 import com.epam.reportportal.base.model.analyzer.SearchRs;
 import com.epam.reportportal.base.model.log.SearchLogRq;
@@ -157,9 +160,33 @@ class SearchLogServiceImplTest {
     when(searchCollectorFactory.getCollector(CURRENT_LAUNCH)).thenReturn(currentLaunchCollector);
     when(currentLaunchCollector.collect(any(), any())).thenReturn(Collections.singletonList(1L));
 
+    when(launch.getProjectId()).thenReturn(1L);
+
     Iterable<SearchLogRs> responses = searchLogService.search(1L, searchLogRq, membershipDetails);
     Assertions.assertNotNull(responses);
     Assertions.assertEquals(1, Lists.newArrayList(responses).size());
 
+  }
+
+  @Test
+  void searchItemOfAnotherProject() {
+    MembershipDetails membershipDetails = MembershipDetails.builder()
+        .withOrgId(1L)
+        .withOrgRole(OrganizationRole.MANAGER)
+        .withProjectId(1L)
+        .withProjectRole(ProjectRole.EDITOR)
+        .build();
+
+    when(projectRepository.findById(1L)).thenReturn(Optional.of(project));
+    when(testItemRepository.findById(1L)).thenReturn(Optional.of(testItem));
+    when(testItem.getLaunchId()).thenReturn(5L);
+    when(launchRepository.findById(5L)).thenReturn(Optional.of(launch));
+    when(launch.getProjectId()).thenReturn(2L);
+
+    ReportPortalException exception = Assertions.assertThrows(ReportPortalException.class,
+        () -> searchLogService.search(1L, new SearchLogRq(), membershipDetails));
+
+    Assertions.assertEquals(ErrorType.FORBIDDEN_OPERATION, exception.getErrorType());
+    verifyNoInteractions(analyzerServiceClient);
   }
 }

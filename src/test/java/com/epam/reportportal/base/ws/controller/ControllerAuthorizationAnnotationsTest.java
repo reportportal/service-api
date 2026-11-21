@@ -17,11 +17,18 @@
 package com.epam.reportportal.base.ws.controller;
 
 import static com.epam.reportportal.base.auth.permissions.Permissions.ALLOWED_TO_EDIT_PROJECT;
+import static com.epam.reportportal.base.auth.permissions.Permissions.ALLOWED_TO_VIEW_PROJECT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
+import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
+import com.epam.reportportal.base.model.BulkItemsRQ;
+import java.lang.reflect.Method;
+import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 
 /**
@@ -37,5 +44,26 @@ class ControllerAuthorizationAnnotationsTest {
         .getAnnotation(PreAuthorize.class);
 
     assertEquals(ALLOWED_TO_EDIT_PROJECT, preAuthorize.value());
+  }
+
+  @Test
+  void readEndpointsRequireProjectViewPermission() throws Exception {
+    List<Method> methods = List.of(
+        LaunchController.class.getMethod("getLaunchByUuidOldTimestamp", String.class, String.class,
+            ReportPortalUser.class),
+        TestItemController.class.getMethod("getTestItemByUuidTimestamp", String.class,
+            ReportPortalUser.class, String.class),
+        TestItemController.class.getMethod("getAttributeValues", String.class,
+            ReportPortalUser.class, Long.class, String.class, String.class),
+        TestItemController.class.getMethod("getTestItemsByIds", String.class,
+            ReportPortalUser.class, BulkItemsRQ.class),
+        LogController.class.getMethod("getLogsWithLocationBySearch", String.class, Long.class,
+            Map.class, Filter.class, Pageable.class, ReportPortalUser.class));
+
+    for (Method method : methods) {
+      PreAuthorize preAuthorize = method.getAnnotation(PreAuthorize.class);
+      assertNotNull(preAuthorize, method.getName());
+      assertEquals(ALLOWED_TO_VIEW_PROJECT, preAuthorize.value(), method.getName());
+    }
   }
 }

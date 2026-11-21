@@ -3,8 +3,10 @@ package com.epam.reportportal.base.core.analyzer.auto.impl;
 import static com.epam.reportportal.base.ReportPortalUserUtil.getRpUser;
 import static com.epam.reportportal.base.infrastructure.persistence.entity.enums.LogLevel.ERROR_INT;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.anyList;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -245,10 +247,46 @@ class SuggestItemServiceTest {
   @Test
   void handleSuggestChoice() {
     final OperationCompletionRS operationCompletionRS = suggestItemService.handleSuggestChoice(
-        new ArrayList<>());
+        new ArrayList<>(), MembershipDetails.builder().withProjectId(1L).build());
     verify(analyzerServiceClient, times(1)).handleSuggestChoice(anyList());
     Assertions.assertEquals("User choice of suggested item was sent for handling to ML",
         operationCompletionRS.getResultMessage());
+  }
+
+  @Test
+  void handleSuggestChoiceForcesProjectId() {
+    final MembershipDetails membership = MembershipDetails.builder().withProjectId(1L).build();
+    final SuggestInfo info = new SuggestInfo();
+    info.setProject(99L);
+    info.setTestItem(10L);
+    info.setRelevantItem(11L);
+    final TestItem first = new TestItem();
+    first.setItemId(10L);
+    final TestItem second = new TestItem();
+    second.setItemId(11L);
+    when(testItemRepository.findAllByItemIdInAndProjectId(any(), eq(1L))).thenReturn(
+        List.of(first, second));
+
+    suggestItemService.handleSuggestChoice(List.of(info), membership);
+
+    Assertions.assertEquals(1L, info.getProject());
+    verify(analyzerServiceClient, times(1)).handleSuggestChoice(List.of(info));
+  }
+
+  @Test
+  void handleSuggestChoiceRejectsItemsOfAnotherProject() {
+    final MembershipDetails membership = MembershipDetails.builder().withProjectId(1L).build();
+    final SuggestInfo info = new SuggestInfo();
+    info.setTestItem(10L);
+    info.setRelevantItem(11L);
+    final TestItem own = new TestItem();
+    own.setItemId(10L);
+    when(testItemRepository.findAllByItemIdInAndProjectId(any(), eq(1L))).thenReturn(
+        List.of(own));
+
+    Assertions.assertThrows(ReportPortalException.class,
+        () -> suggestItemService.handleSuggestChoice(List.of(info), membership));
+    verify(analyzerServiceClient, never()).handleSuggestChoice(anyList());
   }
 
   private TestItem getRelevantItem() {

@@ -108,13 +108,36 @@ public class LogMessageHandler implements ReportingMessageHandler {
     }
 
     if (itemOptional.isPresent()) {
-      createItemLog(request, itemOptional.get(), metaInfo, projectId);
+      TestItem item = itemOptional.get();
+      Launch effectiveLaunch = testItemService.getEffectiveLaunch(item);
+      if (!belongsToProject(effectiveLaunch, projectId)) {
+        dropForeignLog(request, projectId, effectiveLaunch);
+        return;
+      }
+      createItemLog(request, item, metaInfo, projectId);
     } else {
       Launch launch = launchRepository.findByUuid(request.getLaunchUuid())
           .orElseThrow(
               () -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, request.getLaunchUuid()));
+      if (!belongsToProject(launch, projectId)) {
+        dropForeignLog(request, projectId, launch);
+        return;
+      }
       createLaunchLog(request, launch, metaInfo, projectId);
     }
+  }
+
+  private boolean belongsToProject(Launch launch, Long projectId) {
+    return launch != null && Objects.equals(launch.getProjectId(), projectId);
+  }
+
+  /**
+   * The message is discarded (not retried, not parked): redelivery cannot make a launch of another
+   * project belong to the project from the message header.
+   */
+  private void dropForeignLog(SaveLogRQ request, Long projectId, Launch launch) {
+    LOGGER.warn("Discarded log '{}': launch '{}' does not belong to project '{}' from the message",
+        request.getUuid(), launch == null ? null : launch.getUuid(), projectId);
   }
 
   private void createItemLog(SaveLogRQ request, TestItem item, BinaryDataMetaInfo metaInfo,

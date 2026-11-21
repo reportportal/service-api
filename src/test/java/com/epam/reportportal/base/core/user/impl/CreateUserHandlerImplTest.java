@@ -269,6 +269,19 @@ class CreateUserHandlerImplTest {
         eq(new String[]{"internal@example.com"}), any(), any());
   }
 
+  @Test
+  void restorePasswordWithUntrustedBaseUrlShouldNotSendEmail() {
+    var user = new User();
+    user.setEmail("internal@example.com");
+    user.setUserType(UserType.INTERNAL);
+    when(userRepository.findByEmail("internal@example.com")).thenReturn(Optional.of(user));
+
+    var rs = handler.createRestorePasswordBid(restoreRq("internal@example.com"), null);
+
+    assertEquals(EMAIL_HAS_BEEN_SENT, rs.getResultMessage());
+    verifyNoInteractions(restorePasswordBidRepository, emailServiceFactory);
+  }
+
   private static RestorePasswordRQ restoreRq(String email) {
     var rq = new RestorePasswordRQ();
     rq.setEmail(email);

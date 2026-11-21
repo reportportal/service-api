@@ -188,7 +188,8 @@ public class UserController {
   @Operation(summary = "Create a restore password request")
   public OperationCompletionRS restorePassword(@RequestBody @Validated RestorePasswordRQ rq,
       HttpServletRequest request) {
-    return createUserMessageHandler.createRestorePasswordBid(rq, linkGenerator.composeBaseUrl(request));
+    return createUserMessageHandler.createRestorePasswordBid(rq,
+        linkGenerator.composeTrustedBaseUrl(request).orElse(null));
   }
 
   @Transactional

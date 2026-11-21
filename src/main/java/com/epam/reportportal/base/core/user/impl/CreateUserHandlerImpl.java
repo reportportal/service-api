@@ -125,6 +125,11 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
       return new OperationCompletionRS(EMAIL_HAS_BEEN_SENT);
     }
 
+    if (baseUrl == null) {
+      log.warn("Password recovery requested for user id={} from an untrusted host; e-mail not sent", user.get().getId());
+      return new OperationCompletionRS(EMAIL_HAS_BEEN_SENT);
+    }
+
     restorePasswordBidRepository.deleteByEmail(email);
     rq.setEmail(email);
     RestorePasswordBid bid = RestorePasswordBidConverter.TO_BID.apply(rq);

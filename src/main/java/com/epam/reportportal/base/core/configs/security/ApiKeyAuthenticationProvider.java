@@ -29,8 +29,9 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
-import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthenticationToken;
@@ -67,29 +68,28 @@ public class ApiKeyAuthenticationProvider implements AuthenticationProvider {
   public Authentication authenticate(Authentication authentication) throws AuthenticationException {
     BearerTokenAuthenticationToken bearer = (BearerTokenAuthenticationToken) authentication;
     String apiToken = (String) bearer.getPrincipal();
+    if (!ApiKeyUtils.validateToken(apiToken)) {
+      throw new BadCredentialsException("Invalid access token");
+    }
     String hashedKey = DatatypeConverter.printHexBinary(DigestUtils.sha3_256(apiToken));
     ApiKey apiKey = apiKeyRepository.findByHash(hashedKey);
-    if (ApiKeyUtils.validateToken(apiToken) && apiKeyRepository.findByHash(hashedKey) != null) {
-      return userRepository.findReportPortalUser(apiKey.getUserId())
-          .filter(ReportPortalUser::isEnabled)
-          .map(user -> {
-            LocalDate today = LocalDate.now(ZoneOffset.UTC);
-            if (apiKey.getLastUsedAt() == null || !apiKey.getLastUsedAt().equals(today)) {
-              apiKeyRepository.updateLastUsedAt(apiKey.getId(), hashedKey, today);
-            }
-            return user;
-          })
-          .map(authenticationConverter::convert)
-          .map(authToken -> {
-            if (authToken.getDetails() == null) {
-              authToken.setDetails(bearer.getDetails());
-            }
-            return authToken;
-          })
-          .orElseThrow();
+    if (apiKey == null) {
+      throw new BadCredentialsException("Invalid access token");
     }
-
-    throw new AuthenticationCredentialsNotFoundException("Invalid access token");
+    ReportPortalUser user = userRepository.findReportPortalUser(apiKey.getUserId())
+        .orElseThrow(() -> new BadCredentialsException("Invalid access token"));
+    if (!user.isEnabled()) {
+      throw new DisabledException("User account is disabled");
+    }
+    LocalDate today = LocalDate.now(ZoneOffset.UTC);
+    if (apiKey.getLastUsedAt() == null || !apiKey.getLastUsedAt().equals(today)) {
+      apiKeyRepository.updateLastUsedAt(apiKey.getId(), hashedKey, today);
+    }
+    AbstractAuthenticationToken authToken = authenticationConverter.convert(user);
+    if (authToken.getDetails() == null) {
+      authToken.setDetails(bearer.getDetails());
+    }
+    return authToken;
   }
 
   @Override

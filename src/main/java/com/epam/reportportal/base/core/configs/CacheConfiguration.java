@@ -31,6 +31,8 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class CacheConfiguration {
 
+  private static final long MAX_CACHE_SIZE = 10_000;
+
   @Bean("caffeineCacheManager")
   public CacheManager cacheManager() {
     CaffeineCacheManager cacheManager = new CaffeineCacheManager();
@@ -39,6 +41,6 @@ public class CacheConfiguration {
   }
 
   private Caffeine<Object, Object> cacheProperties() {
-    return Caffeine.newBuilder().expireAfterWrite(30, TimeUnit.SECONDS);
+    return Caffeine.newBuilder().expireAfterWrite(30, TimeUnit.SECONDS).maximumSize(MAX_CACHE_SIZE);
   }
 }

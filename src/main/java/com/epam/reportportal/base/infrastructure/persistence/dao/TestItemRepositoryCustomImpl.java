@@ -142,6 +142,7 @@ import org.springframework.stereotype.Repository;
 @RequiredArgsConstructor
 public class TestItemRepositoryCustomImpl implements TestItemRepositoryCustom {
 
+  private static final int REGEX_QUERY_TIMEOUT_SEC = 10;
   private static final String OUTER_ITEM_TABLE = "outer_item_table";
   private static final String CHILD_ITEM_TABLE = "child";
   private static final String BASELINE_TABLE = "baseline";
@@ -1021,6 +1022,7 @@ public class TestItemRepositoryCustomImpl implements TestItemRepositoryCustom {
         .and(LOG.LOG_LEVEL.greaterOrEqual(logLevel))
         .and(LOG.LOG_LEVEL.lessOrEqual(LogLevel.UNKNOWN_INT))
         .and(LOG.LOG_MESSAGE.likeRegex(pattern))
+        .queryTimeout(REGEX_QUERY_TIMEOUT_SEC)
         .fetchInto(Long.class);
   }
 

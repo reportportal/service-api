@@ -18,17 +18,20 @@ package com.epam.reportportal.base.infrastructure.persistence.filesystem.distrib
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.AdditionalMatchers.aryEq;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.FeatureFlag;
 import com.epam.reportportal.base.infrastructure.persistence.filesystem.DataStoreClient;
 import com.epam.reportportal.base.infrastructure.persistence.util.FeatureFlagHandler;
+import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import org.apache.opendal.Operator;
@@ -37,6 +40,8 @@ import org.apache.opendal.ReadOptions;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 
 /**
@@ -118,5 +123,30 @@ class DataStoreClientTest {
 
     verify(operator, times(1)).delete(
         BUCKET_PREFIX + DEFAULT_BUCKET_NAME + BUCKET_POSTFIX + "/" + FILE_NAME);
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"prj/../x", "../x", "/etc/passwd", "prj/2024-1/..", "prj\\..\\x",
+      "\\x"})
+  @DisplayName("Save, load, load range and delete reject keys escaping the storage root")
+  void rejectsTraversalKeys(String filePath) {
+    when(featureFlagHandler.isEnabled(FeatureFlag.SINGLE_BUCKET)).thenReturn(false);
+
+    assertThrows(ReportPortalException.class,
+        () -> dataStoreClient.save(filePath, new ByteArrayInputStream(new byte[] {1})));
+    assertThrows(ReportPortalException.class, () -> dataStoreClient.load(filePath));
+    assertThrows(ReportPortalException.class, () -> dataStoreClient.loadRange(filePath, 0, 1));
+    assertThrows(ReportPortalException.class, () -> dataStoreClient.delete(filePath));
+    verifyNoInteractions(operator);
+  }
+
+  @Test
+  @DisplayName("Keys with dots inside a segment are accepted")
+  void acceptsDotsInsideSegment() {
+    when(featureFlagHandler.isEnabled(FeatureFlag.SINGLE_BUCKET)).thenReturn(false);
+
+    dataStoreClient.delete(DEFAULT_BUCKET_NAME + "/file..name.png");
+
+    verify(operator).delete(BUCKET_PREFIX + DEFAULT_BUCKET_NAME + BUCKET_POSTFIX + "/file..name.png");
   }
 }

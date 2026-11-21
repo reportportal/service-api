@@ -42,6 +42,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Paths;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
@@ -133,7 +134,8 @@ public class AttachmentBinaryDataServiceImpl implements AttachmentBinaryDataServ
   private String resolveFileName(AttachmentMetaInfo metaInfo, MultipartFile file,
       String contentType) {
     String extension = resolveExtension(contentType).orElse(resolveExtension(true, file));
-    return metaInfo.getLogUuid() + "-" + file.getName() + extension;
+    return FilePathGenerator.sanitizePathSegment(metaInfo.getLogUuid()) + "-" + UUID.randomUUID()
+        + extension;
   }
 
   @Override

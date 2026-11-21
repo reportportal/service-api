@@ -60,13 +60,15 @@ public interface TmsTestPlanRepository extends ReportPortalRepository<TmsTestPla
   Boolean existsByIdAndProject_Id(Long testPlanId, Long projectId);
 
   /**
-   * Find test plans by their IDs
+   * Find test plans of the project by their IDs
    *
+   * @param projectId   the project ID
    * @param testPlanIds list of test plan IDs
-   * @return list of test plans
+   * @return list of test plans that belong to the project
    */
-  @Query("SELECT tp FROM TmsTestPlan tp WHERE tp.id IN :testPlanIds")
-  List<TmsTestPlan> findByIds(@Param("testPlanIds") List<Long> testPlanIds);
+  @Query("SELECT tp FROM TmsTestPlan tp WHERE tp.id IN :testPlanIds AND tp.project.id = :projectId")
+  List<TmsTestPlan> findByProjectIdAndIds(@Param("projectId") Long projectId,
+      @Param("testPlanIds") List<Long> testPlanIds);
 
   /**
    * Removes test plan from milestone by setting milestone to null.

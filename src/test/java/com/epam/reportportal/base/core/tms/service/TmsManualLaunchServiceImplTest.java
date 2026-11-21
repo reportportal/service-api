@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -21,6 +22,7 @@ import com.epam.reportportal.base.core.tms.dto.AddTestCaseToLaunchRQ;
 import com.epam.reportportal.base.core.tms.dto.CreateTmsManualLaunchRQ;
 import com.epam.reportportal.base.core.tms.dto.CreateTmsManualLaunchRS;
 import com.epam.reportportal.base.core.tms.dto.TmsManualLaunchExecutionStatisticRS;
+import com.epam.reportportal.base.core.tms.dto.TmsManualLaunchRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsManualLaunchRS;
 import com.epam.reportportal.base.core.tms.dto.TmsManualLaunchTestPlanRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseExecutionCommentRQ;
@@ -177,6 +179,44 @@ class TmsManualLaunchServiceImplTest {
     verify(launchRepository).refresh(launch);
     verify(tmsTestPlanService).getTestCaseIdsAddedToPlan(projectId, testPlanId);
     verify(tmsTestCaseExecutionService).addTestCasesToLaunch(projectId, launch, List.of(10L, 20L));
+  }
+
+  @Test
+  void create_WithTestPlanOfAnotherProject_ShouldThrowNotFoundAndNotSaveLaunch() {
+    TmsManualLaunchTestPlanRQ planRQ = new TmsManualLaunchTestPlanRQ();
+    planRQ.setId(testPlanId);
+    createLaunchRQ.setTestPlan(planRQ);
+    createLaunchRQ.setTestCaseIds(List.of(testCaseId));
+
+    doThrow(new ReportPortalException(NOT_FOUND, "plan"))
+        .when(tmsTestPlanService).verifyTestPlanExists(projectId, testPlanId);
+
+    var exception = assertThrows(ReportPortalException.class,
+        () -> sut.create(projectId, user, createLaunchRQ));
+    assertEquals(NOT_FOUND, exception.getErrorType());
+
+    verify(launchRepository, never()).save(any());
+    verify(tmsTestCaseExecutionService, never()).addTestCasesToLaunch(anyLong(), any(), any());
+  }
+
+  @Test
+  void patch_WithTestPlanOfAnotherProject_ShouldThrowNotFoundAndNotSaveLaunch() {
+    TmsManualLaunchTestPlanRQ planRQ = new TmsManualLaunchTestPlanRQ();
+    planRQ.setId(testPlanId);
+    var patchRQ = new TmsManualLaunchRQ();
+    patchRQ.setTestPlan(planRQ);
+
+    when(launchRepository.findManualLaunchByIdAndProjectId(launchId, projectId))
+        .thenReturn(Optional.of(launch));
+    doThrow(new ReportPortalException(NOT_FOUND, "plan"))
+        .when(tmsTestPlanService).verifyTestPlanExists(projectId, testPlanId);
+
+    var exception = assertThrows(ReportPortalException.class,
+        () -> sut.patch(projectId, user, launchId, patchRQ));
+    assertEquals(NOT_FOUND, exception.getErrorType());
+
+    verify(tmsManualLaunchMapper, never()).patch(any(), any());
+    verify(launchRepository, never()).save(any());
   }
 
   // -------------------------------------------------------------------------

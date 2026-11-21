@@ -409,13 +409,13 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
 
   @Override
   @Transactional(readOnly = true)
-  public Map<Long, TmsTestPlan> getTestPlanMap(List<Long> testPlanIds) {
+  public Map<Long, TmsTestPlan> getTestPlanMap(Long projectId, List<Long> testPlanIds) {
     if (CollectionUtils.isEmpty(testPlanIds)) {
       return Collections.emptyMap();
     }
 
     return testPlanRepository
-        .findByIds(testPlanIds)
+        .findByProjectIdAndIds(projectId, testPlanIds)
         .stream()
         .collect(Collectors.toMap(TmsTestPlan::getId, Function.identity()));
   }

@@ -80,12 +80,13 @@ public interface TmsTestPlanService extends CrudService<TmsTestPlanRQ, TmsTestPl
   Page<TmsTestFolderRS> getTestFoldersFromPlan(Long projectId, Long testPlanId, Pageable pageable);
 
   /**
-   * Get test plans map by test plan IDs
+   * Get test plans map by test plan IDs. Test plans of other projects are not included.
    *
+   * @param projectId   the project ID
    * @param testPlanIds list of test plan IDs
    * @return map where key is test plan ID and value is TmsTestPlan entity
    */
-  Map<Long, TmsTestPlan> getTestPlanMap(List<Long> testPlanIds);
+  Map<Long, TmsTestPlan> getTestPlanMap(Long projectId, List<Long> testPlanIds);
 
   TmsTestPlan getEntityById(Long projectId, Long testPlanId);
 

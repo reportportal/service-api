@@ -327,6 +327,19 @@ public interface TmsTestCaseExecutionRepository extends
   );
 
   /**
+   * Finds which of the given executions belong to the launch.
+   *
+   * @param testCaseExecutionIds test case execution IDs
+   * @param launchId             launch ID
+   * @return IDs of the executions that exist in the launch
+   */
+  @Query("SELECT e.id FROM TmsTestCaseExecution e WHERE e.id IN :testCaseExecutionIds AND e.launchId = :launchId")
+  List<Long> findIdsByIdInAndLaunchId(
+      @Param("testCaseExecutionIds") List<Long> testCaseExecutionIds,
+      @Param("launchId") Long launchId
+  );
+
+  /**
    * Aggregates execution counts by status for a given launch.
    */
   @Query("SELECT e.testItem.itemResults.status as status, COUNT(e) as count " +

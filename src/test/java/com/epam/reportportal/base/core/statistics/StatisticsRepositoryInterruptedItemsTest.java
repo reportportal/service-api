@@ -18,6 +18,7 @@ package com.epam.reportportal.base.core.statistics;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.epam.reportportal.base.core.statistics.repository.StatisticsRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.TestItemRepository;
@@ -59,5 +60,24 @@ class StatisticsRepositoryInterruptedItemsTest extends BaseMvcTest {
         .map(it -> it.getItemId()).toList();
     assertFalse(remaining.contains(counted));
     assertEquals(interrupted.size() - 1, remaining.size());
+  }
+
+  @Test
+  void selectInterruptedItemsKeepsItemsThatHaveOnlyDefectStatistics() {
+    final Long launchId = 1L;
+    testItemRepository.interruptInProgressItems(launchId);
+
+    var interrupted = statisticsRepository.selectInterruptedItems(launchId);
+    assertFalse(interrupted.isEmpty(), "Fixture should contain interrupted leaf items");
+
+    Long withDefect = interrupted.get(0).getItemId();
+    jdbcTemplate.update("INSERT INTO statistics (s_counter, statistics_field_id, item_id) VALUES "
+        + "(1, (SELECT sf_id FROM statistics_field WHERE name = 'statistics$defects$to_investigate$total'), ?)",
+        withDefect);
+
+    List<Long> remaining = statisticsRepository.selectInterruptedItems(launchId).stream()
+        .map(it -> it.getItemId()).toList();
+    assertTrue(remaining.contains(withDefect));
+    assertEquals(interrupted.size(), remaining.size());
   }
 }

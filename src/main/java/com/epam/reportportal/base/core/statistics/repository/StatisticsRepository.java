@@ -192,6 +192,10 @@ public interface StatisticsRepository extends ReportPortalRepository<Statistics,
   boolean canHaveIssueStats(Long itemId);
 
 
+  /**
+   * Interrupted leaves of the launch whose execution counters are not counted yet. Defect rows alone (an issue defined
+   * while the item was in progress) do not exclude an item.
+   */
   @Query(value = """
       SELECT item_id,
              launch_id,
@@ -203,7 +207,11 @@ public interface StatisticsRepository extends ReportPortalRepository<Statistics,
       AND    ti.has_children = false
       AND    ti.has_stats = true
       AND    tir.status = 'INTERRUPTED'
-      AND    NOT EXISTS (SELECT 1 FROM statistics s WHERE s.item_id = ti.item_id)
+      AND    NOT EXISTS (SELECT 1
+                         FROM   statistics s
+                         JOIN   statistics_field sf ON sf.sf_id = s.statistics_field_id
+                         WHERE  s.item_id = ti.item_id
+                         AND    sf.name LIKE 'statistics$executions$%')
       """, nativeQuery = true)
   List<TestItemPathContext> selectInterruptedItems(Long launchId);
 

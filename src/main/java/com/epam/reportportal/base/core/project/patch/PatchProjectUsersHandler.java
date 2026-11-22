@@ -37,6 +37,7 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.user.User;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.model.IdContainer;
+import com.epam.reportportal.base.util.OrganizationUserValidator;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -110,6 +111,7 @@ public class PatchProjectUsersHandler extends BasePatchProjectHandler {
     var beforeUserIds = projectUserRepository.findUserIdsByProjectId(projectId);
 
     if (CollectionUtils.isEmpty(prjUsersInfo)) {
+      OrganizationUserValidator.validatePersonalOrganizationOwnerKept(org, beforeUserIds);
       projectUserRepository.deleteAllByProjectId(projectId);
       publishEvent(principal, project, orgId, beforeUserIds, List.of(), EventAction.UNASSIGN);
       return;
@@ -119,6 +121,9 @@ public class PatchProjectUsersHandler extends BasePatchProjectHandler {
         .map(UserProjectInfo::getId)
         .filter(Objects::nonNull)
         .toList();
+
+    OrganizationUserValidator.validatePersonalOrganizationOwnerKept(org,
+        beforeUserIds.stream().filter(id -> !newUserIds.contains(id)).toList());
 
     // Remove users not in new list
     var removedUserIds = projectUserRepository.deleteByProjectIdAndUserIdNotInReturningUserIds(projectId, newUserIds);
@@ -143,6 +148,11 @@ public class PatchProjectUsersHandler extends BasePatchProjectHandler {
 
     var beforeUserIds = projectUserRepository.findUserIdsByProjectId(projectId);
     var userIdsToRemove = extractUserIdsToRemove(operation);
+
+    var org = organizationRepository.findById(orgId)
+        .orElseThrow(() -> new ReportPortalException(ErrorType.ORGANIZATION_NOT_FOUND, orgId));
+    OrganizationUserValidator.validatePersonalOrganizationOwnerKept(org,
+        CollectionUtils.isEmpty(userIdsToRemove) ? beforeUserIds : userIdsToRemove);
 
     if (CollectionUtils.isEmpty(userIdsToRemove)) {
       projectUserRepository.deleteAllByProjectId(projectId);

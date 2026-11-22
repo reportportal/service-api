@@ -7,6 +7,7 @@ import static com.epam.reportportal.base.infrastructure.persistence.commons.quer
 import static com.epam.reportportal.base.util.TestProjectExtractor.extractProjectDetails;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import com.epam.reportportal.base.commons.querygen.LogFilterPreparator;
@@ -24,6 +25,8 @@ import com.epam.reportportal.base.infrastructure.persistence.dao.TestItemReposit
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItem;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
 import com.epam.reportportal.base.infrastructure.persistence.entity.log.Log;
+import com.epam.reportportal.base.infrastructure.persistence.entity.log.LogFull;
+import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationRole;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectRole;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRole;
@@ -120,5 +123,25 @@ class GetLogHandlerTest {
     Assertions.assertTrue(underPathCondition.isPresent());
     Assertions.assertNotEquals(wrongPath, underPathCondition.get().getValue());
     Assertions.assertEquals(correctPath, underPathCondition.get().getValue());
+  }
+
+  @Test
+  void getPageNumberOfLogFromAnotherProject() {
+    ReportPortalUser user = getRpUser("user", UserRole.USER, OrganizationRole.MANAGER,
+        ProjectRole.EDITOR, 1L);
+    Launch launch = new Launch();
+    launch.setId(5L);
+    launch.setProjectId(2L);
+    LogFull logFull = new LogFull();
+    logFull.setId(7L);
+    logFull.setLaunch(launch);
+    when(logService.findById(7L)).thenReturn(Optional.of(logFull));
+
+    Assertions.assertThrows(ReportPortalException.class,
+        () -> getLogHandler.getPageNumber(7L, extractProjectDetails(user, TEST_PROJECT_KEY),
+            Filter.builder().withTarget(Log.class).withCondition(FilterCondition.builder()
+                .withSearchCriteria(CRITERIA_PATH).withValue("1").withCondition(Condition.UNDER)
+                .build()).build(), PageRequest.of(1, 5)));
+    verifyNoInteractions(logRepository);
   }
 }

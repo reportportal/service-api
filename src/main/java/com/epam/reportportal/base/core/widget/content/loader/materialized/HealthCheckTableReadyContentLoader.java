@@ -20,13 +20,13 @@ import static com.epam.reportportal.base.core.widget.content.constant.ContentLoa
 import static com.epam.reportportal.base.core.widget.content.constant.ContentLoaderConstants.ATTRIBUTE_KEYS;
 import static com.epam.reportportal.base.core.widget.content.constant.ContentLoaderConstants.EXCLUDE_SKIPPED;
 import static com.epam.reportportal.base.core.widget.content.constant.ContentLoaderConstants.RESULT;
-import static com.epam.reportportal.base.core.widget.content.loader.materialized.handler.MaterializedWidgetStateHandler.VIEW_NAME;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.constant.WidgetContentRepositoryConstants.EXECUTIONS_PASSED;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.constant.WidgetContentRepositoryConstants.EXECUTIONS_TOTAL;
 import static java.util.Collections.emptyMap;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.groupingBy;
 
+import com.epam.reportportal.base.core.widget.content.materialized.generator.MaterializedViewNameGenerator;
 import com.epam.reportportal.base.core.widget.util.WidgetOptionUtil;
 import com.epam.reportportal.base.infrastructure.persistence.dao.WidgetContentRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.widget.Widget;
@@ -72,18 +72,20 @@ public class HealthCheckTableReadyContentLoader implements MaterializedWidgetCon
 
   private final WidgetContentRepository widgetContentRepository;
   private final JsonMapper objectMapper;
+  private final MaterializedViewNameGenerator materializedViewNameGenerator;
 
   @Autowired
   public HealthCheckTableReadyContentLoader(WidgetContentRepository widgetContentRepository,
-      JsonMapper objectMapper) {
+      JsonMapper objectMapper, MaterializedViewNameGenerator materializedViewNameGenerator) {
     this.widgetContentRepository = widgetContentRepository;
     this.objectMapper = objectMapper;
+    this.materializedViewNameGenerator = materializedViewNameGenerator;
   }
 
   @Override
   public Map<String, Object> loadContent(Widget widget, MultiValueMap<String, String> params) {
     HealthCheckTableGetParams getParams =
-        getParams(widget.getWidgetOptions(), ofNullable(params.get(ATTRIBUTES)).map(
+        getParams(widget, ofNullable(params.get(ATTRIBUTES)).map(
             attributes -> attributes.stream().filter(StringUtils::isNotBlank)
                 .collect(Collectors.toList())).orElseGet(Collections::emptyList));
     List<HealthCheckTableContent> content =
@@ -103,18 +105,16 @@ public class HealthCheckTableReadyContentLoader implements MaterializedWidgetCon
             .put(PASSING_RATE, calculatePassingRate(totalStatistics)).build()).build();
   }
 
-  private HealthCheckTableGetParams getParams(WidgetOptions widgetOptions,
-      List<String> attributeValues) {
+  private HealthCheckTableGetParams getParams(Widget widget, List<String> attributeValues) {
+    WidgetOptions widgetOptions = widget.getWidgetOptions();
     List<String> attributeKeys = WidgetOptionUtil.getListByKey(ATTRIBUTE_KEYS, widgetOptions);
     int currentLevel = attributeValues.size();
     BusinessRule.expect(attributeKeys, keys -> keys.size() > currentLevel)
         .verify(ErrorType.UNABLE_LOAD_WIDGET_CONTENT, "Incorrect level definition");
 
-    String viewName =
-        ofNullable(WidgetOptionUtil.getValueByKey(VIEW_NAME, widgetOptions)).orElseThrow(
-            () -> new ReportPortalException(ErrorType.UNABLE_LOAD_WIDGET_CONTENT,
-                "Widget view name not provided"
-            ));
+    String viewName = materializedViewNameGenerator.resolveStored(widget).orElseThrow(
+        () -> new ReportPortalException(ErrorType.UNABLE_LOAD_WIDGET_CONTENT,
+            "Widget view name not provided"));
     String currentLevelKey = attributeKeys.get(currentLevel);
     boolean includeCustomColumn =
         ofNullable(WidgetOptionUtil.getValueByKey(CUSTOM_COLUMN, widgetOptions)).isPresent();

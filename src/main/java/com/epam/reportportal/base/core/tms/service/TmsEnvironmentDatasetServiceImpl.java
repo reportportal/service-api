@@ -90,7 +90,7 @@ public class TmsEnvironmentDatasetServiceImpl implements TmsEnvironmentDatasetSe
     if (tmsEnvironmentDatasetRepository.countEnvironmentsByIdsAndProjectId(environmentIds,
         projectId) != environmentIds.size()) {
       throw new ReportPortalException(ErrorType.NOT_FOUND,
-          "Environments with ids: %s for project: %d".formatted(environmentIds, projectId));
+          "Environments with ids: %s for project: %s".formatted(environmentIds, projectId));
     }
   }
 }

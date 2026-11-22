@@ -25,13 +25,31 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.user.User;
 public interface UserMutationService {
 
   /**
-   * Updates user email with validation and duplicate checking.
+   * Updates user email (and login) with validation and duplicate checking. Rejected when the current request is not
+   * authenticated by a JWT (for example by an API key) and when a user changes the email of their own non-INTERNAL
+   * account.
+   *
+   * <p>When an administrator changes another user's email, the change is applied at once and all tokens previously
+   * issued to the user are revoked. When the owner changes their own email, nothing on the user changes: a pending
+   * change is recorded and a confirmation link is mailed to the new address; see {@link #confirmEmailChange}.
    *
    * @param user     the user entity to update
    * @param rawEmail the new email address (will be normalized)
    * @param editor   the user performing the update (used for authorization)
    */
   void updateEmail(User user, String rawEmail, ReportPortalUser editor);
+
+  /**
+   * Applies a pending self-service email change identified by the token from the confirmation link: re-checks that the
+   * new email is unused, revokes the user's tokens, sets email and login, updates project notification recipients and
+   * removes the pending change. Fails with INCORRECT_REQUEST when the token is unknown, used or expired, with
+   * USER_ALREADY_EXISTS when the new email was taken meanwhile and with ACCESS_DENIED when the account is no longer
+   * active or INTERNAL.
+   *
+   * @param uuid the confirmation token
+   * @return the updated (not yet saved) user
+   */
+  User confirmEmailChange(String uuid);
 
   /**
    * Updates user full name with format and length validation.

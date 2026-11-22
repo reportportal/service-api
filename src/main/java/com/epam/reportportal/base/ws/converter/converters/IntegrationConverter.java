@@ -32,10 +32,13 @@ import com.epam.reportportal.base.model.integration.IntegrationResource;
 import com.epam.reportportal.base.model.integration.IntegrationTypeResource;
 import com.epam.reportportal.extension.SensitiveIntegrationParam;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
-import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 /**
  * Maps third-party integration entities to API integration resources.
@@ -63,8 +66,8 @@ public final class IntegrationConverter {
       };
 
 
-  private static final Predicate<Map.Entry<String, Object>> IGNORE_FIELDS_CONDITION =
-      entry -> entry.getKey() == null || !SensitiveIntegrationParam.ALL.contains(entry.getKey());
+  private static final Set<String> SENSITIVE_KEYS_LOWER = SensitiveIntegrationParam.ALL.stream()
+      .map(k -> k.toLowerCase(Locale.ROOT)).collect(Collectors.toSet());
 
 
   public static final Function<Integration, IntegrationResource> TO_INTEGRATION_RESOURCE =
@@ -95,11 +98,28 @@ public final class IntegrationConverter {
 
 
   private static Optional<Map<String, Object>> convertToResourceParams(IntegrationParams it) {
-    return ofNullable(it.getParams()).map(p -> p.entrySet().stream().filter(IGNORE_FIELDS_CONDITION)
-        .collect(HashMap::new,
-            (resourceParams, entry) -> resourceParams.put(entry.getKey(), entry.getValue()),
-            Map::putAll
-        ));
+    return ofNullable(it.getParams()).map(IntegrationConverter::maskMap);
+  }
+
+  private static Map<String, Object> maskMap(Map<?, ?> source) {
+    Map<String, Object> result = new HashMap<>();
+    source.forEach((key, value) -> {
+      if (key instanceof String name && SENSITIVE_KEYS_LOWER.contains(name.toLowerCase(Locale.ROOT))) {
+        return;
+      }
+      result.put(key == null ? null : key.toString(), maskValue(value));
+    });
+    return result;
+  }
+
+  private static Object maskValue(Object value) {
+    if (value instanceof Map<?, ?> map) {
+      return maskMap(map);
+    }
+    if (value instanceof List<?> list) {
+      return list.stream().map(IntegrationConverter::maskValue).collect(Collectors.toList());
+    }
+    return value;
   }
 
   public static final Function<Integration, OrganizationIntegration> TO_ORGANIZATION_INTEGRATION =

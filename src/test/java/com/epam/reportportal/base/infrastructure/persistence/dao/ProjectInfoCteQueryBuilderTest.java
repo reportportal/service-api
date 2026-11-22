@@ -55,10 +55,24 @@ class ProjectInfoCteQueryBuilderTest {
 
   @Test
   void malformedBetweenIsRejected() {
-    for (String value : new String[] {"garbage", "1;2", "a;b;+03:00", "1,2,3", "1;2;nonsense"}) {
+    for (String value : new String[] {"garbage", "1;2", "a;b;+03:00", "1,2,3", "1;2;nonsense", "1,2;x"}) {
       ReportPortalException exception = assertThrows(ReportPortalException.class,
           () -> builder.findProjectInfo(filter(between(value))), value);
       assertEquals(ErrorType.INCORRECT_FILTER_PARAMETERS, exception.getErrorType(), value);
+    }
+  }
+
+  @Test
+  void uncastableValueIsRejected() {
+    for (String[] c : new String[][] {{"id", "abc"}, {"creationDate", "notadate"}}) {
+      FilterCondition condition = FilterCondition.builder()
+          .withCondition(Condition.EQUALS)
+          .withSearchCriteria(c[0])
+          .withValue(c[1])
+          .build();
+      ReportPortalException exception = assertThrows(ReportPortalException.class,
+          () -> builder.findProjectInfo(filter(condition)), c[1]);
+      assertEquals(ErrorType.INCORRECT_FILTER_PARAMETERS, exception.getErrorType(), c[1]);
     }
   }
 

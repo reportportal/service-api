@@ -23,6 +23,7 @@ import com.epam.reportportal.base.exception.rest.DefaultErrorResolver;
 import com.epam.reportportal.base.exception.rest.ReportPortalExceptionResolver;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorRS;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
@@ -111,7 +112,13 @@ public class GlobalExceptionHandler {
 
   @ExceptionHandler(Exception.class)
   @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-  public ErrorRS handle(Exception exception) {
+  public ErrorRS handle(Exception exception, HttpServletResponse response) throws Exception {
+    if (response.isCommitted()) {
+      // The status and headers are already sent (e.g. a streamed export failed midway): an error
+      // body would only be appended to the partial output and end it as a complete 200 response.
+      // Rethrow so that the container aborts the connection.
+      throw exception;
+    }
     return defaultErrorResolver.resolveError(exception).errorRs();
   }
 

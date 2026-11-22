@@ -461,18 +461,21 @@ class LaunchRepositoryTest extends BaseMvcTest {
 
   @Test
   void sortingByStatisticsWithSqlMetacharactersLatestTest() {
-    PageRequest pageRequest = PageRequest.of(0, 10,
-        Sort.by(Sort.Direction.ASC, "statistics$defects$x) , (select 1"));
-    Page<Launch> launchesPage = launchRepository.findAllLatestByFilter(Filter.builder()
+    Filter filter = Filter.builder()
         .withTarget(Launch.class)
         .withCondition(FilterCondition.builder()
             .withCondition(Condition.LOWER_THAN)
             .withSearchCriteria(CRITERIA_ID)
             .withValue("100")
             .build())
-        .build(), pageRequest);
+        .build();
+    Page<Launch> expected = launchRepository.findAllLatestByFilter(filter, PageRequest.of(0, 10));
+    Page<Launch> launchesPage = launchRepository.findAllLatestByFilter(filter, PageRequest.of(0, 10,
+        Sort.by(Sort.Direction.ASC, "statistics$defects$x) , (select 1")));
 
-    assertNotNull(launchesPage);
+    assertFalse(launchesPage.getContent().isEmpty());
+    assertEquals(expected.getTotalElements(), launchesPage.getTotalElements());
+    assertEquals(expected.getNumberOfElements(), launchesPage.getNumberOfElements());
   }
 
   @Test

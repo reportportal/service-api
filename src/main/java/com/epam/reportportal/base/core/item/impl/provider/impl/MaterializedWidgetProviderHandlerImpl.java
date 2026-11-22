@@ -21,6 +21,7 @@ import static com.epam.reportportal.base.core.widget.content.updater.Materialize
 import static java.util.Optional.ofNullable;
 
 import com.epam.reportportal.base.core.item.impl.provider.DataProviderHandler;
+import com.epam.reportportal.base.core.widget.content.materialized.generator.MaterializedViewNameGenerator;
 import com.epam.reportportal.base.core.widget.util.WidgetOptionUtil;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Queryable;
@@ -60,11 +61,14 @@ public class MaterializedWidgetProviderHandlerImpl implements DataProviderHandle
   @Autowired
   private WidgetRepository widgetRepository;
 
+  @Autowired
+  private MaterializedViewNameGenerator materializedViewNameGenerator;
+
   @Override
   public Page<TestItem> getTestItems(Queryable filter, Pageable pageable, MembershipDetails membershipDetails,
       ReportPortalUser user, Map<String, String> providerParams) {
     WidgetType widgetType = updateProviderParams(membershipDetails, providerParams);
-    return testItemWidgetDataProviders.get(widgetType)
+    return getDelegate(widgetType)
         .getTestItems(filter, pageable, membershipDetails, user, providerParams);
   }
 
@@ -73,7 +77,7 @@ public class MaterializedWidgetProviderHandlerImpl implements DataProviderHandle
       ReportPortalUser user,
       Map<String, String> providerParams) {
     WidgetType widgetType = updateProviderParams(membershipDetails, providerParams);
-    return testItemWidgetDataProviders.get(widgetType)
+    return getDelegate(widgetType)
         .accumulateStatistics(filter, membershipDetails, user, providerParams);
   }
 
@@ -91,8 +95,19 @@ public class MaterializedWidgetProviderHandlerImpl implements DataProviderHandle
     validateState(widget.getWidgetOptions());
     WidgetType widgetType = WidgetType.findByName(widget.getWidgetType())
         .orElseThrow(() -> new ReportPortalException(ErrorType.UNCLASSIFIED_REPORT_PORTAL_ERROR));
-    providerParams.put(VIEW_NAME, widget.getWidgetOptions().getOptions().get(VIEW_NAME).toString());
+    // The view name is resolved from the widget itself; a stored value that does not belong to
+    // this widget is rejected, and any client-supplied 'viewName' request parameter is overwritten.
+    String viewName = materializedViewNameGenerator.resolveStored(widget)
+        .orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_LOAD_WIDGET_CONTENT,
+            "Widget view name not provided"));
+    providerParams.put(VIEW_NAME, viewName);
     return widgetType;
+  }
+
+  private DataProviderHandler getDelegate(WidgetType widgetType) {
+    return ofNullable(testItemWidgetDataProviders.get(widgetType)).orElseThrow(
+        () -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
+            "Widget type '" + widgetType.getType() + "' is not supported by widget based items provider"));
   }
 
   private void validateState(WidgetOptions widgetOptions) {

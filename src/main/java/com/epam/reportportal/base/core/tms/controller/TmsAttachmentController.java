@@ -15,9 +15,11 @@ import com.epam.reportportal.base.util.ProjectExtractor;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.nio.charset.StandardCharsets;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -91,7 +93,10 @@ public class TmsAttachmentController {
 
     return ResponseEntity.ok()
         .header(HttpHeaders.CONTENT_DISPOSITION,
-            "attachment; filename=\"" + attachment.getFileName() + "\"")
+            ContentDisposition.attachment()
+                .filename(attachment.getFileName(), StandardCharsets.UTF_8)
+                .build()
+                .toString())
         .header(HttpHeaders.CONTENT_TYPE, attachment.getFileType())
         .header(HttpHeaders.CONTENT_LENGTH, String.valueOf(attachment.getFileSize()))
         .body(resource);

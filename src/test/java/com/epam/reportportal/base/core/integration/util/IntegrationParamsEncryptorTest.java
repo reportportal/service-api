@@ -219,4 +219,48 @@ class IntegrationParamsEncryptorTest {
     assertEquals(ENCRYPTED_PREFIX + "secret", result.get(sensitiveKey));
   }
 
+  @Test
+  void shouldEncryptSensitiveFieldsRegardlessOfKeyCaseAndKeepTheKeyAsSent() {
+    // given
+    Map<String, Object> params = Map.of(
+        "Password", "p1",
+        "APITOKEN", "t1",
+        "nested", Map.of("ClientSecret", "c1"),
+        "passwordHint", "not-a-secret"
+    );
+
+    // when
+    Map<String, Object> result = encryptor.encryptSensitiveFields(params);
+
+    // then
+    assertEquals(ENCRYPTED_PREFIX + "p1", result.get("Password"));
+    assertEquals(ENCRYPTED_PREFIX + "t1", result.get("APITOKEN"));
+    assertEquals(Map.of("ClientSecret", ENCRYPTED_PREFIX + "c1"), result.get("nested"));
+    assertEquals("not-a-secret", result.get("passwordHint"));
+  }
+
+  @Test
+  void canonicalKeysEncryptExactlyAsBefore() {
+    // given: a real encryptor, so the stored form of canonical keys stays decryptable as before
+    var real = new BasicTextEncryptor();
+    real.setPassword("test-secret");
+    var realEncryptor = new IntegrationParamsEncryptor(real);
+
+    // when
+    Map<String, Object> result = realEncryptor.encryptSensitiveFields(Map.of("password", "pw", "Password", "PW"));
+
+    // then
+    assertEquals("pw", real.decrypt((String) result.get("password")));
+    assertEquals("PW", real.decrypt((String) result.get("Password")));
+  }
+
+  @Test
+  void isSensitiveKeyIgnoresCaseAndNonStringKeys() {
+    assertTrue(IntegrationParamsEncryptor.isSensitiveKey("password"));
+    assertTrue(IntegrationParamsEncryptor.isSensitiveKey("oAuthAccessKey"));
+    Assertions.assertFalse(IntegrationParamsEncryptor.isSensitiveKey("passwordHint"));
+    Assertions.assertFalse(IntegrationParamsEncryptor.isSensitiveKey(null));
+    Assertions.assertFalse(IntegrationParamsEncryptor.isSensitiveKey(1));
+  }
+
 }

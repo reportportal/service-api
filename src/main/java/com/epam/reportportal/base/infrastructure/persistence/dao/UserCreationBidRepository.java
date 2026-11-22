@@ -39,6 +39,58 @@ public interface UserCreationBidRepository extends ReportPortalRepository<UserCr
   @Query(value = "DELETE FROM UserCreationBid u WHERE  u.lastModified < :date")
   int expireBidsOlderThan(@Param("date") Instant date);
 
+  /**
+   * Deletes the bids of the given type that reference the given user through {@code inviting_user_id}.
+   *
+   * @param userId the user id
+   * @param type   the bid type stored in {@code metadata.metadata.type}
+   * @return number of deleted rows
+   */
+  @Modifying
+  @Query(value = "DELETE FROM user_creation_bid bid WHERE bid.inviting_user_id = :userId AND (bid.metadata -> 'metadata'->>'type' = :type)", nativeQuery = true)
+  int deleteByInvitingUserIdAndType(@Param("userId") Long userId, @Param("type") String type);
+
+  /**
+   * Atomically increments the failed-activation counter kept in {@code metadata.metadata.activationFailures} of the
+   * bid. Native on purpose: it does not touch {@code last_modified} (which the JPA auditing listener would bump,
+   * extending the bid's lifetime) and concurrent increments serialize on the row lock. The persistence context is
+   * cleared so a stale copy of the bid is never flushed over the new value.
+   *
+   * @param uuid the bid uuid
+   * @param type the bid type stored in {@code metadata.metadata.type}
+   * @return number of updated rows
+   */
+  @Modifying(flushAutomatically = true, clearAutomatically = true)
+  @Query(value = "UPDATE user_creation_bid SET metadata = jsonb_set(metadata, '{metadata,activationFailures}',"
+      + " to_jsonb(COALESCE((metadata -> 'metadata' ->> 'activationFailures')::int, 0) + 1))"
+      + " WHERE uuid = :uuid AND (metadata -> 'metadata' ->> 'type' = :type)", nativeQuery = true)
+  int incrementActivationFailures(@Param("uuid") String uuid, @Param("type") String type);
+
+  /**
+   * Deletes the bid when its failed-activation counter reached the limit.
+   *
+   * @param uuid  the bid uuid
+   * @param type  the bid type stored in {@code metadata.metadata.type}
+   * @param limit the number of failures that invalidates the bid
+   * @return number of deleted rows
+   */
+  @Modifying(flushAutomatically = true, clearAutomatically = true)
+  @Query(value = "DELETE FROM user_creation_bid WHERE uuid = :uuid AND (metadata -> 'metadata' ->> 'type' = :type)"
+      + " AND COALESCE((metadata -> 'metadata' ->> 'activationFailures')::int, 0) >= :limit", nativeQuery = true)
+  int deleteIfActivationFailuresReached(@Param("uuid") String uuid, @Param("type") String type,
+      @Param("limit") int limit);
+
+  /**
+   * Finds the newest bid of the given type that references the given user through {@code inviting_user_id}.
+   *
+   * @param userId the user id
+   * @param type   the bid type stored in {@code metadata.metadata.type}
+   * @return the newest such bid, if any
+   */
+  @Query(value = "SELECT bid.* FROM user_creation_bid bid WHERE bid.inviting_user_id = :userId AND (bid.metadata -> 'metadata'->>'type' = :type) ORDER BY bid.last_modified DESC LIMIT 1", nativeQuery = true)
+  Optional<UserCreationBid> findLatestByInvitingUserIdAndType(@Param("userId") Long userId,
+      @Param("type") String type);
+
   Optional<UserCreationBid> findFirstByEmailOrderByLastModifiedDesc(String email);
 
   void deleteByUuid(String uuid);

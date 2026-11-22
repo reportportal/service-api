@@ -64,6 +64,21 @@ public interface TestItemRepositoryCustom extends FilterableRepository<TestItem>
    */
   Set<Statistics> accumulateStatisticsByFilter(Queryable filter);
 
+  /**
+   * Gets accumulated statistics of items that match the test item filter and belong to the
+   * launches selected by the launch filter (same launch selection as
+   * {@link #findByFilter(boolean, Queryable, Queryable, Pageable, Pageable)}). Executed as a single
+   * query. The launch filter is responsible for project scoping.
+   *
+   * @param isLatest       Flag for retrieving only latest launches
+   * @param launchFilter   {@link Queryable} with {@link FilterTarget#LAUNCH_TARGET}
+   * @param testItemFilter {@link Queryable} with {@link FilterTarget#TEST_ITEM_TARGET}
+   * @param launchPageable {@link Pageable} for {@link Launch} query (limit and sort)
+   * @return Set of accumulated statistics
+   */
+  Set<Statistics> accumulateStatisticsByFilter(boolean isLatest, Queryable launchFilter,
+      Queryable testItemFilter, Pageable launchPageable);
+
   Set<Statistics> accumulateStatisticsByFilterNotFromBaseline(Queryable targetFilter,
       Queryable baselineFilter);
 

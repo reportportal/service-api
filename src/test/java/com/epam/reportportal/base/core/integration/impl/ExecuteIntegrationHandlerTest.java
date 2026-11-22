@@ -3,6 +3,7 @@ package com.epam.reportportal.base.core.integration.impl;
 import static com.epam.reportportal.base.ReportPortalUserUtil.getRpUser;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
@@ -19,10 +20,12 @@ import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPorta
 import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationTypeRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectUserRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.organization.OrganizationUserRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.PluginTypeEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.Integration;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationType;
+import com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationTypeDetails;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.MembershipDetails;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationRole;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
@@ -34,9 +37,13 @@ import com.epam.reportportal.base.util.ProjectExtractor;
 import com.epam.reportportal.extension.CommonPluginCommand;
 import com.epam.reportportal.extension.ReportPortalExtensionPoint;
 import com.epam.reportportal.extension.builtin.BuiltinCommandResolver;
+import com.epam.reportportal.extension.command.AbstractExtensionCommand;
 import com.epam.reportportal.extension.command.ExtensionCommand;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
@@ -56,9 +63,11 @@ public class ExecuteIntegrationHandlerTest {
   private final ProjectExtractor projectExtractor = mock(ProjectExtractor.class);
   private final OrganizationUserRepository organizationUserRepository = mock(OrganizationUserRepository.class);
 
+  private final ProjectUserRepository projectUserRepository = mock(ProjectUserRepository.class);
+
   private final ExecuteIntegrationHandler executeIntegrationHandler = new ExecuteIntegrationHandlerImpl(
       integrationRepository, integrationTypeRepository, builtinCommandResolver, pluginBox, projectRepository,
-      projectExtractor, organizationUserRepository);
+      projectExtractor, organizationUserRepository, projectUserRepository);
 
   private static final String EMAIL = "email";
   private static final String TEST_CONNECTION = "testConnection";
@@ -197,6 +206,242 @@ public class ExecuteIntegrationHandlerTest {
     verify(command, never()).executeCommand(any(Integration.class), any(PluginCommandRQ.class));
   }
 
+  /** A membership held by a user: a project role or an organization role, in a personal or regular organization. */
+  private record Membership(ProjectRole projectRole, OrganizationRole orgRole, boolean personal) {
+
+    static Membership project(ProjectRole role, boolean personal) {
+      return new Membership(role, null, personal);
+    }
+
+    static Membership organization(OrganizationRole role, boolean personal) {
+      return new Membership(null, role, personal);
+    }
+  }
+
+  /**
+   * Stubs the existence queries the way the database answers them: memberships in personal organizations (and in
+   * projects of personal organizations) are ignored.
+   */
+  private void stubMemberships(ReportPortalUser user, Membership... memberships) {
+    when(projectUserRepository.existsRoleInNonPersonalOrganizationProject(eq(user.getUserId()), any()))
+        .thenAnswer(inv -> Arrays.stream(memberships).filter(Objects::nonNull).anyMatch(
+            m -> !m.personal() && m.projectRole() != null
+                && ((Collection<ProjectRole>) inv.getArgument(1)).contains(m.projectRole())));
+    when(organizationUserRepository.existsRoleInNonPersonalOrganization(eq(user.getUserId()), any()))
+        .thenAnswer(inv -> Arrays.stream(memberships).filter(Objects::nonNull).anyMatch(
+            m -> !m.personal() && m.orgRole() != null
+                && ((Collection<OrganizationRole>) inv.getArgument(1)).contains(m.orgRole())));
+  }
+
+  /** Stubs the existence queries the way the database answers them for a user with the given regular memberships. */
+  private void stubMemberships(ReportPortalUser user, ProjectRole projectRole, OrganizationRole orgRole) {
+    stubMemberships(user,
+        projectRole == null ? null : Membership.project(projectRole, false),
+        orgRole == null ? null : Membership.organization(orgRole, false));
+  }
+
+  private ReportPortalException executeGlobalWithoutContext() {
+    return assertThrows(ReportPortalException.class,
+        () -> executeIntegrationHandler.executeExtensionCommand(EMAIL, TEST_CONNECTION,
+            request(new PluginCommandContext().integrationId(INTEGRATION_ID))));
+  }
+
+  @Test
+  void globalIntegrationWithoutContextIsDeniedForUserWithoutMemberships() {
+    ReportPortalUser user = authenticate(UserRole.USER);
+    ExtensionCommand<Object> command = mockBuiltinCommand(integration(EMAIL, null, null));
+    stubMemberships(user, null, null);
+
+    assertEquals(ErrorType.ACCESS_DENIED, executeGlobalWithoutContext().getErrorType());
+    verify(command, never()).executeCommand(any(Integration.class), any(PluginCommandRQ.class));
+  }
+
+  @Test
+  void globalIntegrationWithoutContextIsDeniedForProjectViewerAndOrganizationMember() {
+    ReportPortalUser user = authenticate(UserRole.USER);
+    ExtensionCommand<Object> command = mockBuiltinCommand(integration(EMAIL, null, null));
+    stubMemberships(user, ProjectRole.VIEWER, OrganizationRole.MEMBER);
+
+    assertEquals(ErrorType.ACCESS_DENIED, executeGlobalWithoutContext().getErrorType());
+    verify(command, never()).executeCommand(any(Integration.class), any(PluginCommandRQ.class));
+  }
+
+  @Test
+  void globalIntegrationWithoutContextIsAllowedForProjectEditorInAnyProject() {
+    ReportPortalUser user = authenticate(UserRole.USER);
+    ExtensionCommand<Object> command = mockBuiltinCommand(integration(EMAIL, null, null));
+    stubMemberships(user, ProjectRole.EDITOR, null);
+
+    executeIntegrationHandler.executeExtensionCommand(EMAIL, TEST_CONNECTION,
+        request(new PluginCommandContext().integrationId(INTEGRATION_ID)));
+
+    verify(command).executeCommand(any(Integration.class), any(PluginCommandRQ.class));
+  }
+
+  private void assertDeniedFor(Membership... memberships) {
+    ReportPortalUser user = authenticate(UserRole.USER);
+    ExtensionCommand<Object> command = mockBuiltinCommand(integration(EMAIL, null, null));
+    stubMemberships(user, memberships);
+
+    assertEquals(ErrorType.ACCESS_DENIED, executeGlobalWithoutContext().getErrorType());
+    verify(command, never()).executeCommand(any(Integration.class), any(PluginCommandRQ.class));
+  }
+
+  private void assertAllowedFor(Membership... memberships) {
+    ReportPortalUser user = authenticate(UserRole.USER);
+    ExtensionCommand<Object> command = mockBuiltinCommand(integration(EMAIL, null, null));
+    stubMemberships(user, memberships);
+
+    executeIntegrationHandler.executeExtensionCommand(EMAIL, TEST_CONNECTION,
+        request(new PluginCommandContext().integrationId(INTEGRATION_ID)));
+
+    verify(command).executeCommand(any(Integration.class), any(PluginCommandRQ.class));
+  }
+
+  @Test
+  void globalIntegrationWithoutContextIsDeniedForEditorOnlyInPersonalProject() {
+    assertDeniedFor(Membership.project(ProjectRole.EDITOR, true));
+  }
+
+  @Test
+  void globalIntegrationWithoutContextIsDeniedForManagerOnlyOfPersonalOrganization() {
+    assertDeniedFor(Membership.organization(OrganizationRole.MANAGER, true));
+  }
+
+  @Test
+  void globalIntegrationWithoutContextIsAllowedForEditorInProjectOfRegularOrganization() {
+    assertAllowedFor(Membership.project(ProjectRole.EDITOR, false));
+  }
+
+  @Test
+  void globalIntegrationWithoutContextIsAllowedForManagerOfRegularOrganization() {
+    assertAllowedFor(Membership.organization(OrganizationRole.MANAGER, false));
+  }
+
+  @Test
+  void globalIntegrationWithoutContextIsAllowedForUserWithPersonalAndRegularRoles() {
+    assertAllowedFor(Membership.project(ProjectRole.EDITOR, true),
+        Membership.organization(OrganizationRole.MANAGER, true), Membership.project(ProjectRole.EDITOR, false));
+  }
+
+  @Test
+  void globalIntegrationWithProjectContextStillWorksInPersonalProject() {
+    ReportPortalUser user = authenticate(UserRole.USER);
+    ExtensionCommand<Object> command = mockBuiltinCommand(integration(EMAIL, null, null));
+    mockProject();
+    when(projectExtractor.findMembershipDetails(user, "project-key"))
+        .thenReturn(Optional.of(membership(OrganizationRole.MANAGER, ProjectRole.EDITOR)));
+
+    executeIntegrationHandler.executeExtensionCommand(EMAIL, TEST_CONNECTION,
+        request(new PluginCommandContext().integrationId(INTEGRATION_ID).projectId(PROJECT_ID)));
+
+    verify(command).executeCommand(any(Integration.class), any(PluginCommandRQ.class));
+    verifyNoInteractions(projectUserRepository);
+  }
+
+  @Test
+  void globalIntegrationWithoutContextIsAllowedForOrganizationManager() {
+    ReportPortalUser user = authenticate(UserRole.USER);
+    ExtensionCommand<Object> command = mockBuiltinCommand(integration(EMAIL, null, null));
+    stubMemberships(user, null, OrganizationRole.MANAGER);
+
+    executeIntegrationHandler.executeExtensionCommand(EMAIL, TEST_CONNECTION,
+        request(new PluginCommandContext().integrationId(INTEGRATION_ID)));
+
+    verify(command).executeCommand(any(Integration.class), any(PluginCommandRQ.class));
+  }
+
+  @Test
+  void globalIntegrationWithoutContextHonoursTheRoleTheCommandDeclares() {
+    ReportPortalUser user = authenticate(UserRole.USER);
+    AbstractExtensionCommand<Object> command = mock(AbstractExtensionCommand.class);
+    when(command.getMinProjectRole()).thenReturn(ProjectRole.VIEWER);
+    when(integrationTypeRepository.existsByPluginTypeAndName(PluginTypeEnum.BUILT_IN, EMAIL)).thenReturn(true);
+    when(builtinCommandResolver.resolve(EMAIL, TEST_CONNECTION)).thenReturn((ExtensionCommand) command);
+    when(integrationRepository.findById(INTEGRATION_ID)).thenReturn(Optional.of(integration(EMAIL, null, null)));
+    stubMemberships(user, ProjectRole.VIEWER, null);
+
+    executeIntegrationHandler.executeExtensionCommand(EMAIL, TEST_CONNECTION,
+        request(new PluginCommandContext().integrationId(INTEGRATION_ID)));
+
+    verify(command).executeCommand(any(Integration.class), any(PluginCommandRQ.class));
+  }
+
+  @Test
+  void globalIntegrationWithoutContextDeniedAndMissingIntegrationLookIdenticalToUserWithoutRole() {
+    ReportPortalUser user = authenticate(UserRole.USER);
+    mockBuiltinCommand(integration(EMAIL, null, null));
+    when(integrationRepository.findById(404L)).thenReturn(Optional.empty());
+    stubMemberships(user, ProjectRole.VIEWER, null);
+
+    ReportPortalException denied = executeGlobalWithoutContext();
+    ReportPortalException missing = assertThrows(ReportPortalException.class,
+        () -> executeIntegrationHandler.executeExtensionCommand(EMAIL, TEST_CONNECTION,
+            request(new PluginCommandContext().integrationId(404L))));
+
+    assertEquals(ErrorType.ACCESS_DENIED, denied.getErrorType());
+    assertEquals(denied.getErrorType(), missing.getErrorType());
+    assertEquals(denied.getMessage(), missing.getMessage());
+    assertTrue(denied.getMessage().contains("not found or access denied"));
+  }
+
+  @Test
+  void globalIntegrationWithoutContextIsAllowedForAdministrator() {
+    authenticate(UserRole.ADMINISTRATOR);
+    ExtensionCommand<Object> command = mockBuiltinCommand(integration(EMAIL, null, null));
+
+    executeIntegrationHandler.executeExtensionCommand(EMAIL, TEST_CONNECTION,
+        request(new PluginCommandContext().integrationId(INTEGRATION_ID)));
+
+    verify(command).executeCommand(any(Integration.class), any(PluginCommandRQ.class));
+    verifyNoInteractions(projectUserRepository, organizationUserRepository);
+  }
+
+  @Test
+  void globalIntegrationWithProjectContextWorksForProjectEditor() {
+    ReportPortalUser user = authenticate(UserRole.USER);
+    ExtensionCommand<Object> command = mockBuiltinCommand(integration(EMAIL, null, null));
+    mockProject();
+    when(projectExtractor.findMembershipDetails(user, "project-key"))
+        .thenReturn(Optional.of(membership(OrganizationRole.MEMBER, ProjectRole.EDITOR)));
+
+    executeIntegrationHandler.executeExtensionCommand(EMAIL, TEST_CONNECTION,
+        request(new PluginCommandContext().integrationId(INTEGRATION_ID).projectId(PROJECT_ID)));
+
+    verify(command).executeCommand(any(Integration.class), any(PluginCommandRQ.class));
+  }
+
+  @Test
+  void missingIntegrationAndDeniedIntegrationLookIdenticalToNonAdministrator() {
+    authenticate(UserRole.USER);
+    mockBuiltinCommand(integration(EMAIL, null, null));
+    when(integrationRepository.findById(404L)).thenReturn(Optional.empty());
+
+    ReportPortalException missing = assertThrows(ReportPortalException.class,
+        () -> executeIntegrationHandler.executeExtensionCommand(EMAIL, TEST_CONNECTION,
+            request(new PluginCommandContext().integrationId(404L))));
+    ReportPortalException denied = assertThrows(ReportPortalException.class,
+        () -> executeIntegrationHandler.executeExtensionCommand(EMAIL, TEST_CONNECTION,
+            request(new PluginCommandContext().integrationId(INTEGRATION_ID))));
+
+    assertEquals(ErrorType.ACCESS_DENIED, missing.getErrorType());
+    assertEquals(denied.getErrorType(), missing.getErrorType());
+    assertEquals(denied.getMessage(), missing.getMessage());
+  }
+
+  @Test
+  void missingIntegrationIsReportedPreciselyToAdministrator() {
+    authenticate(UserRole.ADMINISTRATOR);
+    mockBuiltinCommand(integration(EMAIL, null, null));
+    when(integrationRepository.findById(404L)).thenReturn(Optional.empty());
+
+    ReportPortalException ex = assertThrows(ReportPortalException.class,
+        () -> executeIntegrationHandler.executeExtensionCommand(EMAIL, TEST_CONNECTION,
+            request(new PluginCommandContext().integrationId(404L))));
+
+    assertEquals(ErrorType.INTEGRATION_NOT_FOUND, ex.getErrorType());
+  }
+
   @Test
   void commonExtensionCommandOnForeignProjectIsDenied() {
     ReportPortalUser user = authenticate(UserRole.USER);
@@ -216,12 +461,51 @@ public class ExecuteIntegrationHandlerTest {
     verify(command, never()).executeCommand(any(PluginCommandRQ.class));
   }
 
+
+  private void stubPluginAccessType(String pluginName, String accessType) {
+    IntegrationType type = new IntegrationType();
+    type.setName(pluginName);
+    if (accessType != null) {
+      IntegrationTypeDetails details = new IntegrationTypeDetails();
+      details.setDetails(Map.of("accessType", accessType));
+      type.setDetails(details);
+    }
+    when(integrationTypeRepository.findByName(pluginName)).thenReturn(Optional.of(type));
+  }
+
+  @Test
+  @DisplayName("Negative Test. Plugin without public access type is refused")
+  public void executePublicCommandOnNonPublicPluginTest() {
+    final String pluginName = "jira";
+    final String publicCommand = PUBLIC_COMMAND_PREFIX + "testCommand";
+    stubPluginAccessType(pluginName, null);
+
+    ReportPortalException ex = assertThrows(ReportPortalException.class, () ->
+        executeIntegrationHandler.executePublicCommand(pluginName, publicCommand, Collections.emptyMap()));
+
+    assertEquals(ErrorType.ACCESS_DENIED, ex.getErrorType());
+    verifyNoInteractions(pluginBox);
+  }
+
+  @Test
+  @DisplayName("Negative Test. Unknown plugin type is refused")
+  public void executePublicCommandOnUnknownPluginTest() {
+    when(integrationTypeRepository.findByName("ghost")).thenReturn(Optional.empty());
+
+    ReportPortalException ex = assertThrows(ReportPortalException.class, () ->
+        executeIntegrationHandler.executePublicCommand("ghost", PUBLIC_COMMAND_PREFIX + "x", Collections.emptyMap()));
+
+    assertEquals(ErrorType.ACCESS_DENIED, ex.getErrorType());
+    verifyNoInteractions(pluginBox);
+  }
+
   @Test
   @DisplayName("Positive Test. Everything is fine")
   public void executePublicCommandPositiveTest() {
     final String pluginName = "signup";
     final String publicCommand = PUBLIC_COMMAND_PREFIX + "testCommand";
     final Map<String, Object> params = Collections.emptyMap();
+    stubPluginAccessType(pluginName, "public");
 
     CommonPluginCommand<String> commonPluginCommand = mock(CommonPluginCommand.class);
     when(commonPluginCommand.executeCommand(params)).thenReturn("Ok");
@@ -257,6 +541,7 @@ public class ExecuteIntegrationHandlerTest {
     final String pluginName = "signup";
     final String publicCommand = PUBLIC_COMMAND_PREFIX + "testCommand";
     final Map<String, Object> params = Collections.emptyMap();
+    stubPluginAccessType(pluginName, "public");
 
     CommonPluginCommand<String> commonPluginCommand = mock(CommonPluginCommand.class);
     when(commonPluginCommand.executeCommand(params)).thenReturn("Ok");
@@ -279,6 +564,7 @@ public class ExecuteIntegrationHandlerTest {
     final String pluginName = "signup";
     final String publicCommand = PUBLIC_COMMAND_PREFIX + "testCommand";
     final Map<String, Object> params = Collections.emptyMap();
+    stubPluginAccessType(pluginName, "public");
 
     CommonPluginCommand<String> commonPluginCommand = mock(CommonPluginCommand.class);
     when(commonPluginCommand.executeCommand(params)).thenReturn("Ok");

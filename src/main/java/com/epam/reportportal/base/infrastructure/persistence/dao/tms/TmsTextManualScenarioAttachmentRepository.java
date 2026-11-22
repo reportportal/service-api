@@ -109,12 +109,4 @@ public interface TmsTextManualScenarioAttachmentRepository extends
       + ") ",
       nativeQuery = true)
   void deleteByTestFolderId(@Param("projectId") Long projectId, @Param("folderId") Long folderId);
-
-  /**
-   * Finds all attachment IDs that are referenced in text manual scenario attachments. * This is
-   * optimized to return only IDs instead of full entities. * * @return list of attachment IDs used
-   * in text manual scenario attachments
-   */
-  @Query("SELECT tmsa.id.attachmentId FROM TmsTextManualScenarioAttachment tmsa")
-  List<Long> findAllAttachmentIds();
 }

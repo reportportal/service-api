@@ -18,6 +18,8 @@ package com.epam.reportportal.base.infrastructure.persistence.dao;
 
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.ProjectUser;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.ProjectUserId;
+import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectRole;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -50,6 +52,15 @@ public interface ProjectUserRepository
    * @return An Optional containing the ProjectUser if found, or empty if not found
    */
   Optional<ProjectUser> findProjectUserByUserIdAndProjectId(Long userId, Long projectId);
+
+  /**
+   * Checks whether the user holds one of the given roles in at least one project.
+   *
+   * @param userId The user ID
+   * @param roles  The accepted project roles
+   * @return {@code true} if such a membership exists
+   */
+  boolean existsByUser_IdAndProjectRoleIn(Long userId, Collection<ProjectRole> roles);
 
 
   /**

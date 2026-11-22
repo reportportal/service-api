@@ -32,6 +32,7 @@ import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationType
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationType;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationTypeDetails;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectUserRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.organization.OrganizationUserRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.PluginTypeEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.Integration;
@@ -50,11 +51,15 @@ import com.epam.reportportal.extension.ReportPortalExtensionPoint;
 import com.epam.reportportal.extension.builtin.BuiltinCommandResolver;
 import com.epam.reportportal.extension.command.AbstractExtensionCommand;
 import com.epam.reportportal.extension.command.ExtensionCommand;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -87,11 +92,12 @@ public class ExecuteIntegrationHandlerImpl implements ExecuteIntegrationHandler 
   private final ProjectRepository projectRepository;
   private final ProjectExtractor projectExtractor;
   private final OrganizationUserRepository organizationUserRepository;
+  private final ProjectUserRepository projectUserRepository;
 
   public ExecuteIntegrationHandlerImpl(IntegrationRepository integrationRepository,
       IntegrationTypeRepository integrationTypeRepository, BuiltinCommandResolver builtinCommandResolver,
       PluginBox pluginBox, ProjectRepository projectRepository, ProjectExtractor projectExtractor,
-      OrganizationUserRepository organizationUserRepository) {
+      OrganizationUserRepository organizationUserRepository, ProjectUserRepository projectUserRepository) {
     this.integrationRepository = integrationRepository;
     this.integrationTypeRepository = integrationTypeRepository;
     this.builtinCommandResolver = builtinCommandResolver;
@@ -99,6 +105,7 @@ public class ExecuteIntegrationHandlerImpl implements ExecuteIntegrationHandler 
     this.projectRepository = projectRepository;
     this.projectExtractor = projectExtractor;
     this.organizationUserRepository = organizationUserRepository;
+    this.projectUserRepository = projectUserRepository;
   }
 
   @Override
@@ -310,7 +317,8 @@ public class ExecuteIntegrationHandlerImpl implements ExecuteIntegrationHandler 
    * Enforces the caller's access to the scope the command acts on, independently of the plugin's own checks. The scope
    * is derived from the integration (the project or organization it belongs to); the requested project/organization
    * must agree with it. Global integrations and common commands are scoped by the requested project/organization, if
-   * any; a global integration with no project/organization at all requires the instance administrator. The required
+   * any; a global integration with no project/organization at all requires the caller to hold the command's required
+   * role in at least one project or organization (or be an administrator). The required
    * role is the one declared by the command ({@link AbstractExtensionCommand}), otherwise
    * {@link ProjectRole#EDITOR} on a project and {@link OrganizationRole#MEMBER} on an organization. Organization
    * managers pass project checks within their organization; administrators bypass role checks.
@@ -336,10 +344,9 @@ public class ExecuteIntegrationHandlerImpl implements ExecuteIntegrationHandler 
     boolean isAdmin = user.getUserRole() == UserRole.ADMINISTRATOR;
 
     if (integration != null && isGlobal(integration) && projectId == null && orgId == null && !isAdmin) {
-      // a global integration is shared, but with no project/organization context nothing scopes the caller to it:
-      // running its commands (with its stored credentials) is an instance-level operation
-      throw new ReportPortalException(ACCESS_DENIED,
-          "A global integration can be used only within a project or organization, or by an administrator");
+      // a global integration is inherited by every project, and the contract has the caller send only its id, so
+      // nothing scopes the request. The caller must still hold the command's required role somewhere.
+      BusinessRule.expect(holdsRequiredRoleSomewhere(user, command), Boolean::booleanValue).verify(ACCESS_DENIED);
     }
 
     if (projectId != null) {
@@ -358,6 +365,30 @@ public class ExecuteIntegrationHandlerImpl implements ExecuteIntegrationHandler 
           .orElseThrow(() -> new ReportPortalException(ACCESS_DENIED));
       BusinessRule.expect(orgRole, role -> role.sameOrHigherThan(requiredRole)).verify(ACCESS_DENIED);
     }
+  }
+
+  /**
+   * Whether the user holds the role the command requires in at least one project or organization: the command's
+   * minimum project role (or organization MANAGER, which passes project checks) in any project/organization, or its
+   * explicitly declared minimum organization role in any organization.
+   */
+  private boolean holdsRequiredRoleSomewhere(ReportPortalUser user, ExtensionCommand<?> command) {
+    Long userId = user.getUserId();
+    ProjectRole requiredProjectRole = requiredProjectRole(command);
+    Set<ProjectRole> projectRoles = Arrays.stream(ProjectRole.values())
+        .filter(role -> role.sameOrHigherThan(requiredProjectRole)).collect(Collectors.toSet());
+    if (projectUserRepository.existsByUser_IdAndProjectRoleIn(userId, projectRoles)) {
+      return true;
+    }
+    Set<OrganizationRole> orgRoles = Arrays.stream(OrganizationRole.values())
+        .filter(role -> role.sameOrHigherThan(OrganizationRole.MANAGER))
+        .collect(Collectors.toCollection(HashSet::new));
+    if (command instanceof AbstractExtensionCommand<?> roleAware && roleAware.getMinOrgRole() != null) {
+      OrganizationRole minOrgRole = roleAware.getMinOrgRole();
+      Arrays.stream(OrganizationRole.values()).filter(role -> role.sameOrHigherThan(minOrgRole))
+          .forEach(orgRoles::add);
+    }
+    return organizationUserRepository.existsByUser_IdAndOrganizationRoleIn(userId, orgRoles);
   }
 
   private static boolean isGlobal(Integration integration) {

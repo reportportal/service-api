@@ -4,6 +4,8 @@ import static com.epam.reportportal.base.infrastructure.persistence.commons.quer
 
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.MembershipDetails;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectRole;
+import com.epam.reportportal.base.infrastructure.persistence.dao.organization.OrganizationUserRepository;
+import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationRole;
 import com.epam.reportportal.base.ws.BaseMvcTest;
 import java.util.Optional;
 import java.util.Set;
@@ -19,6 +21,9 @@ class ProjectUserRepositoryTest extends BaseMvcTest {
 
   @Autowired
   private ProjectUserRepository projectUserRepository;
+
+  @Autowired
+  private OrganizationUserRepository organizationUserRepository;
 
 
   @Test
@@ -63,5 +68,18 @@ class ProjectUserRepositoryTest extends BaseMvcTest {
         projectUserRepository.findUserProjectIdsInOrganization(1L, 1L);
 
     Assertions.assertEquals(1, projectIds.size());
+  }
+
+  @Test
+  void shouldAnswerRoleExistenceAcrossProjectsAndOrganizations() {
+    // user 1 is the editor of its personal project and belongs to its personal organization
+    Assertions.assertTrue(projectUserRepository.existsByUser_IdAndProjectRoleIn(1L, Set.of(ProjectRole.EDITOR)));
+    Assertions.assertFalse(projectUserRepository.existsByUser_IdAndProjectRoleIn(1L, Set.of()));
+    Assertions.assertFalse(projectUserRepository.existsByUser_IdAndProjectRoleIn(-1L, Set.of(ProjectRole.EDITOR)));
+    Assertions.assertTrue(organizationUserRepository.existsByUser_IdAndOrganizationRoleIn(1L,
+        Set.of(OrganizationRole.MEMBER, OrganizationRole.MANAGER)));
+    Assertions.assertFalse(organizationUserRepository.existsByUser_IdAndOrganizationRoleIn(1L, Set.of()));
+    Assertions.assertFalse(
+        organizationUserRepository.existsByUser_IdAndOrganizationRoleIn(-1L, Set.of(OrganizationRole.MANAGER)));
   }
 }

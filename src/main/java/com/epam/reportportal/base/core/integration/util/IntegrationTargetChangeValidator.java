@@ -45,7 +45,9 @@ public final class IntegrationTargetChangeValidator {
    * Lower-cased names of parameters that decide where credentials are sent.
    */
   static final Set<String> TARGET_PARAMS =
-      Set.of("host", "url", "port", "protocol", "btsurl", "baseurl", "serverurl", "endpoint");
+      Set.of("host", "url", "port", "protocol", "btsurl", "baseurl", "serverurl", "endpoint",
+          // OAuth providers: the client secret is sent to the token endpoint
+          "tokenuri", "authorizationuri", "userinfouri");
 
   private IntegrationTargetChangeValidator() {
   }

@@ -285,6 +285,68 @@ class CreateIntegrationHandlerImplTest {
     org.mockito.Mockito.verifyNoInteractions(integrationServiceMapping);
   }
 
+  private Integration storedLdapIntegration() {
+    IntegrationType ldapType = new IntegrationType();
+    ldapType.setId(20L);
+    ldapType.setName("ldap");
+    ldapType.setIntegrationGroup(
+        com.epam.reportportal.base.infrastructure.persistence.entity.enums.IntegrationGroupEnum.AUTH);
+    var stored = new java.util.HashMap<String, Object>();
+    stored.put("url", "ldaps://directory.corp");
+    stored.put("managerDn", "cn=manager,dc=corp");
+    stored.put("managerPassword", "encrypted-manager-password");
+    Integration integration = new Integration();
+    integration.setId(7L);
+    integration.setType(ldapType);
+    integration.setParams(new com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationParams(stored));
+    return integration;
+  }
+
+  @Test
+  @DisplayName("Global AUTH: server address change without the secret is rejected before the strategy runs")
+  void updateGlobalAuthIntegrationWithTargetChangeAndNoSecretShouldThrow() {
+    var integration = storedLdapIntegration();
+    when(integrationRepository.findGlobalById(7L)).thenReturn(Optional.of(integration));
+    var request = new IntegrationRQ();
+    request.setIntegrationParams(Map.of("url", "ldap://evil.example"));
+
+    var ex = assertThrows(ReportPortalException.class,
+        () -> handler.updateGlobalIntegration(7L, request, rpUser));
+    assertEquals(ErrorType.INCORRECT_REQUEST, ex.getErrorType());
+    org.mockito.Mockito.verifyNoInteractions(createAuthIntegrationHandler);
+  }
+
+  @Test
+  @DisplayName("Global AUTH: server address change drops a stored secret the request does not supply again")
+  void updateGlobalAuthIntegrationTargetChangeDropsStoredSecret() {
+    var integration = storedLdapIntegration();
+    when(integrationRepository.findGlobalById(7L)).thenReturn(Optional.of(integration));
+    when(createAuthIntegrationHandler.updateAuthIntegration(org.mockito.ArgumentMatchers.any(),
+        org.mockito.ArgumentMatchers.any())).thenAnswer(invocation -> invocation.getArgument(0));
+    var request = new IntegrationRQ();
+    request.setIntegrationParams(Map.of("url", "ldap://evil.example", "passwordAttribute", ""));
+
+    handler.updateGlobalIntegration(7L, request, rpUser);
+
+    assertFalse(integration.getParams().getParams().containsKey("managerPassword"));
+    assertEquals("cn=manager,dc=corp", integration.getParams().getParams().get("managerDn"));
+  }
+
+  @Test
+  @DisplayName("Global AUTH: unchanged server address keeps the stored secret")
+  void updateGlobalAuthIntegrationUnchangedTargetKeepsSecret() {
+    var integration = storedLdapIntegration();
+    when(integrationRepository.findGlobalById(7L)).thenReturn(Optional.of(integration));
+    when(createAuthIntegrationHandler.updateAuthIntegration(org.mockito.ArgumentMatchers.any(),
+        org.mockito.ArgumentMatchers.any())).thenAnswer(invocation -> invocation.getArgument(0));
+    var request = new IntegrationRQ();
+    request.setIntegrationParams(Map.of("url", "ldaps://directory.corp", "baseDn", "dc=corp"));
+
+    handler.updateGlobalIntegration(7L, request, rpUser);
+
+    assertEquals("encrypted-manager-password", integration.getParams().getParams().get("managerPassword"));
+  }
+
   @Test
   @DisplayName("Global: new host plus another secret key does not keep the stored password")
   void updateGlobalHostWithOtherSecretKeyDropsStoredPassword() {

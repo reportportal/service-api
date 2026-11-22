@@ -189,6 +189,9 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
 
     Integration updatedIntegration;
     if (IntegrationGroupEnum.AUTH == integration.getType().getIntegrationGroup()) {
+      // Authentication integrations (LDAP, Active Directory, OAuth) hold secrets too: a changed server address must
+      // not keep a stored manager password or client secret, whatever the plugin's strategy does with the params.
+      IntegrationTargetChangeValidator.validate(integration, updateRequest.getIntegrationParams());
       updatedIntegration = createAuthIntegrationHandler.updateAuthIntegration(integration, updateRequest);
     } else {
       IntegrationTargetChangeValidator.validate(integration, updateRequest.getIntegrationParams());

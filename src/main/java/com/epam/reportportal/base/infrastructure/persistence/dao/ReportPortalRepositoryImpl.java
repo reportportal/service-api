@@ -58,6 +58,11 @@ public class ReportPortalRepositoryImpl<T, ID extends Serializable> extends
   }
 
   @Override
+  public void detach(T t) {
+    entityManager.detach(t);
+  }
+
+  @Override
   public boolean exists(Filter filter) {
     return dsl.fetchExists(filter.toQuery().get());
   }

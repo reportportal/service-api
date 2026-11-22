@@ -57,6 +57,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.core.task.TaskRejectedException;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -148,12 +149,23 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
     RestorePasswordBid bid = RestorePasswordBidConverter.TO_BID.apply(rq);
     restorePasswordBidRepository.save(bid);
 
-    emailServiceFactory.getDefaultEmailService(true)
-        .sendRestorePasswordEmail("Password recovery",
-            new String[]{email},
-            baseUrl + "#login?reset=" + bid.getUuid(),
-            user.get().getLogin()
-        );
+    // Sent asynchronously and failures only logged, so neither the response time nor the response itself reveals
+    // whether the address belongs to a registered internal account.
+    var restoreLink = baseUrl + "#login?reset=" + bid.getUuid();
+    var login = user.get().getLogin();
+    var userId = user.get().getId();
+    try {
+      emailExecutorService.execute(() -> {
+        try {
+          emailServiceFactory.getDefaultEmailService(true)
+              .sendRestorePasswordEmail("Password recovery", new String[]{email}, restoreLink, login);
+        } catch (Exception e) {
+          log.warn("Unable to send password recovery e-mail for user id={}", userId, e);
+        }
+      });
+    } catch (TaskRejectedException e) {
+      log.warn("Password recovery e-mail for user id={} was not queued: {}", userId, e.getMessage());
+    }
 
     return new OperationCompletionRS(EMAIL_HAS_BEEN_SENT);
   }

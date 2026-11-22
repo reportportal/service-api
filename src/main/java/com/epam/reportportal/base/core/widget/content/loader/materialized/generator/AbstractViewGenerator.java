@@ -42,7 +42,7 @@ public abstract class AbstractViewGenerator implements ViewGenerator {
 
   public static final Logger LOGGER = LoggerFactory.getLogger(AbstractViewGenerator.class);
 
-  private static final String LAST_REFRESH = "lastRefresh";
+  public static final String LAST_REFRESH = "lastRefresh";
 
   private final WidgetRepository widgetRepository;
 

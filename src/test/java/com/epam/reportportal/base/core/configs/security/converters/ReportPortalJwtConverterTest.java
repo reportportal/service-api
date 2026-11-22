@@ -103,4 +103,22 @@ class ReportPortalJwtConverterTest {
     // Then
     assertTrue(exception.getMessage().contains("revoked"));
   }
+
+  @Test
+  @DisplayName("Should throw OAuth2AuthenticationException when the user is disabled")
+  void convertWhenUserDisabledShouldThrow() {
+    var jwt = jwt("jti-2", "user@reportportal.io");
+    UserDetails user = User.withUsername("user@reportportal.io")
+        .password("pwd")
+        .disabled(true)
+        .authorities(new SimpleGrantedAuthority("ROLE_USER"))
+        .build();
+    when(tokenBlacklistService.isRevoked("jti-2", "user@reportportal.io",
+        Instant.parse("2026-01-01T00:00:00Z"))).thenReturn(false);
+    when(userDetailsService.loadUserByUsername("user@reportportal.io")).thenReturn(user);
+
+    var exception = assertThrows(OAuth2AuthenticationException.class, () -> converter.convert(jwt));
+
+    assertTrue(exception.getMessage().contains("disabled"));
+  }
 }

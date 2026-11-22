@@ -26,6 +26,7 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.item.issue.I
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.issue.IssueType;
 import com.epam.reportportal.base.infrastructure.persistence.entity.statistics.StatisticsField;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -251,6 +252,9 @@ TestItemStatisticsServiceImpl implements TestItemStatisticsService {
 
   private StatisticsField getCachedStatisticsField(String name) {
     Long id = predefinedFieldIds.get(name);
+    if (id == null && PREDEFINED_FIELDS.contains(name)) {
+      id = Optional.ofNullable(pendingFieldIds(false)).map(pending -> pending.ids.get(name)).orElse(null);
+    }
     if (id == null) {
       return null;
     }
@@ -265,15 +269,51 @@ TestItemStatisticsServiceImpl implements TestItemStatisticsService {
     }
     String name = field.getName();
     Long id = field.getId();
-    if (TransactionSynchronizationManager.isSynchronizationActive()) {
-      TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-        @Override
-        public void afterCommit() {
-          predefinedFieldIds.put(name, id);
-        }
-      });
+    PendingFieldIds pending = pendingFieldIds(true);
+    if (pending != null) {
+      pending.ids.put(name, id);
     } else {
       predefinedFieldIds.put(name, id);
+    }
+  }
+
+  /**
+   * Returns the ids resolved by the current transaction and not yet committed, registering one synchronization per
+   * transaction on demand. Returns null outside a transaction. Looked up among the current synchronizations, so a
+   * suspended outer transaction's pending ids are not visible to a nested one.
+   */
+  private PendingFieldIds pendingFieldIds(boolean create) {
+    if (!TransactionSynchronizationManager.isSynchronizationActive()) {
+      return null;
+    }
+    for (TransactionSynchronization synchronization : TransactionSynchronizationManager.getSynchronizations()) {
+      if (synchronization instanceof PendingFieldIds pending && pending.target == predefinedFieldIds) {
+        return pending;
+      }
+    }
+    if (!create) {
+      return null;
+    }
+    PendingFieldIds pending = new PendingFieldIds(predefinedFieldIds);
+    TransactionSynchronizationManager.registerSynchronization(pending);
+    return pending;
+  }
+
+  /**
+   * Field ids resolved by one transaction, published to the cache only after it commits.
+   */
+  private static final class PendingFieldIds implements TransactionSynchronization {
+
+    private final Map<String, Long> target;
+    private final Map<String, Long> ids = new HashMap<>();
+
+    private PendingFieldIds(Map<String, Long> target) {
+      this.target = target;
+    }
+
+    @Override
+    public void afterCommit() {
+      target.putAll(ids);
     }
   }
 

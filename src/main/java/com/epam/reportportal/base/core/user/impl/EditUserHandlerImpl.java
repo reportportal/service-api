@@ -41,6 +41,7 @@ import com.epam.reportportal.base.infrastructure.rules.commons.validation.Busine
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.model.user.ChangePasswordRQ;
+import com.epam.reportportal.base.model.user.ConfirmEmailChangeRQ;
 import com.epam.reportportal.base.model.user.EditUserRQ;
 import com.epam.reportportal.base.reporting.OperationCompletionRS;
 import com.epam.reportportal.base.util.email.MailServiceFactory;
@@ -156,6 +157,17 @@ public class EditUserHandlerImpl implements EditUserHandler {
     expect(user.getUserType(), equalTo(INTERNAL)).verify(ACCESS_DENIED,
         "Unable to change photo for external user");
     userBinaryDataService.deleteUserPhoto(user);
+  }
+
+  @Override
+  public OperationCompletionRS confirmEmailChange(ConfirmEmailChangeRQ request) {
+    User user = userMutationService.confirmEmailChange(request.getUuid());
+    try {
+      userRepository.save(user);
+    } catch (Exception exp) {
+      throw new ReportPortalException("Error while User editing.", exp);
+    }
+    return new OperationCompletionRS("Email has been changed");
   }
 
   @Override

@@ -75,16 +75,49 @@ public class AttachmentStreamResponseFactory {
   /**
    * Creates a response for an input stream that was already bounded to the resolved range.
    *
+   * <p>The returned body owns the stream and closes it after writing; if the response cannot be
+   * built, the stream is closed here.</p>
+   *
    * @param binaryData attachment data
    * @param range      resolved storage range
    * @return streaming response
    */
   public ResponseEntity<StreamingResponseBody> toStreamingResponse(BinaryData binaryData,
       AttachmentStreamRange range) {
+    try {
+      return createRangeResponse(binaryData, range);
+    } catch (RuntimeException e) {
+      close(binaryData.getInputStream());
+      throw e;
+    }
+  }
+
+  /**
+   * Creates a streaming HTTP response for the requested attachment range.
+   *
+   * <p>The returned body owns the stream and closes it after writing; if the response cannot be
+   * built, the stream is closed here.</p>
+   *
+   * @param binaryData attachment data
+   * @param request    HTTP request
+   * @return streaming response
+   */
+  public ResponseEntity<StreamingResponseBody> toStreamingResponse(BinaryData binaryData,
+      HttpServletRequest request) {
+    try {
+      return createResponse(binaryData, request);
+    } catch (RuntimeException e) {
+      close(binaryData.getInputStream());
+      throw e;
+    }
+  }
+
+  private ResponseEntity<StreamingResponseBody> createRangeResponse(BinaryData binaryData,
+      AttachmentStreamRange range) {
     final var binaryStream = binaryData.getInputStream();
     if (range.type() == AttachmentStreamRange.Type.UNSATISFIABLE) {
-      close(binaryStream);
       var headers = createHeaders(binaryData);
+      close(binaryStream);
       headers.set(HttpHeaders.CONTENT_RANGE, "bytes */" + range.totalLength());
       return ResponseEntity.status(HttpStatus.REQUESTED_RANGE_NOT_SATISFIABLE).headers(headers)
           .build();
@@ -115,14 +148,7 @@ public class AttachmentStreamResponseFactory {
             : HttpStatus.OK).headers(headers).body(responseBody);
   }
 
-  /**
-   * Creates a streaming HTTP response for the requested attachment range.
-   *
-   * @param binaryData attachment data
-   * @param request    HTTP request
-   * @return streaming response
-   */
-  public ResponseEntity<StreamingResponseBody> toStreamingResponse(BinaryData binaryData,
+  private ResponseEntity<StreamingResponseBody> createResponse(BinaryData binaryData,
       HttpServletRequest request) {
     final var binaryStream = binaryData.getInputStream();
     if (binaryStream == null) {
@@ -223,7 +249,14 @@ public class AttachmentStreamResponseFactory {
         });
 
     headers.set("X-Content-Type-Options", "nosniff");
-    headers.set("Content-Security-Policy", "sandbox");
+    // A sandboxed document cannot load the browser's built-in PDF viewer, which would leave inline PDFs blank
+    if (mediaType.filter(AttachmentStreamResponseFactory::isPdf).isEmpty()) {
+      headers.set("Content-Security-Policy", "sandbox");
+    }
+  }
+
+  private static boolean isPdf(MediaType type) {
+    return "application".equals(type.getType()) && "pdf".equals(type.getSubtype());
   }
 
   private static boolean isInlineSafe(MediaType type) {
@@ -233,7 +266,7 @@ public class AttachmentStreamResponseFactory {
       return !"svg+xml".equalsIgnoreCase(subtype) && !"svg".equalsIgnoreCase(subtype);
     }
     return "video".equals(main) || "audio".equals(main)
-        || ("application".equals(main) && "pdf".equals(subtype))
+        || isPdf(type)
         || ("text".equals(main) && "plain".equals(subtype));
   }
 

@@ -20,6 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.epam.reportportal.base.core.events.domain.AssignUserEvent;
+import com.epam.reportportal.base.core.plugin.PluginStateChangedMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.amqp.core.MessageProperties;
@@ -48,6 +49,16 @@ class FallbackEventTypeMapperTest {
   @Test
   void resolvesRegisteredEventByFullName() {
     assertEquals(AssignUserEvent.class, mapper.toClass(typeId(AssignUserEvent.class.getName())));
+  }
+
+  /**
+   * The same converter serves consumers of non-event payloads (plugin broadcasts, email notifications, external
+   * attachment loads, queries), so classes of the trusted package must resolve even when they are not events.
+   */
+  @Test
+  void resolvesNonEventPayloadFromTrustedPackage() {
+    assertEquals(PluginStateChangedMessage.class,
+        mapper.toClass(typeId(PluginStateChangedMessage.class.getName())));
   }
 
   @Test

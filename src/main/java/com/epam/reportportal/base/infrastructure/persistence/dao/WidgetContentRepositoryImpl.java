@@ -1256,7 +1256,7 @@ public class WidgetContentRepositoryImpl implements WidgetContentRepository {
             STATISTICS_FIELD.NAME,
             sum(LAUNCH_STATISTICS.S_COUNTER).as(STATISTICS_COUNTER)
         )
-        .from(viewName)
+        .from(viewTable(viewName))
         .join(LAUNCH_STATISTICS)
         .on(fieldName(viewName, ID).cast(Long.class).eq(LAUNCH_STATISTICS.LAUNCH_ID))
         .join(STATISTICS_FIELD)
@@ -1266,8 +1266,7 @@ public class WidgetContentRepositoryImpl implements WidgetContentRepository {
       String[] split = parentAttribute.split(KEY_VALUE_SEPARATOR);
 
       final SelectConditionStep<Record1<Long>> subLevelLaunches = selectDistinct(
-          fieldName(viewName, ID).cast(Long.class)).from(
-              viewName)
+          fieldName(viewName, ID).cast(Long.class)).from(viewTable(viewName))
           .where(fieldName(viewName, ATTRIBUTE_KEY).cast(String.class).eq(split[0]))
           .and(fieldName(viewName, ATTRIBUTE_VALUE).cast(String.class).eq(split[1]));
       baseQuery.where(fieldName(viewName, FIRST_LEVEL_ID).cast(Long.class).in(subLevelLaunches));
@@ -1289,7 +1288,7 @@ public class WidgetContentRepositoryImpl implements WidgetContentRepository {
           attributeLaunches -> CUMULATIVE_TOOLTIP_FETCHER.accept(attributeLaunches,
               dsl.selectDistinct(fieldName(viewName, ATTRIBUTE_KEY),
                       fieldName(viewName, ATTRIBUTE_VALUE))
-                  .from(viewName)
+                  .from(viewTable(viewName))
                   .where(fieldName(viewName, ATTRIBUTE_KEY).cast(String.class)
                       .eq(subAttributeKey)
                       .and(fieldName(viewName, ID).in(
@@ -1306,7 +1305,7 @@ public class WidgetContentRepositoryImpl implements WidgetContentRepository {
 
     SelectConditionStep<Record1<Long>> firstLevelCondition = dsl.select(
             fieldName(viewName, ID).cast(Long.class))
-        .from(viewName)
+        .from(viewTable(viewName))
         .where(concat(coalesce(fieldName(viewName, ATTRIBUTE_KEY), ""),
             val(KEY_VALUE_SEPARATOR),
             fieldName(viewName, ATTRIBUTE_VALUE)
@@ -1314,7 +1313,7 @@ public class WidgetContentRepositoryImpl implements WidgetContentRepository {
 
     if (attributeLevels.length == 2) {
       return dsl.select(fieldName(viewName, ID))
-          .from(viewName)
+          .from(viewTable(viewName))
           .where(concat(coalesce(fieldName(viewName, ATTRIBUTE_KEY), ""),
               val(KEY_VALUE_SEPARATOR),
               fieldName(viewName, ATTRIBUTE_VALUE)
@@ -1493,6 +1492,15 @@ public class WidgetContentRepositoryImpl implements WidgetContentRepository {
             .and(LAUNCH_ATTRIBUTE.KEY.in(attributeKeys))
             .and(LAUNCH_ATTRIBUTE.SYSTEM.isFalse()))
         .asTable(tableAlias);
+  }
+
+  /**
+   * Materialized view as a quoted identifier, so its name is never interpreted as SQL. Matches the
+   * quoting used when the view is created ({@code name(viewName)}) and by the qualified columns
+   * built with {@code fieldName(viewName, ...)}.
+   */
+  private static Table<Record> viewTable(String viewName) {
+    return DSL.table(name(viewName));
   }
 
   @Override

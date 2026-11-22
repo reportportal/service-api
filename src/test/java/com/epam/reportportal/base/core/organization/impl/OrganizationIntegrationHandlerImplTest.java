@@ -23,6 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -30,7 +31,10 @@ import static org.mockito.Mockito.when;
 
 import com.epam.reportportal.api.model.IntegrationConnectionStatus;
 import com.epam.reportportal.base.core.events.domain.IntegrationDeletedEvent;
+import com.epam.reportportal.base.core.integration.util.BasicIntegrationServiceImpl;
+import com.epam.reportportal.base.core.integration.util.IntegrationParamsEncryptor;
 import com.epam.reportportal.base.core.integration.util.IntegrationService;
+import com.epam.reportportal.base.core.plugin.PluginBox;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationTypeRepository;
@@ -45,6 +49,8 @@ import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.model.integration.IntegrationRQ;
 import com.epam.reportportal.base.util.SecurityContextUtils;
+import com.epam.reportportal.extension.ReportPortalExtensionPoint;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -57,6 +63,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.jasypt.util.text.BasicTextEncryptor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -295,5 +302,120 @@ class OrganizationIntegrationHandlerImplTest {
     var ex = assertThrows(ReportPortalException.class,
         () -> handler.checkConnection(ORG_ID, 901L));
     assertEquals(ErrorType.INTEGRATION_NOT_FOUND, ex.getErrorType());
+  }
+
+  @Test
+  @DisplayName("Should reject AUTH group integration at organization scope")
+  void createOrganizationIntegrationWithAuthGroupShouldThrow() {
+    var ldap = new IntegrationType();
+    ldap.setId(8L);
+    ldap.setName("ldap");
+    ldap.setIntegrationGroup(com.epam.reportportal.base.infrastructure.persistence.entity.enums.IntegrationGroupEnum.AUTH);
+    when(organizationRepository.findById(ORG_ID)).thenReturn(Optional.of(new Organization()));
+    when(integrationTypeRepository.findByName("ldap")).thenReturn(Optional.of(ldap));
+
+    var request = new IntegrationRQ();
+    request.setName("ldap-1");
+
+    var ex = assertThrows(ReportPortalException.class,
+        () -> handler.createOrganizationIntegration(ORG_ID, "ldap", request));
+    assertEquals(ErrorType.INCORRECT_REQUEST, ex.getErrorType());
+  }
+
+  @Test
+  @DisplayName("Should reject url change without a new secret on organization integration update")
+  void updateOrganizationIntegrationWithTargetChangeAndNoSecretShouldThrow() {
+    var integration = new Integration();
+    integration.setId(901L);
+    integration.setType(integrationType);
+    integration.setParams(new com.epam.reportportal.base.infrastructure.persistence.entity.integration
+        .IntegrationParams(new java.util.HashMap<>(Map.of("url", "https://jira.old", "apiToken", "cipher"))));
+    mockedSecurityContextUtils.when(SecurityContextUtils::getPrincipal).thenReturn(principal);
+    when(organizationRepository.findById(ORG_ID)).thenReturn(Optional.of(new Organization()));
+    when(integrationRepository.findByIdAndOrganizationId(901L, ORG_ID)).thenReturn(Optional.of(integration));
+
+    var request = new IntegrationRQ();
+    request.setIntegrationParams(Map.of("url", "https://evil.example"));
+
+    var ex = assertThrows(ReportPortalException.class,
+        () -> handler.updateOrganizationIntegration(ORG_ID, 901L, request));
+    assertEquals(ErrorType.INCORRECT_REQUEST, ex.getErrorType());
+  }
+
+  /**
+   * Runs an organization update through a real {@link BasicIntegrationServiceImpl} whose plugin has
+   * no retrieveUpdated / testConnection command (request params are merged as sent), with a real
+   * params encryptor.
+   */
+  private Map<String, Object> updateWithRealService(BasicTextEncryptor textEncryptor,
+      Map<String, Object> storedParams, Map<String, Object> requestParams) {
+    var pluginBox = mock(PluginBox.class);
+    when(pluginBox.getInstance("jira", ReportPortalExtensionPoint.class))
+        .thenReturn(Optional.of(mock(ReportPortalExtensionPoint.class)));
+    var service = new BasicIntegrationServiceImpl(integrationRepository, pluginBox,
+        new IntegrationParamsEncryptor(textEncryptor));
+    when(integrationServiceMapping.getOrDefault(eq("jira"), any())).thenReturn(service);
+
+    var integration = new Integration();
+    integration.setId(901L);
+    integration.setType(integrationType);
+    integration.setParams(new com.epam.reportportal.base.infrastructure.persistence.entity.integration
+        .IntegrationParams(new HashMap<>(storedParams)));
+    mockedSecurityContextUtils.when(SecurityContextUtils::getPrincipal).thenReturn(principal);
+    when(organizationRepository.findById(ORG_ID)).thenReturn(Optional.of(new Organization()));
+    when(integrationRepository.findByIdAndOrganizationId(901L, ORG_ID)).thenReturn(Optional.of(integration));
+
+    var request = new IntegrationRQ();
+    request.setIntegrationParams(requestParams);
+    handler.updateOrganizationIntegration(ORG_ID, 901L, request);
+    verify(integrationRepository).save(integration);
+    return integration.getParams().getParams();
+  }
+
+  private static BasicTextEncryptor textEncryptor() {
+    var encryptor = new BasicTextEncryptor();
+    encryptor.setPassword("test-secret");
+    return encryptor;
+  }
+
+  @Test
+  @DisplayName("Organization: new url plus another secret key does not keep the stored password")
+  void updateOrganizationUrlWithOtherSecretKeyDropsStoredPassword() {
+    var enc = textEncryptor();
+    var params = updateWithRealService(enc,
+        Map.of("url", "https://jira.old", "username", "bot", "password", enc.encrypt("old-secret")),
+        Map.of("url", "https://jira.attacker.tld", "apiToken", "x"));
+    assertThat(params).doesNotContainKey("password").containsEntry("url", "https://jira.attacker.tld");
+    assertEquals("x", enc.decrypt((String) params.get("apiToken")));
+  }
+
+  @Test
+  @DisplayName("Organization: a nested stored secret does not survive a url change")
+  void updateOrganizationUrlDropsNestedStoredSecret() {
+    var enc = textEncryptor();
+    var params = updateWithRealService(enc,
+        Map.of("url", "https://jira.old", "auth", Map.of("username", "bot", "password", enc.encrypt("old"))),
+        Map.of("url", "https://jira.attacker.tld", "apiKey", "x"));
+    assertEquals(Map.of("username", "bot"), params.get("auth"));
+  }
+
+  @Test
+  @DisplayName("Organization: new url with a re-entered token stores the new token")
+  void updateOrganizationUrlWithNewTokenStoresIt() {
+    var enc = textEncryptor();
+    var params = updateWithRealService(enc,
+        Map.of("url", "https://jira.old", "apiToken", enc.encrypt("old")),
+        Map.of("url", "https://jira.new", "apiToken", "new"));
+    assertEquals("new", enc.decrypt((String) params.get("apiToken")));
+  }
+
+  @Test
+  @DisplayName("Organization: unchanged url without a secret keeps the stored token")
+  void updateOrganizationUnchangedUrlKeepsToken() {
+    var enc = textEncryptor();
+    var params = updateWithRealService(enc,
+        Map.of("url", "https://jira.old", "apiToken", enc.encrypt("old")),
+        Map.of("url", "https://jira.old", "project", "RP"));
+    assertEquals("old", enc.decrypt((String) params.get("apiToken")));
   }
 }

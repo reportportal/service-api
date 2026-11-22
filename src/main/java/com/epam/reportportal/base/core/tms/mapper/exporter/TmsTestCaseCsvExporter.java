@@ -31,22 +31,24 @@ public class TmsTestCaseCsvExporter implements TmsTestCaseExporter {
       HttpServletResponse response) {
     configureHttpResponse(response);
 
-    try (var writer = new OutputStreamWriter(response.getOutputStream(), StandardCharsets.UTF_8);
-        var csvPrinter = new CSVPrinter(writer, CSVFormat.DEFAULT.builder()
-            .setHeader(CSV_HEADERS)
-            .build())) {
+    // Not closed on failure: closing would flush and finish the response, making a truncated
+    // export look complete. The exception reaches the container, which aborts the connection.
+    var writer = new OutputStreamWriter(response.getOutputStream(), StandardCharsets.UTF_8);
+    var csvPrinter = new CSVPrinter(writer, CSVFormat.DEFAULT.builder()
+        .setHeader(CSV_HEADERS)
+        .build());
 
-      for (var testCase : (Iterable<TmsTestCaseRS>) testCases::iterator) {
-        csvPrinter.printRecord(
-            testCase.getId(),
-            testCase.getName(),
-            testCase.getDescription(),
-            testCase.getTestFolder() != null ? testCase.getTestFolder().getId() : "",
-            testCase.getPriority()
-        );
-      }
-      csvPrinter.flush();
+    for (var testCase : (Iterable<TmsTestCaseRS>) testCases::iterator) {
+      csvPrinter.printRecord(
+          testCase.getId(),
+          CsvCellSanitizer.sanitize(testCase.getName()),
+          CsvCellSanitizer.sanitize(testCase.getDescription()),
+          testCase.getTestFolder() != null ? testCase.getTestFolder().getId() : "",
+          testCase.getPriority()
+      );
     }
+    csvPrinter.flush();
+    csvPrinter.close();
   }
 
   private void configureHttpResponse(HttpServletResponse response) {

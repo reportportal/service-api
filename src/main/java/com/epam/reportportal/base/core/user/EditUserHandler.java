@@ -18,6 +18,7 @@ package com.epam.reportportal.base.core.user;
 
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.model.user.ChangePasswordRQ;
+import com.epam.reportportal.base.model.user.ConfirmEmailChangeRQ;
 import com.epam.reportportal.base.model.user.EditUserRQ;
 import com.epam.reportportal.base.reporting.OperationCompletionRS;
 import org.springframework.web.multipart.MultipartFile;
@@ -71,6 +72,14 @@ public interface EditUserHandler {
    * @param userId id of user
    */
   void deletePhoto(Long userId);
+
+  /**
+   * Confirms a self-service email change requested through {@link #editUser} or the users PATCH endpoint.
+   *
+   * @param request request carrying the token from the confirmation link
+   * @return Completion result
+   */
+  OperationCompletionRS confirmEmailChange(ConfirmEmailChangeRQ request);
 
   /**
    * Change password

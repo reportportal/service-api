@@ -125,6 +125,70 @@ class TmsFolderSyncServiceImplTest {
     verify(tmsSyncJobRepository, never()).findById(any());
   }
 
+  @Test
+  void syncFolders_ExistingFolderMovedToOtherParent_ClosesIndexGapInOldParent() {
+    var existing = folder(10L, "R", 7L);
+    existing.setIndex(2);
+    var remote = RemoteFolder.builder().id("R").name("R").parentId("S").build();
+    when(tmsTestFolderRepository.findByProjectIdAndExternalIdIn(eq(PROJECT_ID), any()))
+        .thenReturn(List.of(existing));
+    when(tmsTestFolderRepository.findFolderIdAndParentIdByProjectId(PROJECT_ID))
+        .thenReturn(List.of(new Object[]{10L, 7L}, new Object[]{30L, null}));
+    when(tmsTestFolderRepository.findMaxIndex(PROJECT_ID, 30L)).thenReturn(4);
+
+    sut.syncFolders(job, List.of(remote), 30L);
+
+    verify(tmsTestFolderRepository).shiftIndexes(PROJECT_ID, 7L, 3, -1);
+  }
+
+  @Test
+  void syncFolders_TwoMovesOutOfSameParentAndSiblingRenamed_KeepsIndexesDenseAndUnique() {
+    // Parent 7 holds A(0), B(1), C(2), D(3); A and C move out, B is renamed remotely
+    var a = indexed(10L, "A", 7L, 0);
+    var b = indexed(11L, "B", 7L, 1);
+    var c = indexed(12L, "C", 7L, 2);
+    var d = indexed(13L, "D", 7L, 3);
+    when(tmsTestFolderRepository.findByProjectIdAndExternalIdIn(eq(PROJECT_ID), any()))
+        .thenReturn(List.of(a, b, c, d));
+    when(tmsTestFolderRepository.findFolderIdAndParentIdByProjectId(PROJECT_ID))
+        .thenReturn(List.of(new Object[]{10L, 7L}, new Object[]{11L, 7L},
+            new Object[]{12L, 7L}, new Object[]{13L, 7L}, new Object[]{30L, null}));
+    when(tmsTestFolderRepository.findMaxIndex(PROJECT_ID, 30L)).thenReturn(null);
+    when(tmsTestFolderMapper.convertFromRemote(any(), any(), any(), any(), any()))
+        .thenAnswer(invocation -> {
+          TmsTestFolder folder = invocation.getArgument(1);
+          Long parentId = invocation.getArgument(3);
+          Integer index = invocation.getArgument(4);
+          folder.setName(((RemoteFolder) invocation.getArgument(0)).getName());
+          folder.setParentTestFolder(parentId == null ? null : folder(parentId, null, null));
+          if (index != null) {
+            folder.setIndex(index);
+          }
+          return folder;
+        });
+    var remotes = List.of(
+        RemoteFolder.builder().id("A").name("A").parentId("S").build(),
+        RemoteFolder.builder().id("B").name("B renamed").parentId("X").build(),
+        RemoteFolder.builder().id("C").name("C").parentId("S").build(),
+        RemoteFolder.builder().id("D").name("D").parentId("X").build());
+
+    sut.syncFolders(job, remotes, 30L);
+
+    // In-memory indexes (flushed by dirty checking) match what the bulk shifts did in the DB
+    assertEquals(0, b.getIndex());
+    assertEquals(1, d.getIndex());
+    assertEquals(0, a.getIndex());
+    assertEquals(1, c.getIndex());
+    verify(tmsTestFolderRepository).shiftIndexes(PROJECT_ID, 7L, 1, -1);
+    verify(tmsTestFolderRepository).shiftIndexes(PROJECT_ID, 7L, 2, -1);
+  }
+
+  private TmsTestFolder indexed(Long id, String externalId, Long parentId, int index) {
+    var folder = folder(id, externalId, parentId);
+    folder.setIndex(index);
+    return folder;
+  }
+
   private TmsTestFolder folder(Long id, String externalId, Long parentId) {
     var folder = new TmsTestFolder();
     folder.setId(id);

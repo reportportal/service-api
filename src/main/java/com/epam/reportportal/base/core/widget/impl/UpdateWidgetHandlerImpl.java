@@ -17,7 +17,7 @@
 package com.epam.reportportal.base.core.widget.impl;
 
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_ID;
-import static com.epam.reportportal.base.util.OwnedEntityUtils.validateOwnedEntityLocked;
+import static com.epam.reportportal.base.util.OwnedEntityUtils.validateWidgetLocked;
 import static com.epam.reportportal.base.ws.converter.converters.WidgetConverter.TO_ACTIVITY_RESOURCE;
 
 import com.epam.reportportal.base.core.events.domain.WidgetUpdatedEvent;
@@ -85,7 +85,7 @@ public class UpdateWidgetHandlerImpl implements UpdateWidgetHandler {
             ));
 
     if (!isEligibleForLockBypass(widget, updateRQ)) {
-      validateOwnedEntityLocked(widget, membershipDetails, user);
+      validateWidgetLocked(widget, membershipDetails, user);
     }
 
     if (!widget.getName().equals(updateRQ.getName())) {
@@ -138,7 +138,16 @@ public class UpdateWidgetHandlerImpl implements UpdateWidgetHandler {
 
   private boolean isEligibleForLockBypass(Widget widget, WidgetRQ request) {
     return isMetadataUnchanged(widget, request)
-        && isContentUnchanged(widget, request.getContentParameters());
+        && isContentUnchanged(widget, request.getContentParameters())
+        && areFiltersUnchanged(widget, request.getFilterIds());
+  }
+
+  private boolean areFiltersUnchanged(Widget widget, List<Long> incomingIds) {
+    Set<Long> existing = Optional.ofNullable(widget.getFilters()).orElse(Set.of()).stream()
+        .map(UserFilter::getId)
+        .collect(Collectors.toSet());
+    Set<Long> incoming = incomingIds == null ? Set.of() : Set.copyOf(incomingIds);
+    return existing.equals(incoming);
   }
 
   private boolean isMetadataUnchanged(Widget widget, WidgetRQ request) {

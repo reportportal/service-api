@@ -37,7 +37,7 @@ public class ReportPortalJwtConverter extends AbstractJwtConverter {
   @Override
   protected AbstractAuthenticationToken doConvert(Jwt jwt) {
     var username = jwt.getSubject();
-    var principal = userDetailsService.loadUserByUsername(username);
+    var principal = requireEnabled(userDetailsService.loadUserByUsername(username));
     var authorities = extractAuthorities(jwt);
     return new RpJwtAuthenticationToken(jwt, principal, authorities);
   }

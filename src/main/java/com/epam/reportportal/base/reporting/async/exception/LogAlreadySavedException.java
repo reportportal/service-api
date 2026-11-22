@@ -18,7 +18,8 @@ package com.epam.reportportal.base.reporting.async.exception;
 
 /**
  * A LOG message failed after its log row was committed. Handling the message again would insert the log a second time
- * ({@code log.uuid} is not unique), so the failure is never retried.
+ * ({@code log.uuid} is not unique), so the failure is never retried. For the same reason a message parked with this
+ * exception must not be replayed from the parking lot as it is.
  */
 public class LogAlreadySavedException extends RuntimeException {
 

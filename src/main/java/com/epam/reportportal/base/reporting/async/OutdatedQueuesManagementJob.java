@@ -47,6 +47,10 @@ import org.springframework.stereotype.Component;
  * just declared them but has not attached its consumers yet, or of an instance that is reconnecting
  * after a network glitch.
  *
+ * <p>A queue that still holds ready messages stays unbound while they are republished; an owner that
+ * reconnects in that window gets new messages again once the next run fails to delete the queue and
+ * binds it back.
+ *
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 @Slf4j

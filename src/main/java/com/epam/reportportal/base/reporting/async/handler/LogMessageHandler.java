@@ -127,10 +127,11 @@ public class LogMessageHandler implements ReportingMessageHandler {
         .addLevel(logTypeResolver.resolveLogLevelFromName(projectId, request.getLevel()))
         .get();
     Log log = LOG_FULL_TO_LOG.apply(logFull);
+    // resolved before the save, so that its failures are still retried
+    Launch effectiveLaunch = testItemService.getEffectiveLaunch(item);
     logRepository.save(log);
     logFull.setId(log.getId());
     afterLogSaved(logFull, () -> {
-      Launch effectiveLaunch = testItemService.getEffectiveLaunch(item);
       logService.saveLogMessage(logFull, effectiveLaunch.getId());
 
       if (request.getFile() != null) {

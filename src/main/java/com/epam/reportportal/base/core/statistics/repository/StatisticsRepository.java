@@ -207,6 +207,7 @@ public interface StatisticsRepository extends ReportPortalRepository<Statistics,
       AND    ti.has_children = false
       AND    ti.has_stats = true
       AND    tir.status = 'INTERRUPTED'
+      -- execution counters, see EXECUTIONS_PREFIX in TestItemStatisticsServiceImpl
       AND    NOT EXISTS (SELECT 1
                          FROM   statistics s
                          JOIN   statistics_field sf ON sf.sf_id = s.statistics_field_id

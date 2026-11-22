@@ -318,7 +318,8 @@ public class ExecuteIntegrationHandlerImpl implements ExecuteIntegrationHandler 
    * is derived from the integration (the project or organization it belongs to); the requested project/organization
    * must agree with it. Global integrations and common commands are scoped by the requested project/organization, if
    * any; a global integration with no project/organization at all requires the caller to hold the command's required
-   * role in at least one project or organization (or be an administrator). The required
+   * role in at least one project or organization (or be an administrator), personal organizations and their projects
+   * not counting. The required
    * role is the one declared by the command ({@link AbstractExtensionCommand}), otherwise
    * {@link ProjectRole#EDITOR} on a project and {@link OrganizationRole#MEMBER} on an organization. Organization
    * managers pass project checks within their organization; administrators bypass role checks.
@@ -370,14 +371,15 @@ public class ExecuteIntegrationHandlerImpl implements ExecuteIntegrationHandler 
   /**
    * Whether the user holds the role the command requires in at least one project or organization: the command's
    * minimum project role (or organization MANAGER, which passes project checks) in any project/organization, or its
-   * explicitly declared minimum organization role in any organization.
+   * explicitly declared minimum organization role in any organization. Personal organizations and the projects inside
+   * them are ignored, so the user's own personal workspace never satisfies the rule.
    */
   private boolean holdsRequiredRoleSomewhere(ReportPortalUser user, ExtensionCommand<?> command) {
     Long userId = user.getUserId();
     ProjectRole requiredProjectRole = requiredProjectRole(command);
     Set<ProjectRole> projectRoles = Arrays.stream(ProjectRole.values())
         .filter(role -> role.sameOrHigherThan(requiredProjectRole)).collect(Collectors.toSet());
-    if (projectUserRepository.existsByUser_IdAndProjectRoleIn(userId, projectRoles)) {
+    if (projectUserRepository.existsRoleInNonPersonalOrganizationProject(userId, projectRoles)) {
       return true;
     }
     Set<OrganizationRole> orgRoles = Arrays.stream(OrganizationRole.values())
@@ -388,7 +390,7 @@ public class ExecuteIntegrationHandlerImpl implements ExecuteIntegrationHandler 
       Arrays.stream(OrganizationRole.values()).filter(role -> role.sameOrHigherThan(minOrgRole))
           .forEach(orgRoles::add);
     }
-    return organizationUserRepository.existsByUser_IdAndOrganizationRoleIn(userId, orgRoles);
+    return organizationUserRepository.existsRoleInNonPersonalOrganization(userId, orgRoles);
   }
 
   private static boolean isGlobal(Integration integration) {

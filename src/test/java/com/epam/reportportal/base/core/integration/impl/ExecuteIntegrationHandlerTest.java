@@ -39,9 +39,11 @@ import com.epam.reportportal.extension.ReportPortalExtensionPoint;
 import com.epam.reportportal.extension.builtin.BuiltinCommandResolver;
 import com.epam.reportportal.extension.command.AbstractExtensionCommand;
 import com.epam.reportportal.extension.command.ExtensionCommand;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
@@ -204,12 +206,38 @@ public class ExecuteIntegrationHandlerTest {
     verify(command, never()).executeCommand(any(Integration.class), any(PluginCommandRQ.class));
   }
 
-  /** Stubs the existence queries the way the database answers them for a user with the given memberships. */
+  /** A membership held by a user: a project role or an organization role, in a personal or regular organization. */
+  private record Membership(ProjectRole projectRole, OrganizationRole orgRole, boolean personal) {
+
+    static Membership project(ProjectRole role, boolean personal) {
+      return new Membership(role, null, personal);
+    }
+
+    static Membership organization(OrganizationRole role, boolean personal) {
+      return new Membership(null, role, personal);
+    }
+  }
+
+  /**
+   * Stubs the existence queries the way the database answers them: memberships in personal organizations (and in
+   * projects of personal organizations) are ignored.
+   */
+  private void stubMemberships(ReportPortalUser user, Membership... memberships) {
+    when(projectUserRepository.existsRoleInNonPersonalOrganizationProject(eq(user.getUserId()), any()))
+        .thenAnswer(inv -> Arrays.stream(memberships).filter(Objects::nonNull).anyMatch(
+            m -> !m.personal() && m.projectRole() != null
+                && ((Collection<ProjectRole>) inv.getArgument(1)).contains(m.projectRole())));
+    when(organizationUserRepository.existsRoleInNonPersonalOrganization(eq(user.getUserId()), any()))
+        .thenAnswer(inv -> Arrays.stream(memberships).filter(Objects::nonNull).anyMatch(
+            m -> !m.personal() && m.orgRole() != null
+                && ((Collection<OrganizationRole>) inv.getArgument(1)).contains(m.orgRole())));
+  }
+
+  /** Stubs the existence queries the way the database answers them for a user with the given regular memberships. */
   private void stubMemberships(ReportPortalUser user, ProjectRole projectRole, OrganizationRole orgRole) {
-    when(projectUserRepository.existsByUser_IdAndProjectRoleIn(eq(user.getUserId()), any()))
-        .thenAnswer(inv -> projectRole != null && ((Collection<ProjectRole>) inv.getArgument(1)).contains(projectRole));
-    when(organizationUserRepository.existsByUser_IdAndOrganizationRoleIn(eq(user.getUserId()), any()))
-        .thenAnswer(inv -> orgRole != null && ((Collection<OrganizationRole>) inv.getArgument(1)).contains(orgRole));
+    stubMemberships(user,
+        projectRole == null ? null : Membership.project(projectRole, false),
+        orgRole == null ? null : Membership.organization(orgRole, false));
   }
 
   private ReportPortalException executeGlobalWithoutContext() {
@@ -248,6 +276,67 @@ public class ExecuteIntegrationHandlerTest {
         request(new PluginCommandContext().integrationId(INTEGRATION_ID)));
 
     verify(command).executeCommand(any(Integration.class), any(PluginCommandRQ.class));
+  }
+
+  private void assertDeniedFor(Membership... memberships) {
+    ReportPortalUser user = authenticate(UserRole.USER);
+    ExtensionCommand<Object> command = mockBuiltinCommand(integration(EMAIL, null, null));
+    stubMemberships(user, memberships);
+
+    assertEquals(ErrorType.ACCESS_DENIED, executeGlobalWithoutContext().getErrorType());
+    verify(command, never()).executeCommand(any(Integration.class), any(PluginCommandRQ.class));
+  }
+
+  private void assertAllowedFor(Membership... memberships) {
+    ReportPortalUser user = authenticate(UserRole.USER);
+    ExtensionCommand<Object> command = mockBuiltinCommand(integration(EMAIL, null, null));
+    stubMemberships(user, memberships);
+
+    executeIntegrationHandler.executeExtensionCommand(EMAIL, TEST_CONNECTION,
+        request(new PluginCommandContext().integrationId(INTEGRATION_ID)));
+
+    verify(command).executeCommand(any(Integration.class), any(PluginCommandRQ.class));
+  }
+
+  @Test
+  void globalIntegrationWithoutContextIsDeniedForEditorOnlyInPersonalProject() {
+    assertDeniedFor(Membership.project(ProjectRole.EDITOR, true));
+  }
+
+  @Test
+  void globalIntegrationWithoutContextIsDeniedForManagerOnlyOfPersonalOrganization() {
+    assertDeniedFor(Membership.organization(OrganizationRole.MANAGER, true));
+  }
+
+  @Test
+  void globalIntegrationWithoutContextIsAllowedForEditorInProjectOfRegularOrganization() {
+    assertAllowedFor(Membership.project(ProjectRole.EDITOR, false));
+  }
+
+  @Test
+  void globalIntegrationWithoutContextIsAllowedForManagerOfRegularOrganization() {
+    assertAllowedFor(Membership.organization(OrganizationRole.MANAGER, false));
+  }
+
+  @Test
+  void globalIntegrationWithoutContextIsAllowedForUserWithPersonalAndRegularRoles() {
+    assertAllowedFor(Membership.project(ProjectRole.EDITOR, true),
+        Membership.organization(OrganizationRole.MANAGER, true), Membership.project(ProjectRole.EDITOR, false));
+  }
+
+  @Test
+  void globalIntegrationWithProjectContextStillWorksInPersonalProject() {
+    ReportPortalUser user = authenticate(UserRole.USER);
+    ExtensionCommand<Object> command = mockBuiltinCommand(integration(EMAIL, null, null));
+    mockProject();
+    when(projectExtractor.findMembershipDetails(user, "project-key"))
+        .thenReturn(Optional.of(membership(OrganizationRole.MANAGER, ProjectRole.EDITOR)));
+
+    executeIntegrationHandler.executeExtensionCommand(EMAIL, TEST_CONNECTION,
+        request(new PluginCommandContext().integrationId(INTEGRATION_ID).projectId(PROJECT_ID)));
+
+    verify(command).executeCommand(any(Integration.class), any(PluginCommandRQ.class));
+    verifyNoInteractions(projectUserRepository);
   }
 
   @Test

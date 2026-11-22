@@ -54,13 +54,22 @@ public interface ProjectUserRepository
   Optional<ProjectUser> findProjectUserByUserIdAndProjectId(Long userId, Long projectId);
 
   /**
-   * Checks whether the user holds one of the given roles in at least one project.
+   * Checks whether the user holds one of the given roles in at least one project of a non-personal organization.
+   * Personal organizations (and the projects inside them) are ignored.
    *
    * @param userId The user ID
    * @param roles  The accepted project roles
    * @return {@code true} if such a membership exists
    */
-  boolean existsByUser_IdAndProjectRoleIn(Long userId, Collection<ProjectRole> roles);
+  @Query("""
+      SELECT COUNT(pu) > 0 FROM ProjectUser pu
+      JOIN Project p ON p.id = pu.id.projectId
+      JOIN Organization o ON o.id = p.organizationId
+      WHERE pu.id.userId = :userId AND pu.projectRole IN :roles
+      AND o.organizationType <> com.epam.reportportal.base.infrastructure.persistence.entity.enums.OrganizationType.PERSONAL
+      """)
+  boolean existsRoleInNonPersonalOrganizationProject(@Param("userId") Long userId,
+      @Param("roles") Collection<ProjectRole> roles);
 
 
   /**

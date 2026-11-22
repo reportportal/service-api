@@ -142,6 +142,7 @@ import org.springframework.stereotype.Repository;
 @RequiredArgsConstructor
 public class TestItemRepositoryCustomImpl implements TestItemRepositoryCustom {
 
+  private static final int REGEX_QUERY_TIMEOUT_SEC = 10;
   private static final String OUTER_ITEM_TABLE = "outer_item_table";
   private static final String CHILD_ITEM_TABLE = "child";
   private static final String BASELINE_TABLE = "baseline";
@@ -151,23 +152,28 @@ public class TestItemRepositoryCustomImpl implements TestItemRepositoryCustom {
 
   @Override
   public Set<Statistics> accumulateStatisticsByFilter(Queryable filter) {
-    return dsl.fetch(with(FILTERED_QUERY)
-        .as(QueryBuilder.newBuilder(filter, QueryUtils.collectJoinFields(filter)).build())
-        .select(DSL.sum(STATISTICS.S_COUNTER).as(ACCUMULATED_STATISTICS), STATISTICS_FIELD.NAME)
-        .from(STATISTICS)
-        .join(DSL.table(name(FILTERED_QUERY)))
-        .on(STATISTICS.ITEM_ID.eq(field(name(FILTERED_QUERY, FILTERED_ID), Long.class)))
-        .join(STATISTICS_FIELD)
-        .on(STATISTICS.STATISTICS_FIELD_ID.eq(STATISTICS_FIELD.SF_ID))
-        .groupBy(STATISTICS_FIELD.NAME)
-        .getQuery()).intoSet(r -> {
-      Statistics statistics = new Statistics();
-      StatisticsField statisticsField = new StatisticsField();
-      statisticsField.setName(r.get(STATISTICS_FIELD.NAME));
-      statistics.setStatisticsField(statisticsField);
-      statistics.setCounter(ofNullable(r.get(ACCUMULATED_STATISTICS, Integer.class)).orElse(0));
-      return statistics;
-    });
+    return accumulateStatistics(
+        QueryBuilder.newBuilder(filter, QueryUtils.collectJoinFields(filter)).build());
+  }
+
+  @Override
+  public Set<Statistics> accumulateStatisticsByFilter(boolean isLatest, Queryable launchFilter,
+      Queryable testItemFilter, Pageable launchPageable) {
+    Table<? extends Record> launchesTable = QueryUtils.createQueryBuilderWithLatestLaunchesOption(
+        launchFilter,
+        launchPageable.getSort(),
+        isLatest
+    ).with(launchPageable).build().asTable(LAUNCHES);
+
+    SelectQuery<? extends Record> itemsQuery = QueryBuilder.newBuilder(testItemFilter,
+            QueryUtils.collectJoinFields(testItemFilter))
+        .addJointToStart(launchesTable,
+            JoinType.JOIN,
+            TEST_ITEM.LAUNCH_ID.eq(fieldName(launchesTable.getName(), ID).cast(Long.class))
+        )
+        .build();
+
+    return accumulateStatistics(itemsQuery);
   }
 
   @Override
@@ -183,8 +189,12 @@ public class TestItemRepositoryCustomImpl implements TestItemRepositoryCustom {
         getQueryWithBaseline(targetBuilder,
             baselineBuilder).build();
 
+    return accumulateStatistics(contentQuery);
+  }
+
+  private Set<Statistics> accumulateStatistics(SelectQuery<? extends Record> itemsQuery) {
     return dsl.fetch(with(FILTERED_QUERY)
-        .as(contentQuery)
+        .as(itemsQuery)
         .select(DSL.sum(STATISTICS.S_COUNTER).as(ACCUMULATED_STATISTICS), STATISTICS_FIELD.NAME)
         .from(STATISTICS)
         .join(DSL.table(name(FILTERED_QUERY)))
@@ -1021,6 +1031,7 @@ public class TestItemRepositoryCustomImpl implements TestItemRepositoryCustom {
         .and(LOG.LOG_LEVEL.greaterOrEqual(logLevel))
         .and(LOG.LOG_LEVEL.lessOrEqual(LogLevel.UNKNOWN_INT))
         .and(LOG.LOG_MESSAGE.likeRegex(pattern))
+        .queryTimeout(REGEX_QUERY_TIMEOUT_SEC)
         .fetchInto(Long.class);
   }
 
@@ -1097,6 +1108,7 @@ public class TestItemRepositoryCustomImpl implements TestItemRepositoryCustom {
         .and(LOG.LOG_LEVEL.lessOrEqual(LogLevel.UNKNOWN_INT))
         .and(LOG.LOG_MESSAGE.likeRegex(pattern))
         .groupBy(TEST_ITEM.ITEM_ID)
+        .queryTimeout(REGEX_QUERY_TIMEOUT_SEC)
         .fetchInto(Long.class);
   }
 

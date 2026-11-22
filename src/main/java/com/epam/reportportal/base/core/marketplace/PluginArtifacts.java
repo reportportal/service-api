@@ -40,6 +40,14 @@ public final class PluginArtifacts {
   private static final Pattern SAFE_IDENTIFIER =
       Pattern.compile("[A-Za-z0-9][A-Za-z0-9._-]{0,126}");
 
+  /**
+   * A version that becomes part of a file name and a registry URL path segment. Same as an identifier plus '+', which
+   * semver uses for build metadata ({@code 1.0.0+build.5}); '+' is legal in a file name and in a URL path segment and
+   * carries no separator, so it is safe.
+   */
+  private static final Pattern SAFE_VERSION =
+      Pattern.compile("[A-Za-z0-9][A-Za-z0-9._+-]{0,126}");
+
   private PluginArtifacts() {
     // utility
   }
@@ -52,6 +60,17 @@ public final class PluginArtifacts {
    */
   public static boolean isSafeIdentifier(String value) {
     return value != null && SAFE_IDENTIFIER.matcher(value).matches();
+  }
+
+  /**
+   * Whether the value is safe to embed in a file name as a version; unlike an identifier it may carry semver build
+   * metadata ('+').
+   *
+   * @param value a version, may be null
+   * @return true when it matches the permitted grammar
+   */
+  public static boolean isSafeVersion(String value) {
+    return value != null && SAFE_VERSION.matcher(value).matches();
   }
 
   /**

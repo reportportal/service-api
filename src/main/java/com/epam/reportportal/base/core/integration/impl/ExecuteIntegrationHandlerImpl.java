@@ -207,8 +207,8 @@ public class ExecuteIntegrationHandlerImpl implements ExecuteIntegrationHandler 
 
     if (isBuiltinExtension(pluginName)) {
       var builtinCommand = builtinCommandResolver.resolve(pluginName, command);
-      Integration integration = resolveIntegration(pluginName, pluginCommandRq.getContext());
-      authorizeCommand(builtinCommand, integration, requestedProjectId, requestedOrgId);
+      Integration integration = resolveAndAuthorize(builtinCommand, pluginName, pluginCommandRq.getContext(),
+          requestedProjectId, requestedOrgId);
       return builtinCommand.executeCommand(integration, pluginCommandRq);
     }
 
@@ -225,13 +225,38 @@ public class ExecuteIntegrationHandlerImpl implements ExecuteIntegrationHandler 
 
     if (isIntegrationCommand(command, pluginInstance)) {
       var integrationCommand = pluginInstance.getIntegrationExtensionCommand(command);
-      Integration integration = resolveIntegration(pluginName, pluginCommandRq.getContext());
-      authorizeCommand(integrationCommand, integration, requestedProjectId, requestedOrgId);
+      Integration integration = resolveAndAuthorize(integrationCommand, pluginName, pluginCommandRq.getContext(),
+          requestedProjectId, requestedOrgId);
       return integrationCommand.executeCommand(integration, pluginCommandRq);
     }
     throw new ReportPortalException(BAD_REQUEST_ERROR,
         formattedSupplier("Command '{}' is not found in plugin {}.", command, pluginName).get()
     );
+  }
+
+  /**
+   * Resolves the integration and checks the caller's access to it. To a caller who is not an administrator "no such
+   * integration" and "no access to it" are reported identically (ACCESS_DENIED with one message), so that command
+   * calls cannot be used to probe which integration ids, or which projects' integrations, exist. Administrators see
+   * the precise error.
+   */
+  private Integration resolveAndAuthorize(ExtensionCommand<?> command, String pluginName,
+      PluginCommandContext context, Long requestedProjectId, Long requestedOrgId) {
+    try {
+      Integration integration = resolveIntegration(pluginName, context);
+      authorizeCommand(command, integration, requestedProjectId, requestedOrgId);
+      return integration;
+    } catch (ReportPortalException e) {
+      if ((e.getErrorType() == INTEGRATION_NOT_FOUND || e.getErrorType() == ACCESS_DENIED) && !isCallerAdmin()) {
+        throw new ReportPortalException(ACCESS_DENIED, "Integration not found or access denied");
+      }
+      throw e;
+    }
+  }
+
+  private static boolean isCallerAdmin() {
+    ReportPortalUser user = SecurityContextUtils.getPrincipal();
+    return user != null && user.getUserRole() == UserRole.ADMINISTRATOR;
   }
 
   private static boolean isIntegrationCommand(String command, ReportPortalExtensionPoint pluginInstance) {
@@ -285,7 +310,8 @@ public class ExecuteIntegrationHandlerImpl implements ExecuteIntegrationHandler 
    * Enforces the caller's access to the scope the command acts on, independently of the plugin's own checks. The scope
    * is derived from the integration (the project or organization it belongs to); the requested project/organization
    * must agree with it. Global integrations and common commands are scoped by the requested project/organization, if
-   * any. The required role is the one declared by the command ({@link AbstractExtensionCommand}), otherwise
+   * any; a global integration with no project/organization at all requires the instance administrator. The required
+   * role is the one declared by the command ({@link AbstractExtensionCommand}), otherwise
    * {@link ProjectRole#EDITOR} on a project and {@link OrganizationRole#MEMBER} on an organization. Organization
    * managers pass project checks within their organization; administrators bypass role checks.
    */
@@ -309,6 +335,13 @@ public class ExecuteIntegrationHandlerImpl implements ExecuteIntegrationHandler 
     BusinessRule.expect(user, Objects::nonNull).verify(ACCESS_DENIED);
     boolean isAdmin = user.getUserRole() == UserRole.ADMINISTRATOR;
 
+    if (integration != null && isGlobal(integration) && projectId == null && orgId == null && !isAdmin) {
+      // a global integration is shared, but with no project/organization context nothing scopes the caller to it:
+      // running its commands (with its stored credentials) is an instance-level operation
+      throw new ReportPortalException(ACCESS_DENIED,
+          "A global integration can be used only within a project or organization, or by an administrator");
+    }
+
     if (projectId != null) {
       Project project = projectRepository.findById(projectId)
           .orElseThrow(() -> new ReportPortalException(ACCESS_DENIED));
@@ -325,6 +358,10 @@ public class ExecuteIntegrationHandlerImpl implements ExecuteIntegrationHandler 
           .orElseThrow(() -> new ReportPortalException(ACCESS_DENIED));
       BusinessRule.expect(orgRole, role -> role.sameOrHigherThan(requiredRole)).verify(ACCESS_DENIED);
     }
+  }
+
+  private static boolean isGlobal(Integration integration) {
+    return integration.getProject() == null && integration.getOrganizationId() == null;
   }
 
   private void validateProjectRole(ReportPortalUser user, Project project, ProjectRole requiredRole) {

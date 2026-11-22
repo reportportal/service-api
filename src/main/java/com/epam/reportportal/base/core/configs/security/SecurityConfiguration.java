@@ -112,9 +112,6 @@ public class SecurityConfiguration {
             /* set of special endpoints for another microservices from RP ecosystem */
             .requestMatchers("/api-internal/**")
             .hasRole("COMPONENT")
-            /* the sso chain is shadowed by this one for /settings, so the admin requirement has to live here */
-            .requestMatchers("/settings/**")
-            .hasRole("ADMINISTRATOR")
             .requestMatchers("/v2/**", "/swagger-resources", "/certificate/**", "/api/**", "/**")
             .hasRole("USER")
             .anyRequest()

@@ -16,18 +16,9 @@
 
 package com.epam.reportportal.auth.event;
 
-import com.epam.reportportal.auth.oauth.RPOAuth2User;
-import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
-import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
-import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.dao.UserRepository;
-import com.epam.reportportal.base.infrastructure.persistence.util.PersonalProjectService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
-import org.springframework.security.authentication.LockedException;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,67 +30,22 @@ import org.springframework.transaction.annotation.Transactional;
 @Component
 public class UiAuthenticationSuccessEventHandler {
 
-  private UserRepository userRepository;
+  private final UserRepository userRepository;
 
-  private PersonalProjectService personalProjectService;
-
-  /**
-   * Event handler for successful UI authentication events. Updates the last login date for the user and generates a
-   * personal project if the user has no projects.
-   */
   @Autowired
-  public UiAuthenticationSuccessEventHandler(UserRepository userRepository,
-      PersonalProjectService personalProjectService) {
+  public UiAuthenticationSuccessEventHandler(UserRepository userRepository) {
     this.userRepository = userRepository;
-    this.personalProjectService = personalProjectService;
   }
 
   /**
-   * Handles the UI user signed in event. Updates the last login date for the user and generates a personal project if
-   * the user has no projects. Inactive users are refused for every authentication type.
+   * Handles the UI user signed in event. Updates the last login date for the user. Inactive users are refused earlier,
+   * by the authentication itself (JWT converters).
    *
    * @param event the UI user signed in event
    */
   @EventListener
   @Transactional
   public void onApplicationEvent(UiUserSignedInEvent event) {
-    String username = event.getAuthentication().getName();
-
-    userRepository.updateLastLoginDate(username);
-
-    /* TODO: Do not generate personal project for now. Waiting for requirements
-    if (MapUtils.isEmpty(acquireUser(event.getAuthentication()).getOrganizationDetails())) {
-      User user = userRepository.findByLogin(username)
-          .orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, username));
-      Project project = personalProjectService.generatePersonalProject(user);
-      user.getProjects().addAll(project.getUsers());
-    }
-    */
-  }
-
-  private ReportPortalUser acquireUser(Authentication authentication) {
-    if (authentication instanceof Saml2Authentication rpAuth) {
-      var user = userRepository.findByLogin(rpAuth.getName())
-          .orElseThrow(() -> new ReportPortalException(
-              ErrorType.USER_NOT_FOUND, rpAuth.getPrincipal()
-          ));
-      if (!Boolean.TRUE.equals(user.getActive())) {
-        SecurityContextHolder.clearContext();
-        throw new LockedException("User account is locked");
-      }
-      return ReportPortalUser.userBuilder().fromUser(user);
-    } else if (authentication.getPrincipal() instanceof RPOAuth2User ghUser) {
-      if (!(ghUser.getReportPortalUser()).isEnabled()) {
-        SecurityContextHolder.clearContext();
-        throw new LockedException("User account is locked");
-      }
-      return ghUser.getReportPortalUser();
-    } else {
-      if (!((ReportPortalUser) authentication.getPrincipal()).isEnabled()) {
-        SecurityContextHolder.clearContext();
-        throw new LockedException("User account is locked");
-      }
-      return (ReportPortalUser) authentication.getPrincipal();
-    }
+    userRepository.updateLastLoginDate(event.getAuthentication().getName());
   }
 }

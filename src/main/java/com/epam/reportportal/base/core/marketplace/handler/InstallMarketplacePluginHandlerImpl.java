@@ -142,7 +142,7 @@ public class InstallMarketplacePluginHandlerImpl implements InstallMarketplacePl
       ReportPortalUser user) {
     var version = request == null ? null : StringUtils.trimToEmpty(request.version());
     safe(registryId, "plugin id");
-    safe(version, "version");
+    safeVersion(version);
 
     // 1. What the registry says about this exact version. Not cached: a block or a removal that
     // landed a minute ago has to be seen now, and so does the checksum.
@@ -261,6 +261,13 @@ public class InstallMarketplacePluginHandlerImpl implements InstallMarketplacePl
     if (!PluginArtifacts.isSafeIdentifier(value)) {
       throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
           "marketplace " + what + " '" + value + "'");
+    }
+  }
+
+  private static void safeVersion(String value) {
+    if (!PluginArtifacts.isSafeVersion(value)) {
+      throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
+          "marketplace version '" + value + "'");
     }
   }
 

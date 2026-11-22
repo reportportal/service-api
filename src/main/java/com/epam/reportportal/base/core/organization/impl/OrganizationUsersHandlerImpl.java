@@ -260,7 +260,11 @@ public class OrganizationUsersHandlerImpl implements OrganizationUsersHandler {
     Optional<OrganizationUser> userOrganization = organizationUserRepository.findByUserIdAndOrganization_Id(
         userId, orgId);
 
-    validateUserType(organization, user);
+    if (userOrganization.isEmpty()) {
+      // only a user being added is checked; an existing member (e.g. a legacy UPSA user of an EXTERNAL
+      // organization) must stay editable, as with PATCH
+      validateUserType(organization, user);
+    }
 
     assignToOrganization(orgUserUpdateRequest, userOrganization, organization, user);
 

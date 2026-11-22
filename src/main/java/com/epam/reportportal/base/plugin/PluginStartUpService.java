@@ -250,7 +250,7 @@ public class PluginStartUpService {
    * leaves an equal or newer one alone.
    */
   private String fromPin(Installed installed) {
-    if (!PluginArtifacts.isSafeIdentifier(pluginVersion)) {
+    if (!PluginArtifacts.isSafeVersion(pluginVersion)) {
       return describe(installed) + "; pinned source not usable: rp.plugins.default.version '"
           + pluginVersion + "' must be set to a plain identifier";
     }

@@ -316,4 +316,27 @@ class OrganizationUsersHandlerImplTest {
     assertEquals(ErrorType.UPSA_USER_DENIED, exception.getErrorType());
     verify(organizationUserRepository, never()).save(any());
   }
+
+  @Test
+  @DisplayName("Upsert of an existing UPSA member of an external organization is allowed")
+  void updateOrganizationUserDetailsWhenExistingUpsaMemberInExternalOrganizationShouldSucceed() {
+    organization.setOrganizationType(OrganizationType.EXTERNAL);
+    User user = organizationUser.getUser();
+    user.setUserType(com.epam.reportportal.base.infrastructure.persistence.entity.user.UserType.UPSA);
+    when(organizationRepositoryCustom.findById(ORG_ID)).thenReturn(Optional.of(organization));
+    when(userRepository.findById(USER_ID)).thenReturn(Optional.of(user));
+    when(organizationUserRepository.findByUserIdAndOrganization_Id(USER_ID, ORG_ID))
+        .thenReturn(Optional.of(organizationUser));
+
+    OrgUserUpdateRequest updateRequest = new OrgUserUpdateRequest().orgRole(OrgRole.MEMBER).projects(List.of());
+
+    try (MockedStatic<SecurityContextUtils> mockedSecurityContext = org.mockito.Mockito.mockStatic(
+        SecurityContextUtils.class)) {
+      mockedSecurityContext.when(SecurityContextUtils::getPrincipal).thenReturn(reportPortalUser);
+
+      organizationUsersHandler.updateOrganizationUserDetails(ORG_ID, USER_ID, updateRequest);
+
+      verify(organizationUserRepository).save(organizationUser);
+    }
+  }
 }

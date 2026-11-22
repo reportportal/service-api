@@ -74,6 +74,53 @@ class LogMessageHandlerTest {
   }
 
   @Test
+  void binaryOfDroppedForeignLogIsDeleted() {
+    Launch launch = new Launch();
+    launch.setId(1L);
+    launch.setUuid("launch-uuid");
+    launch.setProjectId(2L);
+    when(launchRepository.findByUuid("launch-uuid")).thenReturn(Optional.of(launch));
+
+    handler.handleMessage(message(1L, "launch-uuid", null,
+        new BinaryDataMetaInfo("file-id", "thumb-id", "image/png", 10L)));
+
+    verify(attachmentBinaryDataService).delete("file-id");
+    verify(attachmentBinaryDataService).delete("thumb-id");
+    verifyNoInteractions(logRepository, logService);
+  }
+
+  @Test
+  void failedBinaryCleanupDoesNotFailTheDrop() {
+    Launch launch = new Launch();
+    launch.setProjectId(2L);
+    when(launchRepository.findByUuid("launch-uuid")).thenReturn(Optional.of(launch));
+    org.mockito.Mockito.doThrow(new RuntimeException("boom")).when(attachmentBinaryDataService)
+        .delete("file-id");
+
+    handler.handleMessage(message(1L, "launch-uuid", null,
+        new BinaryDataMetaInfo("file-id", null, "image/png", 10L)));
+
+    verifyNoInteractions(logRepository, logService);
+  }
+
+  @Test
+  void itemLogOfOwnProjectResolvesEffectiveLaunchOnce() {
+    TestItem item = new TestItem();
+    item.setItemId(3L);
+    Launch launch = new Launch();
+    launch.setId(1L);
+    launch.setUuid("launch-uuid");
+    launch.setProjectId(1L);
+    when(testItemRepository.findByUuid("item-uuid")).thenReturn(Optional.of(item));
+    when(testItemService.getEffectiveLaunch(item)).thenReturn(launch);
+
+    handler.handleMessage(message(1L, "launch-uuid", "item-uuid"));
+
+    verify(logRepository).save(any(Log.class));
+    verify(testItemService, org.mockito.Mockito.times(1)).getEffectiveLaunch(item);
+  }
+
+  @Test
   void itemLogOfAnotherProjectIsDropped() {
     TestItem item = new TestItem();
     item.setItemId(3L);
@@ -102,6 +149,11 @@ class LogMessageHandlerTest {
   }
 
   private Message message(Long projectId, String launchUuid, String itemUuid) {
+    return message(projectId, launchUuid, itemUuid, null);
+  }
+
+  private Message message(Long projectId, String launchUuid, String itemUuid,
+      BinaryDataMetaInfo metaInfo) {
     SaveLogRQ rq = new SaveLogRQ();
     rq.setUuid("log-uuid");
     rq.setLaunchUuid(launchUuid);
@@ -110,7 +162,7 @@ class LogMessageHandlerTest {
     rq.setMessage("message");
     rq.setLogTime(Instant.now());
     String body = jsonMapper.writeValueAsString(
-        DeserializablePair.of(rq, (BinaryDataMetaInfo) null));
+        DeserializablePair.of(rq, metaInfo));
     MessageProperties properties = new MessageProperties();
     properties.setHeader(MessageHeaders.PROJECT_ID, projectId);
     return new Message(body.getBytes(StandardCharsets.UTF_8), properties);

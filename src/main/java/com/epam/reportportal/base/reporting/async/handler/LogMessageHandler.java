@@ -111,16 +111,16 @@ public class LogMessageHandler implements ReportingMessageHandler {
       TestItem item = itemOptional.get();
       Launch effectiveLaunch = testItemService.getEffectiveLaunch(item);
       if (!belongsToProject(effectiveLaunch, projectId)) {
-        dropForeignLog(request, projectId, effectiveLaunch);
+        dropForeignLog(request, metaInfo, projectId, effectiveLaunch);
         return;
       }
-      createItemLog(request, item, metaInfo, projectId);
+      createItemLog(request, item, effectiveLaunch, metaInfo, projectId);
     } else {
       Launch launch = launchRepository.findByUuid(request.getLaunchUuid())
           .orElseThrow(
               () -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, request.getLaunchUuid()));
       if (!belongsToProject(launch, projectId)) {
-        dropForeignLog(request, projectId, launch);
+        dropForeignLog(request, metaInfo, projectId, launch);
         return;
       }
       createLaunchLog(request, launch, metaInfo, projectId);
@@ -133,15 +133,27 @@ public class LogMessageHandler implements ReportingMessageHandler {
 
   /**
    * The message is discarded (not retried, not parked): redelivery cannot make a launch of another
-   * project belong to the project from the message header.
+   * project belong to the project from the message header. The binary stored before the message was published is
+   * not referenced by any attachment row, so it is removed here, the same way {@code attachToLog} removes it when
+   * the attachment cannot be saved. A failure of the cleanup must not turn the deliberate drop into a retry.
    */
-  private void dropForeignLog(SaveLogRQ request, Long projectId, Launch launch) {
+  private void dropForeignLog(SaveLogRQ request, BinaryDataMetaInfo metaInfo, Long projectId,
+      Launch launch) {
     LOGGER.warn("Discarded log '{}': launch '{}' does not belong to project '{}' from the message",
         request.getUuid(), launch == null ? null : launch.getUuid(), projectId);
+    if (metaInfo == null) {
+      return;
+    }
+    try {
+      attachmentBinaryDataService.delete(metaInfo.getFileId());
+      attachmentBinaryDataService.delete(metaInfo.getThumbnailFileId());
+    } catch (Exception e) {
+      LOGGER.warn("Unable to remove the binary of discarded log '{}'", request.getUuid(), e);
+    }
   }
 
-  private void createItemLog(SaveLogRQ request, TestItem item, BinaryDataMetaInfo metaInfo,
-      Long projectId) {
+  private void createItemLog(SaveLogRQ request, TestItem item, Launch effectiveLaunch,
+      BinaryDataMetaInfo metaInfo, Long projectId) {
     LogFull logFull = new LogFullBuilder()
         .addSaveLogRq(request)
         .addTestItem(item)
@@ -151,7 +163,6 @@ public class LogMessageHandler implements ReportingMessageHandler {
     Log log = LOG_FULL_TO_LOG.apply(logFull);
     logRepository.save(log);
     logFull.setId(log.getId());
-    Launch effectiveLaunch = testItemService.getEffectiveLaunch(item);
     logService.saveLogMessage(logFull, effectiveLaunch.getId());
 
     if (request.getFile() != null) {

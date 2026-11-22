@@ -48,6 +48,11 @@ public class TokenServicesFacade {
 
   public TokenServicesFacade(JwtEncoder jwtEncoder, @Value("${rp.jwt.issuer}") String issuer,
       @Value("${rp.jwt.token.validity-period}") long tokenValiditySeconds) {
+    if (tokenValiditySeconds <= 0) {
+      throw new IllegalArgumentException(
+          "rp.jwt.token.validity-period must be a positive number of seconds, but was "
+              + tokenValiditySeconds);
+    }
     this.jwtEncoder = jwtEncoder;
     this.issuer = issuer;
     this.tokenValiditySeconds = tokenValiditySeconds;

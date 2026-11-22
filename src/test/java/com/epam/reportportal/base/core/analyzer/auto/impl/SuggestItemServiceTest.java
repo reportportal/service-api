@@ -21,6 +21,8 @@ import com.epam.reportportal.base.core.launch.cluster.GetClusterHandler;
 import com.epam.reportportal.base.core.log.LogService;
 import com.epam.reportportal.base.core.project.GetProjectHandler;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
+import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.LogRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.TestItemRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.cluster.Cluster;
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItem;
@@ -54,6 +56,8 @@ class SuggestItemServiceTest {
   private final LaunchAccessValidator launchAccessValidator = mock(LaunchAccessValidator.class);
 
   private final TestItemRepository testItemRepository = mock(TestItemRepository.class);
+  private final LaunchRepository launchRepository = mock(LaunchRepository.class);
+  private final LogRepository logRepository = mock(LogRepository.class);
   private final LogService logService = mock(LogService.class);
 
   private final TestItemValidator testItemValidator = mock(TestItemValidator.class);
@@ -67,6 +71,8 @@ class SuggestItemServiceTest {
       getClusterHandler,
       launchAccessValidator,
       testItemRepository,
+      launchRepository,
+      logRepository,
       logService,
       logConverter,
       validators
@@ -283,6 +289,48 @@ class SuggestItemServiceTest {
     own.setItemId(10L);
     when(testItemRepository.findAllByItemIdInAndProjectId(any(), eq(1L))).thenReturn(
         List.of(own));
+
+    Assertions.assertThrows(ReportPortalException.class,
+        () -> suggestItemService.handleSuggestChoice(List.of(info), membership));
+    verify(analyzerServiceClient, never()).handleSuggestChoice(anyList());
+  }
+
+  @Test
+  void handleSuggestChoiceAcceptsLaunchAndLogsOfOwnProject() {
+    final MembershipDetails membership = MembershipDetails.builder().withProjectId(1L).build();
+    final SuggestInfo info = new SuggestInfo();
+    info.setLaunchId(5L);
+    info.setTestItemLogId(6L);
+    info.setRelevantLogId(7L);
+    when(launchRepository.findIdsByIdInAndProjectId(any(), eq(1L))).thenReturn(java.util.Set.of(5L));
+    when(logRepository.findIdsByIdInAndProjectId(any(), eq(1L))).thenReturn(java.util.Set.of(6L, 7L));
+
+    suggestItemService.handleSuggestChoice(List.of(info), membership);
+
+    verify(analyzerServiceClient, times(1)).handleSuggestChoice(List.of(info));
+    verify(logRepository, times(1)).findIdsByIdInAndProjectId(any(), eq(1L));
+    verify(testItemRepository, never()).findAllByItemIdInAndProjectId(any(), any());
+  }
+
+  @Test
+  void handleSuggestChoiceRejectsLaunchOfAnotherProject() {
+    final MembershipDetails membership = MembershipDetails.builder().withProjectId(1L).build();
+    final SuggestInfo info = new SuggestInfo();
+    info.setLaunchId(5L);
+    when(launchRepository.findIdsByIdInAndProjectId(any(), eq(1L))).thenReturn(java.util.Set.of());
+
+    Assertions.assertThrows(ReportPortalException.class,
+        () -> suggestItemService.handleSuggestChoice(List.of(info), membership));
+    verify(analyzerServiceClient, never()).handleSuggestChoice(anyList());
+  }
+
+  @Test
+  void handleSuggestChoiceRejectsLogsOfAnotherProject() {
+    final MembershipDetails membership = MembershipDetails.builder().withProjectId(1L).build();
+    final SuggestInfo info = new SuggestInfo();
+    info.setTestItemLogId(6L);
+    info.setRelevantLogId(7L);
+    when(logRepository.findIdsByIdInAndProjectId(any(), eq(1L))).thenReturn(java.util.Set.of(6L));
 
     Assertions.assertThrows(ReportPortalException.class,
         () -> suggestItemService.handleSuggestChoice(List.of(info), membership));

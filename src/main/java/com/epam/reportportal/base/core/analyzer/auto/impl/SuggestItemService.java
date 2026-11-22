@@ -33,6 +33,8 @@ import com.epam.reportportal.base.core.launch.cluster.GetClusterHandler;
 import com.epam.reportportal.base.core.log.LogService;
 import com.epam.reportportal.base.core.project.GetProjectHandler;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
+import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.LogRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.TestItemRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.cluster.Cluster;
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItem;
@@ -78,6 +80,8 @@ public class SuggestItemService {
   private final LaunchAccessValidator launchAccessValidator;
 
   private final TestItemRepository testItemRepository;
+  private final LaunchRepository launchRepository;
+  private final LogRepository logRepository;
   private final LogService logService;
   private final LogConverter logConverter;
 
@@ -212,7 +216,7 @@ public class SuggestItemService {
 
   /**
    * Forwards the user choice to the analyzer. The project id is forced from the membership and
-   * every referenced test item must belong to that project.
+   * every referenced test item, launch and log must belong to that project.
    *
    * @param suggestInfos      user choices
    * @param membershipDetails caller membership in the project from the request path
@@ -223,10 +227,15 @@ public class SuggestItemService {
       MembershipDetails membershipDetails) {
     final Long projectId = membershipDetails.getProjectId();
     final Set<Long> itemIds = new HashSet<>();
+    final Set<Long> launchIds = new HashSet<>();
+    final Set<Long> logIds = new HashSet<>();
     suggestInfos.forEach(info -> {
       info.setProject(projectId);
       Optional.ofNullable(info.getTestItem()).ifPresent(itemIds::add);
       Optional.ofNullable(info.getRelevantItem()).ifPresent(itemIds::add);
+      Optional.ofNullable(info.getLaunchId()).ifPresent(launchIds::add);
+      Optional.ofNullable(info.getTestItemLogId()).ifPresent(logIds::add);
+      Optional.ofNullable(info.getRelevantLogId()).ifPresent(logIds::add);
     });
     if (!itemIds.isEmpty()) {
       final Set<Long> found = testItemRepository.findAllByItemIdInAndProjectId(itemIds, projectId)
@@ -235,6 +244,16 @@ public class SuggestItemService {
           .collect(Collectors.toSet());
       expect(found.containsAll(itemIds), equalTo(true)).verify(ACCESS_DENIED,
           "Test items do not belong to the specified project");
+    }
+    if (!launchIds.isEmpty()) {
+      expect(launchRepository.findIdsByIdInAndProjectId(launchIds, projectId)
+          .containsAll(launchIds), equalTo(true)).verify(ACCESS_DENIED,
+          "Launches do not belong to the specified project");
+    }
+    if (!logIds.isEmpty()) {
+      expect(logRepository.findIdsByIdInAndProjectId(logIds, projectId)
+          .containsAll(logIds), equalTo(true)).verify(ACCESS_DENIED,
+          "Logs do not belong to the specified project");
     }
     analyzerServiceClient.handleSuggestChoice(suggestInfos);
     return new OperationCompletionRS("User choice of suggested item was sent for handling to ML");

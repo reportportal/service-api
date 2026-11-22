@@ -45,4 +45,13 @@ class TokenServicesFacadeTest {
 
     assertEquals(Duration.ofSeconds(3600), Duration.between(jwt.getIssuedAt(), jwt.getExpiresAt()));
   }
+
+  @Test
+  void nonPositiveValidityPeriodFailsFast() {
+    JwtEncoder encoder = mock(JwtEncoder.class);
+    org.junit.jupiter.api.Assertions.assertThrows(IllegalArgumentException.class,
+        () -> new TokenServicesFacade(encoder, "issuer", 0L));
+    org.junit.jupiter.api.Assertions.assertThrows(IllegalArgumentException.class,
+        () -> new TokenServicesFacade(encoder, "issuer", -5L));
+  }
 }

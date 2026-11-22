@@ -61,6 +61,9 @@ public class JwtReportPortalUserConverter implements Converter<Jwt, AbstractAuth
     String username = jwt.getClaimAsString(PRINCIPAL_CLAIM_NAME);
     String upstreamToken = jwt.getClaimAsString("upstream_token");
     var principal = userDetailsService.loadUserByUsername(username);
+    if (!principal.isEnabled()) {
+      throw new OAuth2AuthenticationException(new OAuth2Error("invalid_token", "User account is disabled", null));
+    }
 
     var token = new UsernamePasswordAuthenticationToken(principal, null, authorities);
     token.setDetails(upstreamToken);

@@ -17,16 +17,20 @@
 package com.epam.reportportal.base.ws.converter.builders;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.entry;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.epam.reportportal.base.infrastructure.persistence.entity.filter.UserFilter;
 import com.epam.reportportal.base.infrastructure.persistence.entity.widget.Widget;
+import com.epam.reportportal.base.infrastructure.persistence.entity.widget.WidgetOptions;
 import com.epam.reportportal.base.model.widget.ContentParameters;
 import com.epam.reportportal.base.model.widget.WidgetPreviewRQ;
 import com.epam.reportportal.base.model.widget.WidgetRQ;
 import java.util.AbstractMap;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -66,6 +70,73 @@ class WidgetBuilderTest {
     assertThat(widget.getContentFields()).containsExactly("contentField");
     assertThat(widget.getWidgetOptions().getOptions()).containsExactly(
         new AbstractMap.SimpleEntry<>("param", "val"));
+  }
+
+  @Test
+  void addWidgetRqShouldKeepStoredServerManagedOptions() {
+    final Widget stored = new Widget();
+    final Map<String, Object> storedOptions = new LinkedHashMap<>();
+    storedOptions.put("viewName", "widget_1_2");
+    storedOptions.put("state", "ready");
+    storedOptions.put("lastRefresh", "2026-01-01");
+    storedOptions.put("param", "old");
+    stored.setWidgetOptions(new WidgetOptions(storedOptions));
+
+    final WidgetRQ widgetRQ = new WidgetRQ();
+    widgetRQ.setName("name");
+    widgetRQ.setWidgetType("cumulative");
+    final ContentParameters contentParameters = new ContentParameters();
+    final HashMap<String, Object> requestOptions = new HashMap<>();
+    requestOptions.put("viewName", "widget_2_9");
+    requestOptions.put("state", "created");
+    requestOptions.put("lastRefresh", "2030-01-01");
+    requestOptions.put("param", "new");
+    contentParameters.setWidgetOptions(requestOptions);
+    widgetRQ.setContentParameters(contentParameters);
+
+    final Widget widget = new WidgetBuilder(stored).addWidgetRq(widgetRQ).get();
+
+    assertThat(widget.getWidgetOptions().getOptions()).containsOnly(
+        entry("viewName", "widget_1_2"),
+        entry("state", "ready"),
+        entry("lastRefresh", "2026-01-01"),
+        entry("param", "new"));
+  }
+
+  @Test
+  void addWidgetRqShouldNotSetServerManagedOptionsOnNewWidget() {
+    final WidgetRQ widgetRQ = new WidgetRQ();
+    widgetRQ.setName("name");
+    widgetRQ.setWidgetType("cumulative");
+    final ContentParameters contentParameters = new ContentParameters();
+    final HashMap<String, Object> requestOptions = new HashMap<>();
+    requestOptions.put("viewName", "launch; DROP TABLE launch");
+    requestOptions.put("state", "ready");
+    requestOptions.put("lastRefresh", "2030-01-01");
+    requestOptions.put("param", "val");
+    contentParameters.setWidgetOptions(requestOptions);
+    widgetRQ.setContentParameters(contentParameters);
+
+    final Widget widget = new WidgetBuilder().addWidgetRq(widgetRQ).get();
+
+    assertThat(widget.getWidgetOptions().getOptions()).containsOnly(entry("param", "val"));
+  }
+
+  @Test
+  void addWidgetPreviewRqShouldIgnoreServerManagedOptions() {
+    final WidgetPreviewRQ previewRQ = new WidgetPreviewRQ();
+    final ContentParameters contentParameters = new ContentParameters();
+    final HashMap<String, Object> requestOptions = new HashMap<>();
+    requestOptions.put("viewName", "widget_2_9");
+    requestOptions.put("state", "ready");
+    requestOptions.put("param", "val");
+    contentParameters.setWidgetOptions(requestOptions);
+    previewRQ.setContentParameters(contentParameters);
+    previewRQ.setWidgetType("cumulative");
+
+    final Widget widget = new WidgetBuilder().addWidgetPreviewRq(previewRQ).get();
+
+    assertThat(widget.getWidgetOptions().getOptions()).containsOnly(entry("param", "val"));
   }
 
   @Test

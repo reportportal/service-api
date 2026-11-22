@@ -16,10 +16,7 @@
 
 package com.epam.reportportal.base.core.widget.content.remover;
 
-import static com.epam.reportportal.base.core.widget.content.loader.materialized.handler.MaterializedWidgetStateHandler.VIEW_NAME;
-import static java.util.Optional.ofNullable;
-
-import com.epam.reportportal.base.core.widget.util.WidgetOptionUtil;
+import com.epam.reportportal.base.core.widget.content.materialized.generator.MaterializedViewNameGenerator;
 import com.epam.reportportal.base.infrastructure.persistence.dao.WidgetContentRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.widget.Widget;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,22 +25,26 @@ import org.springframework.stereotype.Service;
 /**
  * Removes the materialized view associated with a widget when the widget is deleted.
  *
+ * <p>The view name is always derived from the widget's project and id, never taken from the
+ * stored widget options, so a widget can only drop its own view.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Service
 public class MaterializedViewRemover implements WidgetContentRemover {
 
   private final WidgetContentRepository widgetContentRepository;
+  private final MaterializedViewNameGenerator materializedViewNameGenerator;
 
   @Autowired
-  public MaterializedViewRemover(WidgetContentRepository widgetContentRepository) {
+  public MaterializedViewRemover(WidgetContentRepository widgetContentRepository,
+      MaterializedViewNameGenerator materializedViewNameGenerator) {
     this.widgetContentRepository = widgetContentRepository;
+    this.materializedViewNameGenerator = materializedViewNameGenerator;
   }
 
   @Override
   public void removeContent(Widget widget) {
-    ofNullable(WidgetOptionUtil.getValueByKey(VIEW_NAME,
-        widget.getWidgetOptions()
-    )).ifPresent(widgetContentRepository::removeWidgetView);
+    widgetContentRepository.removeWidgetView(materializedViewNameGenerator.generate(widget));
   }
 }

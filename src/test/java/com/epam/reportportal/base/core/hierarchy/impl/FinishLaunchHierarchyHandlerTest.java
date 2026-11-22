@@ -185,6 +185,14 @@ class FinishLaunchHierarchyHandlerTest {
     verify(testItemRepository).findAllById(leafIds.subList(50, 100));
     verify(testItemRepository).findAllById(leafIds.subList(100, 120));
     verify(statisticsService, times(120)).addStatistics(any(TestItem.class));
+    // every chunk is flushed before its items leave the persistence context
+    verify(testItemRepository, times(3)).flush();
+    verify(testItemRepository, times(120)).detach(any(TestItem.class));
+    InOrder inOrder = inOrder(testItemRepository);
+    inOrder.verify(testItemRepository).findAllById(leafIds.subList(0, 50));
+    inOrder.verify(testItemRepository).flush();
+    inOrder.verify(testItemRepository, times(50)).detach(any(TestItem.class));
+    inOrder.verify(testItemRepository).findAllById(leafIds.subList(50, 100));
   }
 
   @Test

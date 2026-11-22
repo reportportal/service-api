@@ -118,10 +118,24 @@ public abstract class AbstractJwtConverter implements Converter<Jwt, AbstractAut
 
   protected UserDetails findUser(String identifier) {
     try {
-      return userDetailsService.loadUserByUsername(identifier);
+      return requireEnabled(userDetailsService.loadUserByUsername(identifier));
     } catch (UsernameNotFoundException e) {
       throw new UsernameNotFoundException("User not found: " + identifier, e);
     }
+  }
+
+  /**
+   * Rejects a token whose user has been deactivated, even if the issuer still hands out valid tokens for it.
+   *
+   * @param user the loaded principal
+   * @return the same principal, if enabled
+   * @throws OAuth2AuthenticationException if the principal is not enabled
+   */
+  protected UserDetails requireEnabled(UserDetails user) {
+    if (!user.isEnabled()) {
+      throw new OAuth2AuthenticationException(new OAuth2Error("invalid_token", "User account is disabled", null));
+    }
+    return user;
   }
 
   /**

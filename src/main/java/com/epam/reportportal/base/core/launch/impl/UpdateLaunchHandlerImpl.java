@@ -264,16 +264,13 @@ public class UpdateLaunchHandlerImpl implements UpdateLaunchHandler {
    * @param user   {@link ReportPortalUser}
    */
   private void validate(Launch launch, ReportPortalUser user, MembershipDetails membershipDetails) {
-    if (user.getUserRole() != UserRole.ADMINISTRATOR && !OrganizationRole.MANAGER.equals(
-        membershipDetails.getOrgRole())) {
+    if (user.getUserRole() != UserRole.ADMINISTRATOR) {
       expect(launch.getProjectId(), equalTo(membershipDetails.getProjectId()))
           .verify(ACCESS_DENIED);
-      if ((membershipDetails.getOrgRole().lowerThan(OrganizationRole.MANAGER)
-          && membershipDetails.getProjectRole()
-          .equals(ProjectRole.VIEWER))) {
+      if (membershipDetails.getOrgRole().lowerThan(OrganizationRole.MANAGER)
+          && membershipDetails.getProjectRole().equals(ProjectRole.VIEWER)) {
         expect(user.getUserId(), Predicate.isEqual(launch.getUserId())).verify(ACCESS_DENIED);
       }
     }
   }
-
 }

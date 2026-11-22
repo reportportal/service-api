@@ -106,7 +106,7 @@ class TmsAttachmentIntegrationTest extends BaseMvcTest {
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andExpect(header().string("Content-Disposition",
-            "attachment; filename=\"download-test.txt\""))
+            "attachment; filename=\"download-test.txt\"; filename*=UTF-8''download-test.txt"))
         .andExpect(header().string("Content-Type", "text/plain"));
   }
 

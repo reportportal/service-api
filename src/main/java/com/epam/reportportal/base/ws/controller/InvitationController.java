@@ -24,6 +24,7 @@ import com.epam.reportportal.api.InvitationsApi;
 import com.epam.reportportal.api.model.Invitation;
 import com.epam.reportportal.api.model.InvitationActivation;
 import com.epam.reportportal.api.model.InvitationRequest;
+import com.epam.reportportal.base.core.user.InvitationActivationRefusedException;
 import com.epam.reportportal.base.core.user.impl.UserInvitationHandler;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -69,8 +70,12 @@ public class InvitationController extends BaseController implements InvitationsA
 
   }
 
+  /**
+   * A refused activation for an existing account commits: the refusal is thrown before anything but the invitation's
+   * failure count (and its deletion at the limit) has been written, and that count must survive.
+   */
   @Override
-  @Transactional
+  @Transactional(noRollbackFor = InvitationActivationRefusedException.class)
   public ResponseEntity<Invitation> putInvitationsId(String invitationId,
       InvitationActivation invitationActivation) {
     return ResponseEntity

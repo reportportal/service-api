@@ -20,6 +20,8 @@ import com.epam.reportportal.base.infrastructure.persistence.dao.ReportPortalRep
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.OrganizationType;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.OrganizationUser;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.OrganizationUserId;
+import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationRole;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.Modifying;
@@ -43,6 +45,22 @@ public interface OrganizationUserRepository extends
    * @return A list of OrganizationUser entities that match the given user ID and organization ID.
    */
   Optional<OrganizationUser> findByUserIdAndOrganization_Id(Long userId, Long orgId);
+
+  /**
+   * Checks whether the user holds one of the given roles in at least one non-personal organization.
+   *
+   * @param userId The user ID
+   * @param roles  The accepted organization roles
+   * @return {@code true} if such a membership exists
+   */
+  @Query("""
+      SELECT COUNT(ou) > 0 FROM OrganizationUser ou
+      JOIN ou.organization o
+      WHERE ou.id.userId = :userId AND ou.organizationRole IN :roles
+      AND o.organizationType <> com.epam.reportportal.base.infrastructure.persistence.entity.enums.OrganizationType.PERSONAL
+      """)
+  boolean existsRoleInNonPersonalOrganization(@Param("userId") Long userId,
+      @Param("roles") Collection<OrganizationRole> roles);
 
   @Query(value = """
       SELECT ou.organization_id FROM organization_user ou

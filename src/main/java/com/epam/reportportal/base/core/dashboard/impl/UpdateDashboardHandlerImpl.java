@@ -17,6 +17,8 @@
 package com.epam.reportportal.base.core.dashboard.impl;
 
 import static com.epam.reportportal.base.util.OwnedEntityUtils.validateOwnedEntityLocked;
+import static com.epam.reportportal.base.util.OwnedEntityUtils.isHeldByOtherLockedDashboard;
+import static com.epam.reportportal.base.util.OwnedEntityUtils.validateWidgetLocked;
 import static com.epam.reportportal.base.ws.converter.converters.DashboardConverter.TO_ACTIVITY_RESOURCE;
 
 import com.epam.reportportal.base.core.dashboard.UpdateDashboardHandler;
@@ -103,7 +105,9 @@ public class UpdateDashboardHandlerImpl implements UpdateDashboardHandler {
 
     dashboard = new DashboardBuilder(dashboard).addUpdateRq(rq).get();
     dashboardRepository.save(dashboard);
-    this.toggleDashboardLock(dashboardId, dashboard.getLocked());
+    // A locked dashboard keeps its widgets locked; an unlocked one must not touch widget locks
+    // (a widget may be locked by another dashboard).
+    lockDashboardChildEntities(dashboardId, dashboard.getLocked());
 
     eventPublisher.publishEvent(new DashboardUpdatedEvent(before,
         TO_ACTIVITY_RESOURCE.apply(dashboard),
@@ -194,7 +198,16 @@ public class UpdateDashboardHandlerImpl implements UpdateDashboardHandler {
             membershipDetails.getProjectName()
         ));
 
+    DashboardWidget toRemove = dashboard.getWidgets()
+        .stream()
+        .filter(dashboardWidget -> widget.getId().equals(dashboardWidget.getId().getWidgetId()))
+        .findFirst()
+        .orElseThrow(
+            () -> new ReportPortalException(ErrorType.WIDGET_NOT_FOUND_IN_DASHBOARD, widgetId,
+                dashboardId));
+
     if (shouldDelete(widget)) {
+      validateWidgetLocked(widget, membershipDetails, user);
       OperationCompletionRS result = deleteWidget(widget);
       eventPublisher.publishEvent(
           new WidgetDeletedEvent(WidgetConverter.TO_ACTIVITY_RESOURCE.apply(widget),
@@ -204,15 +217,8 @@ public class UpdateDashboardHandlerImpl implements UpdateDashboardHandler {
       return result;
     }
 
-    DashboardWidget toRemove = dashboard.getWidgets()
-        .stream()
-        .filter(dashboardWidget -> widget.getId().equals(dashboardWidget.getId().getWidgetId()))
-        .findFirst()
-        .orElseThrow(
-            () -> new ReportPortalException(ErrorType.WIDGET_NOT_FOUND_IN_DASHBOARD, widgetId,
-                dashboardId));
-
     dashboardWidgetRepository.delete(toRemove);
+    clearStaleWidgetLock(widget, dashboardId);
 
     return new OperationCompletionRS(
         "Widget with ID = '" + widget.getId()
@@ -228,6 +234,8 @@ public class UpdateDashboardHandlerImpl implements UpdateDashboardHandler {
             dashboardId,
             projectDetails.getProjectName()
         ));
+    // Locking or unlocking an already locked dashboard is reserved for its owner, org managers and administrators.
+    validateOwnedEntityLocked(currentDashboard, projectDetails, user);
 
     if (!Objects.equals(currentDashboard.getLocked(), isLocked)) {
       this.toggleDashboardLock(dashboardId, isLocked);
@@ -240,6 +248,16 @@ public class UpdateDashboardHandlerImpl implements UpdateDashboardHandler {
     }
 
     return new OperationCompletionRS("Dashboard has been updated successfully");
+  }
+
+  /**
+   * Clears the widget's lock flag once the last locked dashboard holding it is gone.
+   */
+  private void clearStaleWidgetLock(Widget widget, Long removedFromDashboardId) {
+    if (Boolean.TRUE.equals(widget.getLocked()) && !isHeldByOtherLockedDashboard(widget, removedFromDashboardId)) {
+      widget.setLocked(false);
+      widgetRepository.save(widget);
+    }
   }
 
   private boolean shouldDelete(Widget widget) {

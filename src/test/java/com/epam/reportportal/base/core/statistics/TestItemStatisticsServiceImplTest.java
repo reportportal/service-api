@@ -17,6 +17,7 @@
 package com.epam.reportportal.base.core.statistics;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -109,13 +110,27 @@ class TestItemStatisticsServiceImplTest {
 
     TransactionSynchronizationManager.initSynchronization();
     service.addStatistics(item(3L, null));
-    verify(statisticsFieldRepository, times(3)).findByName("statistics$executions$total");
+    verify(statisticsFieldRepository, times(2)).findByName("statistics$executions$total");
     TransactionSynchronizationManager.getSynchronizations()
         .forEach(TransactionSynchronization::afterCommit);
     TransactionSynchronizationManager.clearSynchronization();
 
     service.addStatistics(item(4L, null));
-    verify(statisticsFieldRepository, times(3)).findByName("statistics$executions$total");
+    verify(statisticsFieldRepository, times(2)).findByName("statistics$executions$total");
+  }
+
+  @Test
+  void coldCacheRegistersOneSynchronizationPerTransaction() {
+    TransactionSynchronizationManager.initSynchronization();
+    service.addStatistics(item(1L, issueType("pb001")));
+    service.addStatistics(item(2L, issueType("pb001")));
+    service.addStatistics(item(3L, issueType("pb001")));
+
+    assertEquals(1, TransactionSynchronizationManager.getSynchronizations().size());
+    verify(statisticsFieldRepository, times(1)).findByName("statistics$executions$total");
+    verify(statisticsFieldRepository, times(1)).findByName("statistics$executions$passed");
+    verify(statisticsFieldRepository, times(1)).findByName("statistics$defects$product_bug$total");
+    verify(statisticsFieldRepository, times(1)).findByName("statistics$defects$product_bug$pb001");
   }
 
   private static StatisticsField field(String name, Long id) {

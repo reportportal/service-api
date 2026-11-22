@@ -27,13 +27,16 @@ public class TmsTestCaseJsonExporter implements TmsTestCaseExporter {
       HttpServletResponse response) {
     configureHttpResponse(response, includeAttachments);
 
-    // Writes the JSON array element by element instead of building it in memory
-    try (var sequenceWriter = objectMapper.writerWithDefaultPrettyPrinter()
-        .writeValuesAsArray(response.getOutputStream())) {
-      for (var testCase : (Iterable<TmsTestCaseRS>) testCases::iterator) {
-        sequenceWriter.write(testCase);
-      }
+    // Writes the JSON array element by element instead of building it in memory. The writer is
+    // deliberately not closed on failure: closing would terminate the array and finish the
+    // response, making a truncated export look complete. The exception reaches the container,
+    // which aborts the connection.
+    var sequenceWriter = objectMapper.writerWithDefaultPrettyPrinter()
+        .writeValuesAsArray(response.getOutputStream());
+    for (var testCase : (Iterable<TmsTestCaseRS>) testCases::iterator) {
+      sequenceWriter.write(testCase);
     }
+    sequenceWriter.close();
   }
 
   private void configureHttpResponse(HttpServletResponse response, boolean includeAttachments) {

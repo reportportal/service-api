@@ -34,9 +34,11 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.io.IOUtils;
+import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -171,7 +173,10 @@ public class FileStorageController {
       response.setContentType(binaryData.getContentType());
       if (binaryData.getFileName() != null) {
         response.setHeader(com.google.common.net.HttpHeaders.CONTENT_DISPOSITION,
-            "attachment; filename=\"" + sanitizeFileName(binaryData.getFileName()) + "\"");
+            ContentDisposition.attachment()
+                .filename(sanitizeFileName(binaryData.getFileName()), StandardCharsets.UTF_8)
+                .build()
+                .toString());
       }
       try (InputStream inputStream = binaryData.getInputStream()) {
         IOUtils.copy(inputStream, response.getOutputStream());

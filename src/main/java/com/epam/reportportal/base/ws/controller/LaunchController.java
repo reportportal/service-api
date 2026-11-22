@@ -232,6 +232,7 @@ public class LaunchController {
   @Transactional(readOnly = true)
   @GetMapping(value = "/uuid/{launchId}")
   @ResponseStatus(OK)
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   @Operation(summary = "Get specified launch by UUID")
   @ApiResponse(
       responseCode = "200",

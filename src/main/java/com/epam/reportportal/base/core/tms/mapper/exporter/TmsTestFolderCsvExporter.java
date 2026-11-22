@@ -47,10 +47,10 @@ public class TmsTestFolderCsvExporter implements TmsTestFolderExporter {
       for (FolderExportData folderData : foldersToExport) {
         csvPrinter.printRecord(
             folderData.getId(),
-            folderData.getName(),
-            folderData.getDescription(),
+            CsvCellSanitizer.sanitize(folderData.getName()),
+            CsvCellSanitizer.sanitize(folderData.getDescription()),
             folderData.getLevel(),
-            folderData.getPath(),
+            CsvCellSanitizer.sanitize(folderData.getPath()),
             folderData.getParentId()
         );
 

@@ -21,12 +21,16 @@ import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItem;
 import com.epam.reportportal.base.reporting.FinishExecutionRQ;
 import com.epam.reportportal.base.reporting.FinishTestItemRQ;
 import com.epam.reportportal.base.ws.BaseMvcTest;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import java.time.Instant;
+import java.util.Set;
+import java.util.stream.Collectors;
+import org.hibernate.engine.spi.SessionImplementor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -96,7 +100,7 @@ class FinishInProgressDescendantsTest extends BaseMvcTest {
     assertEquals(STEPS, countDescendants("INTERRUPTED"));
     assertEquals(STEPS, launchStatistics("statistics$executions$total"));
     assertEquals(STEPS, launchStatistics("statistics$executions$failed"));
-    assertEquals(STEPS, itemStatistics(ROOT_ID, "statistics$executions$total"));
+    assertEquals(STEPS, itemStatistics(ROOT_ID, "statistics$executions$total"));    assertEquals(Set.of(), managedDescendantIds());
   }
 
   @Test
@@ -115,7 +119,19 @@ class FinishInProgressDescendantsTest extends BaseMvcTest {
     assertEquals(STEPS, countDescendants("INTERRUPTED"));
     assertEquals(SUITES, countDescendants("FAILED"));
     assertEquals(STEPS, launchStatistics("statistics$executions$total"));
-    assertEquals(STEPS, itemStatistics(ROOT_ID, "statistics$executions$total"));
+    assertEquals(STEPS, itemStatistics(ROOT_ID, "statistics$executions$total"));    assertEquals(Set.of(), managedDescendantIds());
+  }
+
+  /**
+   * Ids of the descendants still held by the persistence context: the finish pass detaches every chunk it processed.
+   */
+  private Set<Long> managedDescendantIds() {
+    return entityManager.unwrap(SessionImplementor.class).getPersistenceContextInternal().getEntitiesByKey()
+        .keySet().stream()
+        .filter(key -> TestItem.class.getName().equals(key.getEntityName()))
+        .map(key -> (Long) key.getIdentifier())
+        .filter(id -> id > ROOT_ID)
+        .collect(Collectors.toSet());
   }
 
   private void insertItem(long id, String uuid, String type, boolean hasChildren, Long parentId,

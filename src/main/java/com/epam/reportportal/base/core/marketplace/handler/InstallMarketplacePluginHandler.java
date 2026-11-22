@@ -35,4 +35,16 @@ public interface InstallMarketplacePluginHandler {
    */
   MarketplaceInstallResource install(String registryId, MarketplaceInstallRQ request,
       ReportPortalUser user);
+
+  /**
+   * The same install, started by the instance itself rather than by an administrator — the
+   * default plugin's update at startup. Every check is the one {@link #install} makes; the only
+   * difference is that the published event is a system event, which names no user and is not
+   * recorded as an activity.
+   *
+   * @param registryId registry plugin id
+   * @param request    the version to activate
+   * @return what is now active
+   */
+  MarketplaceInstallResource installUnattended(String registryId, MarketplaceInstallRQ request);
 }

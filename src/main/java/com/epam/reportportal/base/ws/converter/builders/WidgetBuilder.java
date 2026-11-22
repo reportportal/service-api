@@ -16,6 +16,9 @@
 
 package com.epam.reportportal.base.ws.converter.builders;
 
+import static com.epam.reportportal.base.core.widget.content.loader.materialized.generator.AbstractViewGenerator.LAST_REFRESH;
+import static com.epam.reportportal.base.core.widget.content.loader.materialized.handler.MaterializedWidgetStateHandler.VIEW_NAME;
+import static com.epam.reportportal.base.core.widget.content.updater.MaterializedWidgetStateUpdater.STATE;
 import static java.util.Optional.ofNullable;
 
 import com.epam.reportportal.base.infrastructure.persistence.entity.filter.UserFilter;
@@ -28,6 +31,7 @@ import com.google.common.collect.Sets;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Supplier;
 
 /**
@@ -36,6 +40,12 @@ import java.util.function.Supplier;
  * @author Pavel Bortnik
  */
 public class WidgetBuilder implements Supplier<Widget> {
+
+  /**
+   * Widget option keys that are managed by the server (materialized view bookkeeping). Values for
+   * these keys coming from a client request are ignored; stored values are kept as is.
+   */
+  public static final Set<String> SERVER_MANAGED_OPTIONS = Set.of(VIEW_NAME, STATE, LAST_REFRESH);
 
   private Widget widget;
 
@@ -58,7 +68,7 @@ public class WidgetBuilder implements Supplier<Widget> {
                 ofNullable(widget.getWidgetOptions()).orElseGet(WidgetOptions::new);
             Map<String, Object> options =
                 ofNullable(widgetOptions.getOptions()).orElseGet(LinkedHashMap::new);
-            options.putAll(wo);
+            putClientOptions(options, wo);
             widgetOptions.setOptions(options);
             widget.setWidgetOptions(widgetOptions);
           });
@@ -80,7 +90,7 @@ public class WidgetBuilder implements Supplier<Widget> {
         ofNullable(widgetOptions.getOptions()).orElseGet(LinkedHashMap::new);
 
     ofNullable(previewRQ.getContentParameters()).ifPresent(cp -> {
-      options.putAll(cp.getWidgetOptions());
+      ofNullable(cp.getWidgetOptions()).ifPresent(wo -> putClientOptions(options, wo));
       widget.setItemsCount(cp.getItemsCount());
       widget.getContentFields().clear();
       widget.getContentFields()
@@ -122,6 +132,20 @@ public class WidgetBuilder implements Supplier<Widget> {
     });
     options.put(key, value);
     return this;
+  }
+
+  /**
+   * Copies client-provided options into the target map, skipping
+   * {@link #SERVER_MANAGED_OPTIONS server-managed keys} so a request can neither set nor change
+   * them.
+   */
+  private static void putClientOptions(Map<String, Object> target,
+      Map<String, Object> clientOptions) {
+    clientOptions.forEach((key, value) -> {
+      if (!SERVER_MANAGED_OPTIONS.contains(key)) {
+        target.put(key, value);
+      }
+    });
   }
 
   @Override

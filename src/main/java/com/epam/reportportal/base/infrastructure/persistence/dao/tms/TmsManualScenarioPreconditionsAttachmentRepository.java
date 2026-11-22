@@ -241,12 +241,4 @@ public interface TmsManualScenarioPreconditionsAttachmentRepository extends
   void insertIgnoreDuplicate(@Param("preconditionsId") Long preconditionsId,
       @Param("attachmentId") Long attachmentId,
       @Param("createdAt") java.time.Instant createdAt);
-
-  /**
-   * Finds all attachment IDs that are referenced in manual scenario preconditions attachments. *
-   * This is optimized to return only IDs instead of full entities. * * @return list of attachment
-   * IDs used in preconditions attachments
-   */
-  @Query("SELECT mspa.id.attachmentId FROM TmsManualScenarioPreconditionsAttachment mspa")
-  List<Long> findAllAttachmentIds();
 }

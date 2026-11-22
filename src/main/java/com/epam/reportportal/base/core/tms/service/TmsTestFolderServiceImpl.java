@@ -414,13 +414,20 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
     var folderStatistics = new FolderDuplicationStatistics();
     var testCaseStatistics = new TestCaseDuplicationStatistics();
 
+    Integer targetIndex = inputDto.getIndex();
+    if (targetIndex != null) {
+      targetIndex = clampIndex(targetIndex,
+          tmsTestFolderRepository.findMaxIndex(projectId, targetParentFolderId), 1);
+      tmsTestFolderRepository.shiftIndexes(projectId, targetParentFolderId, targetIndex, 1);
+    }
+
     var duplicatedRootFolder = duplicateFolderHierarchy(
         membershipDetails,
         user,
         sourceFolder,
         inputDto.getName(),
         targetParentFolderId,
-        inputDto.getIndex(),
+        targetIndex,
         folderStatistics,
         testCaseStatistics,
         new HashSet<>()

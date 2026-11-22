@@ -22,7 +22,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.NoRepositoryBean;
 
 /**
- * Base Spring Data repository with jOOQ filter existence checks and JPA {@code refresh}.
+ * Base Spring Data repository with jOOQ filter existence checks and JPA {@code refresh} and {@code detach}.
  *
  * @param <T>  entity type
  * @param <ID> primary key type
@@ -32,6 +32,11 @@ import org.springframework.data.repository.NoRepositoryBean;
 public interface ReportPortalRepository<T, ID extends Serializable> extends JpaRepository<T, ID> {
 
   void refresh(T t);
+
+  /**
+   * Removes the entity (and the associations cascading detach) from the persistence context without flushing it.
+   */
+  void detach(T t);
 
   boolean exists(Filter filter);
 

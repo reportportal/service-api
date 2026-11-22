@@ -264,24 +264,24 @@ public class TmsAttachmentServiceImpl implements TmsAttachmentService {
     log.debug("Duplicating TMS attachment with ID: {}", originalAttachment.getId());
 
     try {
-      // Step 1: Load original file from data store
-      var originalFileStream = tmsAttachmentDataStoreService.load(originalAttachment.getPathToFile())
-          .orElseThrow(() -> new ReportPortalException(ErrorType.NOT_FOUND,
-              "Original attachment file not found: " + originalAttachment.getPathToFile()));
-
-      // Step 2: Generate new unique filename to avoid conflicts
+      // Step 1: Generate new unique filename to avoid conflicts
       var newFileName = generateDuplicateFileName(originalAttachment.getFileName());
 
-      // Step 3: Save file copy to data store
-      var newFileId = tmsAttachmentDataStoreService.save(newFileName, originalFileStream);
+      // Step 2: Load original file from data store and save its copy
+      String newFileId;
+      try (var originalFileStream = tmsAttachmentDataStoreService
+          .load(originalAttachment.getPathToFile())
+          .orElseThrow(() -> new ReportPortalException(ErrorType.NOT_FOUND,
+              "Original attachment file not found: " + originalAttachment.getPathToFile()))) {
+        newFileId = tmsAttachmentDataStoreService.save(newFileName, originalFileStream);
+      }
 
-      // Step 3.1: Duplicate thumbnail if exists
+      // Step 3: Duplicate thumbnail if exists
       String newThumbnailId = null;
       if (originalAttachment.getThumbnailPath() != null) {
-        try {
-          var thumbnailStream = tmsAttachmentDataStoreService.load(originalAttachment.getThumbnailPath())
-              .orElse(null);
-
+        try (var thumbnailStream = tmsAttachmentDataStoreService
+            .load(originalAttachment.getThumbnailPath())
+            .orElse(null)) {
           if (thumbnailStream != null) {
             String newThumbnailName = "thumbnail_" + newFileName;
             newThumbnailId = tmsAttachmentDataStoreService.save(newThumbnailName, thumbnailStream);

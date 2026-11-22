@@ -22,6 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -36,6 +37,7 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserTyp
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.model.user.ChangePasswordRQ;
+import com.epam.reportportal.base.model.user.ConfirmEmailChangeRQ;
 import com.epam.reportportal.base.model.user.EditUserRQ;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -63,6 +65,33 @@ class EditUserHandlerImplTest {
 
   @InjectMocks
   private EditUserHandlerImpl handler;
+
+  @Test
+  void confirmEmailChangeShouldSaveUpdatedUser() {
+    User user = new User();
+    user.setLogin("new@example.com");
+    when(userMutationService.confirmEmailChange("token")).thenReturn(user);
+    var rq = new ConfirmEmailChangeRQ();
+    rq.setUuid("token");
+
+    var rs = handler.confirmEmailChange(rq);
+
+    verify(userRepository).save(user);
+    assertEquals("Email has been changed", rs.getResultMessage());
+  }
+
+  @Test
+  void confirmEmailChangeWithInvalidTokenShouldNotSave() {
+    when(userMutationService.confirmEmailChange("token")).thenThrow(
+        new ReportPortalException(ErrorType.INCORRECT_REQUEST, "Email change link is invalid or expired."));
+    var rq = new ConfirmEmailChangeRQ();
+    rq.setUuid("token");
+
+    final ReportPortalException exception =
+        assertThrows(ReportPortalException.class, () -> handler.confirmEmailChange(rq));
+    assertEquals("Incorrect Request. Email change link is invalid or expired.", exception.getMessage());
+    verify(userRepository, never()).save(any());
+  }
 
   @Test
   void uploadNotExistUserPhoto() {

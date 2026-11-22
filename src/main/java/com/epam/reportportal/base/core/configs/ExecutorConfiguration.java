@@ -30,6 +30,7 @@ import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
+import org.springframework.transaction.PlatformTransactionManager;
 
 /**
  * Configs for beans related to job execution
@@ -172,21 +173,23 @@ public class ExecutorConfiguration {
 
   /**
    * Low-volume events that must not be lost (launch finished, domain events, plugin broadcasts). Kept apart from the
-   * per-item {@code eventListenerExecutor}; when saturated, the publishing thread runs the task itself.
+   * per-item {@code eventListenerExecutor}; when saturated, the publishing thread runs the task itself, outside its own
+   * transaction (see {@link TransactionSuspendingCallerRunsPolicy}).
    */
   @Bean(name = "domainEventExecutor")
   public TaskExecutor domainEventExecutor(
       @Value("${rp.environment.variable.executor.pool.domain-event.core:5}") Integer corePoolSize,
       @Value("${rp.environment.variable.executor.pool.domain-event.max:10}") Integer maxPoolSize,
       @Value("${rp.environment.variable.executor.pool.domain-event.queue:1000}")
-      Integer queueCapacity) {
+      Integer queueCapacity, PlatformTransactionManager transactionManager) {
     final ThreadPoolTaskExecutor threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
     threadPoolTaskExecutor.setCorePoolSize(corePoolSize);
     threadPoolTaskExecutor.setMaxPoolSize(maxPoolSize);
     threadPoolTaskExecutor.setQueueCapacity(queueCapacity);
     threadPoolTaskExecutor.setAllowCoreThreadTimeOut(true);
     threadPoolTaskExecutor.setThreadNamePrefix("domain-event-exec");
-    threadPoolTaskExecutor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
+    threadPoolTaskExecutor.setRejectedExecutionHandler(
+        new TransactionSuspendingCallerRunsPolicy(transactionManager));
     return threadPoolTaskExecutor;
   }
 

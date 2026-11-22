@@ -231,7 +231,9 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
   }
 
   @Override
-  public List<String> getTicketIds(Long launchId, String term) {
+  public List<String> getTicketIds(Long launchId, MembershipDetails membershipDetails,
+      ReportPortalUser user, String term) {
+    launchAccessValidator.validate(launchId, membershipDetails, user);
     BusinessRule.expect(term.length() > 2, Predicates.equalTo(true))
         .verify(ErrorType.INCORRECT_FILTER_PARAMETERS, Suppliers.formattedSupplier(
             "Length of the filtering string '{}' is less than 3 symbols", term));

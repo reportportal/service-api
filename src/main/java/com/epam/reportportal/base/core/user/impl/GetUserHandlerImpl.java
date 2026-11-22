@@ -158,9 +158,8 @@ public class GetUserHandlerImpl implements GetUserHandler {
   public Map<String, UserResource.AssignedProject> getUserProjects(String userName,
       ReportPortalUser currentUser) {
     if (currentUser.getUserRole() != UserRole.ADMINISTRATOR) {
-      boolean self = userRepository.findByLogin(EntityUtils.normalizeId(userName))
-          .map(user -> user.getId().equals(currentUser.getUserId()))
-          .orElse(false);
+      boolean self = EntityUtils.normalizeId(userName)
+          .equals(EntityUtils.normalizeId(currentUser.getUsername()));
       if (!self) {
         throw new ReportPortalException(ErrorType.ACCESS_DENIED);
       }

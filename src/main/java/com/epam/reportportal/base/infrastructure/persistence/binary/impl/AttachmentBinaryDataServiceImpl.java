@@ -42,8 +42,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Paths;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -133,7 +133,8 @@ public class AttachmentBinaryDataServiceImpl implements AttachmentBinaryDataServ
   private String resolveFileName(AttachmentMetaInfo metaInfo, MultipartFile file,
       String contentType) {
     String extension = resolveExtension(contentType).orElse(resolveExtension(true, file));
-    return metaInfo.getLogUuid() + "-" + file.getName() + extension;
+    return FilePathGenerator.sanitizePathSegment(metaInfo.getLogUuid()) + "-" + UUID.randomUUID()
+        + extension;
   }
 
   @Override
@@ -169,21 +170,15 @@ public class AttachmentBinaryDataServiceImpl implements AttachmentBinaryDataServ
 
   @Override
   public BinaryData load(Long fileId, MembershipDetails membershipDetails) {
-    try {
-      Attachment attachment = attachmentRepository.findById(fileId)
-          .orElseThrow(() -> new ReportPortalException(ErrorType.ATTACHMENT_NOT_FOUND, fileId));
-      InputStream data = dataStoreService.load(attachment.getFileId()).orElseThrow(
-          () -> new ReportPortalException(ErrorType.UNABLE_TO_LOAD_BINARY_DATA, fileId));
-      expect(attachment.getProjectId(), Predicate.isEqual(membershipDetails.getProjectId())).verify(
-          ErrorType.ACCESS_DENIED, formattedSupplier("You are not assigned to project '{}'",
-              membershipDetails.getProjectName()));
-      return new BinaryData(attachment.getFileName(), attachment.getContentType(),
-          (long) data.available(), data);
-    } catch (IOException e) {
-      LOGGER.error("Unable to load binary data", e);
-      throw new ReportPortalException(ErrorType.UNCLASSIFIED_REPORT_PORTAL_ERROR,
-          "Unable to load binary data");
-    }
+    Attachment attachment = attachmentRepository.findById(fileId)
+        .orElseThrow(() -> new ReportPortalException(ErrorType.ATTACHMENT_NOT_FOUND, fileId));
+    expect(attachment.getProjectId(), Predicate.isEqual(membershipDetails.getProjectId())).verify(
+        ErrorType.ACCESS_DENIED, formattedSupplier("You are not assigned to project '{}'",
+            membershipDetails.getProjectName()));
+    long fileSize = resolveFileSize(attachment);
+    InputStream data = dataStoreService.load(attachment.getFileId()).orElseThrow(
+        () -> new ReportPortalException(ErrorType.UNABLE_TO_LOAD_BINARY_DATA, fileId));
+    return new BinaryData(attachment.getFileName(), attachment.getContentType(), fileSize, data);
   }
 
   @Override
@@ -201,7 +196,18 @@ public class AttachmentBinaryDataServiceImpl implements AttachmentBinaryDataServ
         ErrorType.ACCESS_DENIED, formattedSupplier("You are not assigned to project '{}'",
             membershipDetails.getProjectName()));
     return new AttachmentStreamMetadata(attachment.getFileId(), attachment.getFileName(),
-        attachment.getContentType(), attachment.getFileSize());
+        attachment.getContentType(), resolveFileSize(attachment));
+  }
+
+  /**
+   * Returns the stored size of the attachment, or the real object size when the stored value is
+   * missing (legacy rows with {@code file_size = 0}).
+   */
+  private long resolveFileSize(Attachment attachment) {
+    if (attachment.getFileSize() > 0) {
+      return attachment.getFileSize();
+    }
+    return dataStoreService.getSize(attachment.getFileId());
   }
 
   @Override
@@ -218,18 +224,6 @@ public class AttachmentBinaryDataServiceImpl implements AttachmentBinaryDataServ
       dataStoreService.delete(fileId);
       attachmentRepository.findByFileId(fileId).ifPresent(attachmentRepository::delete);
     }
-  }
-
-  @Override
-  public void deleteAllByProjectId(Long projectId) {
-    if (featureFlagHandler.isEnabled(FeatureFlag.SINGLE_BUCKET)) {
-      dataStoreService.deleteAll(
-          attachmentRepository.findAllByProjectId(projectId).stream().map(Attachment::getFileId)
-              .collect(Collectors.toList()), projectId.toString());
-    } else {
-      dataStoreService.deleteContainer(projectId.toString());
-    }
-    attachmentRepository.deleteAllByProjectId(projectId);
   }
 
   private String resolveContentType(MultipartFile file) throws IOException {

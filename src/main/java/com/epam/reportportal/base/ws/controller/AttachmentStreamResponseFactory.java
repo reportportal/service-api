@@ -75,16 +75,49 @@ public class AttachmentStreamResponseFactory {
   /**
    * Creates a response for an input stream that was already bounded to the resolved range.
    *
+   * <p>The returned body owns the stream and closes it after writing; if the response cannot be
+   * built, the stream is closed here.</p>
+   *
    * @param binaryData attachment data
    * @param range      resolved storage range
    * @return streaming response
    */
   public ResponseEntity<StreamingResponseBody> toStreamingResponse(BinaryData binaryData,
       AttachmentStreamRange range) {
+    try {
+      return createRangeResponse(binaryData, range);
+    } catch (RuntimeException e) {
+      close(binaryData.getInputStream());
+      throw e;
+    }
+  }
+
+  /**
+   * Creates a streaming HTTP response for the requested attachment range.
+   *
+   * <p>The returned body owns the stream and closes it after writing; if the response cannot be
+   * built, the stream is closed here.</p>
+   *
+   * @param binaryData attachment data
+   * @param request    HTTP request
+   * @return streaming response
+   */
+  public ResponseEntity<StreamingResponseBody> toStreamingResponse(BinaryData binaryData,
+      HttpServletRequest request) {
+    try {
+      return createResponse(binaryData, request);
+    } catch (RuntimeException e) {
+      close(binaryData.getInputStream());
+      throw e;
+    }
+  }
+
+  private ResponseEntity<StreamingResponseBody> createRangeResponse(BinaryData binaryData,
+      AttachmentStreamRange range) {
     final var binaryStream = binaryData.getInputStream();
     if (range.type() == AttachmentStreamRange.Type.UNSATISFIABLE) {
-      close(binaryStream);
       var headers = createHeaders(binaryData);
+      close(binaryStream);
       headers.set(HttpHeaders.CONTENT_RANGE, "bytes */" + range.totalLength());
       return ResponseEntity.status(HttpStatus.REQUESTED_RANGE_NOT_SATISFIABLE).headers(headers)
           .build();
@@ -115,14 +148,7 @@ public class AttachmentStreamResponseFactory {
             : HttpStatus.OK).headers(headers).body(responseBody);
   }
 
-  /**
-   * Creates a streaming HTTP response for the requested attachment range.
-   *
-   * @param binaryData attachment data
-   * @param request    HTTP request
-   * @return streaming response
-   */
-  public ResponseEntity<StreamingResponseBody> toStreamingResponse(BinaryData binaryData,
+  private ResponseEntity<StreamingResponseBody> createResponse(BinaryData binaryData,
       HttpServletRequest request) {
     final var binaryStream = binaryData.getInputStream();
     if (binaryStream == null) {

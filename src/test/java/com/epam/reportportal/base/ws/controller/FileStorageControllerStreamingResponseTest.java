@@ -4,7 +4,12 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.epam.reportportal.base.infrastructure.persistence.entity.attachment.BinaryData;
@@ -20,6 +25,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.InvalidMediaTypeException;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
@@ -185,6 +191,65 @@ class FileStorageControllerStreamingResponseTest {
     var output = new ByteArrayOutputStream();
     body.writeTo(output);
     assertArrayEquals(data, output.toByteArray());
+  }
+
+  @Test
+  void closesStreamOnceAfterWritingFullResponse() throws IOException {
+    var stream = spy(new ByteArrayInputStream("test-data".getBytes(StandardCharsets.UTF_8)));
+    var binaryData = new BinaryData("test.txt", MediaType.TEXT_PLAIN_VALUE, 9L, stream);
+
+    var response = invokeToStreamingResponse(binaryData);
+    verify(stream, never()).close();
+    response.getBody().writeTo(new ByteArrayOutputStream());
+
+    verify(stream, times(1)).close();
+  }
+
+  @Test
+  void closesStreamOnceAfterWritingBoundedRangeResponse() throws IOException {
+    var stream = spy(new ByteArrayInputStream("lloW".getBytes(StandardCharsets.UTF_8)));
+    var binaryData = new BinaryData("greeting.txt", MediaType.TEXT_PLAIN_VALUE, 10L, stream);
+
+    var response = responseFactory.toStreamingResponse(binaryData,
+        AttachmentStreamRange.partial(2, 5, 10));
+    verify(stream, never()).close();
+    response.getBody().writeTo(new ByteArrayOutputStream());
+
+    verify(stream, times(1)).close();
+  }
+
+  @Test
+  void closesStreamOnceWhenBoundedRangeIsUnsatisfiable() throws IOException {
+    var stream = spy(new ByteArrayInputStream(new byte[0]));
+    var binaryData = new BinaryData("data.bin", MediaType.APPLICATION_OCTET_STREAM_VALUE, 0L,
+        stream);
+
+    var response = responseFactory.toStreamingResponse(binaryData,
+        AttachmentStreamRange.unsatisfiable(0));
+
+    assertEquals(HttpStatus.REQUESTED_RANGE_NOT_SATISFIABLE, response.getStatusCode());
+    verify(stream, times(1)).close();
+  }
+
+  @Test
+  void closesStreamWhenFullResponseCannotBeBuilt() throws IOException {
+    var stream = spy(new ByteArrayInputStream(new byte[1]));
+    var binaryData = new BinaryData("data.bin", "not a media type", 1L, stream);
+
+    assertThrows(InvalidMediaTypeException.class, () -> invokeToStreamingResponse(binaryData));
+
+    verify(stream, times(1)).close();
+  }
+
+  @Test
+  void closesStreamWhenBoundedRangeResponseCannotBeBuilt() throws IOException {
+    var stream = spy(new ByteArrayInputStream(new byte[1]));
+    var binaryData = new BinaryData("data.bin", "not a media type", 1L, stream);
+
+    assertThrows(InvalidMediaTypeException.class,
+        () -> responseFactory.toStreamingResponse(binaryData, AttachmentStreamRange.full(1)));
+
+    verify(stream, times(1)).close();
   }
 
   private ResponseEntity<StreamingResponseBody> invokeToStreamingResponse(BinaryData binaryData) {

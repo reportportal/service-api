@@ -23,6 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -50,6 +51,7 @@ import java.util.Collections;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -168,6 +170,7 @@ class DeleteLogHandlerTest {
     attachment.setFileId(attachmentPath);
     String attachmentThumbnailPath = "attachmentThumbnail";
     attachment.setThumbnailId(attachmentThumbnailPath);
+    attachment.setId(5L);
     log.setAttachment(attachment);
 
     when(testItemService.getEffectiveLaunch(any(TestItem.class))).thenReturn(launch);
@@ -176,7 +179,9 @@ class DeleteLogHandlerTest {
 
     handler.deleteLog(logId, extractProjectDetails(user, TEST_PROJECT_KEY), user);
 
-    verify(logRepository, times(1)).delete(log);
+    InOrder inOrder = inOrder(attachmentRepository, logRepository);
+    inOrder.verify(attachmentRepository).moveForDeletion(5L);
+    inOrder.verify(logRepository, times(1)).delete(log);
     verify(logIndexer, times(1)).cleanIndex(projectId, Collections.singletonList(logId));
   }
 

@@ -34,6 +34,8 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestIte
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItemResults;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.MembershipDetails;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCaseExecution;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCaseExecutionComment;
+import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.model.item.UpdateTestItemRQ;
 import java.util.Arrays;
@@ -672,6 +674,54 @@ class TmsTestCaseExecutionServiceImplTest {
 
     assertThrows(DataIntegrityViolationException.class,
         () -> sut.addTestCasesToLaunch(projectId, launch, List.of(testCaseId1)));
+  }
+
+  @Test
+  void addTestCasesToLaunch_WhenServiceThrowsReportPortalException_ShouldPropagateException() {
+    var launch = new Launch();
+    launch.setId(10L);
+    var projectId = 1L;
+    var testCase = TmsTestCaseRS.builder()
+        .id(testCaseId1)
+        .name("TC 1")
+        .testFolder(TmsTestCaseTestFolderRS.builder().id(100L).build())
+        .build();
+
+    when(tmsTestCaseService.getExistingTestCaseIds(projectId, List.of(testCaseId1)))
+        .thenReturn(List.of(testCaseId1));
+    when(tmsTestCaseExecutionRepository.findTestCaseIdsByLaunchId(launch.getId()))
+        .thenReturn(Set.of());
+    when(tmsTestCaseService.getByIdsMap(projectId, List.of(testCaseId1), false))
+        .thenReturn(Map.of(testCaseId1, testCase));
+    when(testFolderItemService.findTestFolderItem(eq(projectId), eq(100L), eq(launch), any()))
+        .thenThrow(new ReportPortalException(ErrorType.NOT_FOUND, "folder"));
+
+    assertThrows(ReportPortalException.class,
+        () -> sut.addTestCasesToLaunch(projectId, launch, List.of(testCaseId1)));
+  }
+
+  // ==================== deleteTestCaseExecutionFromLaunch ====================
+
+  @Test
+  void deleteTestCaseExecutionFromLaunch_WhenTestItemWasDeleted_ShouldDeleteExecutionOnly() {
+    var projectId = 1L;
+    var launchId = 10L;
+    var executionId = 5L;
+    var execution = new TmsTestCaseExecution();
+    execution.setId(executionId);
+    execution.setLaunchId(launchId);
+    execution.setTestItem(null);
+    execution.setExecutionComment(new TmsTestCaseExecutionComment());
+
+    when(tmsTestCaseExecutionRepository.findById(executionId)).thenReturn(Optional.of(execution));
+
+    sut.deleteTestCaseExecutionFromLaunch(projectId, launchId, executionId);
+
+    verify(tmsTestCaseExecutionCommentService)
+        .deleteTestCaseExecutionComment(projectId, launchId, execution);
+    verify(tmsStepExecutionService).deleteStepExecutionsByTestCaseExecution(executionId);
+    verify(tmsTestCaseExecutionRepository).deleteById(executionId);
+    verifyNoInteractions(testItemRepository, testFolderItemService);
   }
 
   // ==================== isTestCaseInLaunch ====================

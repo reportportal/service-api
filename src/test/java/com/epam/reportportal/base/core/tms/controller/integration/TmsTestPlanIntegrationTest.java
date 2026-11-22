@@ -41,6 +41,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.databind.json.JsonMapper;
 
 /**
@@ -113,6 +114,25 @@ public class TmsTestPlanIntegrationTest extends BaseMvcTest {
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.content").isArray())
+        .andExpect(jsonPath("$.content.length()").value(10));
+  }
+
+  @Test
+  void getTestPlansSortedAndFilteredByCreatedAtIntegrationTest() throws Exception {
+    mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-plan")
+            .param("offset", "0")
+            .param("limit", "10")
+            .param("sort", "createdAt,desc")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content.length()").value(10));
+
+    mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-plan")
+            .param("offset", "0")
+            .param("limit", "10")
+            .param("filter.ex.updatedAt", "true")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
         .andExpect(jsonPath("$.content.length()").value(10));
   }
 
@@ -223,6 +243,42 @@ public class TmsTestPlanIntegrationTest extends BaseMvcTest {
         .andExpect(status().isOk());
 
     assertFalse(testPlanRepository.findById(6L).isPresent());
+  }
+
+  @Test
+  void deleteTestPlanClearsTestPlanIdOfItsLaunchesIntegrationTest() throws Exception {
+    mockMvc.perform(delete("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-plan/"
+            + TEST_PLAN_WITH_TEST_CASES_ID)
+            .contentType(MediaType.APPLICATION_JSON)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk());
+
+    var remainingReferences = ((Number) entityManager
+        .createNativeQuery("SELECT COUNT(*) FROM launch WHERE test_plan_id = :testPlanId")
+        .setParameter("testPlanId", TEST_PLAN_WITH_TEST_CASES_ID)
+        .getSingleResult()).longValue();
+    assertEquals(0L, remainingReferences);
+    var launchCount = ((Number) entityManager
+        .createNativeQuery("SELECT COUNT(*) FROM launch WHERE id IN (300, 301, 302)")
+        .getSingleResult()).longValue();
+    assertEquals(3L, launchCount);
+  }
+
+  @Test
+  void insertTestPlanTestCaseInProjectIsGuardedByProjectIntegrationTest() {
+    // wrong project: nothing inserted, no exception
+    assertEquals(0, tmsTestPlanTestCaseRepository.insertTestPlanTestCaseInProject(
+        2L, TEST_PLAN_WITH_TEST_CASES_ID, TEST_CASE_NOT_IN_PLAN_ID));
+    // deleted / missing test plan: nothing inserted, no foreign key violation
+    assertEquals(0, tmsTestPlanTestCaseRepository.insertTestPlanTestCaseInProject(
+        1L, NON_EXISTENT_TEST_PLAN_ID, TEST_CASE_NOT_IN_PLAN_ID));
+    // same project: inserted once, then ignored
+    assertEquals(1, tmsTestPlanTestCaseRepository.insertTestPlanTestCaseInProject(
+        1L, TEST_PLAN_WITH_TEST_CASES_ID, TEST_CASE_NOT_IN_PLAN_ID));
+    assertEquals(0, tmsTestPlanTestCaseRepository.insertTestPlanTestCaseInProject(
+        1L, TEST_PLAN_WITH_TEST_CASES_ID, TEST_CASE_NOT_IN_PLAN_ID));
+    assertTrue(tmsTestPlanTestCaseRepository.findTestCaseIdsByTestPlanId(
+        TEST_PLAN_WITH_TEST_CASES_ID).contains(TEST_CASE_NOT_IN_PLAN_ID));
   }
 
   @Test
@@ -499,6 +555,19 @@ public class TmsTestPlanIntegrationTest extends BaseMvcTest {
         .andExpect(jsonPath("$.executionStatistic").exists())
         .andExpect(jsonPath("$.executionStatistic.total").value(2))
         .andExpect(jsonPath("$.executionStatistic.covered").value(1));
+  }
+
+  @Test
+  void executionStatisticCountsOnlyTestCasesOfThePlanIntegrationTest() throws Exception {
+    // Given - the executed (PASSED) test case 100 is removed from plan 100, only 101 is left
+    tmsTestPlanTestCaseRepository.deleteByTestPlanIdAndTestCaseId(100L, 100L);
+
+    // When/Then - the execution of a test case outside the plan is not counted as covered
+    mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-plan/100")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.executionStatistic.total").value(1))
+        .andExpect(jsonPath("$.executionStatistic.covered").value(0));
   }
 
   @Test
@@ -1589,5 +1658,25 @@ public class TmsTestPlanIntegrationTest extends BaseMvcTest {
         .andExpect(jsonPath("$.content").isArray())
         .andExpect(jsonPath("$.content.length()").value(0))
         .andExpect(jsonPath("$.page.totalElements").value(0));
+  }
+
+  @Test
+  @Transactional
+  void insertTestCasesInProjectReturnsOnlyActuallyInsertedIdsIntegrationTest() {
+    // 200 is already in plan 200 (as if added concurrently after validation), 204 is not
+    var inserted = tmsTestPlanTestCaseRepository.insertTestPlanTestCasesInProject(1L,
+        TEST_PLAN_WITH_TEST_CASES_ID, List.of(TEST_CASE_WITH_MULTIPLE_EXECUTIONS_ID, TEST_CASE_NOT_IN_PLAN_ID));
+
+    assertEquals(List.of(TEST_CASE_NOT_IN_PLAN_ID), inserted);
+  }
+
+  @Test
+  @Transactional
+  void deleteTestCasesFromPlanReturnsOnlyActuallyDeletedIdsIntegrationTest() {
+    // 200 is in plan 200, 204 is not (as if removed concurrently after validation)
+    var deleted = tmsTestPlanTestCaseRepository.deleteByTestPlanIdAndTestCaseIds(
+        TEST_PLAN_WITH_TEST_CASES_ID, List.of(TEST_CASE_WITH_MULTIPLE_EXECUTIONS_ID, TEST_CASE_NOT_IN_PLAN_ID));
+
+    assertEquals(List.of(TEST_CASE_WITH_MULTIPLE_EXECUTIONS_ID), deleted);
   }
 }

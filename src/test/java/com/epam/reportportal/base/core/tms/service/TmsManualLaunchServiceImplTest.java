@@ -8,6 +8,10 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -21,11 +25,13 @@ import com.epam.reportportal.base.core.tms.dto.AddTestCaseToLaunchRQ;
 import com.epam.reportportal.base.core.tms.dto.CreateTmsManualLaunchRQ;
 import com.epam.reportportal.base.core.tms.dto.CreateTmsManualLaunchRS;
 import com.epam.reportportal.base.core.tms.dto.TmsManualLaunchExecutionStatisticRS;
+import com.epam.reportportal.base.core.tms.dto.TmsManualLaunchRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsManualLaunchRS;
 import com.epam.reportportal.base.core.tms.dto.TmsManualLaunchTestPlanRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseExecutionCommentRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseExecutionCommentRS;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchDeleteManualLaunchesRQ;
+import com.epam.reportportal.base.core.tms.dto.batch.BatchDeleteTestCaseExecutionsRQ;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchTestCaseOperationResultRS;
 import com.epam.reportportal.base.core.tms.mapper.TmsManualLaunchMapper;
 import com.epam.reportportal.base.core.user.GetUserHandler;
@@ -48,6 +54,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.transaction.PlatformTransactionManager;
 
 @ExtendWith(MockitoExtension.class)
 class TmsManualLaunchServiceImplTest {
@@ -82,6 +89,8 @@ class TmsManualLaunchServiceImplTest {
   private TmsTestCaseService tmsTestCaseService;
   @Mock
   private RetentionPolicyAttributeHandler retentionPolicyAttributeHandler;
+  @Mock
+  private PlatformTransactionManager transactionManager;
   @InjectMocks
   private TmsManualLaunchServiceImpl sut;
   private MembershipDetails membershipDetails;
@@ -116,6 +125,7 @@ class TmsManualLaunchServiceImplTest {
     // Manual setting of dependencies that are injected via setters in the service
     sut.setTmsTestCaseExecutionService(tmsTestCaseExecutionService);
     sut.setTmsTestCaseService(tmsTestCaseService);
+    sut.setTransactionManager(transactionManager);
   }
 
   // -------------------------------------------------------------------------
@@ -177,6 +187,44 @@ class TmsManualLaunchServiceImplTest {
     verify(launchRepository).refresh(launch);
     verify(tmsTestPlanService).getTestCaseIdsAddedToPlan(projectId, testPlanId);
     verify(tmsTestCaseExecutionService).addTestCasesToLaunch(projectId, launch, List.of(10L, 20L));
+  }
+
+  @Test
+  void create_WithTestPlanOfAnotherProject_ShouldThrowNotFoundAndNotSaveLaunch() {
+    TmsManualLaunchTestPlanRQ planRQ = new TmsManualLaunchTestPlanRQ();
+    planRQ.setId(testPlanId);
+    createLaunchRQ.setTestPlan(planRQ);
+    createLaunchRQ.setTestCaseIds(List.of(testCaseId));
+
+    doThrow(new ReportPortalException(NOT_FOUND, "plan"))
+        .when(tmsTestPlanService).verifyTestPlanExists(projectId, testPlanId);
+
+    var exception = assertThrows(ReportPortalException.class,
+        () -> sut.create(projectId, user, createLaunchRQ));
+    assertEquals(NOT_FOUND, exception.getErrorType());
+
+    verify(launchRepository, never()).save(any());
+    verify(tmsTestCaseExecutionService, never()).addTestCasesToLaunch(anyLong(), any(), any());
+  }
+
+  @Test
+  void patch_WithTestPlanOfAnotherProject_ShouldThrowNotFoundAndNotSaveLaunch() {
+    TmsManualLaunchTestPlanRQ planRQ = new TmsManualLaunchTestPlanRQ();
+    planRQ.setId(testPlanId);
+    var patchRQ = new TmsManualLaunchRQ();
+    patchRQ.setTestPlan(planRQ);
+
+    when(launchRepository.findManualLaunchByIdAndProjectId(launchId, projectId))
+        .thenReturn(Optional.of(launch));
+    doThrow(new ReportPortalException(NOT_FOUND, "plan"))
+        .when(tmsTestPlanService).verifyTestPlanExists(projectId, testPlanId);
+
+    var exception = assertThrows(ReportPortalException.class,
+        () -> sut.patch(projectId, user, launchId, patchRQ));
+    assertEquals(NOT_FOUND, exception.getErrorType());
+
+    verify(tmsManualLaunchMapper, never()).patch(any(), any());
+    verify(launchRepository, never()).save(any());
   }
 
   // -------------------------------------------------------------------------
@@ -275,6 +323,69 @@ class TmsManualLaunchServiceImplTest {
     verify(testItemService).deleteByLaunchId(projectId, launchId);
     verify(tmsManualLaunchAttributeService).deleteAllByLaunchId(launchId);
     verify(deleteLaunchHandler).deleteLaunch(launchId, membershipDetails, user);
+  }
+
+  @Test
+  void batchDeleteTestCaseExecutions_ShouldCheckAllIdsWithOneQueryAndReportMissing() {
+    var rq = new BatchDeleteTestCaseExecutionsRQ();
+    rq.setExecutionIds(List.of(1L, 2L, 1L));
+    when(launchRepository.existsByIdAndProjectId(launchId, projectId)).thenReturn(true);
+    when(tmsTestCaseExecutionService.findExecutionIdsInLaunch(List.of(1L, 2L, 1L), launchId))
+        .thenReturn(List.of(1L));
+
+    sut.batchDeleteTestCaseExecutions(projectId, launchId, rq);
+
+    verify(tmsTestCaseExecutionService).deleteTestCaseExecutionFromLaunch(projectId, launchId, 1L);
+    verify(tmsTestCaseExecutionService, never())
+        .deleteTestCaseExecutionFromLaunch(projectId, launchId, 2L);
+    verify(tmsTestCaseExecutionService, never()).existsByTestCaseExecutionIdAndLaunchId(any(), any());
+    verify(tmsManualLaunchMapper).convertToBatchDeleteExecutionsResponse(
+        eq(List.of(1L, 2L, 1L)), eq(List.of(1L)), argThat(errors -> errors.size() == 2));
+  }
+
+  @Test
+  void batchDeleteTestCaseExecutions_WhenDeleteFails_ShouldPropagateException() {
+    var rq = new BatchDeleteTestCaseExecutionsRQ();
+    rq.setExecutionIds(List.of(1L, 2L));
+    when(launchRepository.existsByIdAndProjectId(launchId, projectId)).thenReturn(true);
+    when(tmsTestCaseExecutionService.findExecutionIdsInLaunch(List.of(1L, 2L), launchId))
+        .thenReturn(List.of(1L, 2L));
+    doThrow(new RuntimeException("Database error")).when(tmsTestCaseExecutionService)
+        .deleteTestCaseExecutionFromLaunch(projectId, launchId, 1L);
+
+    assertThrows(RuntimeException.class,
+        () -> sut.batchDeleteTestCaseExecutions(projectId, launchId, rq));
+    verify(tmsTestCaseExecutionService, never())
+        .deleteTestCaseExecutionFromLaunch(projectId, launchId, 2L);
+  }
+
+  @Test
+  void batchDeleteManualLaunches_ShouldDeleteEachLaunchInOwnTransactionAndRecordFailures() {
+    var failingLaunch = new Launch();
+    failingLaunch.setId(101L);
+    failingLaunch.setProjectId(projectId);
+    when(membershipDetails.getProjectId()).thenReturn(projectId);
+    when(launchRepository.findManualLaunchByIdAndProjectId(launchId, projectId))
+        .thenReturn(Optional.of(launch));
+    when(launchRepository.findManualLaunchByIdAndProjectId(101L, projectId))
+        .thenReturn(Optional.of(failingLaunch));
+    when(launchRepository.findManualLaunchByIdAndProjectId(102L, projectId))
+        .thenReturn(Optional.empty());
+    lenient().doThrow(new RuntimeException("Delete failed"))
+        .when(deleteLaunchHandler).deleteLaunch(101L, membershipDetails, user);
+
+    sut.batchDeleteManualLaunches(membershipDetails,
+        new BatchDeleteManualLaunchesRQ(List.of(launchId, 101L, 102L)), user);
+
+    // one transaction per launch: two committed, the failing one rolled back
+    verify(transactionManager, times(3)).getTransaction(any());
+    verify(transactionManager, times(2)).commit(any());
+    verify(transactionManager, times(1)).rollback(any());
+    verify(tmsManualLaunchMapper).convertToBatchDeleteResponse(
+        eq(List.of(launchId, 101L, 102L)), eq(List.of(launchId)),
+        argThat(errors -> errors.size() == 2
+            && "Delete failed".equals(errors.get(0).getErrorMessage())
+            && "Manual Launch not found in project".equals(errors.get(1).getErrorMessage())));
   }
 
   // -------------------------------------------------------------------------

@@ -125,6 +125,22 @@ class TmsFolderSyncServiceImplTest {
     verify(tmsSyncJobRepository, never()).findById(any());
   }
 
+  @Test
+  void syncFolders_ExistingFolderMovedToOtherParent_ClosesIndexGapInOldParent() {
+    var existing = folder(10L, "R", 7L);
+    existing.setIndex(2);
+    var remote = RemoteFolder.builder().id("R").name("R").parentId("S").build();
+    when(tmsTestFolderRepository.findByProjectIdAndExternalIdIn(eq(PROJECT_ID), any()))
+        .thenReturn(List.of(existing));
+    when(tmsTestFolderRepository.findFolderIdAndParentIdByProjectId(PROJECT_ID))
+        .thenReturn(List.of(new Object[]{10L, 7L}, new Object[]{30L, null}));
+    when(tmsTestFolderRepository.findMaxIndex(PROJECT_ID, 30L)).thenReturn(4);
+
+    sut.syncFolders(job, List.of(remote), 30L);
+
+    verify(tmsTestFolderRepository).shiftIndexes(PROJECT_ID, 7L, 3, -1);
+  }
+
   private TmsTestFolder folder(Long id, String externalId, Long parentId) {
     var folder = new TmsTestFolder();
     folder.setId(id);

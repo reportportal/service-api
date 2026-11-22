@@ -114,6 +114,12 @@ public class TmsFolderSyncServiceImpl implements TmsFolderSyncService {
           if (folderParents.createsCycle(existing.getId(), newParentId)) {
             recordCycleError(job, remoteFolder, existing.getId(), newParentId);
           } else {
+            // Close the gap the folder leaves in its old parent
+            if (existing.getIndex() != null) {
+              tmsTestFolderRepository.shiftIndexes(job.getProject().getId(), currentParentId,
+                  existing.getIndex() + 1, -1);
+              nextIndexMap.computeIfPresent(currentParentId, (pid, next) -> next - 1);
+            }
             parentFolderId = newParentId;
             index = nextIndex(job, parentFolderId, nextIndexMap);
           }

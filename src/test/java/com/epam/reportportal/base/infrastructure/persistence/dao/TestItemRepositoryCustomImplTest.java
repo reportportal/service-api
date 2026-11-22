@@ -34,8 +34,21 @@ class TestItemRepositoryCustomImplTest {
 
   @Test
   void regexLogMessageQueryHasStatementTimeout() throws Exception {
-    Connection connection = mock(Connection.class);
     PreparedStatement statement = mock(PreparedStatement.class);
+    repository(statement).selectIdsByRegexLogMessage(List.of(1L), 40000, "a+");
+    verify(statement).setQueryTimeout(10);
+  }
+
+  @Test
+  void regexLogMessageUnderQueryHasStatementTimeout() throws Exception {
+    PreparedStatement statement = mock(PreparedStatement.class);
+    repository(statement).selectIdsUnderByRegexLogMessage(1L, List.of(1L), 40000, "a+");
+    verify(statement).setQueryTimeout(10);
+  }
+
+  private static TestItemRepositoryCustomImpl repository(PreparedStatement statement)
+      throws Exception {
+    Connection connection = mock(Connection.class);
     ResultSet resultSet = mock(ResultSet.class);
     ResultSetMetaData metaData = mock(ResultSetMetaData.class);
     when(connection.prepareStatement(anyString())).thenReturn(statement);
@@ -47,10 +60,6 @@ class TestItemRepositoryCustomImplTest {
     when(metaData.getColumnLabel(1)).thenReturn("item_id");
     when(metaData.getColumnType(1)).thenReturn(java.sql.Types.BIGINT);
     when(resultSet.next()).thenReturn(false);
-
-    new TestItemRepositoryCustomImpl(DSL.using(connection, SQLDialect.POSTGRES))
-        .selectIdsByRegexLogMessage(List.of(1L), 40000, "a+");
-
-    verify(statement).setQueryTimeout(10);
+    return new TestItemRepositoryCustomImpl(DSL.using(connection, SQLDialect.POSTGRES));
   }
 }

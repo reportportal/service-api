@@ -321,6 +321,9 @@ public class ProjectInfoCteQueryBuilder {
       };
 
       return condition != null && fc.isNegative() ? condition.not() : condition;
+    } catch (ReportPortalException e) {
+      // value that cannot be cast is a 400, same as the regular filter path
+      throw e;
     } catch (Exception e) {
       log.warn("Invalid conditions", e);
       return null;

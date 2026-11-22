@@ -1108,6 +1108,7 @@ public class TestItemRepositoryCustomImpl implements TestItemRepositoryCustom {
         .and(LOG.LOG_LEVEL.lessOrEqual(LogLevel.UNKNOWN_INT))
         .and(LOG.LOG_MESSAGE.likeRegex(pattern))
         .groupBy(TEST_ITEM.ITEM_ID)
+        .queryTimeout(REGEX_QUERY_TIMEOUT_SEC)
         .fetchInto(Long.class);
   }
 

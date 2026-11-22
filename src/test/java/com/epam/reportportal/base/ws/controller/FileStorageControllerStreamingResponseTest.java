@@ -70,6 +70,8 @@ class FileStorageControllerStreamingResponseTest {
       assertEquals("inline", response.getHeaders().getContentDisposition().getType(),
           contentType);
       assertEquals("nosniff", response.getHeaders().getFirst("X-Content-Type-Options"));
+      assertEquals("application/pdf".equals(contentType) ? null : "sandbox",
+          response.getHeaders().getFirst("Content-Security-Policy"), contentType);
     }
   }
 

@@ -223,7 +223,14 @@ public class AttachmentStreamResponseFactory {
         });
 
     headers.set("X-Content-Type-Options", "nosniff");
-    headers.set("Content-Security-Policy", "sandbox");
+    // A sandboxed document cannot load the browser's built-in PDF viewer, which would leave inline PDFs blank
+    if (mediaType.filter(AttachmentStreamResponseFactory::isPdf).isEmpty()) {
+      headers.set("Content-Security-Policy", "sandbox");
+    }
+  }
+
+  private static boolean isPdf(MediaType type) {
+    return "application".equals(type.getType()) && "pdf".equals(type.getSubtype());
   }
 
   private static boolean isInlineSafe(MediaType type) {
@@ -233,7 +240,7 @@ public class AttachmentStreamResponseFactory {
       return !"svg+xml".equalsIgnoreCase(subtype) && !"svg".equalsIgnoreCase(subtype);
     }
     return "video".equals(main) || "audio".equals(main)
-        || ("application".equals(main) && "pdf".equals(subtype))
+        || isPdf(type)
         || ("text".equals(main) && "plain".equals(subtype));
   }
 

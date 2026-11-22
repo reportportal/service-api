@@ -1627,7 +1627,6 @@ class TmsTestFolderServiceImplTest {
 
     verify(tmsTestFolderRepository).findAllFolderIdsInHierarchy(projectId, rootFolderId);
     verify(tmsTestFolderMapper).duplicateTestFolder(eq(rootFolder), eq(null));
-    // findMaxIndex should NOT be called because specific index was provided
     verify(tmsTestFolderRepository).shiftIndexes(projectId, null, targetIndex, 1);
     verify(tmsTestFolderRepository).save(any(TmsTestFolder.class));
   }
@@ -1704,7 +1703,6 @@ class TmsTestFolderServiceImplTest {
 
     verify(tmsTestFolderRepository).existsByIdAndProjectId(targetParentId, projectId);
     verify(tmsTestFolderRepository).findByIdAndProjectId(targetParentId, projectId);
-    // findMaxIndex should NOT be called for the root folder because specific index was provided
     verify(tmsTestFolderRepository).shiftIndexes(projectId, targetParentId, targetIndex, 1);
   }
 

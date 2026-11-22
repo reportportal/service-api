@@ -633,8 +633,14 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
       // committed: the status cannot change to an error. Rethrow instead of ending the output
       // cleanly so that the connection is aborted and the client sees a failed download rather
       // than a truncated file.
-      log.error("Test case export failed for project {} ({} test cases, format {}), response "
-          + "committed: {}", projectId, idsToExport.size(), format, response.isCommitted(), e);
+      if (e.getCause() instanceof IOException) {
+        // The client went away mid-download (Jackson wraps stream IOExceptions): not a server error
+        log.debug("Test case export for project {} (format {}) interrupted: {}", projectId, format,
+            e.getCause().toString());
+      } else {
+        log.error("Test case export failed for project {} ({} test cases, format {}), response "
+            + "committed: {}", projectId, idsToExport.size(), format, response.isCommitted(), e);
+      }
       throw e;
     }
   }

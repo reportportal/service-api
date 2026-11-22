@@ -16,6 +16,7 @@
 
 package com.epam.reportportal.base.reporting.async.consumer;
 
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
@@ -27,12 +28,14 @@ import com.epam.reportportal.base.reporting.async.config.MessageHeaders;
 import com.epam.reportportal.base.reporting.async.config.RequestType;
 import com.epam.reportportal.base.reporting.async.handler.ReportingMessageHandler;
 import com.epam.reportportal.base.reporting.async.handler.provider.ReportingHandlerProvider;
+import java.sql.SQLTransientConnectionException;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageProperties;
 import org.springframework.dao.CannotAcquireLockException;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.transaction.CannotCreateTransactionException;
 
 class ReportingConsumerTest {
 
@@ -70,6 +73,20 @@ class ReportingConsumerTest {
 
     assertThrows(DataIntegrityViolationException.class, () -> consumer.onMessage(message));
 
+    verify(handler, times(1)).handleMessage(message);
+  }
+
+  @Test
+  void sqlExceptionWithoutStateIsPassedToErrorHandlerUnchanged() {
+    Message message = message();
+    CannotCreateTransactionException failure = new CannotCreateTransactionException("no connection",
+        new SQLTransientConnectionException("timeout"));
+    doThrow(failure).when(handler).handleMessage(message);
+
+    CannotCreateTransactionException thrown = assertThrows(CannotCreateTransactionException.class,
+        () -> consumer.onMessage(message));
+
+    assertSame(failure, thrown);
     verify(handler, times(1)).handleMessage(message);
   }
 

@@ -103,7 +103,7 @@ public final class ReportingFailureClassifier {
         || cause instanceof org.hibernate.PessimisticLockException
         || cause instanceof jakarta.persistence.PessimisticLockException
         || cause instanceof jakarta.persistence.LockTimeoutException
-        || (cause instanceof SQLException sqlException
+        || (cause instanceof SQLException sqlException && sqlException.getSQLState() != null
         && LOCK_CONFLICT_SQL_STATES.contains(sqlException.getSQLState())));
   }
 

@@ -210,12 +210,20 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
       }
     }
 
+    var addedTestCaseIds = new HashSet<Long>();
     if (!testCaseIdsToAdd.isEmpty()) {
-      tmsTestPlanTestCaseRepository.insertTestPlanTestCasesInProject(projectId, testPlanId,
-          List.copyOf(testCaseIdsToAdd));
+      // Count only the rows the statement really inserted: a concurrent request may have won
+      addedTestCaseIds.addAll(tmsTestPlanTestCaseRepository.insertTestPlanTestCasesInProject(
+          projectId, testPlanId, List.copyOf(testCaseIdsToAdd)));
+      for (var testCaseId : testCaseIdsToAdd) {
+        if (!addedTestCaseIds.contains(testCaseId)) {
+          errors.add(new BatchTestCaseOperationError(testCaseId,
+              String.format("Test case with id %s already exists in test plan", testCaseId)));
+        }
+      }
     }
 
-    return tmsTestPlanMapper.convertToRS(totalCount, testCaseIdsToAdd.size(), errors);
+    return tmsTestPlanMapper.convertToRS(totalCount, addedTestCaseIds.size(), errors);
   }
 
   @Override
@@ -242,12 +250,20 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
       }
     }
 
+    var removedTestCaseIds = new HashSet<Long>();
     if (!testCaseIdsToRemove.isEmpty()) {
-      tmsTestPlanTestCaseRepository.deleteByTestPlanIdAndTestCaseIds(testPlanId,
-          List.copyOf(testCaseIdsToRemove));
+      // Count only the rows the statement really deleted: a concurrent request may have won
+      removedTestCaseIds.addAll(tmsTestPlanTestCaseRepository.deleteByTestPlanIdAndTestCaseIds(
+          testPlanId, List.copyOf(testCaseIdsToRemove)));
+      for (var testCaseId : testCaseIdsToRemove) {
+        if (!removedTestCaseIds.contains(testCaseId)) {
+          errors.add(new BatchTestCaseOperationError(testCaseId,
+              String.format("Test case with id %s not found in test plan", testCaseId)));
+        }
+      }
     }
 
-    return tmsTestPlanMapper.convertToRS(totalCount, testCaseIdsToRemove.size(), errors);
+    return tmsTestPlanMapper.convertToRS(totalCount, removedTestCaseIds.size(), errors);
   }
 
   @Override

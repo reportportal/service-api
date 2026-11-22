@@ -18,11 +18,19 @@ public interface TmsTestPlanTestCaseRepository extends
       + "WHERE tptc.id.testPlanId = :testPlanId")
   List<Long> findTestCaseIdsByTestPlanId(@Param("testPlanId") Long testPlanId);
 
-  @Modifying
-  @Query("DELETE FROM TmsTestPlanTestCase tptc "
-      + "WHERE tptc.id.testPlanId = :testPlanId "
-      + "AND tptc.id.testCaseId IN :testCaseIds")
-  void deleteByTestPlanIdAndTestCaseIds(@Param("testPlanId") Long testPlanId,
+  /**
+   * Deletes the test cases from the test plan in one statement.
+   *
+   * @param testPlanId  the test plan ID
+   * @param testCaseIds the test case IDs
+   * @return IDs of the test cases that were actually deleted from the plan
+   */
+  @Query(value = """
+      DELETE FROM tms_test_plan_test_case
+      WHERE test_plan_id = :testPlanId AND test_case_id IN (:testCaseIds)
+      RETURNING test_case_id
+      """, nativeQuery = true)
+  List<Long> deleteByTestPlanIdAndTestCaseIds(@Param("testPlanId") Long testPlanId,
       @Param("testCaseIds") List<Long> testCaseIds);
 
   @Modifying
@@ -39,17 +47,17 @@ public interface TmsTestPlanTestCaseRepository extends
    * @param projectId   the project ID
    * @param testPlanId  the test plan ID
    * @param testCaseIds the test case IDs
-   * @return number of inserted rows
+   * @return IDs of the test cases that were actually inserted
    */
-  @Modifying
   @Query(value = """
       INSERT INTO tms_test_plan_test_case (test_plan_id, test_case_id)
       SELECT :testPlanId, tc.id
       FROM tms_test_case tc
       WHERE tc.id IN (:testCaseIds) AND tc.project_id = :projectId
       ON CONFLICT (test_plan_id, test_case_id) DO NOTHING
+      RETURNING test_case_id
       """, nativeQuery = true)
-  int insertTestPlanTestCasesInProject(@Param("projectId") Long projectId,
+  List<Long> insertTestPlanTestCasesInProject(@Param("projectId") Long projectId,
       @Param("testPlanId") Long testPlanId, @Param("testCaseIds") List<Long> testCaseIds);
 
   /**

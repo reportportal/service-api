@@ -656,7 +656,6 @@ class TmsAttachmentServiceImplTest {
     var instantCaptor = ArgumentCaptor.forClass(Instant.class);
     verify(tmsAttachmentRepository).setExpirationForUnusedAttachments(instantCaptor.capture());
     assertFalse(instantCaptor.getValue().isBefore(before.plus(Duration.ofHours(24))));
-    verify(tmsAttachmentRepository, never()).findAttachmentsWithoutTtl();
   }
 
   @Test

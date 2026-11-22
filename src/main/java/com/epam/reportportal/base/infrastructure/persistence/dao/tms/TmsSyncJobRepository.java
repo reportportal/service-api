@@ -122,6 +122,21 @@ public interface TmsSyncJobRepository extends ReportPortalRepository<TmsSyncJob,
   List<Long> findPendingJobIdsForExecution(@Param("limit") int limit);
 
   /**
+   * Atomically moves a pending synchronization job to IN_PROGRESS. Only one caller can claim a
+   * job: concurrent callers see 0 updated rows.
+   *
+   * @param jobId synchronization job identifier
+   * @param startedAt start timestamp to assign
+   * @return number of updated rows (1 if the job was claimed, 0 otherwise)
+   */
+  @Modifying(clearAutomatically = true)
+  @Query(value = "UPDATE tms_sync_job "
+      + "SET status = 'IN_PROGRESS', started_at = :startedAt "
+      + "WHERE id = :jobId AND status = 'PENDING'",
+      nativeQuery = true)
+  int claimPendingJob(@Param("jobId") Long jobId, @Param("startedAt") Instant startedAt);
+
+  /**
    * Marks stale in-progress synchronization jobs as failed.
    *
    * @param staleThreshold threshold before which jobs are considered stale

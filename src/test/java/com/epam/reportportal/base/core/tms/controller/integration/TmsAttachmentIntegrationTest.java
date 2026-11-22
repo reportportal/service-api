@@ -17,11 +17,14 @@ import com.epam.reportportal.base.auth.OAuthHelper;
 import com.epam.reportportal.base.core.tms.dto.UploadAttachmentRS;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsAttachmentRepository;
 import com.epam.reportportal.base.ws.BaseMvcTest;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.test.context.jdbc.Sql;
 import tools.jackson.databind.json.JsonMapper;
 
 class TmsAttachmentIntegrationTest extends BaseMvcTest {
@@ -35,6 +38,9 @@ class TmsAttachmentIntegrationTest extends BaseMvcTest {
 
   @Autowired
   private TmsAttachmentRepository tmsAttachmentRepository;
+
+  @PersistenceContext
+  private EntityManager entityManager;
 
   @Test
   void uploadTmsAttachment_ShouldUploadSuccessfully_WhenValidFile() throws Exception {
@@ -100,7 +106,7 @@ class TmsAttachmentIntegrationTest extends BaseMvcTest {
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andExpect(header().string("Content-Disposition",
-            "attachment; filename=\"download-test.txt\""))
+            "attachment; filename=\"download-test.txt\"; filename*=UTF-8''download-test.txt"))
         .andExpect(header().string("Content-Type", "text/plain"));
   }
 
@@ -258,5 +264,28 @@ class TmsAttachmentIntegrationTest extends BaseMvcTest {
         .andReturn();
 
     return mapper.readValue(result.getResponse().getContentAsString(), UploadAttachmentRS.class);
+  }
+
+  @Test
+  @Sql("/db/tms/tms-test-plan/tms-test-plan-fill.sql")
+  void setExpirationForUnusedAttachments_SetsTtlOnlyOnUnreferencedAttachments() {
+    entityManager.createNativeQuery(
+        "INSERT INTO tms_attachment (id, file_name, file_size, path_to_file, project_id) "
+            + "VALUES (9001, 'unused', 1, 'p/9001', 1), (9002, 'used', 1, 'p/9002', 1)")
+        .executeUpdate();
+    entityManager.createNativeQuery(
+        "INSERT INTO tms_text_manual_scenario_attachment (text_manual_scenario_id, attachment_id) "
+            + "VALUES (104, 9002)").executeUpdate();
+    var expiration = Instant.parse("2000-01-01T00:00:00Z");
+
+    tmsAttachmentRepository.setExpirationForUnusedAttachments(expiration);
+    entityManager.clear();
+
+    assertEquals(expiration, tmsAttachmentRepository.findById(9001L).orElseThrow().getExpiresAt());
+    assertEquals(null, tmsAttachmentRepository.findById(9002L).orElseThrow().getExpiresAt());
+
+    // 9001 is expired now and gets deleted; 9002 has no TTL and is kept
+    assertEquals(1, tmsAttachmentRepository.deleteIfExpired(9001L, Instant.now()));
+    assertEquals(0, tmsAttachmentRepository.deleteIfExpired(9002L, Instant.now()));
   }
 }

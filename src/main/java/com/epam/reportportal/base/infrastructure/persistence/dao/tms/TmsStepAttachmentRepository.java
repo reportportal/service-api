@@ -112,7 +112,7 @@ public interface TmsStepAttachmentRepository extends
       + "              SELECT tf.id FROM tms_test_folder tf "
       + "              JOIN project p ON tf.project_id = p.id "
       + "              WHERE tf.id = :folderId AND p.id = :projectId "
-      + "              UNION ALL "
+      + "              UNION "
       + "              SELECT tf.id FROM tms_test_folder tf "
       + "              JOIN folder_hierarchy fh ON tf.parent_id = fh.id "
       + "            ) "
@@ -125,11 +125,4 @@ public interface TmsStepAttachmentRepository extends
       + ") ",
       nativeQuery = true)
   void deleteByTestFolderId(@Param("projectId") Long projectId, @Param("folderId") Long folderId);
-
-  /**
-   * Finds all attachment IDs that are referenced in step attachments. * This is optimized to return
-   * only IDs instead of full entities. * * @return list of attachment IDs used in step attachments
-   */
-  @Query("SELECT sa.id.attachmentId FROM TmsStepAttachment sa")
-  List<Long> findAllAttachmentIds();
 }

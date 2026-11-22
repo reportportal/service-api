@@ -50,10 +50,4 @@ public interface TmsTestCaseExecutionCommentAttachmentRepository extends
   @Modifying
   @Query("DELETE FROM TmsTestCaseExecutionCommentAttachment tca WHERE tca.executionComment.execution.launchId = :launchId")
   void deleteByLaunchId(@Param("launchId") Long launchId);
-
-  /**
-   * Finds all attachment IDs for TTL management.
-   */
-  @Query("SELECT DISTINCT tca.attachment.id FROM TmsTestCaseExecutionCommentAttachment tca")
-  List<Long> findAllAttachmentIds();
 }

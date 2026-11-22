@@ -38,7 +38,7 @@ class TmsTestCaseJsonExporterTest {
     var mockResponse = new MockHttpServletResponse();
 
     // When
-    jsonExporter.export(testCases, false, mockResponse);
+    jsonExporter.export(testCases.stream(), false, mockResponse);
 
     // Then
     var content = mockResponse.getContentAsString();
@@ -61,7 +61,7 @@ class TmsTestCaseJsonExporterTest {
     var mockResponse = new MockHttpServletResponse();
 
     // When
-    jsonExporter.export(testCases, true, mockResponse);
+    jsonExporter.export(testCases.stream(), true, mockResponse);
 
     // Then
     assertThat(mockResponse.getHeader("Content-Disposition"))
@@ -75,13 +75,29 @@ class TmsTestCaseJsonExporterTest {
     var mockResponse = new MockHttpServletResponse();
 
     // When
-    jsonExporter.export(emptyList, false, mockResponse);
+    jsonExporter.export(emptyList.stream(), false, mockResponse);
 
     // Then
     var content = mockResponse.getContentAsString();
     var exportedTestCases = objectMapper.readValue(content, TmsTestCaseRS[].class);
 
     assertThat(exportedTestCases).isEmpty();
+  }
+
+  @Test
+  void shouldNotTerminateArrayWhenStreamFailsMidway() throws Exception {
+    // Given
+    var mockResponse = new MockHttpServletResponse();
+    var failing = java.util.stream.Stream.concat(createTestCases().stream(),
+        java.util.stream.Stream.<TmsTestCaseRS>generate(() -> {
+          throw new IllegalStateException("boom");
+        }));
+
+    // When / Then
+    org.assertj.core.api.Assertions.assertThatThrownBy(
+        () -> jsonExporter.export(failing, false, mockResponse))
+        .isInstanceOf(IllegalStateException.class);
+    assertThat(mockResponse.getContentAsString()).doesNotContain("]");
   }
 
   private List<TmsTestCaseRS> createTestCases() {

@@ -9,6 +9,7 @@ import static com.epam.reportportal.base.infrastructure.persistence.commons.quer
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.TMS_ATTRIBUTE;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.TMS_TEST_CASE;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.TMS_TEST_CASE_ATTRIBUTE;
+import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.TMS_TEST_PLAN;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.TMS_TEST_PLAN_TEST_CASE;
 
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Condition;
@@ -40,6 +41,12 @@ public class TmsTestFolderWithTestCaseCountRepository {
   public Page<TmsTestFolderWithCountOfTestCases> findAllByProjectIdAndFilterWithCountOfTestCases(
       long projectId, Filter filter, Pageable pageable) {
 
+    var testPlanId = extractTestPlanId(filter);
+    if (testPlanId != null && !isTestPlanInProject(testPlanId, projectId)) {
+      // A test plan of another project has no test cases of this project
+      return new PageImpl<>(List.of(), pageable, 0);
+    }
+
     var enhancedFilter = enhanceFilterWithProjectId(filter, projectId);
 
     var folders = filterableRepository.findByFilter(enhancedFilter, pageable);
@@ -49,7 +56,7 @@ public class TmsTestFolderWithTestCaseCountRepository {
         .getContent()
         .stream()
         .map(folder -> {
-          var testCasesCount = getTestCasesCount(folder.getId(), extractTestPlanId(filter),
+          var testCasesCount = getTestCasesCount(projectId, folder.getId(), testPlanId,
               testCaseFilterParams);
           return new TmsTestFolderWithCountOfTestCases(folder, testCasesCount);
         })
@@ -62,24 +69,30 @@ public class TmsTestFolderWithTestCaseCountRepository {
   }
 
   private Filter enhanceFilterWithProjectId(Filter originalFilter, long projectId) {
-    var conditions = new ArrayList<>(originalFilter.getFilterConditions());
-
-    var hasProjectIdFilter = conditions
+    // The project always comes from the path: a caller-supplied projectId criterion is dropped
+    var conditions = new ArrayList<>(originalFilter.getFilterConditions()
         .stream()
-        .anyMatch(condition -> condition instanceof FilterCondition &&
-            ((FilterCondition) condition).getSearchCriteria()
-                .equals(CRITERIA_TMS_TEST_FOLDER_PROJECT_ID));
+        .filter(condition -> !(condition instanceof FilterCondition fc
+            && CRITERIA_TMS_TEST_FOLDER_PROJECT_ID.equals(fc.getSearchCriteria())))
+        .toList());
 
-    if (!hasProjectIdFilter) {
-      conditions.add(new FilterCondition(
-          Condition.EQUALS,
-          false,
-          String.valueOf(projectId),
-          CRITERIA_TMS_TEST_FOLDER_PROJECT_ID
-      ));
-    }
+    conditions.add(new FilterCondition(
+        Condition.EQUALS,
+        false,
+        String.valueOf(projectId),
+        CRITERIA_TMS_TEST_FOLDER_PROJECT_ID
+    ));
 
     return new Filter(TmsTestFolder.class, conditions);
+  }
+
+  private boolean isTestPlanInProject(long testPlanId, long projectId) {
+    return dsl.fetchExists(
+        dsl.selectOne()
+            .from(TMS_TEST_PLAN)
+            .where(TMS_TEST_PLAN.ID.eq(testPlanId))
+            .and(TMS_TEST_PLAN.PROJECT_ID.eq(projectId))
+    );
   }
 
   private Long extractTestPlanId(Filter filter) {
@@ -146,11 +159,13 @@ public class TmsTestFolderWithTestCaseCountRepository {
     }
   }
 
-  private long getTestCasesCount(Long folderId, Long testPlanId, TestCaseFilterParams testCaseFilterParams) {
+  private long getTestCasesCount(long projectId, Long folderId, Long testPlanId,
+      TestCaseFilterParams testCaseFilterParams) {
     var query = dsl
         .selectCount()
         .from(TMS_TEST_CASE)
-        .where(TMS_TEST_CASE.TEST_FOLDER_ID.eq(folderId));
+        .where(TMS_TEST_CASE.TEST_FOLDER_ID.eq(folderId))
+        .and(TMS_TEST_CASE.PROJECT_ID.eq(projectId));
 
     if (testPlanId != null) {
       query = query.and(DSL.exists(

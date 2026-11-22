@@ -8,7 +8,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Scheduled job for cleaning up expired TMS attachments. * * This job runs periodically to remove
@@ -25,7 +24,6 @@ public class TmsAttachmentCleanupJob implements Job {
   private TmsAttachmentService tmsAttachmentService;
 
   @Override
-  @Transactional
   public void execute(JobExecutionContext context) throws JobExecutionException {
     LOGGER.info("TMS attachment cleanup job has been started");
 

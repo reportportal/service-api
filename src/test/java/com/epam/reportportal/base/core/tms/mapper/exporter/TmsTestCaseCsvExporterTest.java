@@ -49,7 +49,7 @@ class TmsTestCaseCsvExporterTest {
     var mockResponse = new MockHttpServletResponse();
 
     // When
-    csvExporter.export(testCases, false, mockResponse);
+    csvExporter.export(testCases.stream(), false, mockResponse);
 
     // Then
     var content = mockResponse.getContentAsString();
@@ -70,7 +70,7 @@ class TmsTestCaseCsvExporterTest {
     var mockResponse = new MockHttpServletResponse();
 
     // When
-    csvExporter.export(emptyList, false, mockResponse);
+    csvExporter.export(emptyList.stream(), false, mockResponse);
 
     // Then
     var content = mockResponse.getContentAsString();
@@ -89,11 +89,30 @@ class TmsTestCaseCsvExporterTest {
     var mockResponse = new MockHttpServletResponse();
 
     // When
-    csvExporter.export(testCases, false, mockResponse);
+    csvExporter.export(testCases.stream(), false, mockResponse);
 
     // Then
     var content = mockResponse.getContentAsString();
     assertThat(content).contains("1,Test Case");
+  }
+
+  @Test
+  void shouldNeutralizeFormulaInjectionInFreeTextCells() throws IOException {
+    // Given
+    var testCase = new TmsTestCaseRS();
+    testCase.setId(1L);
+    testCase.setName("=HYPERLINK(\"http://evil\")");
+    testCase.setDescription("+cmd|' /C calc'!A0");
+    var mockResponse = new MockHttpServletResponse();
+
+    // When
+    csvExporter.export(List.of(testCase).stream(), false, mockResponse);
+
+    // Then
+    var content = mockResponse.getContentAsString();
+    assertThat(content).contains("'=HYPERLINK");
+    assertThat(content).contains("'+cmd");
+    assertThat(content).doesNotContain(",=HYPERLINK");
   }
 
   private List<TmsTestCaseRS> createTestCases() {

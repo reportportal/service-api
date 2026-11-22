@@ -4,7 +4,7 @@ import com.epam.reportportal.base.core.tms.dto.TmsTestCaseExportFormat;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseRS;
 import jakarta.servlet.http.HttpServletResponse;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
+import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.springframework.stereotype.Component;
@@ -23,14 +23,20 @@ public class TmsTestCaseJsonExporter implements TmsTestCaseExporter {
 
   @Override
   @SneakyThrows
-  public void export(List<TmsTestCaseRS> testCases, boolean includeAttachments,
+  public void export(Stream<TmsTestCaseRS> testCases, boolean includeAttachments,
       HttpServletResponse response) {
     configureHttpResponse(response, includeAttachments);
 
-    var jsonContent = objectMapper.writerWithDefaultPrettyPrinter()
-        .writeValueAsString(testCases);
-    response.getOutputStream().write(jsonContent.getBytes(StandardCharsets.UTF_8));
-    response.getOutputStream().flush();
+    // Writes the JSON array element by element instead of building it in memory. The writer is
+    // deliberately not closed on failure: closing would terminate the array and finish the
+    // response, making a truncated export look complete. The exception reaches the container,
+    // which aborts the connection.
+    var sequenceWriter = objectMapper.writerWithDefaultPrettyPrinter()
+        .writeValuesAsArray(response.getOutputStream());
+    for (var testCase : (Iterable<TmsTestCaseRS>) testCases::iterator) {
+      sequenceWriter.write(testCase);
+    }
+    sequenceWriter.close();
   }
 
   private void configureHttpResponse(HttpServletResponse response, boolean includeAttachments) {

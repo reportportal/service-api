@@ -2,17 +2,24 @@ package com.epam.reportportal.base.core.tms.service;
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.anyCollection;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsDataset;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsEnvironmentDataset;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsEnvironmentDatasetRepository;
 import com.epam.reportportal.base.core.tms.dto.TmsEnvironmentDatasetRQ;
 import com.epam.reportportal.base.core.tms.mapper.TmsEnvironmentDatasetMapper;
+import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
+import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -66,6 +73,26 @@ class TmsEnvironmentDatasetServiceImplTest {
         environmentDatasetRQs);
     verify(tmsDataset).setEnvironmentDatasets(any());
     verify(tmsEnvironmentDatasetRepository).saveAll(environments);
+  }
+
+  @Test
+  void testCreateEnvironmentDatasetWithEnvironmentOfAnotherProject_ThrowsNotFound() {
+    var project = new Project();
+    project.setId(1L);
+    var tmsDataset = new TmsDataset();
+    tmsDataset.setProject(project);
+    var datasetRQ = new TmsEnvironmentDatasetRQ();
+    datasetRQ.setEnvironmentId("77");
+
+    when(tmsEnvironmentDatasetRepository.countEnvironmentsByIdsAndProjectId(Set.of(77L), 1L))
+        .thenReturn(0L);
+
+    var exception = assertThrows(ReportPortalException.class,
+        () -> sut.createEnvironmentDataset(tmsDataset, List.of(datasetRQ)));
+
+    assertEquals(ErrorType.NOT_FOUND, exception.getErrorType());
+    verifyNoInteractions(tmsEnvironmentDatasetMapper);
+    verify(tmsEnvironmentDatasetRepository, never()).saveAll(anyCollection());
   }
 
   @Test

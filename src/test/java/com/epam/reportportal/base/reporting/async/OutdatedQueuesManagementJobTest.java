@@ -22,6 +22,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -36,6 +37,7 @@ import java.time.Duration;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.mockito.InOrder;
 import org.springframework.amqp.core.Queue;
 
 class OutdatedQueuesManagementJobTest {
@@ -94,5 +96,43 @@ class OutdatedQueuesManagementJobTest {
     assertDoesNotThrow(job::run);
 
     verify(client, times(2)).deleteQueue(eq(VHOST), eq(QUEUE), any(DeleteQueueParameters.class));
+  }
+
+  @Test
+  void failedDeleteRestoresTheBinding() {
+    when(client.getQueues(VHOST)).thenReturn(List.of(queue(0, 0)));
+    when(client.getQueue(VHOST, QUEUE)).thenReturn(queue(0, 0));
+    doThrow(new HttpClientException(400, "PRECONDITION_FAILED")).when(client)
+        .deleteQueue(eq(VHOST), eq(QUEUE), any(DeleteQueueParameters.class));
+
+    assertDoesNotThrow(job::run);
+
+    InOrder inOrder = inOrder(client);
+    inOrder.verify(client).unbindQueue(VHOST, QUEUE, "e.reporting", "1");
+    inOrder.verify(client).deleteQueue(eq(VHOST), eq(QUEUE), any(DeleteQueueParameters.class));
+    inOrder.verify(client).bindQueue(VHOST, QUEUE, "e.reporting", "1");
+  }
+
+  @Test
+  void deletedQueueIsNotBoundAgain() {
+    when(client.getQueues(VHOST)).thenReturn(List.of(queue(0, 0)));
+    when(client.getQueue(VHOST, QUEUE)).thenReturn(queue(0, 0));
+
+    job.run();
+
+    verify(client, never()).bindQueue(anyString(), anyString(), anyString(), anyString());
+  }
+
+  @Test
+  void queueWithReadyMessagesStaysUnboundWhileItIsRepublished() {
+    when(client.getQueues(VHOST)).thenReturn(List.of(queue(0, 5)));
+    when(client.getQueue(VHOST, QUEUE)).thenReturn(queue(0, 5));
+
+    job.run();
+
+    verify(client).unbindQueue(VHOST, QUEUE, "e.reporting", "1");
+    verify(shovelService).republishToReportingExchange(QUEUE);
+    verify(client, never()).bindQueue(anyString(), anyString(), anyString(), anyString());
+    verify(client, never()).deleteQueue(anyString(), anyString(), any());
   }
 }

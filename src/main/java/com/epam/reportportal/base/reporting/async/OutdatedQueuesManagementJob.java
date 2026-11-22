@@ -128,7 +128,7 @@ public class OutdatedQueuesManagementJob {
         shovelService.republishToReportingExchange(queueName);
       } else {
         shovelService.removeShovel(queueName);
-        managementClient.deleteQueue(vhost, queueName, new DeleteQueueParameters(true, true));
+        deleteOrRebind(queueName);
         withoutConsumersSince.remove(queueName);
         log.info("Removed outdated reporting queue '{}'", queueName);
       }
@@ -141,6 +141,24 @@ public class OutdatedQueuesManagementJob {
       }
     } catch (Exception e) {
       log.warn("Unable to clean up outdated reporting queue '{}'", queueName, e);
+    }
+  }
+
+  /**
+   * Deletes the queue only if it is empty and unused. When the delete fails, the owner may have reconnected after the
+   * consumer check and its binding was removed by the unbind: the binding is restored so the queue keeps receiving
+   * messages. A queue that is still abandoned is unbound again on the next run.
+   */
+  private void deleteOrRebind(String queueName) {
+    try {
+      managementClient.deleteQueue(vhost, queueName, new DeleteQueueParameters(true, true));
+    } catch (RuntimeException deleteFailure) {
+      try {
+        managementClient.bindQueue(vhost, queueName, REPORTING_EXCHANGE, DEFAULT_QUEUE_ROUTING_KEY);
+      } catch (RuntimeException bindFailure) {
+        deleteFailure.addSuppressed(bindFailure);
+      }
+      throw deleteFailure;
     }
   }
 }

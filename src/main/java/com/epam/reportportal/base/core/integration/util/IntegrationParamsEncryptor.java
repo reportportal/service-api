@@ -19,7 +19,10 @@ package com.epam.reportportal.base.core.integration.util;
 import com.epam.reportportal.extension.SensitiveIntegrationParam;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.MapUtils;
 import org.jasypt.util.text.BasicTextEncryptor;
@@ -28,13 +31,28 @@ import org.springframework.stereotype.Component;
 /**
  * Encrypts sensitive integration fields centrally before persisting. Fields listed in
  * {@link SensitiveIntegrationParam#ALL} are encrypted; null values and unknown keys are passed through unchanged.
- * Nested maps and lists are traversed recursively.
+ * Keys are matched case-insensitively (as in response masking), so {@code Password} is encrypted like
+ * {@code password}. Nested maps and lists are traversed recursively.
  */
 @Component
 @RequiredArgsConstructor
 public class IntegrationParamsEncryptor {
 
+  private static final Set<String> SENSITIVE_KEYS_LOWER = SensitiveIntegrationParam.ALL.stream()
+      .map(k -> k.toLowerCase(Locale.ROOT))
+      .collect(Collectors.toUnmodifiableSet());
+
   private final BasicTextEncryptor basicTextEncryptor;
+
+  /**
+   * Whether {@code key} names a sensitive integration parameter, ignoring case.
+   *
+   * @param key parameter name (any object; non-strings are never sensitive)
+   * @return true for names in {@link SensitiveIntegrationParam#ALL}, in any letter case
+   */
+  public static boolean isSensitiveKey(Object key) {
+    return key instanceof String name && SENSITIVE_KEYS_LOWER.contains(name.toLowerCase(Locale.ROOT));
+  }
 
   public Map<String, Object> encryptSensitiveFields(Map<String, Object> params) {
     if (MapUtils.isEmpty(params)) {
@@ -50,7 +68,7 @@ public class IntegrationParamsEncryptor {
   }
 
   private Object encryptEntry(String key, Object value) {
-    if (value != null && SensitiveIntegrationParam.ALL.contains(key)) {
+    if (value != null && isSensitiveKey(key)) {
       return basicTextEncryptor.encrypt(value.toString());
     }
     return traverse(value);

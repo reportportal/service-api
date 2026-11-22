@@ -191,6 +191,7 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
     if (IntegrationGroupEnum.AUTH == integration.getType().getIntegrationGroup()) {
       updatedIntegration = createAuthIntegrationHandler.updateAuthIntegration(integration, updateRequest);
     } else {
+      IntegrationTargetChangeValidator.validate(integration, updateRequest.getIntegrationParams());
       IntegrationService integrationService =
           integrationServiceMapping.getOrDefault(integration.getType().getName(),
               this.basicIntegrationService

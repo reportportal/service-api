@@ -37,11 +37,13 @@ import static java.util.function.Predicate.isEqual;
 import com.epam.reportportal.api.model.Invitation;
 import com.epam.reportportal.api.model.InvitationActivation;
 import com.epam.reportportal.api.model.InvitationRequest;
+import com.epam.reportportal.auth.event.UiAuthenticationFailureEventHandler;
 import com.epam.reportportal.base.auth.authenticator.UserAuthenticator;
 import com.epam.reportportal.base.core.events.domain.AssignUserEvent;
 import com.epam.reportportal.base.core.events.domain.UserCreatedEvent;
 import com.epam.reportportal.base.core.launch.util.LinkGenerator;
 import com.epam.reportportal.base.core.organization.OrganizationUserService;
+import com.epam.reportportal.base.core.user.InvitationActivationRefusedException;
 import com.epam.reportportal.base.core.user.PasswordPolicyService;
 import com.epam.reportportal.base.core.user.UserInvitationService;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectRepository;
@@ -102,10 +104,18 @@ public class UserInvitationHandler {
   private final LinkGenerator linkGenerator;
   private final PasswordPolicyService passwordPolicyService;
   private final ServerSettingsRepository settingsRepository;
+  private final UiAuthenticationFailureEventHandler failureEventHandler;
 
-  // Kept in sync with the expiresAt reported at creation (UserInvitationServiceImpl) and CleanExpiredCreationBidsJob.
+  /**
+   * Failed activations of one invitation for an existing account after which the invitation is deleted.
+   */
+  static final int MAX_ACTIVATION_FAILURES = 3;
+
+  // Same property as the expiresAt reported at creation (UserInvitationServiceImpl) and CleanExpiredCreationBidsJob.
   @Value("${rp.invitation.bid.ttl:PT24H}")
   private Duration invitationBidTtl;
+
+  private volatile String dummyPasswordHash;
 
   /**
    * Sends invitation for external user or assigns existing user on organizations and projects.
@@ -138,7 +148,7 @@ public class UserInvitationHandler {
     var bid = userCreationBidRepository.findByUuidAndType(invitationId, INTERNAL_BID_TYPE)
         .orElseThrow(() -> new ReportPortalException(ErrorType.NOT_FOUND, "User invitation id"));
 
-    var invitation = InvitationConverter.TO_INVITATION.apply(bid);
+    var invitation = InvitationConverter.toInvitation(bid, invitationBidTtl);
     invitation.setLink(linkGenerator.generateInvitationUrl(httpServletRequest, bid.getUuid()));
     return invitation;
   }
@@ -166,7 +176,7 @@ public class UserInvitationHandler {
     User createdUser;
     if (existingUser.isPresent()) {
       createdUser = existingUser.get();
-      verifyExistingAccountOwnership(createdUser, invitationActivation.getPassword());
+      verifyExistingAccountOwnership(bid, createdUser, invitationActivation.getPassword());
     } else {
       passwordPolicyService.validate(invitationActivation.getPassword());
       createdUser = createUser(invitationActivation, email);
@@ -254,18 +264,69 @@ public class UserInvitationHandler {
    * An account that already holds the invited address at activation time did not hold it when the invitation was
    * issued (invitation creation assigns existing accounts directly instead of issuing a bid), so it was created or
    * re-addressed afterwards. The invitation's assignments are attached to it only when the person activating proves
-   * they own it with its current password: this keeps the case of a second invitation to an already activated address
-   * working, while an account re-addressed to the invitee's email by someone else does not receive the invitation.
+   * they own it with its current password and the account is an active internal one: this keeps the case of a second
+   * invitation to an already activated address working, while an account re-addressed to the invitee's email by
+   * someone else, or a deactivated account, does not receive the invitation.
+   *
+   * <p>This endpoint is public, so the password check is a login attempt: it is refused with
+   * {@link ErrorType#ADDRESS_LOCKED} while the client address or the account's login is blocked by the login
+   * brute-force protection ({@link UiAuthenticationFailureEventHandler}), and every refusal is recorded there. Every
+   * refusal also counts against the invitation, which is deleted after {@value #MAX_ACTIVATION_FAILURES} of them.
+   * Wrong password, external account and inactive account get the same {@link InvitationActivationRefusedException},
+   * after the same password-hash comparison.
    */
-  private void verifyExistingAccountOwnership(User existingUser, String password) {
-    boolean owner = existingUser.getUserType() == UserType.INTERNAL
-        && existingUser.getPassword() != null
-        && password != null
-        && passwordEncoder.matches(password, existingUser.getPassword());
+  private void verifyExistingAccountOwnership(UserCreationBid bid, User existingUser, String password) {
+    var login = existingUser.getLogin();
+    if (failureEventHandler.isBlocked(httpServletRequest, login)) {
+      throw new ReportPortalException(ErrorType.ADDRESS_LOCKED);
+    }
+
+    boolean passwordMatches = passwordMatches(password, existingUser.getPassword());
+    boolean owner = passwordMatches
+        && existingUser.getUserType() == UserType.INTERNAL
+        && Boolean.TRUE.equals(existingUser.getActive());
     if (!owner) {
-      throw new ReportPortalException(ACCESS_DENIED,
-          "An account with this email already exists. Enter its current password to accept the invitation,"
-              + " or ask the inviter to add the existing account.");
+      failureEventHandler.recordFailure(httpServletRequest, login);
+      recordActivationFailure(bid);
+      throw new InvitationActivationRefusedException();
+    }
+  }
+
+  /**
+   * Compares against a dummy hash when the account has no password, so external accounts take as long to refuse as
+   * internal ones.
+   */
+  private boolean passwordMatches(String password, String encodedPassword) {
+    var raw = password == null ? "" : password;
+    if (encodedPassword == null) {
+      var dummy = dummyPasswordHash();
+      if (dummy != null) {
+        passwordEncoder.matches(raw, dummy);
+      }
+      return false;
+    }
+    return password != null && passwordEncoder.matches(raw, encodedPassword);
+  }
+
+  private String dummyPasswordHash() {
+    var hash = dummyPasswordHash;
+    if (hash == null) {
+      hash = passwordEncoder.encode(UUID.randomUUID().toString());
+      dummyPasswordHash = hash;
+    }
+    return hash;
+  }
+
+  /**
+   * Counts the failure on the bid itself and deletes the bid once the limit is reached. Both statements run in the
+   * activation transaction, which the refusal does not roll back (see {@link InvitationActivationRefusedException}).
+   */
+  private void recordActivationFailure(UserCreationBid bid) {
+    userCreationBidRepository.incrementActivationFailures(bid.getUuid(), INTERNAL_BID_TYPE);
+    if (userCreationBidRepository.deleteIfActivationFailuresReached(bid.getUuid(), INTERNAL_BID_TYPE,
+        MAX_ACTIVATION_FAILURES) > 0) {
+      log.info("Invitation {} invalidated after {} failed activation attempts", bid.getUuid(),
+          MAX_ACTIVATION_FAILURES);
     }
   }
 

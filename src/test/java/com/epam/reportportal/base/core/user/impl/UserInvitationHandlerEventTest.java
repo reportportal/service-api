@@ -20,9 +20,11 @@ import static com.epam.reportportal.base.core.user.impl.CreateUserHandlerImpl.IN
 import static com.epam.reportportal.base.model.settings.SettingsKeyConstants.SERVER_USERS_SSO;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -30,11 +32,13 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.epam.reportportal.api.model.InvitationActivation;
+import com.epam.reportportal.auth.event.UiAuthenticationFailureEventHandler;
 import com.epam.reportportal.base.auth.authenticator.UserAuthenticator;
 import com.epam.reportportal.base.core.events.domain.AssignUserEvent;
 import com.epam.reportportal.base.core.events.domain.UserCreatedEvent;
 import com.epam.reportportal.base.core.launch.util.LinkGenerator;
 import com.epam.reportportal.base.core.organization.OrganizationUserService;
+import com.epam.reportportal.base.core.user.InvitationActivationRefusedException;
 import com.epam.reportportal.base.core.user.PasswordPolicyService;
 import com.epam.reportportal.base.core.user.UserInvitationService;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectRepository;
@@ -117,6 +121,9 @@ class UserInvitationHandlerEventTest {
 
   @Mock
   private ServerSettingsRepository settingsRepository;
+
+  @Mock
+  private UiAuthenticationFailureEventHandler failureEventHandler;
 
   @InjectMocks
   private UserInvitationHandler handler;
@@ -292,11 +299,50 @@ class UserInvitationHandlerEventTest {
 
     var ex = assertThrows(ReportPortalException.class, () -> handler.activate(activation(), BID_UUID));
 
+    assertInstanceOf(InvitationActivationRefusedException.class, ex);
     assertEquals(ErrorType.ACCESS_DENIED, ex.getErrorType());
     verify(organizationUserService, never()).saveOrganizationUser(any(), any(), anyString());
     verify(userRepository, never()).save(any(User.class));
     verify(userCreationBidRepository, never()).deleteByUuid(anyString());
     verify(eventPublisher, never()).publishEvent(any());
+    verify(failureEventHandler).recordFailure(any(), eq("newuser@example.com"));
+    verify(userCreationBidRepository).incrementActivationFailures(BID_UUID, INTERNAL_BID_TYPE);
+    verify(userCreationBidRepository).deleteIfActivationFailuresReached(BID_UUID, INTERNAL_BID_TYPE,
+        UserInvitationHandler.MAX_ACTIVATION_FAILURES);
+  }
+
+  @Test
+  void activateInvitationForExistingAccountWhenLoginIsBlockedShouldAnswerLikeLoginAndNotCheckPassword() {
+    var bid = newBid(Instant.now());
+    when(userCreationBidRepository.findByUuidAndType(BID_UUID, INTERNAL_BID_TYPE)).thenReturn(Optional.of(bid));
+    when(userRepository.findByEmail("newuser@example.com")).thenReturn(Optional.of(existingUser(UserType.INTERNAL)));
+    when(failureEventHandler.isBlocked(any(), eq("newuser@example.com"))).thenReturn(true);
+
+    var ex = assertThrows(ReportPortalException.class, () -> handler.activate(activation(), BID_UUID));
+
+    assertEquals(ErrorType.ADDRESS_LOCKED, ex.getErrorType());
+    verify(passwordEncoder, never()).matches(any(), any());
+    verify(failureEventHandler, never()).recordFailure(any(), any());
+    verify(userCreationBidRepository, never()).incrementActivationFailures(anyString(), anyString());
+    verify(organizationUserService, never()).saveOrganizationUser(any(), any(), anyString());
+  }
+
+  @Test
+  void activateInvitationForInactiveAccountWithItsPasswordShouldBeRefusedLikeWrongPassword() {
+    var bid = newBid(Instant.now());
+    when(userCreationBidRepository.findByUuidAndType(BID_UUID, INTERNAL_BID_TYPE)).thenReturn(Optional.of(bid));
+    var existing = existingUser(UserType.INTERNAL);
+    existing.setActive(false);
+    when(userRepository.findByEmail("newuser@example.com")).thenReturn(Optional.of(existing));
+    when(passwordEncoder.matches("Password123!", "existing-hash")).thenReturn(true);
+
+    var ex = assertThrows(ReportPortalException.class, () -> handler.activate(activation(), BID_UUID));
+
+    assertInstanceOf(InvitationActivationRefusedException.class, ex);
+    assertEquals(new InvitationActivationRefusedException().getMessage(), ex.getMessage());
+    verify(organizationUserService, never()).saveOrganizationUser(any(), any(), anyString());
+    verify(failureEventHandler).recordFailure(any(), eq("newuser@example.com"));
+    verify(userCreationBidRepository).incrementActivationFailures(BID_UUID, INTERNAL_BID_TYPE);
   }
 
   @Test
@@ -305,10 +351,28 @@ class UserInvitationHandlerEventTest {
     when(userCreationBidRepository.findByUuidAndType(BID_UUID, INTERNAL_BID_TYPE)).thenReturn(Optional.of(bid));
     var existing = existingUser(UserType.SAML);
     when(userRepository.findByEmail("newuser@example.com")).thenReturn(Optional.of(existing));
+    when(passwordEncoder.encode(anyString())).thenReturn("dummy-hash");
 
-    assertThrows(ReportPortalException.class, () -> handler.activate(activation(), BID_UUID));
+    var ex = assertThrows(ReportPortalException.class, () -> handler.activate(activation(), BID_UUID));
 
+    assertInstanceOf(InvitationActivationRefusedException.class, ex);
     verify(organizationUserService, never()).saveOrganizationUser(any(), any(), anyString());
+    // same hash comparison as for an internal account, so the refusal takes as long
+    verify(passwordEncoder).matches("Password123!", "dummy-hash");
+    verify(failureEventHandler).recordFailure(any(), eq("newuser@example.com"));
+    verify(userCreationBidRepository).incrementActivationFailures(BID_UUID, INTERNAL_BID_TYPE);
+  }
+
+  @Test
+  void getInvitationShouldReportExpiryFromConfiguredTtl() {
+    ReflectionTestUtils.setField(handler, "invitationBidTtl", Duration.ofHours(72));
+    var issuedAt = Instant.parse("2026-11-01T10:00:00Z");
+    when(userCreationBidRepository.findByUuidAndType(BID_UUID, INTERNAL_BID_TYPE))
+        .thenReturn(Optional.of(newBid(issuedAt)));
+
+    var invitation = handler.getInvitation(BID_UUID);
+
+    assertEquals(issuedAt.plus(Duration.ofHours(72)), invitation.getExpiresAt());
   }
 
   @Test
@@ -370,6 +434,7 @@ class UserInvitationHandlerEventTest {
     user.setEmail("newuser@example.com");
     user.setUserType(type);
     user.setPassword(type == UserType.INTERNAL ? "existing-hash" : null);
+    user.setActive(true);
     return user;
   }
 }

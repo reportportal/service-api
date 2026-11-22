@@ -82,6 +82,17 @@ public class UiAuthenticationFailureEventHandler implements
     return null != attempts && attempts.get() > MAX_ATTEMPTS;
   }
 
+  /**
+   * Records a failed password check made outside the login endpoint (e.g. invitation activation for an existing
+   * account), so it counts towards the same per-address and per-username limits as a failed login.
+   *
+   * @param request  the request carrying the attempt
+   * @param username the login of the account whose password was checked, may be {@code null}
+   */
+  public void recordFailure(HttpServletRequest request, String username) {
+    onAjaxFailure(request, username);
+  }
+
   private void onAjaxFailure(HttpServletRequest request, String username) {
     failures.getUnchecked(getClientIP(request)).incrementAndGet();
     if (username != null) {

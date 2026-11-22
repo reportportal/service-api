@@ -1594,6 +1594,7 @@ class TmsTestFolderServiceImplTest {
     when(tmsTestFolderRepository.findAllById(folderIds))
         .thenReturn(Collections.singletonList(rootFolder));
 
+    when(tmsTestFolderRepository.findMaxIndex(eq(projectId), any())).thenReturn(10);
     // Mock duplication
     when(tmsTestFolderMapper.duplicateTestFolder(eq(rootFolder), eq(null)))
         .thenReturn(duplicatedFolder);
@@ -1627,7 +1628,7 @@ class TmsTestFolderServiceImplTest {
     verify(tmsTestFolderRepository).findAllFolderIdsInHierarchy(projectId, rootFolderId);
     verify(tmsTestFolderMapper).duplicateTestFolder(eq(rootFolder), eq(null));
     // findMaxIndex should NOT be called because specific index was provided
-    verify(tmsTestFolderRepository, never()).findMaxIndex(projectId, null);
+    verify(tmsTestFolderRepository).shiftIndexes(projectId, null, targetIndex, 1);
     verify(tmsTestFolderRepository).save(any(TmsTestFolder.class));
   }
 
@@ -1669,6 +1670,7 @@ class TmsTestFolderServiceImplTest {
     when(tmsTestFolderRepository.findByIdAndProjectId(targetParentId, projectId))
         .thenReturn(Optional.of(targetParent));
 
+    when(tmsTestFolderRepository.findMaxIndex(eq(projectId), any())).thenReturn(10);
     // Mock duplication
     when(tmsTestFolderMapper.duplicateTestFolder(eq(rootFolder), eq(targetParent)))
         .thenReturn(duplicatedFolder);
@@ -1703,7 +1705,7 @@ class TmsTestFolderServiceImplTest {
     verify(tmsTestFolderRepository).existsByIdAndProjectId(targetParentId, projectId);
     verify(tmsTestFolderRepository).findByIdAndProjectId(targetParentId, projectId);
     // findMaxIndex should NOT be called for the root folder because specific index was provided
-    verify(tmsTestFolderRepository, never()).findMaxIndex(projectId, targetParentId);
+    verify(tmsTestFolderRepository).shiftIndexes(projectId, targetParentId, targetIndex, 1);
   }
 
   @Test
@@ -3184,5 +3186,33 @@ class TmsTestFolderServiceImplTest {
     // Sub1 should be queried only once
     verify(tmsTestFolderRepository, times(1)).findByProjectIdAndParentIdAndName(
         projectId, 1L, "Sub1");
+  }
+
+  @Test
+  void duplicateFolder_WithOutOfRangeIndex_ClampsAndShiftsSiblings() {
+    var source = new TmsTestFolder();
+    source.setId(testFolderId);
+    source.setName("Source");
+    source.setSubFolders(new ArrayList<>());
+    var copy = new TmsTestFolder();
+    copy.setId(99L);
+    copy.setSubFolders(new ArrayList<>());
+    var request = TmsTestFolderRQ.builder().name("Copy").parentTestFolderId(3L).index(10000)
+        .build();
+
+    when(tmsTestFolderRepository.findAllFolderIdsInHierarchy(projectId, testFolderId))
+        .thenReturn(List.of(testFolderId));
+    when(tmsTestFolderRepository.findAllById(List.of(testFolderId))).thenReturn(List.of(source));
+    when(tmsTestFolderRepository.existsByIdAndProjectId(3L, projectId)).thenReturn(true);
+    when(tmsTestFolderRepository.findMaxIndex(projectId, 3L)).thenReturn(4);
+    when(tmsTestFolderRepository.findByIdAndProjectId(3L, projectId))
+        .thenReturn(Optional.of(parentTestFolder));
+    when(tmsTestFolderMapper.duplicateTestFolder(any(), any())).thenReturn(copy);
+    when(tmsTestFolderRepository.save(copy)).thenReturn(copy);
+
+    sut.duplicateFolder(membershipDetails, user, testFolderId, request);
+
+    verify(tmsTestFolderRepository).shiftIndexes(projectId, 3L, 5, 1);
+    assertEquals(5, copy.getIndex());
   }
 }

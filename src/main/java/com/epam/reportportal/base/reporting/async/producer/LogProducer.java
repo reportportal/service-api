@@ -22,6 +22,8 @@ import static com.epam.reportportal.base.reporting.async.config.ReportingTopolog
 import static java.util.Optional.ofNullable;
 
 import com.epam.reportportal.base.core.configs.rabbit.DeserializablePair;
+import com.epam.reportportal.base.core.file.upload.OwnedUploadFile;
+import com.epam.reportportal.base.core.file.upload.OwnedUploadStore;
 import com.epam.reportportal.base.core.log.CreateLogHandler;
 import com.epam.reportportal.base.core.log.impl.SaveLogBinaryDataTaskAsync;
 import com.epam.reportportal.base.infrastructure.persistence.commons.BinaryDataMetaInfo;
@@ -38,6 +40,8 @@ import jakarta.inject.Provider;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -53,6 +57,11 @@ import org.springframework.web.multipart.MultipartFile;
  */
 @Service
 public class LogProducer implements CreateLogHandler {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(LogProducer.class);
+
+  @Autowired
+  private OwnedUploadStore ownedUploadStore;
 
   @Autowired
   private Provider<SaveLogBinaryDataTaskAsync> saveLogBinaryDataTask;
@@ -76,11 +85,30 @@ public class LogProducer implements CreateLogHandler {
     }
 
     if (file != null) {
-      CompletableFuture.supplyAsync(saveLogBinaryDataTask.get()
-              .withRequest(request)
-              .withFile(file)
-              .withProjectId(membershipDetails.getProjectId()), taskExecutor)
-          .thenAccept(metaInfo -> sendMessage(request, metaInfo, membershipDetails.getProjectId()));
+      // The binary is saved and the message sent after the response. The request's part is deleted
+      // by the container when the request ends, so take the content over before leaving this
+      // thread; the chain below releases it however it ends.
+      final OwnedUploadFile attachment = ownedUploadStore.take(file);
+      final Long projectId = membershipDetails.getProjectId();
+      try {
+        CompletableFuture.supplyAsync(saveLogBinaryDataTask.get()
+                .withRequest(request)
+                .withFile(attachment)
+                .withProjectId(projectId), taskExecutor)
+            .thenAccept(metaInfo -> sendMessage(request, metaInfo, projectId))
+            .whenComplete((ignored, e) -> {
+              attachment.close();
+              if (e != null) {
+                LOGGER.error("Failed to report log {} of launch {} (project {}) with attachment "
+                        + "'{}' ({} bytes): the log is not saved", request.getUuid(),
+                    request.getLaunchUuid(), projectId, attachment.getOriginalFilename(),
+                    attachment.getSize(), e);
+              }
+            });
+      } catch (RuntimeException e) {
+        attachment.close();
+        throw e;
+      }
     } else {
       sendMessage(request, null, membershipDetails.getProjectId());
     }

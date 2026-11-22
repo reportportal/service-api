@@ -35,14 +35,15 @@ class MultipartDataConfigTest {
   Path tmp;
 
   @Test
-  void createsMissingDirectoryWithParents() {
+  void createsMissingDirectoryWithParents() throws IOException {
     Path dir = tmp.resolve("a/b/multipart");
 
     Path prepared = MultipartDataConfig.prepareSpoolDirectory(dir.toString());
 
     assertEquals(dir.toAbsolutePath().normalize(), prepared);
     assertTrue(Files.isDirectory(dir));
-    assertEmpty(dir);
+    assertEquals(Set.of("owned"), names(dir), "only the owned-upload subdirectory is created");
+    assertTrue(Files.isDirectory(dir.resolve("owned")));
   }
 
   @Test
@@ -115,20 +116,41 @@ class MultipartDataConfigTest {
     assertTrue(Files.exists(other));
     assertTrue(Files.exists(nestedFile));
     assertTrue(Files.isDirectory(dirNamedLikePart));
-    assertEquals(Set.of("keep.jar", "sub", "upload_dir.tmp"), names(dir));
+    assertEquals(Set.of("keep.jar", "sub", "upload_dir.tmp", "owned"), names(dir));
+  }
+
+  @Test
+  void removesOnlyStaleOwnedUploadsFromTheOwnedSubdirectory() throws IOException {
+    Path dir = Files.createDirectory(tmp.resolve("spool"));
+    Path owned = Files.createDirectory(dir.resolve("owned"));
+    Path stale = Files.writeString(owned.resolve("owned_0b1d.part"), "x");
+    Path tomcatNamed = Files.writeString(owned.resolve("upload_1_1.tmp"), "x");
+    Path other = Files.writeString(owned.resolve("keep.txt"), "x");
+    Path dirNamedLikeOwned = Files.createDirectory(owned.resolve("owned_dir.part"));
+
+    MultipartDataConfig.prepareSpoolDirectory(dir.toString());
+
+    assertFalse(Files.exists(stale));
+    assertTrue(Files.exists(tomcatNamed), "the spool glob applies to the spool directory only");
+    assertTrue(Files.exists(other));
+    assertTrue(Files.isDirectory(dirNamedLikeOwned));
+    assertEquals(Set.of("upload_1_1.tmp", "keep.txt", "owned_dir.part"), names(owned));
+  }
+
+  @Test
+  void failsWhenOwnedSubdirectoryCannotBeCreated() throws IOException {
+    Path dir = Files.createDirectory(tmp.resolve("spool"));
+    Files.writeString(dir.resolve("owned"), "a file in the way");
+
+    var e = assertThrows(IllegalStateException.class,
+        () -> MultipartDataConfig.prepareSpoolDirectory(dir.toString()));
+
+    assertTrue(e.getMessage().contains("Owned upload directory"), e.getMessage());
   }
 
   private static Set<String> names(Path dir) throws IOException {
     try (var s = Files.list(dir)) {
       return s.map(p -> p.getFileName().toString()).collect(java.util.stream.Collectors.toSet());
-    }
-  }
-
-  private static void assertEmpty(Path dir) {
-    try {
-      assertEquals(Set.of(), names(dir));
-    } catch (IOException e) {
-      throw new IllegalStateException(e);
     }
   }
 }

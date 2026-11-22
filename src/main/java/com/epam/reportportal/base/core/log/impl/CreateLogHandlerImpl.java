@@ -21,6 +21,8 @@ import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorTyp
 import static com.epam.reportportal.base.ws.converter.converters.LogConverter.LOG_FULL_TO_LOG;
 import static java.util.Optional.ofNullable;
 
+import com.epam.reportportal.base.core.file.upload.OwnedUploadFile;
+import com.epam.reportportal.base.core.file.upload.OwnedUploadStore;
 import com.epam.reportportal.base.core.item.TestItemService;
 import com.epam.reportportal.base.core.log.CreateLogHandler;
 import com.epam.reportportal.base.core.log.LogService;
@@ -93,6 +95,9 @@ public class CreateLogHandlerImpl implements CreateLogHandler {
   @Autowired
   private LogTypeResolver logTypeResolver;
 
+  @Autowired
+  private OwnedUploadStore ownedUploadStore;
+
   @Override
   @Nonnull
   public EntryCreatedAsyncRS createLog(@Nonnull SaveLogRQ request, MultipartFile file,
@@ -124,18 +129,37 @@ public class CreateLogHandlerImpl implements CreateLogHandler {
 
     final LogFull logFull = logFullBuilder.get();
     final Log log = LOG_FULL_TO_LOG.apply(logFull);
-    CompletableFuture.supplyAsync(() -> logRepository.saveAndFlush(log), taskExecutor)
-        .thenAcceptAsync(savedLog -> {
-          logFull.setId(savedLog.getId());
-          logService.saveLogMessage(logFull, launch.getId());
-          if (file != null) {
-            saveBinaryData(file, launch, savedLog);
-          }
-        }, taskExecutor)
-        .exceptionally(e -> {
-          LOGGER.error("Failed to save log with attachments", e);
-          return null;
-        });
+    // The log and its attachment are saved after the response. The request's part is deleted by the
+    // container when the request ends, so take the content over before leaving this thread; the
+    // chain below releases it however it ends.
+    final OwnedUploadFile attachment = ownedUploadStore.take(file);
+    try {
+      CompletableFuture.supplyAsync(() -> logRepository.saveAndFlush(log), taskExecutor)
+          .thenAcceptAsync(savedLog -> {
+            logFull.setId(savedLog.getId());
+            logService.saveLogMessage(logFull, launch.getId());
+            if (attachment != null) {
+              saveBinaryData(attachment, launch, savedLog);
+            }
+          }, taskExecutor)
+          .whenComplete((ignored, e) -> {
+            if (attachment != null) {
+              attachment.close();
+            }
+            if (e != null) {
+              LOGGER.error("Failed to save log {} of launch {} (project {}){}", log.getUuid(),
+                  launch.getUuid(), projectId,
+                  attachment == null ? ""
+                      : " with attachment '" + attachment.getOriginalFilename() + "' ("
+                          + attachment.getSize() + " bytes)", e);
+            }
+          });
+    } catch (RuntimeException e) {
+      if (attachment != null) {
+        attachment.close();
+      }
+      throw e;
+    }
 
     return new EntryCreatedAsyncRS(log.getUuid());
   }

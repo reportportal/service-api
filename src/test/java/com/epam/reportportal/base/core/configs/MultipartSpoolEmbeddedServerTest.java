@@ -16,9 +16,13 @@
 
 package com.epam.reportportal.base.core.configs;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.epam.reportportal.base.core.file.upload.OwnedUploadFile;
+import com.epam.reportportal.base.core.file.upload.OwnedUploadStore;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -28,6 +32,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Value;
@@ -94,6 +99,55 @@ class MultipartSpoolEmbeddedServerTest {
   }
 
   @Test
+  void spooledPartIsGoneAfterTheRequestUnlessTakenOver() throws Exception {
+    byte[] content = new byte[3 * 1024 * 1024];
+    new java.util.Random(3).nextBytes(content);
+
+    var response = upload("/upload-later", content);
+    assertEquals(200, response.statusCode(), response.body());
+    awaitEmptySpool();
+
+    // what the asynchronous log save used to do: read the request's own part after the response
+    assertThrows(IOException.class, () -> {
+      try (var in = UploadController.held.get().getInputStream()) {
+        in.readAllBytes();
+      }
+    });
+  }
+
+  @Test
+  void takenOverPartOutlivesTheRequestAndIsDeletedOnClose() throws Exception {
+    byte[] content = new byte[3 * 1024 * 1024];
+    new java.util.Random(4).nextBytes(content);
+
+    var response = upload("/upload-later?own=true", content);
+    assertEquals(200, response.statusCode(), response.body());
+    awaitEmptySpool();
+
+    var owned = (OwnedUploadFile) UploadController.held.get();
+    assertEquals("file", owned.getName());
+    assertEquals("a.bin", owned.getOriginalFilename());
+    assertEquals("application/octet-stream", owned.getContentType());
+    assertEquals(content.length, owned.getSize());
+    try (var in = owned.getInputStream()) {
+      assertArrayEquals(content, in.readAllBytes());
+    }
+    assertEquals(SPOOL.resolve("owned"), owned.getPath().getParent());
+
+    owned.close();
+    try (Stream<Path> files = Files.list(SPOOL.resolve("owned"))) {
+      assertEquals(0, files.count());
+    }
+  }
+
+  private void awaitEmptySpool() throws Exception {
+    for (int i = 0; i < 100 && spoolFiles().length > 0; i++) {
+      Thread.sleep(50);
+    }
+    assertEquals(0, spoolFiles().length, "Tomcat must have removed the request's parts");
+  }
+
+  @Test
   void abortedUploadLeavesNothingBehind() throws Exception {
     String boundary = "----abort";
     byte[] head = ("--" + boundary + "\r\nContent-Disposition: form-data; name=\"file\"; "
@@ -117,6 +171,11 @@ class MultipartSpoolEmbeddedServerTest {
   }
 
   private HttpResponse<String> upload(byte[] content) throws IOException, InterruptedException {
+    return upload("/upload", content);
+  }
+
+  private HttpResponse<String> upload(String path, byte[] content)
+      throws IOException, InterruptedException {
     String boundary = "----spool" + System.nanoTime();
     byte[] head = ("--" + boundary + "\r\nContent-Disposition: form-data; name=\"file\"; "
         + "filename=\"a.bin\"\r\nContent-Type: application/octet-stream\r\n\r\n")
@@ -126,7 +185,7 @@ class MultipartSpoolEmbeddedServerTest {
     System.arraycopy(head, 0, body, 0, head.length);
     System.arraycopy(content, 0, body, head.length, content.length);
     System.arraycopy(tail, 0, body, head.length + content.length, tail.length);
-    var request = HttpRequest.newBuilder(URI.create("http://localhost:" + port + "/upload"))
+    var request = HttpRequest.newBuilder(URI.create("http://localhost:" + port + path))
         .header("Content-Type", "multipart/form-data; boundary=" + boundary)
         .POST(HttpRequest.BodyPublishers.ofByteArray(body)).build();
     return HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
@@ -134,7 +193,8 @@ class MultipartSpoolEmbeddedServerTest {
 
   private static String[] spoolFiles() throws IOException {
     try (Stream<Path> files = Files.list(SPOOL)) {
-      return files.map(p -> p.getFileName().toString()).toArray(String[]::new);
+      return files.filter(Files::isRegularFile).map(p -> p.getFileName().toString())
+          .toArray(String[]::new);
     }
   }
 
@@ -150,7 +210,7 @@ class MultipartSpoolEmbeddedServerTest {
   @ImportAutoConfiguration({TomcatServletWebServerAutoConfiguration.class,
       DispatcherServletAutoConfiguration.class, MultipartAutoConfiguration.class,
       WebMvcAutoConfiguration.class, HttpMessageConvertersAutoConfiguration.class})
-  @Import({MultipartDataConfig.class, UploadController.class})
+  @Import({MultipartDataConfig.class, OwnedUploadStore.class, UploadController.class})
   static class App {
 
   }
@@ -158,14 +218,31 @@ class MultipartSpoolEmbeddedServerTest {
   @RestController
   static class UploadController {
 
+    static final AtomicReference<MultipartFile> held = new AtomicReference<>();
+
     @Value("${rp.upload.temp.path}")
     private String spool;
+
+    @org.springframework.beans.factory.annotation.Autowired
+    private OwnedUploadStore store;
+
+    /**
+     * Keeps the part (or, with {@code own}, the service's copy of it) for reading after the
+     * response, like the asynchronous log save.
+     */
+    @PostMapping("/upload-later")
+    String uploadLater(@RequestParam("file") MultipartFile file,
+        @RequestParam(value = "own", defaultValue = "false") boolean own) {
+      held.set(own ? store.take(file) : file);
+      return "held";
+    }
 
     @PostMapping("/upload")
     String upload(@RequestParam("file") MultipartFile file) throws IOException {
       String[] spooled;
       try (Stream<Path> files = Files.list(Path.of(spool))) {
-        spooled = files.map(p -> p.getFileName().toString()).toArray(String[]::new);
+        spooled = files.filter(Files::isRegularFile).map(p -> p.getFileName().toString())
+            .toArray(String[]::new);
       }
       assertTrue(Arrays.stream(spooled).allMatch(n -> n.startsWith("upload_") && n.endsWith(".tmp")),
           Arrays.toString(spooled));

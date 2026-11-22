@@ -16,6 +16,7 @@
 
 package com.epam.reportportal.base.core.configs;
 
+import com.epam.reportportal.base.core.file.upload.OwnedUploadStore;
 import com.epam.reportportal.base.util.BinaryDataResponseWriter;
 import jakarta.activation.MimetypesFileTypeMap;
 import jakarta.servlet.MultipartConfigElement;
@@ -66,8 +67,12 @@ public class MultipartDataConfig {
 
   /**
    * Creates the spool directory if missing, checks that files can be written into it and removes
-   * the leftovers of a previous run ({@code upload_*.tmp} regular files directly inside it; nothing
-   * else is touched).
+   * the leftovers of a previous run: {@code upload_*.tmp} regular files directly inside it (parts the
+   * servlet container had spooled) and {@code owned_*.part} regular files directly inside its
+   * {@code owned} subdirectory (uploads the service had taken over for asynchronous processing, see
+   * {@link OwnedUploadStore}); the subdirectory is created if missing. Nothing else is touched. The
+   * two sets never overlap: the container only creates and deletes its own {@code upload_*.tmp}
+   * files in the spool directory itself, the service only its own files in the subdirectory.
    *
    * @param location configured spool directory
    * @return absolute spool directory
@@ -91,13 +96,22 @@ public class MultipartDataConfig {
           + "' (rp.upload.temp.path) cannot be created or written to: " + e
           + ". Mount a writable volume there or set RP_UPLOAD_TEMP_PATH to a writable directory", e);
     }
-    removeStaleParts(dir);
+    removeStaleParts(dir, SPOOL_FILE_GLOB);
+    Path owned = OwnedUploadStore.ownedDirectory(dir);
+    try {
+      Files.createDirectories(owned);
+    } catch (IOException | RuntimeException e) {
+      throw new IllegalStateException("Owned upload directory '" + owned
+          + "' cannot be created inside the multipart spool directory (rp.upload.temp.path): " + e,
+          e);
+    }
+    removeStaleParts(owned, OwnedUploadStore.FILE_GLOB);
     return dir;
   }
 
-  private static void removeStaleParts(Path dir) {
+  private static void removeStaleParts(Path dir, String glob) {
     int removed = 0;
-    try (DirectoryStream<Path> stale = Files.newDirectoryStream(dir, SPOOL_FILE_GLOB)) {
+    try (DirectoryStream<Path> stale = Files.newDirectoryStream(dir, glob)) {
       for (Path file : stale) {
         if (!Files.isRegularFile(file, LinkOption.NOFOLLOW_LINKS)) {
           continue;

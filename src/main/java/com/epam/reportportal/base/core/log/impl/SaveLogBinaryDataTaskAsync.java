@@ -58,8 +58,9 @@ public class SaveLogBinaryDataTaskAsync implements Supplier<BinaryDataMetaInfo> 
             .withLogUuid(request.getUuid())
             .build(), file);
     return maybeBinaryDataMetaInfo.orElseGet(() -> {
-      LOGGER.error("Failed to save log content data into DataStore, projectId {}, itemId {} ",
-          projectId, request.getItemUuid());
+      LOGGER.error("Failed to save log content data into DataStore: attachment '{}' of log {} "
+              + "of launch {} (projectId {}, itemId {})", file.getOriginalFilename(),
+          request.getUuid(), request.getLaunchUuid(), projectId, request.getItemUuid());
       throw new ReportPortalException(ErrorType.BINARY_DATA_CANNOT_BE_SAVED);
     });
   }
@@ -70,6 +71,13 @@ public class SaveLogBinaryDataTaskAsync implements Supplier<BinaryDataMetaInfo> 
     return this;
   }
 
+  /**
+   * @param file content to save. The task runs after the request has ended, so this must not be the
+   *             request's own part but a copy that outlives it
+   *             ({@link com.epam.reportportal.base.core.file.upload.OwnedUploadStore#take}); the
+   *             caller releases it.
+   * @return this task
+   */
   public SaveLogBinaryDataTaskAsync withFile(MultipartFile file) {
     this.file = file;
     return this;

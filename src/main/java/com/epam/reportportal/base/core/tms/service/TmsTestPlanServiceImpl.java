@@ -240,11 +240,24 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
       }
     }
 
+    // Count only the rows the statement really inserted: a concurrent request may have won
+    var addedTestCaseIds = new HashSet<Long>();
     for (var chunk : ListUtils.partition(List.copyOf(testCaseIdsToAdd), INSERT_CHUNK_SIZE)) {
-      tmsTestPlanTestCaseRepository.insertTestPlanTestCasesInProject(projectId, testPlanId, chunk);
+      addedTestCaseIds.addAll(
+          tmsTestPlanTestCaseRepository.insertTestPlanTestCasesInProject(projectId, testPlanId,
+              chunk));
     }
 
-    var successTestCaseIds = new ArrayList<>(testCaseIdsToAdd);
+    var successTestCaseIds = new ArrayList<Long>();
+    for (var testCaseId : testCaseIdsToAdd) {
+      if (addedTestCaseIds.contains(testCaseId) || !explicitTestCaseIds.contains(testCaseId)) {
+        // A folder-resolved test case skipped by the insert is already in the plan
+        successTestCaseIds.add(testCaseId);
+      } else {
+        errors.add(new BatchTestCaseOperationError(testCaseId,
+            String.format("Test case with id %s already exists in test plan", testCaseId)));
+      }
+    }
     successTestCaseIds.addAll(folderTestCaseIdsInTestPlan);
     var result = tmsTestPlanMapper.convertToRS(totalCount, successTestCaseIds.size(), errors);
     result.setSuccessTestCaseIds(successTestCaseIds);
@@ -275,12 +288,20 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
       }
     }
 
+    var removedTestCaseIds = new HashSet<Long>();
     if (!testCaseIdsToRemove.isEmpty()) {
-      tmsTestPlanTestCaseRepository.deleteByTestPlanIdAndTestCaseIds(testPlanId,
-          List.copyOf(testCaseIdsToRemove));
+      // Count only the rows the statement really deleted: a concurrent request may have won
+      removedTestCaseIds.addAll(tmsTestPlanTestCaseRepository.deleteByTestPlanIdAndTestCaseIds(
+          testPlanId, List.copyOf(testCaseIdsToRemove)));
+      for (var testCaseId : testCaseIdsToRemove) {
+        if (!removedTestCaseIds.contains(testCaseId)) {
+          errors.add(new BatchTestCaseOperationError(testCaseId,
+              String.format("Test case with id %s not found in test plan", testCaseId)));
+        }
+      }
     }
 
-    return tmsTestPlanMapper.convertToRS(totalCount, testCaseIdsToRemove.size(), errors);
+    return tmsTestPlanMapper.convertToRS(totalCount, removedTestCaseIds.size(), errors);
   }
 
   @Override

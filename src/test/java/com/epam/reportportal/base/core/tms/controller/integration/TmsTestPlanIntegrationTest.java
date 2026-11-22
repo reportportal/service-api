@@ -42,6 +42,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.databind.json.JsonMapper;
 
 /**
@@ -1782,5 +1783,25 @@ public class TmsTestPlanIntegrationTest extends BaseMvcTest {
         .andExpect(jsonPath("$.content").isArray())
         .andExpect(jsonPath("$.content.length()").value(0))
         .andExpect(jsonPath("$.page.totalElements").value(0));
+  }
+
+  @Test
+  @Transactional
+  void insertTestCasesInProjectReturnsOnlyActuallyInsertedIdsIntegrationTest() {
+    // 200 is already in plan 200 (as if added concurrently after validation), 204 is not
+    var inserted = tmsTestPlanTestCaseRepository.insertTestPlanTestCasesInProject(1L,
+        TEST_PLAN_WITH_TEST_CASES_ID, List.of(TEST_CASE_WITH_MULTIPLE_EXECUTIONS_ID, TEST_CASE_NOT_IN_PLAN_ID));
+
+    assertEquals(List.of(TEST_CASE_NOT_IN_PLAN_ID), inserted);
+  }
+
+  @Test
+  @Transactional
+  void deleteTestCasesFromPlanReturnsOnlyActuallyDeletedIdsIntegrationTest() {
+    // 200 is in plan 200, 204 is not (as if removed concurrently after validation)
+    var deleted = tmsTestPlanTestCaseRepository.deleteByTestPlanIdAndTestCaseIds(
+        TEST_PLAN_WITH_TEST_CASES_ID, List.of(TEST_CASE_WITH_MULTIPLE_EXECUTIONS_ID, TEST_CASE_NOT_IN_PLAN_ID));
+
+    assertEquals(List.of(TEST_CASE_WITH_MULTIPLE_EXECUTIONS_ID), deleted);
   }
 }

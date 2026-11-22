@@ -303,6 +303,7 @@ public class TmsManualScenarioRequirementServiceImpl implements
         })
         .toList();
 
+    // Copied into a mutable list: Hibernate adopts the list itself when it wraps the collection
     duplicatedScenario.setRequirements(
         new ArrayList<>(tmsManualScenarioRequirementRepository.saveAll(duplicatedEntities)));
 

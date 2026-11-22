@@ -2357,11 +2357,18 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
                 .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andReturn();
-    var copyId = mapper.readValue(result.getResponse().getContentAsString(),
-        BatchDuplicateTestCasesRS.class).getTestCases().getFirst().getId();
+    var copy = mapper.readValue(result.getResponse().getContentAsString(),
+        BatchDuplicateTestCasesRS.class).getTestCases().getFirst();
+    var copyId = copy.getId();
 
     assertNotEquals(originalId, copyId);
-    assertRequirementsCopied(originalRequirements, findRequirementsOfTestCase(copyId));
+    var copyRequirements = findRequirementsOfTestCase(copyId);
+    assertRequirementsCopied(originalRequirements, copyRequirements);
+    // The response carries the copied requirements, not an empty list
+    var responseRequirements = copy.getManualScenario().getRequirements();
+    assertEquals(2, responseRequirements.size());
+    assertEquals(copyRequirements.get(0)[0], responseRequirements.get(0).getId());
+    assertEquals(copyRequirements.get(1)[0], responseRequirements.get(1).getId());
     // The original keeps its requirements unchanged
     var originalAfter = findRequirementsOfTestCase(originalId);
     assertEquals(originalRequirements.get(0)[0], originalAfter.get(0)[0]);
@@ -3354,7 +3361,12 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
             .contentType("application/json")
             .content(mapper.writeValueAsString(patchRQ))
             .with(token(oAuthHelper.getSuperadminToken())))
-        .andExpect(status().isOk());
+        .andExpect(status().isOk())
+        // The response lists each kept requirement once, followed by the appended one
+        .andExpect(jsonPath("$.manualScenario.requirements.length()").value(3))
+        .andExpect(jsonPath("$.manualScenario.requirements[0].id").value(before.get(0)[0]))
+        .andExpect(jsonPath("$.manualScenario.requirements[1].id").value(before.get(1)[0]))
+        .andExpect(jsonPath("$.manualScenario.requirements[2].value").value("appended"));
 
     var after = findRequirementsOfTestCase(testCaseId);
     assertEquals(3, after.size());

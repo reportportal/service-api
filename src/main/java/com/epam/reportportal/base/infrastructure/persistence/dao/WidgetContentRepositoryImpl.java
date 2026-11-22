@@ -678,7 +678,7 @@ public class WidgetContentRepositoryImpl implements WidgetContentRepository {
             coalesce(
                 fieldName(STATISTICS_TABLE, STATISTICS_COUNTER).sub(lag(fieldName(STATISTICS_TABLE,
                     STATISTICS_COUNTER
-                )).over().orderBy(LAUNCH.START_TIME.asc())), 0).as(DELTA)
+                )).over().orderBy(LAUNCH.START_TIME.asc(), LAUNCH.ID.asc())), 0).as(DELTA)
         )
         .from(LAUNCH)
         .join(LAUNCHES)
@@ -693,7 +693,7 @@ public class WidgetContentRepositoryImpl implements WidgetContentRepository {
             .asTable(STATISTICS_TABLE))
         .on(LAUNCH.ID.eq(fieldName(STATISTICS_TABLE, LAUNCH_ID).cast(Long.class)))
         .groupBy(groupingFields)
-        .orderBy(LAUNCH.START_TIME.asc())
+        .orderBy(LAUNCH.START_TIME.asc(), LAUNCH.ID.asc())
         .fetch(), contentField);
   }
 
@@ -1159,7 +1159,7 @@ public class WidgetContentRepositoryImpl implements WidgetContentRepository {
         dsl.select(fieldName(ITEMS, VALUE), itemCount.as(TOTAL), passingRate)
             .from(items.asTable(ITEMS))
             .groupBy(fieldName(ITEMS, VALUE))
-            .orderBy(passingRate)
+            .orderBy(passingRate, fieldName(ITEMS, VALUE))
             .fetch());
   }
 

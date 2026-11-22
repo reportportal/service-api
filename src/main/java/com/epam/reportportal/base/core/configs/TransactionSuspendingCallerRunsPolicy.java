@@ -20,15 +20,14 @@ import java.util.concurrent.RejectedExecutionHandler;
 import java.util.concurrent.ThreadPoolExecutor;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * Runs a rejected task in the submitting thread, like {@link ThreadPoolExecutor.CallerRunsPolicy}, but with the
- * submitter's transaction suspended. Tasks are often submitted from a transaction's {@code afterCommit} callback
- * ({@code @Async} {@code @TransactionalEventListener}s): run in place there, every {@code @Transactional} method of the
- * task would join the already committed transaction and its writes would never be committed. Discards the task when the
- * executor is shut down.
+ * submitter's transaction suspended. Tasks are often submitted from a transaction's {@code afterCommit} or
+ * {@code afterCompletion} callback ({@code @Async} {@code @TransactionalEventListener}s): run in place there, every
+ * {@code @Transactional} method of the task would join the already committed transaction and its writes would never be
+ * committed. Discards the task when the executor is shut down.
  */
 public class TransactionSuspendingCallerRunsPolicy implements RejectedExecutionHandler {
 
@@ -44,10 +43,8 @@ public class TransactionSuspendingCallerRunsPolicy implements RejectedExecutionH
     if (executor.isShutdown()) {
       return;
     }
-    if (TransactionSynchronizationManager.isSynchronizationActive()) {
-      withoutTransaction.executeWithoutResult(status -> task.run());
-    } else {
-      task.run();
-    }
+    // Always suspend: an AFTER_COMMIT @TransactionalEventListener runs from afterCompletion, where synchronization is
+    // already cleared but the committed transaction is still bound to the thread.
+    withoutTransaction.executeWithoutResult(status -> task.run());
   }
 }

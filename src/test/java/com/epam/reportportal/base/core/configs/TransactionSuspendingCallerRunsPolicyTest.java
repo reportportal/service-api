@@ -26,6 +26,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -84,6 +85,30 @@ class TransactionSuspendingCallerRunsPolicyTest extends BaseMvcTest {
 
   @Test
   void rejectedTaskSubmittedAfterCommitCommitsItsWrites() throws InterruptedException {
+    assertRejectedTaskCommitsItsWrites(submit -> new TransactionSynchronization() {
+      @Override
+      public void afterCommit() {
+        submit.run();
+      }
+    });
+  }
+
+  /**
+   * An AFTER_COMMIT {@code @TransactionalEventListener} is invoked from {@code afterCompletion}, where synchronization
+   * is no longer active but the committed transaction is still bound to the thread.
+   */
+  @Test
+  void rejectedTaskSubmittedAfterCompletionCommitsItsWrites() throws InterruptedException {
+    assertRejectedTaskCommitsItsWrites(submit -> new TransactionSynchronization() {
+      @Override
+      public void afterCompletion(int status) {
+        submit.run();
+      }
+    });
+  }
+
+  private void assertRejectedTaskCommitsItsWrites(Function<Runnable, TransactionSynchronization> callback)
+      throws InterruptedException {
     ThreadPoolExecutor executor = new ThreadPoolExecutor(1, 1, 0, TimeUnit.SECONDS,
         new ArrayBlockingQueue<>(1), new TransactionSuspendingCallerRunsPolicy(transactionManager));
     CountDownLatch release = new CountDownLatch(1);
@@ -95,18 +120,13 @@ class TransactionSuspendingCallerRunsPolicyTest extends BaseMvcTest {
       executor.execute(() -> {
       });
 
-      transactionTemplate.executeWithoutResult(status -> {
-        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-          @Override
-          public void afterCommit() {
-            // what an @Async @TransactionalEventListener whose handler is @Transactional (REQUIRED) does
-            executor.execute(() -> transactionTemplate.executeWithoutResult(inner -> {
-              handlerThread.set(Thread.currentThread());
-              statisticsFieldRepository.findByName(PROBE).ifPresent(field -> field.setName(PROBE_HANDLED));
-            }));
-          }
-        });
-      });
+      // what an @Async @TransactionalEventListener whose handler is @Transactional (REQUIRED) does
+      Runnable submit = () -> executor.execute(() -> transactionTemplate.executeWithoutResult(inner -> {
+        handlerThread.set(Thread.currentThread());
+        statisticsFieldRepository.findByName(PROBE).ifPresent(field -> field.setName(PROBE_HANDLED));
+      }));
+      transactionTemplate.executeWithoutResult(
+          status -> TransactionSynchronizationManager.registerSynchronization(callback.apply(submit)));
     } finally {
       release.countDown();
       executor.shutdown();

@@ -148,6 +148,7 @@ public class StatusCodeMapping {
 
       put(ErrorType.INCORRECT_REQUEST, HttpStatus.BAD_REQUEST);
       put(ErrorType.BAD_REQUEST_ERROR, HttpStatus.BAD_REQUEST);
+      put(ErrorType.AUTOMATION_ENVIRONMENTS_NOT_CONFIGURED, HttpStatus.BAD_REQUEST);
       put(ErrorType.AMBIGUOUS_TEST_ITEM_STATUS, HttpStatus.BAD_REQUEST);
       put(ErrorType.UNCLASSIFIED_ERROR, HttpStatus.INTERNAL_SERVER_ERROR);
       put(ErrorType.UNCLASSIFIED_REPORT_PORTAL_ERROR, HttpStatus.INTERNAL_SERVER_ERROR);

@@ -50,7 +50,9 @@ public class TmsAutomationController {
           + "ALREADY_AUTOMATED_CONFIRM_REQUIRED and the testCaseIds that need confirmation (nothing is started; "
           + "send confirmReautomate and confirmedTestCaseIds to go on); 409 with reason NO_ELIGIBLE_TEST_CASES "
           + "and the skipped list when no case can be sent; 409 CI_NOT_CONNECTED (error code 40916) while the "
-          + "pipeline cannot start jobs. When the CI refuses the start, nothing stays recorded.")
+          + "pipeline cannot start jobs; 400 AUTOMATION_ENVIRONMENTS_NOT_CONFIGURED (error code 40060) when no "
+          + "environment is configured, 400 for an environment that is not in the list. When the CI refuses the "
+          + "start, nothing stays recorded.")
   @ApiResponse(responseCode = "202", description = "Automation started")
   @ApiResponse(responseCode = "409", description = "Confirmation required, nothing to send, or CI not connected")
   public ResponseEntity<?> start(@PathVariable("projectKey") String projectKey,
@@ -81,7 +83,8 @@ public class TmsAutomationController {
   @GetMapping("/environment")
   @Operation(summary = "Environments the autotests can run against",
       description = "The environments of the CI connection of the Test automation pipeline, the first being the "
-          + "default. 400 when none is configured.")
+          + "default. 400 AUTOMATION_ENVIRONMENTS_NOT_CONFIGURED (error code 40060) when none is configured, the "
+          + "same answer as the start gives.")
   @ApiResponse(responseCode = "200", description = "Successful operation")
   public TmsAutomationEnvironmentRS getEnvironments(@PathVariable("projectKey") String projectKey,
       @AuthenticationPrincipal ReportPortalUser user) {

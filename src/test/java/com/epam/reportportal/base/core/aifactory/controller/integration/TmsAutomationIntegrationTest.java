@@ -211,10 +211,30 @@ class TmsAutomationIntegrationTest extends BaseMvcTest {
     assertEquals(0, count("select count(*) from tms_test_case_automation_run where project_id = 1"));
   }
 
+  private void removeEnvironmentsFromTheProjectIntegration() {
+    jdbcTemplate.update("update integration set params = ?::jsonb where id = 910",
+        "{\"params\": {\"projectId\": \"EPM-RPP/rp-tests\", \"triggerToken\": \"gl-test-token\", "
+            + "\"url\": \"https://git.epam.com\"}}");
+  }
+
   @Test
-  void environments_WhenNoneIsConfigured_ShouldAnswer400() throws Exception {
+  void environments_WhenNoneIsConfigured_ShouldAnswer400WithTheEnvironmentsMachineCode() throws Exception {
+    removeEnvironmentsFromTheProjectIntegration();
+
     mockMvc.perform(get(AUTOMATION + "/environment").with(token(oAuthHelper.getSuperadminToken())))
-        .andExpect(status().isBadRequest());
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.errorCode").value(ErrorType.AUTOMATION_ENVIRONMENTS_NOT_CONFIGURED.getCode()));
+  }
+
+  @Test
+  void start_WhenNoEnvironmentIsConfigured_ShouldAnswerLikeTheListAndStartNothing() throws Exception {
+    removeEnvironmentsFromTheProjectIntegration();
+
+    automate(List.of(900L))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.errorCode").value(ErrorType.AUTOMATION_ENVIRONMENTS_NOT_CONFIGURED.getCode()));
+    verify(ciHttpClient, never()).postForStatus(anyString(), anyMap(), anyString());
+    assertEquals(0, count("select count(*) from tms_test_case_automation_run where project_id = 1"));
   }
 
   @Test

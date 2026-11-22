@@ -7,5 +7,5 @@ update tms_test_case set status = 'READY' where id in (900, 901);
 
 insert into integration (id, project_id, type, enabled, creator, creation_date, params, name)
 values (910, 1, 9001, true, 'superadmin', now(),
-        '{"params": {"projectId": "EPM-RPP/rp-tests", "triggerToken": "gl-test-token", "url": "https://git.epam.com"}}',
+        '{"params": {"projectId": "EPM-RPP/rp-tests", "triggerToken": "gl-test-token", "url": "https://git.epam.com", "environments": ["beta5", "qa"]}}',
         'automation-gitlab-ci');

@@ -30,6 +30,7 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestC
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCaseAutomationRun;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.enums.TmsFixRoundStatus;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.enums.TmsTestCaseStatus;
+import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -130,16 +131,12 @@ public class TmsAutomationStartService {
   /**
    * The environments of the Test automation pipeline's CI connection, the first being the default.
    *
-   * @throws ReportPortalException BAD_REQUEST when none is configured
+   * @throws ReportPortalException AUTOMATION_ENVIRONMENTS_NOT_CONFIGURED (400) when none is configured
    */
   public TmsAutomationEnvironmentRS getEnvironments(long projectId) {
     var pipeline = pipelineRepository.findFirstByProjectIdAndTypeOrderByIdAsc(projectId, PIPELINE_TYPE).orElse(null);
     var environments = pipeline == null ? List.<String>of() : ciConnectionService.environmentsOf(pipeline);
-    if (environments.isEmpty()) {
-      throw new ReportPortalException(BAD_REQUEST_ERROR,
-          "No environment is configured for test automation: set them in the CI connection of the Test automation "
-              + "pipeline");
-    }
+    requireEnvironments(environments);
     return TmsAutomationEnvironmentRS.builder()
         .environments(environments)
         .defaultEnvironment(environments.get(0))
@@ -178,6 +175,18 @@ public class TmsAutomationStartService {
     return new Started(claimed.response());
   }
 
+  /**
+   * The same rule for the list of environments and for the start: without a configured list nothing can be offered
+   * or sent, and the client gets the machine code {@code AUTOMATION_ENVIRONMENTS_NOT_CONFIGURED} (40060).
+   */
+  private static void requireEnvironments(List<String> environments) {
+    if (environments.isEmpty()) {
+      throw new ReportPortalException(ErrorType.AUTOMATION_ENVIRONMENTS_NOT_CONFIGURED,
+          "Set the environments in the CI connection of the Test automation pipeline (or in the project CI "
+              + "integration, parameter 'environments')");
+    }
+  }
+
   private Claim claim(long projectId, Long userId, TmsAutomationStartRQ rq) {
     var ids = new ArrayList<>(new LinkedHashSet<>(rq.getTestCaseIds()));
     var found = testCaseRepository.findByProjectIdAndIds(projectId, ids).stream()
@@ -193,7 +202,8 @@ public class TmsAutomationStartService {
     var locked = pipelineRepository.findByIdForUpdate(pipeline.getId()).orElseThrow();
     ciConnectionService.assertCanStartJobs(locked);
     var environments = ciConnectionService.environmentsOf(locked);
-    if (!environments.isEmpty() && !environments.contains(rq.getEnvironment())) {
+    requireEnvironments(environments);
+    if (!environments.contains(rq.getEnvironment())) {
       throw new ReportPortalException(BAD_REQUEST_ERROR,
           "Environment '" + rq.getEnvironment() + "' is not one of " + environments);
     }

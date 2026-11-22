@@ -382,6 +382,12 @@ public enum ErrorType {
   CI_NOT_CONNECTED(40916, "The pipeline is not connected to CI. {}"),
 
   /**
+   * Test automation cannot be started or offered because no environment is configured in the CI connection of the
+   * Test automation pipeline (nor in the project integration it falls back to)
+   */
+  AUTOMATION_ENVIRONMENTS_NOT_CONFIGURED(40060, "No environment is configured for test automation. {}"),
+
+  /**
    * Unable remove resource from favorites
    */
   UNABLE_REMOVE_FROM_FAVORITE(4100, "Unable remove resource from favorites. {}"),

@@ -80,6 +80,17 @@ public interface UserCreationBidRepository extends ReportPortalRepository<UserCr
   int deleteIfActivationFailuresReached(@Param("uuid") String uuid, @Param("type") String type,
       @Param("limit") int limit);
 
+  /**
+   * Finds the newest bid of the given type that references the given user through {@code inviting_user_id}.
+   *
+   * @param userId the user id
+   * @param type   the bid type stored in {@code metadata.metadata.type}
+   * @return the newest such bid, if any
+   */
+  @Query(value = "SELECT bid.* FROM user_creation_bid bid WHERE bid.inviting_user_id = :userId AND (bid.metadata -> 'metadata'->>'type' = :type) ORDER BY bid.last_modified DESC LIMIT 1", nativeQuery = true)
+  Optional<UserCreationBid> findLatestByInvitingUserIdAndType(@Param("userId") Long userId,
+      @Param("type") String type);
+
   Optional<UserCreationBid> findFirstByEmailOrderByLastModifiedDesc(String email);
 
   void deleteByUuid(String uuid);

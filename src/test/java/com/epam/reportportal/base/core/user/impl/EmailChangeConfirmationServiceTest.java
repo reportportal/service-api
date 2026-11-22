@@ -18,6 +18,7 @@ package com.epam.reportportal.base.core.user.impl;
 
 import static com.epam.reportportal.base.core.user.impl.EmailChangeConfirmationService.EMAIL_CHANGE_BID_TYPE;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -34,6 +35,7 @@ import com.epam.reportportal.base.infrastructure.persistence.dao.UserCreationBid
 import com.epam.reportportal.base.infrastructure.persistence.entity.Metadata;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.User;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserCreationBid;
+import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.util.email.EmailService;
 import com.epam.reportportal.base.util.email.MailServiceFactory;
 import jakarta.servlet.http.HttpServletRequest;
@@ -89,6 +91,7 @@ class EmailChangeConfirmationServiceTest {
   @BeforeEach
   void setUp() {
     ReflectionTestUtils.setField(service, "emailChangeTtl", Duration.ofHours(24));
+    ReflectionTestUtils.setField(service, "emailChangeCooldown", Duration.ofSeconds(60));
     user = new User();
     user.setId(10L);
     user.setLogin("user@example.com");
@@ -162,12 +165,56 @@ class EmailChangeConfirmationServiceTest {
   }
 
   @Test
-  void requestChangeFromUntrustedHostShouldRecordNothing() {
+  void requestChangeFromUntrustedHostShouldFailAndRecordNothing() {
     when(linkGenerator.composeTrustedBaseUrl(httpServletRequest)).thenReturn(Optional.empty());
+
+    assertThatThrownBy(() -> service.requestChange(user, "new@example.com"))
+        .isInstanceOf(ReportPortalException.class)
+        .hasMessageContaining("confirmation link cannot be generated for this host")
+        .hasMessageContaining("administrator");
+
+    verifyNoInteractions(userCreationBidRepository, emailExecutorService, emailServiceFactory);
+  }
+
+  @Test
+  void requestChangeForSameAddressWithinCooldownShouldKeepPendingChangeAndSendNothing() {
+    when(linkGenerator.composeTrustedBaseUrl(httpServletRequest)).thenReturn(Optional.of(BASE_URL));
+    when(userCreationBidRepository.findLatestByInvitingUserIdAndType(10L, EMAIL_CHANGE_BID_TYPE))
+        .thenReturn(Optional.of(emailChangeBid(Instant.now().minusSeconds(10))));
 
     service.requestChange(user, "new@example.com");
 
-    verifyNoInteractions(userCreationBidRepository, emailExecutorService);
+    verify(userCreationBidRepository, never()).deleteByInvitingUserIdAndType(any(), anyString());
+    verify(userCreationBidRepository, never()).save(any());
+    verifyNoInteractions(emailExecutorService, emailServiceFactory);
+  }
+
+  @Test
+  void requestChangeForDifferentAddressWithinCooldownShouldBeRejected() {
+    when(linkGenerator.composeTrustedBaseUrl(httpServletRequest)).thenReturn(Optional.of(BASE_URL));
+    when(userCreationBidRepository.findLatestByInvitingUserIdAndType(10L, EMAIL_CHANGE_BID_TYPE))
+        .thenReturn(Optional.of(emailChangeBid(Instant.now().minusSeconds(10))));
+
+    assertThatThrownBy(() -> service.requestChange(user, "typo-fixed@example.com"))
+        .isInstanceOf(ReportPortalException.class)
+        .hasMessageContaining("Try again in about 60 seconds");
+
+    verify(userCreationBidRepository, never()).deleteByInvitingUserIdAndType(any(), anyString());
+    verify(userCreationBidRepository, never()).save(any());
+    verifyNoInteractions(emailExecutorService, emailServiceFactory);
+  }
+
+  @Test
+  void requestChangeAfterCooldownShouldReplacePendingChangeAndSendMails() {
+    when(linkGenerator.composeTrustedBaseUrl(httpServletRequest)).thenReturn(Optional.of(BASE_URL));
+    when(userCreationBidRepository.findLatestByInvitingUserIdAndType(10L, EMAIL_CHANGE_BID_TYPE))
+        .thenReturn(Optional.of(emailChangeBid(Instant.now().minusSeconds(61))));
+
+    service.requestChange(user, "other@example.com");
+
+    verify(userCreationBidRepository).deleteByInvitingUserIdAndType(10L, EMAIL_CHANGE_BID_TYPE);
+    verify(userCreationBidRepository).save(any(UserCreationBid.class));
+    verify(emailExecutorService).execute(any(Runnable.class));
   }
 
   @Test

@@ -119,6 +119,10 @@ public class UserMutationServiceImpl implements UserMutationService {
     userProjects.forEach(
         project -> ProjectUtils.updateProjectRecipients(user.getEmail(), email, project));
 
+    // Dashboards, widgets and filters are owned by login string and lock checks compare it with the caller's login,
+    // so ownership moves together with the login, in this transaction.
+    userRepository.replaceOwnerLogin(user.getLogin(), email);
+
     user.setEmail(email);
     user.setLogin(email);
 

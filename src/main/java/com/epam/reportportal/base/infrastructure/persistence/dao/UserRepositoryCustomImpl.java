@@ -23,6 +23,8 @@ import static com.epam.reportportal.base.infrastructure.persistence.dao.util.Res
 import static com.epam.reportportal.base.infrastructure.persistence.dao.util.ResultFetchers.USER_FETCHER;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.ORGANIZATION;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.ORGANIZATION_USER;
+import static com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JDashboardWidget.DASHBOARD_WIDGET;
+import static com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JOwnedEntity.OWNED_ENTITY;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JProject.PROJECT;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JProjectUser.PROJECT_USER;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.tables.JUsers.USERS;
@@ -108,6 +110,18 @@ public class UserRepositoryCustomImpl implements UserRepositoryCustom {
 
     // keep the order produced by the filter query (sorting is applied there)
     return ids.stream().map(rowsById::get).filter(Objects::nonNull).toList();
+  }
+
+  @Override
+  public int replaceOwnerLogin(String oldLogin, String newLogin) {
+    if (oldLogin == null || newLogin == null || oldLogin.equals(newLogin)) {
+      return 0;
+    }
+    int owned = dsl.update(OWNED_ENTITY).set(OWNED_ENTITY.OWNER, newLogin)
+        .where(OWNED_ENTITY.OWNER.eq(oldLogin)).execute();
+    int placed = dsl.update(DASHBOARD_WIDGET).set(DASHBOARD_WIDGET.WIDGET_OWNER, newLogin)
+        .where(DASHBOARD_WIDGET.WIDGET_OWNER.eq(oldLogin)).execute();
+    return owned + placed;
   }
 
   @Override

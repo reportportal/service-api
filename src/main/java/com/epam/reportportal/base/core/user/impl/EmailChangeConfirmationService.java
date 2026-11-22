@@ -23,6 +23,8 @@ import com.epam.reportportal.base.infrastructure.persistence.dao.UserCreationBid
 import com.epam.reportportal.base.infrastructure.persistence.entity.Metadata;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.User;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserCreationBid;
+import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
+import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.util.email.MailServiceFactory;
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.Duration;
@@ -49,8 +51,8 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
  * the account being changed (the foreign key cascades, so pending changes disappear with the account) and
  * {@code metadata.metadata} holds {@code type}, {@code userId} and {@code currentEmail}. Invitation code looks bids up
  * by {@code type = internal} only, so these rows are never treated as invitations, and invitations are never treated as
- * email changes. Rows older than one day are also removed by {@code CleanExpiredCreationBidsJob}, which effectively caps
- * {@code rp.email.change.ttl} at one day.
+ * email changes. {@code CleanExpiredCreationBidsJob} removes rows older than the longer of {@code rp.email.change.ttl}
+ * and {@code rp.invitation.bid.ttl}, so a longer configured lifetime is honoured.
  */
 @Slf4j
 @Service
@@ -60,6 +62,10 @@ public class EmailChangeConfirmationService {
   public static final String EMAIL_CHANGE_BID_TYPE = "email_change";
   static final String USER_ID = "userId";
   static final String CURRENT_EMAIL = "currentEmail";
+  static final String CONFIRMATION_LINK_UNAVAILABLE = "The confirmation link cannot be generated for this host, so "
+      + "the email was not changed. Ask the administrator to configure the public URL of the instance.";
+  static final String COOLDOWN_MESSAGE = "An email change was requested a moment ago. Try again in about %d "
+      + "seconds, or confirm the change with the link already sent.";
 
   private final UserCreationBidRepository userCreationBidRepository;
   private final LinkGenerator linkGenerator;
@@ -69,6 +75,9 @@ public class EmailChangeConfirmationService {
 
   @Value("${rp.email.change.ttl:PT24H}")
   private Duration emailChangeTtl;
+
+  @Value("${rp.email.change.cooldown:PT60S}")
+  private Duration emailChangeCooldown;
 
   /**
    * A confirmed-to-be change of the email of user {@code userId} from {@code currentEmail} to {@code newEmail}.
@@ -82,6 +91,11 @@ public class EmailChangeConfirmationService {
    * user, and mails a confirmation link to the new address and a notice to the current one. The mails are sent after
    * the surrounding transaction commits, through the email executor; a failure is only logged.
    *
+   * <p>Fails with {@link ErrorType#INCORRECT_REQUEST} (400, whole request rolled back) when no trusted base URL can be
+   * built for the request host, or when a change to a different address was already requested less than
+   * {@code rp.email.change.cooldown} ago. A repeated request for the same address within the cooldown keeps the
+   * existing pending change, sends nothing and succeeds.
+   *
    * @param user     the account whose email is to change
    * @param newEmail the normalized, validated and currently unused new address
    */
@@ -90,7 +104,22 @@ public class EmailChangeConfirmationService {
     if (baseUrl.isEmpty()) {
       log.warn("Email change requested for user id={} from an untrusted host; change not recorded, e-mail not sent",
           user.getId());
-      return;
+      throw new ReportPortalException(ErrorType.INCORRECT_REQUEST, CONFIRMATION_LINK_UNAVAILABLE);
+    }
+
+    var previous = userCreationBidRepository.findLatestByInvitingUserIdAndType(user.getId(), EMAIL_CHANGE_BID_TYPE);
+    var recent = previous.filter(bid -> bid.getLastModified() != null
+        && bid.getLastModified().plus(emailChangeCooldown).isAfter(Instant.now()));
+    if (recent.isPresent()) {
+      if (newEmail.equalsIgnoreCase(recent.get().getEmail())) {
+        log.info("Email change to the same address requested for user id={} less than {} after the previous request; "
+            + "e-mail not sent again", user.getId(), emailChangeCooldown);
+        return;
+      }
+      log.info("Email change to another address requested for user id={} less than {} after the previous request; "
+          + "rejected", user.getId(), emailChangeCooldown);
+      throw new ReportPortalException(ErrorType.INCORRECT_REQUEST, COOLDOWN_MESSAGE.formatted(
+          Math.max(1, emailChangeCooldown.toSeconds())));
     }
 
     userCreationBidRepository.deleteByInvitingUserIdAndType(user.getId(), EMAIL_CHANGE_BID_TYPE);

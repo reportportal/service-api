@@ -351,6 +351,37 @@ class UserControllerTest extends BaseMvcTest {
   }
 
   @Test
+  void selfEmailChangeCooldownKeepsSameAddressAndRejectsAnotherOne() throws Exception {
+    final String newEmail = "cooldown-new@reportportal.internal";
+    EditUserRQ rq = new EditUserRQ();
+    rq.setEmail(newEmail);
+    mockMvc.perform(put(USERS_URL + DEFAULT_USERNAME).with(token(oAuthHelper.getDefaultToken()))
+        .contentType(APPLICATION_JSON)
+        .content(objectMapper.writeValueAsBytes(rq))).andExpect(status().isOk());
+    var firstBid = userCreationBidRepository.findFirstByEmailOrderByLastModifiedDesc(newEmail).orElseThrow();
+
+    // the same address again: success, the pending change (and its link) stays as it was
+    mockMvc.perform(put(USERS_URL + DEFAULT_USERNAME).with(token(oAuthHelper.getDefaultToken()))
+        .contentType(APPLICATION_JSON)
+        .content(objectMapper.writeValueAsBytes(rq))).andExpect(status().isOk());
+    assertEquals(firstBid.getUuid(),
+        userCreationBidRepository.findFirstByEmailOrderByLastModifiedDesc(newEmail).orElseThrow().getUuid());
+
+    // another address within the cooldown: rejected, the first change stays pending, the full name is not applied
+    EditUserRQ other = new EditUserRQ();
+    other.setEmail("cooldown-other@reportportal.internal");
+    other.setFullName("Should Not Apply");
+    mockMvc.perform(put(USERS_URL + DEFAULT_USERNAME).with(token(oAuthHelper.getDefaultToken()))
+            .contentType(APPLICATION_JSON)
+            .content(objectMapper.writeValueAsBytes(other)))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.message").value(containsString("Try again in about 60 seconds")));
+    Assertions.assertTrue(userCreationBidRepository
+        .findFirstByEmailOrderByLastModifiedDesc("cooldown-other@reportportal.internal").isEmpty());
+    Assertions.assertNotEquals("Should Not Apply", userRepository.findByLogin(DEFAULT_USERNAME).orElseThrow().getFullName());
+  }
+
+  @Test
   void confirmEmailChangeWithUnknownTokenWithoutAuthenticationIsBadRequest() throws Exception {
     final ConfirmEmailChangeRQ confirmRq = new ConfirmEmailChangeRQ();
     confirmRq.setUuid("0647cf8f-02e3-4acd-ba3e-f74ec9d2c5cb");

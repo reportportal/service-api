@@ -18,6 +18,7 @@ package com.epam.reportportal.base.ws.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -26,12 +27,19 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.epam.reportportal.base.ReportPortalUserUtil;
 import com.epam.reportportal.base.infrastructure.persistence.dao.DashboardRepository;
+import com.epam.reportportal.base.infrastructure.persistence.entity.organization.MembershipDetails;
+import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationRole;
+import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectRole;
+import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
+import com.epam.reportportal.base.util.OwnedEntityUtils;
 import com.epam.reportportal.base.infrastructure.persistence.dao.WidgetRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRole;
 import com.epam.reportportal.base.model.Position;
 import com.epam.reportportal.base.model.Size;
 import com.epam.reportportal.base.model.dashboard.AddWidgetRq;
+import com.epam.reportportal.base.model.user.EditUserRQ;
 import com.epam.reportportal.base.model.dashboard.DashboardResource;
 import com.epam.reportportal.base.model.dashboard.UpdateDashboardRQ;
 import com.epam.reportportal.base.model.widget.ContentParameters;
@@ -227,6 +235,46 @@ class DashboardWidgetLockControllerTest extends BaseMvcTest {
   @Test
   void updateUnlockedWidgetIsAllowedForNonOwnerEditor() throws Exception {
     updateWidget(9, editor()).andExpect(status().isOk());
+  }
+
+  // ---- ownership follows a login (email) change ----
+
+  @Test
+  void ownerKeepsLockedDashboardAfterAdministratorChangesTheirEmailAndOldLoginDoesNotInheritIt() throws Exception {
+    EditUserRQ rq = new EditUserRQ();
+    rq.setEmail("jaja-new@mail.com");
+    mockMvc.perform(put("/v1/users/jaja@mail.com").with(token(admin())).contentType(APPLICATION_JSON)
+        .content(objectMapper.writeValueAsBytes(rq))).andExpect(status().isOk());
+    entityManager.flush();
+    entityManager.clear();
+
+    assertEquals("jaja-new@mail.com", dashboardRepository.findById(13L).orElseThrow().getOwner());
+    assertEquals("jaja-new@mail.com", widgetRepository.findById(5L).orElseThrow().getOwner());
+    assertEquals("jaja-new@mail.com", widgetRepository.findById(7L).orElseThrow().getOwner());
+    assertEquals(0L, ((Number) entityManager.createNativeQuery(
+        "SELECT count(*) FROM dashboard_widget WHERE widget_owner = 'jaja@mail.com'").getSingleResult()).longValue());
+    // other users' entities are untouched
+    assertEquals("admin@reportportal.internal", dashboardRepository.findById(14L).orElseThrow().getOwner());
+
+    String renamedOwner = oAuthHelper.createAccessToken("jaja-new@mail.com", "x", UserRole.USER);
+    updateDashboard(13, renamedOwner).andExpect(status().isOk());
+    updateWidget(5, renamedOwner).andExpect(status().isOk());
+    patchLock(13, false, renamedOwner).andExpect(status().isOk());
+    patchLock(13, true, renamedOwner).andExpect(status().isOk());
+
+    // a different account later created with the old address must not inherit the ownership
+    // (checked directly: the tokens of the old login are revoked by the change)
+    var oldLoginUser = ReportPortalUserUtil.getRpUser("jaja@mail.com", UserRole.USER, OrganizationRole.MEMBER,
+        ProjectRole.EDITOR, 1L);
+    var details = new MembershipDetails();
+    details.setOrgRole(OrganizationRole.MEMBER);
+    details.setProjectId(1L);
+    var dashboard = dashboardRepository.findById(13L).orElseThrow();
+    assertThrows(ReportPortalException.class,
+        () -> OwnedEntityUtils.validateOwnedEntityLocked(dashboard, details, oldLoginUser));
+    var newLoginUser = ReportPortalUserUtil.getRpUser("jaja-new@mail.com", UserRole.USER, OrganizationRole.MEMBER,
+        ProjectRole.EDITOR, 1L);
+    OwnedEntityUtils.validateOwnedEntityLocked(dashboard, details, newLoginUser);
   }
 
   // ---- helpers ----

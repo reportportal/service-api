@@ -309,6 +309,7 @@ class UserMutationServiceImplTest {
       assertThat(user.getEmail()).isEqualTo("new@example.com");
       assertThat(user.getLogin()).isEqualTo("new@example.com");
       verify(tokenBlacklistService).revokeUserTokens(user);
+      verify(userRepository).replaceOwnerLogin("user@example.com", "new@example.com");
       verify(emailChangeConfirmationService, never()).requestChange(any(), any());
     }
   }
@@ -342,6 +343,7 @@ class UserMutationServiceImplTest {
       assertThat(user.getLogin()).isEqualTo("new@example.com");
       assertThat(revokedLogins).containsExactly("user@example.com");
       verify(projectRepository).saveAll(List.of(project));
+      verify(userRepository).replaceOwnerLogin("user@example.com", "new@example.com");
       verify(emailChangeConfirmationService).completeChange(user.getId());
     }
 

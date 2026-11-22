@@ -680,6 +680,67 @@ class TmsManualScenarioRequirementServiceImplTest {
 
 
 
+  @Test
+  void shouldNotListKeptRequirementTwiceOnPatchAndAppendOnlyNewOnes() {
+    var kept = createRequirementEntity("REQ-001", "Old");
+    kept.setNumber(0);
+    manualScenario.setRequirements(new ArrayList<>(List.of(kept)));
+    var keptRQ = TmsRequirementRQ.builder().id("REQ-001").value("Updated").build();
+    var newRQ = TmsRequirementRQ.builder().id("REQ-NEW").value("New").build();
+    var newEntity = createRequirementEntity("REQ-NEW", "New");
+    when(tmsManualScenarioRequirementRepository.findByManualScenarioIdOrderByNumberAsc(
+        manualScenario.getId())).thenReturn(List.of(kept));
+    when(tmsManualScenarioRequirementRepository.existsById("REQ-NEW")).thenReturn(false);
+    when(tmsManualScenarioRequirementMapper.toEntity(newRQ)).thenReturn(newEntity);
+    when(tmsManualScenarioRequirementRepository.saveAll(anyList()))
+        .thenAnswer(invocation -> invocation.getArgument(0));
+
+    tmsManualScenarioRequirementService.patchRequirements(manualScenario, List.of(keptRQ, newRQ));
+
+    assertThat(manualScenario.getRequirements())
+        .extracting(TmsManualScenarioRequirement::getId)
+        .containsExactly("REQ-001", "REQ-NEW");
+    assertThat(manualScenario.getRequirements().get(0).getValue()).isEqualTo("Updated");
+  }
+
+  @Test
+  void shouldPatchRequirementsWhenScenarioCollectionIsNull() {
+    var newRQ = TmsRequirementRQ.builder().id("REQ-NEW").value("New").build();
+    var newEntity = createRequirementEntity("REQ-NEW", "New");
+    manualScenario.setRequirements(null);
+    when(tmsManualScenarioRequirementRepository.findByManualScenarioIdOrderByNumberAsc(
+        manualScenario.getId())).thenReturn(List.of());
+    when(tmsManualScenarioRequirementRepository.existsById("REQ-NEW")).thenReturn(false);
+    when(tmsManualScenarioRequirementMapper.toEntity(newRQ)).thenReturn(newEntity);
+    when(tmsManualScenarioRequirementRepository.saveAll(anyList()))
+        .thenAnswer(invocation -> invocation.getArgument(0));
+
+    tmsManualScenarioRequirementService.patchRequirements(manualScenario, List.of(newRQ));
+
+    assertThat(manualScenario.getRequirements()).containsExactly(newEntity);
+  }
+
+  @Test
+  void shouldSetSavedRequirementsOnDuplicatedScenario() {
+    var originalScenario = createManualScenario();
+    var duplicatedScenario = new TmsManualScenario();
+    duplicatedScenario.setId(20L);
+    var original = createRequirementEntity("REQ-001", "Requirement 1");
+    original.setNumber(0);
+    originalScenario.setRequirements(List.of(original));
+    when(tmsManualScenarioRequirementMapper.duplicate(original))
+        .thenReturn(createRequirementEntity("REQ-001", "Requirement 1"));
+    when(tmsManualScenarioRequirementRepository.saveAll(anyList()))
+        .thenAnswer(invocation -> invocation.getArgument(0));
+
+    tmsManualScenarioRequirementService.duplicateRequirements(originalScenario, duplicatedScenario);
+
+    assertThat(duplicatedScenario.getRequirements()).hasSize(1);
+    assertThat(duplicatedScenario.getRequirements().get(0).getValue()).isEqualTo("Requirement 1");
+    assertThat(duplicatedScenario.getRequirements().get(0).getManualScenario())
+        .isEqualTo(duplicatedScenario);
+  }
+
   private TmsManualScenario createManualScenario() {
     var scenario = new TmsManualScenario();
     scenario.setId(1L);

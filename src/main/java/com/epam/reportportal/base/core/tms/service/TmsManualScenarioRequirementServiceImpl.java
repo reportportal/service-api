@@ -207,9 +207,26 @@ public class TmsManualScenarioRequirementServiceImpl implements
       }
     }
 
-    existingManualScenario
-        .getRequirements()
-        .addAll(tmsManualScenarioRequirementRepository.saveAll(entitiesToSave));
+    var saved = tmsManualScenarioRequirementRepository.saveAll(entitiesToSave);
+    if (existingManualScenario.getRequirements() == null) {
+      existingManualScenario.setRequirements(new ArrayList<>());
+    }
+    var scenarioRequirements = existingManualScenario.getRequirements();
+    // Updated existing requirements are the same managed instances already in the collection, so
+    // only the ones it does not hold yet (newly created) are appended
+    var presentIds = scenarioRequirements.stream()
+        .map(TmsManualScenarioRequirement::getId)
+        .collect(Collectors.toCollection(HashSet::new));
+    var added = false;
+    for (var requirement : saved) {
+      if (presentIds.add(requirement.getId())) {
+        scenarioRequirements.add(requirement);
+        added = true;
+      }
+    }
+    if (added) {
+      scenarioRequirements.sort(Comparator.comparing(TmsManualScenarioRequirement::getNumber));
+    }
 
     log.debug("Patched {} requirements for manual scenario: {}",
         entitiesToSave.size(), existingManualScenario.getId());
@@ -286,7 +303,8 @@ public class TmsManualScenarioRequirementServiceImpl implements
         })
         .toList();
 
-    tmsManualScenarioRequirementRepository.saveAll(duplicatedEntities);
+    duplicatedScenario.setRequirements(
+        new ArrayList<>(tmsManualScenarioRequirementRepository.saveAll(duplicatedEntities)));
 
     log.debug("Duplicated {} requirements from manual scenario: {} to: {}",
         duplicatedEntities.size(), originalScenario.getId(), duplicatedScenario.getId());

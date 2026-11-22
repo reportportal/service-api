@@ -71,6 +71,8 @@ import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.SortDefault;
@@ -100,6 +102,8 @@ import org.springframework.web.multipart.MultipartFile;
 @RequestMapping("/v1/{projectKey}/log")
 @Tag(name = "Log", description = "Logs API collection")
 public class LogController {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(LogController.class);
 
   private final ProjectExtractor projectExtractor;
   private final CreateLogHandler createLogHandler;
@@ -207,9 +211,8 @@ public class LogController {
         }
         response.addResponse(new BatchElementCreatedRS(responseItem.getId()));
       } catch (Exception e) {
-        response.addResponse(new BatchElementCreatedRS(ExceptionUtils.getStackTrace(e),
-            ExceptionUtils.getMessage(e)
-        ));
+        LOGGER.error("Unable to save log from the batch request", e);
+        response.addResponse(new BatchElementCreatedRS(ExceptionUtils.getMessage(e), null));
       }
     }
     return new ResponseEntity<>(response, CREATED);
@@ -334,6 +337,7 @@ public class LogController {
    * @return page of logs with their page locations
    */
   @GetMapping(value = "/locations/search/{parentId}")
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   @Operation(summary = "Get logs with location by search filter")
   @Transactional(readOnly = true)
   public Page<PagedLogResource> getLogsWithLocationBySearch(@PathVariable String projectKey,

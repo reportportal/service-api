@@ -27,6 +27,8 @@ import com.epam.reportportal.base.core.integration.DeleteIntegrationHandler;
 import com.epam.reportportal.base.core.integration.ExecuteIntegrationHandler;
 import com.epam.reportportal.base.core.integration.GetIntegrationHandler;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
+import com.epam.reportportal.base.infrastructure.persistence.entity.enums.IntegrationGroupEnum;
+import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRole;
 import com.epam.reportportal.base.model.EntryCreatedRS;
 import com.epam.reportportal.base.model.integration.IntegrationRQ;
 import com.epam.reportportal.base.model.integration.IntegrationResource;
@@ -87,7 +89,7 @@ public class IntegrationController {
   @Operation(summary = "Get available global integrations")
   public List<IntegrationResource> getGlobalIntegrations(
       @AuthenticationPrincipal ReportPortalUser reportPortalUser) {
-    return getIntegrationHandler.getGlobalIntegrations();
+    return hideAuthIntegrationsForNonAdmin(getIntegrationHandler.getGlobalIntegrations(), reportPortalUser);
   }
 
   @Transactional(readOnly = true)
@@ -96,7 +98,23 @@ public class IntegrationController {
   @Operation(summary = "Get available global integrations for plugin")
   public List<IntegrationResource> getGlobalIntegrations(
       @AuthenticationPrincipal ReportPortalUser reportPortalUser, @PathVariable String pluginName) {
-    return getIntegrationHandler.getGlobalIntegrations(pluginName);
+    return hideAuthIntegrationsForNonAdmin(getIntegrationHandler.getGlobalIntegrations(pluginName),
+        reportPortalUser);
+  }
+
+  /**
+   * Authentication integrations (LDAP, SAML, OAuth) carry instance-wide identity provider settings
+   * that only administrators may see.
+   */
+  private static List<IntegrationResource> hideAuthIntegrationsForNonAdmin(
+      List<IntegrationResource> integrations, ReportPortalUser user) {
+    if (user != null && UserRole.ADMINISTRATOR == user.getUserRole()) {
+      return integrations;
+    }
+    return integrations.stream()
+        .filter(it -> it.getIntegrationType() == null
+            || !IntegrationGroupEnum.AUTH.name().equals(it.getIntegrationType().getGroupType()))
+        .toList();
   }
 
   @Transactional(readOnly = true)

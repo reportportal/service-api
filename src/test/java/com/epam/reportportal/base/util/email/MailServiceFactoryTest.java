@@ -142,6 +142,30 @@ class MailServiceFactoryTest {
   }
 
   @Test
+  void shouldRequireStartTlsWithServerIdentityCheckWhenStartTlsEnabled() {
+
+    Map<String, Object> config = ImmutableMap.<String, Object>builder()
+        .put(EmailSettingsEnum.AUTH_ENABLED.getAttribute(), true)
+        .put(EmailSettingsEnum.STAR_TLS_ENABLED.getAttribute(), true)
+        .put(EmailSettingsEnum.USERNAME.getAttribute(), "user")
+        .put(EmailSettingsEnum.PASSWORD.getAttribute(), basicTextEncryptor.encrypt("password"))
+        .build();
+
+    when(integration.isEnabled()).thenReturn(true);
+    when(integration.getParams()).thenReturn(integrationParams);
+    when(integrationParams.getParams()).thenReturn(config);
+
+    Optional<EmailService> emailServiceOptional = mailServiceFactory.getEmailService(integration);
+
+    Assertions.assertTrue(emailServiceOptional.isPresent());
+
+    Properties javaMailProperties = emailServiceOptional.get().getJavaMailProperties();
+    Assertions.assertEquals(true, javaMailProperties.get("mail.smtp.starttls.enable"));
+    Assertions.assertEquals(true, javaMailProperties.get("mail.smtp.starttls.required"));
+    Assertions.assertEquals(true, javaMailProperties.get("mail.smtp.ssl.checkserveridentity"));
+  }
+
+  @Test
   void shouldReturnEmailServiceWithoutAuthParamsWhenDisabled() {
 
     Map<String, Object> config = ImmutableMap.<String, Object>builder()
@@ -193,6 +217,7 @@ class MailServiceFactoryTest {
     Properties javaMailProperties = service.getJavaMailProperties();
     String sslClass = (String) javaMailProperties.get("mail.smtp.socketFactory.class");
     Assertions.assertEquals("javax.net.ssl.SSLSocketFactory", sslClass);
+    Assertions.assertEquals(true, javaMailProperties.get("mail.smtp.ssl.checkserveridentity"));
 
   }
 

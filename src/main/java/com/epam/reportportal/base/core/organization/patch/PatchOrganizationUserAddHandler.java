@@ -25,6 +25,7 @@ import com.epam.reportportal.base.infrastructure.persistence.dao.organization.Or
 import com.epam.reportportal.base.infrastructure.persistence.dao.organization.OrganizationUserRepository;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
+import com.epam.reportportal.base.util.OrganizationUserValidator;
 import com.epam.reportportal.base.util.SecurityContextUtils;
 import com.epam.reportportal.base.ws.converter.converters.UserConverter;
 import java.util.Optional;
@@ -89,6 +90,8 @@ public class PatchOrganizationUserAddHandler extends BasePatchOrganizationHandle
 
     var org = organizationRepository.findById(orgId)
         .orElseThrow(() -> new ReportPortalException(ErrorType.ORGANIZATION_NOT_FOUND, orgId));
+
+    OrganizationUserValidator.validateUserType(org, user);
 
     organizationUserService.saveOrganizationUser(org, user, role.toString());
 

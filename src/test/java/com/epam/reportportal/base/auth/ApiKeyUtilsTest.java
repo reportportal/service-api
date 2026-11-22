@@ -44,4 +44,9 @@ class ApiKeyUtilsTest {
     assertFalse(ApiKeyUtils.validateToken("test2_bCV0dcQfRuCo0Eq1Uv2_hizk4pHnssbsGAQxTQ1_gWJaX0kVHPM"));
   }
 
+  @Test
+  void invalidBase64TokenOfApiKeyLengthIsRejectedWithoutException() {
+    assertFalse(ApiKeyUtils.validateToken("abc.def!abc.def!abc.def!abc"));
+  }
+
 }

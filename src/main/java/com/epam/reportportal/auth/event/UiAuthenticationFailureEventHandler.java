@@ -19,18 +19,20 @@ package com.epam.reportportal.auth.event;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import com.google.common.net.HttpHeaders;
 import jakarta.inject.Inject;
 import jakarta.inject.Provider;
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.Duration;
+import java.util.Locale;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.springframework.context.ApplicationListener;
 import org.springframework.security.authentication.event.AuthenticationFailureBadCredentialsEvent;
 import org.springframework.stereotype.Component;
 
 /**
- * Initial implementation of authentication failures handler
+ * Counts failed logins per client address and per username and blocks further attempts for a short window once either
+ * exceeds the limit. The client address is {@link HttpServletRequest#getRemoteAddr()}, i.e. whatever the servlet
+ * container / forwarded-header handling resolved, never a raw request header.
  *
  * @author Andrei_Ramanchuk
  */
@@ -45,11 +47,18 @@ public class UiAuthenticationFailureEventHandler implements
   @Inject
   private Provider<HttpServletRequest> request;
 
-  private LoadingCache<String, AtomicInteger> failures;
+  private final LoadingCache<String, AtomicInteger> failures;
+
+  private final LoadingCache<String, AtomicInteger> usernameFailures;
 
   public UiAuthenticationFailureEventHandler() {
     super();
-    failures = CacheBuilder.newBuilder().maximumSize(MAXIMUM_SIZE)
+    failures = newFailureCache();
+    usernameFailures = newFailureCache();
+  }
+
+  private static LoadingCache<String, AtomicInteger> newFailureCache() {
+    return CacheBuilder.newBuilder().maximumSize(MAXIMUM_SIZE)
         .expireAfterWrite(Duration.ofSeconds(EXPIRATION_SECONDS))
         .build(new CacheLoader<>() {
           @Override
@@ -59,27 +68,48 @@ public class UiAuthenticationFailureEventHandler implements
         });
   }
 
-  public boolean isBlocked(HttpServletRequest request) {
-    AtomicInteger attempts = failures.getIfPresent(getClientIP(request));
+  /**
+   * @param request  the login request
+   * @param username the login being authenticated, may be {@code null}
+   * @return {@code true} if the client address or the username has too many recent failures
+   */
+  public boolean isBlocked(HttpServletRequest request, String username) {
+    return exceeded(failures.getIfPresent(getClientIP(request)))
+        || (username != null && exceeded(usernameFailures.getIfPresent(normalize(username))));
+  }
+
+  private static boolean exceeded(AtomicInteger attempts) {
     return null != attempts && attempts.get() > MAX_ATTEMPTS;
   }
 
-  private void onAjaxFailure(HttpServletRequest request) {
-    String clientIP = getClientIP(request);
-    failures.getUnchecked(clientIP).incrementAndGet();
-
+  /**
+   * Records a failed password check made outside the login endpoint (e.g. invitation activation for an existing
+   * account), so it counts towards the same per-address and per-username limits as a failed login.
+   *
+   * @param request  the request carrying the attempt
+   * @param username the login of the account whose password was checked, may be {@code null}
+   */
+  public void recordFailure(HttpServletRequest request, String username) {
+    onAjaxFailure(request, username);
   }
 
-  private String getClientIP(HttpServletRequest request) {
-    String xfHeader = request.getHeader(HttpHeaders.X_FORWARDED_FOR);
-    if (xfHeader == null) {
-      return request.getRemoteAddr();
+  private void onAjaxFailure(HttpServletRequest request, String username) {
+    failures.getUnchecked(getClientIP(request)).incrementAndGet();
+    if (username != null) {
+      usernameFailures.getUnchecked(normalize(username)).incrementAndGet();
     }
-    return xfHeader.split(",")[0];
+  }
+
+  private static String getClientIP(HttpServletRequest request) {
+    return request.getRemoteAddr();
+  }
+
+  private static String normalize(String username) {
+    return username.trim().toLowerCase(Locale.ROOT);
   }
 
   @Override
   public void onApplicationEvent(AuthenticationFailureBadCredentialsEvent event) {
-    onAjaxFailure(request.get());
+    onAjaxFailure(request.get(), event.getAuthentication().getName());
   }
 }

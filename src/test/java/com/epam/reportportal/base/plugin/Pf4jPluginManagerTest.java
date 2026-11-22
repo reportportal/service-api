@@ -19,10 +19,12 @@ package com.epam.reportportal.base.plugin;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -308,6 +310,37 @@ class Pf4jPluginManagerTest {
     assertEquals("Error during plugin uploading: 'Plugin version should be specified.'",
         exception.getMessage()
     );
+  }
+
+  @Test
+  void uploadPluginWithPathTraversalInFileName() throws IOException {
+    for (String name : List.of("../evil.jar", "..\\evil.jar", "/etc/evil.jar", "a/b/evil.jar")) {
+      assertThrows(ReportPortalException.class, () -> pluginBox.uploadPlugin(name, fileStream));
+    }
+    verify(pluginLoader, never()).savePlugin(any(), any());
+  }
+
+  @Test
+  void uploadPluginWithUnsafeManifestIdOrVersion() throws IOException {
+    List<PluginInfo> unsafe = List.of(
+        new PluginInfo("../../etc", "1.0"),
+        new PluginInfo("a/b", "1.0"),
+        new PluginInfo("..", "1.0"),
+        new PluginInfo("a\\b", "1.0"),
+        new PluginInfo("", "1.0"),
+        new PluginInfo("jira", "../1.0"),
+        new PluginInfo("jira", "1.0/x"));
+    for (PluginInfo info : unsafe) {
+      when(pluginLoader.extractPluginInfo(Paths.get(PLUGINS_TEMP_PATH, NEW_PLUGIN_FILE_NAME)))
+          .thenReturn(info);
+      ReportPortalException ex = assertThrows(ReportPortalException.class,
+          () -> pluginBox.uploadPlugin(NEW_PLUGIN_FILE_NAME, fileStream));
+      assertTrue(ex.getMessage().contains("not valid"), ex.getMessage());
+    }
+    verify(pluginLoader, never()).resolvePluginDetails(any());
+    verify(pluginLoader, never()).copyPluginResource(any(), any());
+    verify(pluginLoader, times(unsafe.size())).deleteTempPlugin(PLUGINS_TEMP_PATH,
+        NEW_PLUGIN_FILE_NAME);
   }
 
   @Test

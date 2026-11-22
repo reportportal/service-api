@@ -57,6 +57,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.core.task.TaskRejectedException;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -87,6 +88,9 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
   // Kept in sync with rp.environment.variable.clean.restorePasswordBid.retentionPeriod (service-jobs).
   @Value("${rp.restore.password.bid.ttl:PT24H}")
   private Duration restorePasswordBidTtl;
+
+  @Value("${rp.restore.password.cooldown:PT60S}")
+  private Duration restorePasswordCooldown;
 
   @Override
   public InstanceUser createUser(NewUserRequest request, ReportPortalUser creator,
@@ -125,17 +129,43 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
       return new OperationCompletionRS(EMAIL_HAS_BEEN_SENT);
     }
 
+    if (baseUrl == null) {
+      log.warn("Password recovery requested for user id={} from an untrusted host; e-mail not sent", user.get().getId());
+      return new OperationCompletionRS(EMAIL_HAS_BEEN_SENT);
+    }
+
+    boolean recentlyRequested = restorePasswordBidRepository.findByEmail(email)
+        .map(RestorePasswordBid::getLastModified)
+        .map(issuedAt -> issuedAt.plus(restorePasswordCooldown).isAfter(Instant.now()))
+        .orElse(false);
+    if (recentlyRequested) {
+      log.info("Password recovery for user id={} was requested less than {} ago; e-mail not sent",
+          user.get().getId(), restorePasswordCooldown);
+      return new OperationCompletionRS(EMAIL_HAS_BEEN_SENT);
+    }
+
     restorePasswordBidRepository.deleteByEmail(email);
     rq.setEmail(email);
     RestorePasswordBid bid = RestorePasswordBidConverter.TO_BID.apply(rq);
     restorePasswordBidRepository.save(bid);
 
-    emailServiceFactory.getDefaultEmailService(true)
-        .sendRestorePasswordEmail("Password recovery",
-            new String[]{email},
-            baseUrl + "#login?reset=" + bid.getUuid(),
-            user.get().getLogin()
-        );
+    // Sent asynchronously and failures only logged, so neither the response time nor the response itself reveals
+    // whether the address belongs to a registered internal account.
+    var restoreLink = baseUrl + "#login?reset=" + bid.getUuid();
+    var login = user.get().getLogin();
+    var userId = user.get().getId();
+    try {
+      emailExecutorService.execute(() -> {
+        try {
+          emailServiceFactory.getDefaultEmailService(true)
+              .sendRestorePasswordEmail("Password recovery", new String[]{email}, restoreLink, login);
+        } catch (Exception e) {
+          log.warn("Unable to send password recovery e-mail for user id={}", userId, e);
+        }
+      });
+    } catch (TaskRejectedException e) {
+      log.warn("Password recovery e-mail for user id={} was not queued: {}", userId, e.getMessage());
+    }
 
     return new OperationCompletionRS(EMAIL_HAS_BEEN_SENT);
   }

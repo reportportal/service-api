@@ -22,11 +22,15 @@ import static org.springframework.test.web.client.match.MockRestRequestMatchers.
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withServerError;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestClient;
 
@@ -42,6 +46,21 @@ class AnalyzerInfoContributorTest {
     RestClient.Builder builder = RestClient.builder();
     server = MockRestServiceServer.bindTo(builder).build();
     contributor = new AnalyzerInfoContributor(builder.build(), ANALYZER_URL);
+    SecurityContextHolder.getContext().setAuthentication(
+        UsernamePasswordAuthenticationToken.authenticated("user", null, List.of()));
+  }
+
+  @AfterEach
+  void tearDown() {
+    SecurityContextHolder.clearContext();
+  }
+
+  @Test
+  void contributeShouldNotCallAnalyzerForAnonymousCaller() {
+    SecurityContextHolder.clearContext();
+
+    assertTrue(contributor.contribute().isEmpty());
+    server.verify();
   }
 
   @Test

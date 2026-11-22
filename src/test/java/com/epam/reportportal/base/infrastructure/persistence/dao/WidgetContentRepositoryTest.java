@@ -45,6 +45,7 @@ import static com.epam.reportportal.base.infrastructure.persistence.jooq.enums.J
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.epam.reportportal.base.infrastructure.model.ActivityResource;
@@ -61,6 +62,8 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.widget.conte
 import com.epam.reportportal.base.infrastructure.persistence.entity.widget.content.FlakyCasesTableContent;
 import com.epam.reportportal.base.infrastructure.persistence.entity.widget.content.LaunchesDurationContent;
 import com.epam.reportportal.base.infrastructure.persistence.entity.widget.content.LaunchesTableContent;
+import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
+import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.infrastructure.persistence.entity.widget.content.MostTimeConsumingTestCasesContent;
 import com.epam.reportportal.base.infrastructure.persistence.entity.widget.content.NotPassedCasesContent;
 import com.epam.reportportal.base.infrastructure.persistence.entity.widget.content.OverallStatisticsContent;
@@ -631,6 +634,44 @@ class WidgetContentRepositoryTest extends BaseMvcTest {
     );
 
     assertNotNull(result);
+  }
+
+  @Test
+  void launchesTableStatisticsRejectsUnknownContentField() {
+    Filter filter = buildDefaultFilter(1L);
+    Sort sort = Sort.by(
+        Lists.newArrayList(new Sort.Order(Sort.Direction.ASC, CRITERIA_START_TIME)));
+    List<String> contentFields = Lists.newArrayList("name", "unknownField");
+
+    ReportPortalException ex = assertThrows(ReportPortalException.class,
+        () -> widgetContentRepository.launchesTableStatistics(filter, contentFields, sort, 3));
+    assertEquals(ErrorType.BAD_REQUEST_ERROR, ex.getErrorType());
+  }
+
+  @Test
+  void productStatusLaunchGroupedWidgetSkipsStaleContentField() {
+    Filter filter = buildDefaultTestFilter(1L);
+    Sort sort = Sort.by(
+        Lists.newArrayList(new Sort.Order(Sort.Direction.DESC, CRITERIA_START_TIME)));
+    List<String> contentFields = buildProductStatusContentFields();
+    contentFields.add("staleField");
+
+    List<ProductStatusStatisticsContent> result = widgetContentRepository.productStatusGroupedByLaunchesStatistics(
+        filter, contentFields, new LinkedHashMap<>(), sort, false, 10);
+    List<ProductStatusStatisticsContent> expected = widgetContentRepository.productStatusGroupedByLaunchesStatistics(
+        filter, buildProductStatusContentFields(), new LinkedHashMap<>(), sort, false, 10);
+
+    assertFalse(result.isEmpty());
+    assertEquals(expected.size(), result.size());
+    for (int i = 0; i < result.size(); i++) {
+      assertEquals(expected.get(i).getId(), result.get(i).getId());
+      if (result.get(i).getId() != null) { // the last entry is the totals row
+        assertNotNull(result.get(i).getStatus());
+        assertNotNull(result.get(i).getStartTime());
+      }
+      assertEquals(expected.get(i).getStatus(), result.get(i).getStatus());
+      assertEquals(expected.get(i).getValues(), result.get(i).getValues());
+    }
   }
 
   @Test

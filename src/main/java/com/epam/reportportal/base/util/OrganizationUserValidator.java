@@ -26,6 +26,8 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRol
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
+import java.util.Collection;
+import java.util.Objects;
 
 /**
  * Validator utility class for organization user operations. Provides methods to validate user types, roles and
@@ -83,5 +85,39 @@ public class OrganizationUserValidator {
     var orgDetails = user.getOrganizationDetails()
         .get(organizationUser.getOrganization().getId().toString());
     return orgDetails != null && OrganizationRole.MANAGER.equals(orgDetails.getOrgRole());
+  }
+
+  /**
+   * Forbids removing the owner of a personal organization.
+   *
+   * @param organization   the organization users are removed from
+   * @param removedUserIds ids of users about to be removed
+   */
+  public static void validatePersonalOrganizationOwnerKept(Organization organization,
+      Collection<Long> removedUserIds) {
+    if (OrganizationType.PERSONAL.equals(organization.getOrganizationType())
+        && organization.getOwnerId() != null
+        && removedUserIds.contains(organization.getOwnerId())) {
+      throw new ReportPortalException(ErrorType.ACCESS_DENIED,
+          "User %s cannot be unassigned from personal organization".formatted(organization.getOwnerId()));
+    }
+  }
+
+  /**
+   * A non-administrator manager cannot lower the role of their own account.
+   *
+   * @param principal       the user performing the operation
+   * @param targetUserId    the user whose role is being set
+   * @param existingRole    current role of the target in the organization, or null if not a member
+   * @param newRole         requested role
+   */
+  public static void validateManagerChangingRole(ReportPortalUser principal, Long targetUserId,
+      OrganizationRole existingRole, OrganizationRole newRole) {
+    if (Objects.equals(principal.getUserId(), targetUserId)
+        && !UserRole.ADMINISTRATOR.equals(principal.getUserRole())
+        && OrganizationRole.MANAGER.equals(existingRole)
+        && !OrganizationRole.MANAGER.equals(newRole)) {
+      throw new ReportPortalException(ErrorType.ACCESS_DENIED, "Impossible to change the role of the own account");
+    }
   }
 }

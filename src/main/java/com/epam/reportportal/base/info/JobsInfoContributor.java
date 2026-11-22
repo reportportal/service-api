@@ -43,6 +43,10 @@ public class JobsInfoContributor implements InfoContributor {
 
   @Override
   public void contribute(Builder builder) {
+    if (!InfoAudience.isAuthenticated()) {
+      // not shown to anonymous callers (see AnonymousInfo), so do not call the jobs service for them
+      return;
+    }
     try {
       var jobsInfoRs = restClient.get()
           .uri(jobsBaseUrl + "/info")

@@ -33,6 +33,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -51,6 +52,12 @@ public class CreatePluginHandlerImpl implements CreatePluginHandler {
   private final ApplicationEventPublisher applicationEventPublisher;
 
   /**
+   * Value of {@code rp.plugins.upload.allowed}. When false the manual jar upload is refused; the marketplace install
+   * path is a separate handler and is not affected.
+   */
+  private final boolean manualUploadAllowed;
+
+  /**
    * Constructor for CreatePluginHandlerImpl.
    *
    * @param pluginUploaderFactory     Factory for creating plugin uploads
@@ -59,14 +66,22 @@ public class CreatePluginHandlerImpl implements CreatePluginHandler {
   @Autowired
   public CreatePluginHandlerImpl(
       PluginUploaderFactory pluginUploaderFactory,
-      ApplicationEventPublisher applicationEventPublisher
+      ApplicationEventPublisher applicationEventPublisher,
+      @Value("${rp.plugins.upload.allowed:true}") boolean manualUploadAllowed
   ) {
     this.pluginUploaderFactory = pluginUploaderFactory;
     this.applicationEventPublisher = applicationEventPublisher;
+    this.manualUploadAllowed = manualUploadAllowed;
   }
 
   @Override
   public EntryCreatedRS uploadPlugin(MultipartFile pluginFile, ReportPortalUser user) {
+
+    if (!manualUploadAllowed) {
+      throw new ReportPortalException(ErrorType.FORBIDDEN_OPERATION,
+          "Manual plugin upload is disabled on this instance (rp.plugins.upload.allowed=false). "
+              + "Install plugins from the marketplace instead.");
+    }
 
     String newPluginFileName = pluginFile.getOriginalFilename();
     String extension = FilenameUtils.getExtension(newPluginFileName);

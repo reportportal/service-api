@@ -39,12 +39,12 @@ public class ApiKeyUtils {
    * @return true if apiKey valid
    */
   public static boolean validateToken(String apiKey) {
-    if (isUUID(apiKey) || (apiKey.length() == 27 && Base64.getUrlDecoder().decode(apiKey.getBytes(
-        StandardCharsets.US_ASCII)).length == 20)) {
-      return true;
-    }
-    String[] nameChecksum = apiKey.split("_", 2);
     try {
+      if (isUUID(apiKey) || (apiKey.length() == 27 && Base64.getUrlDecoder().decode(apiKey.getBytes(
+          StandardCharsets.US_ASCII)).length == 20)) {
+        return true;
+      }
+      String[] nameChecksum = apiKey.split("_", 2);
       byte[] checksumBytes = Base64.getUrlDecoder().decode(nameChecksum[1]);
       byte[] actualUuid = Arrays.copyOf(checksumBytes, 16);
       byte[] actualHash = Arrays.copyOfRange(checksumBytes, 16, checksumBytes.length);

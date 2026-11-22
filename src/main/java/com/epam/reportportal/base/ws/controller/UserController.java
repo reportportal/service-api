@@ -50,6 +50,7 @@ import com.epam.reportportal.base.model.ModelViews;
 import com.epam.reportportal.base.model.Page;
 import com.epam.reportportal.base.model.YesNoRS;
 import com.epam.reportportal.base.model.user.ChangePasswordRQ;
+import com.epam.reportportal.base.model.user.ConfirmEmailChangeRQ;
 import com.epam.reportportal.base.model.user.EditUserRQ;
 import com.epam.reportportal.base.model.user.ResetPasswordRQ;
 import com.epam.reportportal.base.model.user.RestorePasswordRQ;
@@ -188,7 +189,8 @@ public class UserController {
   @Operation(summary = "Create a restore password request")
   public OperationCompletionRS restorePassword(@RequestBody @Validated RestorePasswordRQ rq,
       HttpServletRequest request) {
-    return createUserMessageHandler.createRestorePasswordBid(rq, linkGenerator.composeBaseUrl(request));
+    return createUserMessageHandler.createRestorePasswordBid(rq,
+        linkGenerator.composeTrustedBaseUrl(request).orElse(null));
   }
 
   @Transactional
@@ -208,6 +210,16 @@ public class UserController {
   }
 
   @Transactional
+  @PostMapping(value = "/email/confirm")
+  @ResponseStatus(OK)
+  @Operation(summary = "Confirm own email change",
+      description = "Applies an email change requested by the account owner, using the token from the link mailed to "
+          + "the new address. Does not require authentication.")
+  public OperationCompletionRS confirmEmailChange(@RequestBody @Validated ConfirmEmailChangeRQ rq) {
+    return editUserMessageHandler.confirmEmailChange(rq);
+  }
+
+  @Transactional
   @PostMapping(value = "/password/change")
   @ResponseStatus(OK)
   @Operation(summary = "Change own password")
@@ -222,7 +234,7 @@ public class UserController {
   @ResponseStatus(OK)
   public Map<String, UserResource.AssignedProject> getUserProjects(@PathVariable String userName,
       @AuthenticationPrincipal ReportPortalUser currentUser) {
-    return getUserHandler.getUserProjects(userName);
+    return getUserHandler.getUserProjects(userName, currentUser);
   }
 
   @Transactional(readOnly = true)

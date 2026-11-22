@@ -16,8 +16,6 @@
 
 package com.epam.reportportal.base.core.integration.util;
 
-import static com.epam.reportportal.base.infrastructure.rules.commons.validation.BusinessRule.fail;
-import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.EMAIL_CONFIGURATION_IS_INCORRECT;
 import static java.util.Optional.ofNullable;
 
 import com.epam.reportportal.base.core.plugin.PluginBox;
@@ -38,6 +36,7 @@ import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.validator.routines.UrlValidator;
+import org.springframework.mail.MailException;
 import org.springframework.stereotype.Service;
 
 /**
@@ -171,13 +170,9 @@ public class EmailServerIntegrationService extends BasicIntegrationServiceImpl {
         .map(emailService -> {
           try {
             emailService.testConnection();
-          } catch (MessagingException ex) {
+          } catch (MessagingException | MailException ex) {
             log.error("Connection to email server failed", ex);
-            fail()
-                .withError(
-                    EMAIL_CONFIGURATION_IS_INCORRECT,
-                    "Email configuration is incorrect. Please, check your configuration. " + ex.getMessage());
-            return false;
+            throw MailServiceFactory.toConfigurationError(ex);
           }
           return true;
         })
@@ -193,13 +188,9 @@ public class EmailServerIntegrationService extends BasicIntegrationServiceImpl {
       if (isAuthEnabled) {
         try {
           emailService.sendConnectionTestEmail(isNewIntegration);
-        } catch (MessagingException ex) {
+        } catch (MessagingException | MailException ex) {
           log.error("Cannot send email to user", ex);
-          fail()
-              .withError(
-                  EMAIL_CONFIGURATION_IS_INCORRECT,
-                  "Email configuration is incorrect. Please, check your configuration. "
-                      + ex.getMessage());
+          throw MailServiceFactory.toConfigurationError(ex);
         }
       }
     });

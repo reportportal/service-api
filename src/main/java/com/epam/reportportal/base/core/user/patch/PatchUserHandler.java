@@ -46,6 +46,9 @@ import org.springframework.util.Assert;
  *   <li>Regular users may update only their own email and full name.</li>
  * </ul>
  *
+ * <p>Email changes are further restricted by {@link UserMutationService#updateEmail}: JWT sessions only (no API
+ * keys), and owners of externally managed accounts cannot change their own email.
+ *
  * @author <a href="mailto:siarhei_hrabko@epam.com">Siarhei Hrabko</a>
  */
 @Service

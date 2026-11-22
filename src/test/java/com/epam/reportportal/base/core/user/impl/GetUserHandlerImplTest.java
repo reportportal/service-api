@@ -19,13 +19,17 @@ package com.epam.reportportal.base.core.user.impl;
 import static com.epam.reportportal.base.ReportPortalUserUtil.getRpUser;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.UserRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationRole;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectRole;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRole;
+import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -41,6 +45,9 @@ class GetUserHandlerImplTest {
 
   @Mock
   private UserRepository userRepository;
+
+  @Mock
+  private ProjectRepository projectRepository;
 
   @InjectMocks
   private GetUserHandlerImpl handler;
@@ -68,4 +75,31 @@ class GetUserHandlerImplTest {
     assertEquals("User 'not_exist' not found.", exception.getMessage());
   }
 
+  @Test
+  void getUserProjectsSelfCheckDoesNotQueryUserRepository() {
+    when(projectRepository.findUserProjects("jdoe")).thenReturn(List.of());
+
+    assertEquals(0, handler.getUserProjects("jdoe",
+        getRpUser("jdoe", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L)).size());
+
+    verifyNoInteractions(userRepository);
+  }
+
+  @Test
+  void getUserProjectsOfAnotherUserIsDeniedForNonAdministrator() {
+    final ReportPortalException exception = assertThrows(ReportPortalException.class,
+        () -> handler.getUserProjects("other",
+            getRpUser("jdoe", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L)));
+
+    assertEquals(ErrorType.ACCESS_DENIED, exception.getErrorType());
+    verifyNoInteractions(userRepository);
+  }
+
+  @Test
+  void getUserProjectsOfAnyUserIsAllowedForAdministrator() {
+    when(projectRepository.findUserProjects("other")).thenReturn(List.of());
+
+    assertEquals(0, handler.getUserProjects("other",
+        getRpUser("admin", UserRole.ADMINISTRATOR, OrganizationRole.MEMBER, ProjectRole.VIEWER, 1L)).size());
+  }
 }

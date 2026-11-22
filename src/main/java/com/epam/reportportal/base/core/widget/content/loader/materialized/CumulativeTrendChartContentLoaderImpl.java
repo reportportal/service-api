@@ -18,16 +18,17 @@ package com.epam.reportportal.base.core.widget.content.loader.materialized;
 
 import static com.epam.reportportal.base.core.widget.content.constant.ContentLoaderConstants.ATTRIBUTES;
 import static com.epam.reportportal.base.core.widget.content.constant.ContentLoaderConstants.RESULT;
-import static com.epam.reportportal.base.core.widget.content.loader.materialized.handler.MaterializedWidgetStateHandler.VIEW_NAME;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.ItemAttributeConstant.KEY_VALUE_SEPARATOR;
 import static com.epam.reportportal.base.infrastructure.rules.commons.validation.BusinessRule.expect;
 import static java.util.Optional.ofNullable;
 
+import com.epam.reportportal.base.core.widget.content.materialized.generator.MaterializedViewNameGenerator;
 import com.epam.reportportal.base.core.widget.util.WidgetOptionUtil;
 import com.epam.reportportal.base.infrastructure.persistence.dao.WidgetContentRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.widget.Widget;
 import com.epam.reportportal.base.infrastructure.persistence.entity.widget.content.CumulativeTrendChartEntry;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
+import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.google.common.collect.ImmutableMap;
 import java.util.Collections;
 import java.util.List;
@@ -50,9 +51,15 @@ public class CumulativeTrendChartContentLoaderImpl implements MaterializedWidget
   @Autowired
   private WidgetContentRepository widgetContentRepository;
 
+  @Autowired
+  private MaterializedViewNameGenerator materializedViewNameGenerator;
+
   @Override
   public Map<String, Object> loadContent(Widget widget, MultiValueMap<String, String> params) {
     List<CumulativeTrendChartEntry> content;
+    String viewName = materializedViewNameGenerator.resolveStored(widget)
+        .orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_LOAD_WIDGET_CONTENT,
+            "Widget view name not provided"));
     List<String> storedAttributes = WidgetOptionUtil.getListByKey(ATTRIBUTES,
         widget.getWidgetOptions());
     List<String> providedAttributes = ofNullable(params.get(ATTRIBUTES)).map(
@@ -61,7 +68,7 @@ public class CumulativeTrendChartContentLoaderImpl implements MaterializedWidget
             .collect(Collectors.toList())).orElseGet(Collections::emptyList);
     if (providedAttributes.isEmpty()) {
       content = widgetContentRepository.cumulativeTrendChart(
-          (String) widget.getWidgetOptions().getOptions().get(VIEW_NAME),
+          viewName,
           storedAttributes.get(0),
           storedAttributes.size() > 1 ? storedAttributes.get(1) : null,
           null
@@ -69,7 +76,7 @@ public class CumulativeTrendChartContentLoaderImpl implements MaterializedWidget
     } else {
       verifyProvidedAttributes(storedAttributes, providedAttributes);
       content = widgetContentRepository.cumulativeTrendChart(
-          (String) widget.getWidgetOptions().getOptions().get(VIEW_NAME),
+          viewName,
           storedAttributes.get(1),
           null,
           providedAttributes.get(0)

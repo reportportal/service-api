@@ -18,6 +18,8 @@ package com.epam.reportportal.base.core.launch.util;
 
 import jakarta.servlet.http.HttpServletRequest;
 import java.net.URI;
+import java.util.Arrays;
+import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -40,6 +42,12 @@ public class LinkGenerator {
 
   @Value("${server.servlet.context-path:/api}")
   private String pathValue;
+
+  @Value("${rp.ui.base-url:}")
+  private String uiBaseUrl;
+
+  @Value("${rp.ui.allowed-hosts:}")
+  private String uiAllowedHosts;
 
   /**
    * Generates the project-level UI path for notifications.
@@ -88,5 +96,33 @@ public class LinkGenerator {
         .build()
         .toUri()
         .toASCIIString();
+  }
+
+  /**
+   * Composes the base URL for links e-mailed from unauthenticated flows (password restore), where the request host
+   * cannot be trusted. Uses {@code rp.ui.base-url} when configured. Otherwise falls back to the request, and when
+   * {@code rp.ui.allowed-hosts} is configured the request host must be one of them.
+   *
+   * @param request the inbound request
+   * @return the base URL, or empty when the request host is not allowed
+   */
+  public Optional<String> composeTrustedBaseUrl(HttpServletRequest request) {
+    if (StringUtils.isNotBlank(uiBaseUrl)) {
+      return Optional.of(StringUtils.removeEnd(uiBaseUrl.trim(), "/"));
+    }
+    String requestBaseUrl = composeBaseUrl(request);
+    if (StringUtils.isBlank(uiAllowedHosts)) {
+      log.warn("rp.ui.base-url is not configured; e-mail links are built from the request host");
+      return Optional.of(requestBaseUrl);
+    }
+    String host = URI.create(requestBaseUrl).getHost();
+    boolean allowed = host != null && Arrays.stream(uiAllowedHosts.split(","))
+        .map(String::trim)
+        .anyMatch(host::equalsIgnoreCase);
+    if (!allowed) {
+      log.warn("Request host '{}' is not in rp.ui.allowed-hosts; e-mail link is not generated", host);
+      return Optional.empty();
+    }
+    return Optional.of(requestBaseUrl);
   }
 }

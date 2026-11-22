@@ -17,7 +17,6 @@
 package com.epam.reportportal.auth;
 
 import static com.epam.reportportal.base.infrastructure.persistence.commons.EntityUtils.normalizeId;
-import static java.util.Optional.ofNullable;
 
 import com.epam.reportportal.auth.oauth.RPOAuth2User;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
@@ -47,15 +46,16 @@ public class OAuthSuccessHandler extends AuthSuccessHandler {
 
   @Override
   protected Jwt getToken(Authentication authentication) {
-    OAuth2AuthenticationToken oAuth2Authentication = ofNullable((OAuth2AuthenticationToken) authentication)
-        .orElseThrow(() -> new ReportPortalException(ErrorType.ACCESS_DENIED));
-    var principal = oAuth2Authentication.getPrincipal();
+    if (!(authentication instanceof OAuth2AuthenticationToken oAuth2Authentication)
+        || !(oAuth2Authentication.getPrincipal() instanceof RPOAuth2User principal)) {
+      throw new ReportPortalException(ErrorType.ACCESS_DENIED);
+    }
     return tokenServicesFacade.get().createToken(
         ReportPortalClient.ui,
         normalizeId(principal.getName()),
         authentication,
-        principal instanceof RPOAuth2User rpUser && rpUser.getAccessToken() != null
-            ? Collections.singletonMap("upstream_token", rpUser.getAccessToken())
+        principal.getAccessToken() != null
+            ? Collections.singletonMap("upstream_token", principal.getAccessToken())
             : Collections.emptyMap()
     );
   }

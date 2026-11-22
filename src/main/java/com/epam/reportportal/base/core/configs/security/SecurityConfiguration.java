@@ -25,6 +25,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler;
 import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
@@ -91,11 +92,15 @@ public class SecurityConfiguration {
             "/health",
             "/info"))
         .authorizeHttpRequests(authorize -> authorize
+            .requestMatchers(HttpMethod.GET, "/invitations/*")
+            .permitAll()
+            .requestMatchers(HttpMethod.PUT, "/invitations/*")
+            .permitAll()
             .requestMatchers(
-                "/invitations/**",
                 "/v1/users/password/reset",
                 "/v1/users/password/reset/*",
                 "/v1/users/password/restore",
+                "/v1/users/email/confirm",
                 "/v1/plugin/public/**",
                 "/v1/public/**",
                 "/v1/public/integration/grafana/**",

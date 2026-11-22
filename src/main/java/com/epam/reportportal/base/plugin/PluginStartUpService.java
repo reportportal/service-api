@@ -79,6 +79,8 @@ public class PluginStartUpService {
 
   /** Written by the marketplace install path; finds a registry install filed under another name. */
   private static final String MARKETPLACE_PLUGIN_ID_KEY = "marketplacePluginId";
+  private static final String REGISTRY_PREFIX = "registry '";
+  private static final String PINNED_SEPARATOR = "; pinned ";
 
   private final Pf4jPluginBox pluginBox;
   private final IntegrationTypeRepository integrationTypeRepository;
@@ -158,7 +160,8 @@ public class PluginStartUpService {
       return;
     }
     try {
-      LOGGER.info("Default plugin '{}': {}", pluginId, installDefaultPlugin());
+      var outcome = installDefaultPlugin();
+      LOGGER.info("Default plugin '{}': {}", pluginId, outcome);
     } catch (RuntimeException | LinkageError e) {
       LOGGER.error("Default plugin '{}': nothing installed, unexpected failure: {}", pluginId,
           e.toString());
@@ -218,11 +221,11 @@ public class PluginStartUpService {
       var plugin = marketplaceClient.getPlugin(registryId);
       latest = plugin == null ? null : StringUtils.trimToNull(plugin.latestVersion());
     } catch (MarketplaceException e) {
-      return Outcome.notDone("registry '" + host + "' not used for '" + registryId + "': "
+      return Outcome.notDone(REGISTRY_PREFIX + host + "' not used for '" + registryId + "': "
           + e.getMessage());
     }
     if (latest == null) {
-      return Outcome.notDone("registry '" + host + "' lists no version of '" + registryId + "'");
+      return Outcome.notDone(REGISTRY_PREFIX + host + "' lists no version of '" + registryId + "'");
     }
     if (installed.present() && PluginVersions.compare(latest, installed.version()) <= 0) {
       return Outcome.done(installed.version() + " is installed and current (registry '" + host
@@ -237,7 +240,7 @@ public class PluginStartUpService {
       return Outcome.done("installed " + result.version() + " from the marketplace registry '"
           + host + "'" + (installed.present() ? ", was " + installed.version() : "") + mismatch);
     } catch (RuntimeException | LinkageError e) {
-      return Outcome.notDone("registry '" + host + "' version " + latest + " of '" + registryId
+      return Outcome.notDone(REGISTRY_PREFIX + host + "' version " + latest + " of '" + registryId
           + "' not installed: " + e.getMessage());
     }
   }
@@ -255,12 +258,12 @@ public class PluginStartUpService {
       return installed.version() + " kept, pinned " + pluginVersion + " is not newer";
     }
     if (!isHttps(pluginUrl)) {
-      return describe(installed) + "; pinned " + pluginVersion + " not installed:"
+      return describe(installed) + PINNED_SEPARATOR + pluginVersion + " not installed:"
           + " rp.plugins.default.url must be an absolute https URL";
     }
     var expected = pluginSha256.toLowerCase(Locale.ROOT);
     if (expected.isEmpty()) {
-      return describe(installed) + "; pinned " + pluginVersion + " not installed:"
+      return describe(installed) + PINNED_SEPARATOR + pluginVersion + " not installed:"
           + " rp.plugins.default.sha256 is not set, so the download cannot be verified";
     }
 
@@ -271,7 +274,7 @@ public class PluginStartUpService {
       fetcher.fetch(pluginUrl, downloaded);
       var actual = PluginArtifacts.sha256(downloaded);
       if (!expected.equals(actual)) {
-        return describe(installed) + "; pinned " + pluginVersion + " not installed: the download"
+        return describe(installed) + PINNED_SEPARATOR + pluginVersion + " not installed: the download"
             + " from '" + host(pluginUrl) + "' has sha256 " + actual + " but " + expected
             + " was configured";
       }
@@ -284,10 +287,10 @@ public class PluginStartUpService {
       // No outbound access, a CDN refusal, an oversize body, a jar the loader rejects, a record
       // another node wrote first: the service is healthy without the plugin and it is retried at
       // the next start.
-      return describe(installed) + "; pinned " + pluginVersion + " from '" + host(pluginUrl)
+      return describe(installed) + PINNED_SEPARATOR + pluginVersion + " from '" + host(pluginUrl)
           + "' not installed: " + e.getMessage();
     } catch (LinkageError e) {
-      return describe(installed) + "; pinned " + pluginVersion + " cannot run on this"
+      return describe(installed) + PINNED_SEPARATOR + pluginVersion + " cannot run on this"
           + " ReportPortal: " + e;
     } finally {
       deleteQuietly(downloaded);
@@ -333,7 +336,7 @@ public class PluginStartUpService {
     try {
       var uri = URI.create(url);
       return "https".equalsIgnoreCase(uri.getScheme()) && uri.getHost() != null;
-    } catch (IllegalArgumentException e) {
+    } catch (IllegalArgumentException _) {
       return false;
     }
   }
@@ -341,7 +344,7 @@ public class PluginStartUpService {
   private static String host(String url) {
     try {
       return ofNullable(URI.create(url).getHost()).orElse("<none>");
-    } catch (IllegalArgumentException e) {
+    } catch (IllegalArgumentException _) {
       return "<invalid url>";
     }
   }

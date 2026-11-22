@@ -97,7 +97,7 @@ class DashboardLockHandlersTest {
 
   @Test
   void unlockLockedDashboardShouldFailForNonOwnerEditor() {
-    Dashboard dashboard = dashboard(DASHBOARD_ID, true);
+    dashboard(DASHBOARD_ID, true);
     ReportPortalUser editor = editor();
 
     ReportPortalException ex = assertThrows(ReportPortalException.class,

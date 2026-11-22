@@ -276,7 +276,7 @@ public class ExecuteIntegrationHandlerImpl implements ExecuteIntegrationHandler 
     }
     try {
       return Long.valueOf(String.valueOf(argument));
-    } catch (NumberFormatException e) {
+    } catch (NumberFormatException _) {
       throw new ReportPortalException(BAD_REQUEST_ERROR, "Argument 'projectId' must be a number");
     }
   }

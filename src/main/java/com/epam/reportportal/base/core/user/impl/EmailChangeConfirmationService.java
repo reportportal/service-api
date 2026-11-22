@@ -157,7 +157,7 @@ public class EmailChangeConfirmationService {
     if (value instanceof String string) {
       try {
         return Long.parseLong(string);
-      } catch (NumberFormatException e) {
+      } catch (NumberFormatException _) {
         return null;
       }
     }

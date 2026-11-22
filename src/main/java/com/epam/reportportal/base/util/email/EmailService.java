@@ -79,6 +79,9 @@ public class EmailService extends JavaMailSenderImpl {
   private static final String COMPOSITE_ATTRIBUTE_FILTER_FORMAT =
       "%s?launchesParams=filter.has.compositeAttribute=%s";
   private static final String TEMPLATE_IMAGES_PREFIX = "templates/email/images/";
+  private static final String LOGIN_PARAM = "login";
+  private static final String RESTORE_PASSWORD_IMAGE = "restore-password.png";
+  private static final String ILLUSTRATION_IMAGE = "illustration.png";
   @Setter
   private TemplateEngine templateEngine;
   @Setter
@@ -283,12 +286,12 @@ public class EmailService extends JavaMailSenderImpl {
           setFrom(message);
 
           Map<String, Object> email = new HashMap<>();
-          email.put("login", login);
+          email.put(LOGIN_PARAM, login);
           email.put("url", getUrl(url));
           String text = templateEngine.merge("restore-password-template.ftl", email);
           message.setText(text, true);
 
-          message.addInline("restore-password.png", emailTemplateResource("restore-password.png"));
+          message.addInline(RESTORE_PASSWORD_IMAGE, emailTemplateResource(RESTORE_PASSWORD_IMAGE));
           attachSocialImages(message);
         };
     this.send(preparator);
@@ -313,12 +316,12 @@ public class EmailService extends JavaMailSenderImpl {
           setFrom(message);
 
           Map<String, Object> email = new HashMap<>();
-          email.put("login", login);
+          email.put(LOGIN_PARAM, login);
           email.put("url", getUrl(url));
           String text = templateEngine.merge("email-change-confirm-template.ftl", email);
           message.setText(text, true);
 
-          message.addInline("restore-password.png", emailTemplateResource("restore-password.png"));
+          message.addInline(RESTORE_PASSWORD_IMAGE, emailTemplateResource(RESTORE_PASSWORD_IMAGE));
           attachSocialImages(message);
         };
     this.send(preparator);
@@ -343,12 +346,12 @@ public class EmailService extends JavaMailSenderImpl {
           setFrom(message);
 
           Map<String, Object> email = new HashMap<>();
-          email.put("login", login);
+          email.put(LOGIN_PARAM, login);
           email.put("new_email", newEmail);
           String text = templateEngine.merge("email-change-notice-template.ftl", email);
           message.setText(text, true);
 
-          message.addInline("illustration.png", emailTemplateResource("illustration.png"));
+          message.addInline(ILLUSTRATION_IMAGE, emailTemplateResource(ILLUSTRATION_IMAGE));
           attachSocialImages(message);
         };
     this.send(preparator);
@@ -376,7 +379,7 @@ public class EmailService extends JavaMailSenderImpl {
           String text = templateEngine.merge("change-password-template.ftl", email);
           message.setText(text, true);
 
-          message.addInline("illustration.png", emailTemplateResource("illustration.png"));
+          message.addInline(ILLUSTRATION_IMAGE, emailTemplateResource(ILLUSTRATION_IMAGE));
           attachSocialImages(message);
         };
     this.send(preparator);
@@ -492,7 +495,7 @@ public class EmailService extends JavaMailSenderImpl {
 
           Map<String, Object> email = new HashMap<>();
           email.put("url", getUrl(basicUrl));
-          email.put("login", normalizeId(req.getEmail()));
+          email.put(LOGIN_PARAM, normalizeId(req.getEmail()));
 
           if (req.getPassword() != null) {
             email.put("password", req.getPassword());

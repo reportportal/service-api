@@ -123,7 +123,7 @@ public class AuthorizationServerConfig {
   @Profile("!unittest")
   public JwtEncoder jwtEncoder() {
     SecretKey key = new SecretKeySpec(getSecret().getBytes(),
-        "HmacSHA256");
+        HMAC_ALGORITHM);
     return new NimbusJwtEncoder(new ImmutableSecret<>(key));
   }
 

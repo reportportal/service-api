@@ -155,11 +155,11 @@ class MailServiceFactoryTest {
     when(integration.getParams()).thenReturn(integrationParams);
     when(integrationParams.getParams()).thenReturn(config);
 
-    Optional<EmailService> emailService = mailServiceFactory.getEmailService(integration);
+    Optional<EmailService> emailServiceOptional = mailServiceFactory.getEmailService(integration);
 
-    Assertions.assertTrue(emailService.isPresent());
+    Assertions.assertTrue(emailServiceOptional.isPresent());
 
-    Properties javaMailProperties = emailService.get().getJavaMailProperties();
+    Properties javaMailProperties = emailServiceOptional.get().getJavaMailProperties();
     Assertions.assertEquals(true, javaMailProperties.get("mail.smtp.starttls.enable"));
     Assertions.assertEquals(true, javaMailProperties.get("mail.smtp.starttls.required"));
     Assertions.assertEquals(true, javaMailProperties.get("mail.smtp.ssl.checkserveridentity"));

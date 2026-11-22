@@ -744,7 +744,7 @@ class TmsTestPlanServiceImplTest {
     when(tmsTestCaseService.duplicateTestCases(membershipDetails, user, originalTestCaseIds)).thenReturn(duplicationResult);
     when(tmsTestCaseService.getExistingTestCaseIds(projectId, duplicatedTestCaseIds)).thenReturn(duplicatedTestCaseIds);
     when(tmsTestPlanTestCaseRepository.findTestCaseIdsByTestPlanId(3L)).thenReturn(List.of());
-    when(tmsTestPlanTestCaseRepository.insertTestPlanTestCasesInProject(projectId, 3L, duplicatedTestCaseIds)).thenReturn(2);
+    when(tmsTestPlanTestCaseRepository.insertTestPlanTestCasesInProject(projectId, 3L, duplicatedTestCaseIds)).thenReturn(duplicatedTestCaseIds);
     when(testPlanRepository.existsByIdAndProject_Id(3L, projectId)).thenReturn(true);
     when(tmsTestPlanMapper.convertToRS(anyInt(), anyInt(), anyList())).thenReturn(addToPlanResult);
     when(tmsTestPlanMapper.combineDuplicateTestPlanBatchResults(duplicationResult, addToPlanResult)).thenReturn(combinedResult);

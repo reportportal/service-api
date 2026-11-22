@@ -8,6 +8,7 @@ import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.epam.reportportal.base.infrastructure.persistence.jooq.enums.JRetentionPolicyEnum;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
@@ -119,6 +120,62 @@ class FilterConditionTest {
     org.jooq.Query query = DSL.using(SQLDialect.POSTGRES).selectOne().where(condition);
     assertEquals(java.util.List.of("%100\\%\\_a'b\\\\c%"), query.getBindValues());
     assertFalse(query.getSQL().contains("100"));
+  }
+
+  @Test
+  void existsOnPlainColumnHonoursExplicitFalse() {
+    assertEquals("\"tms_test_plan\".\"milestone_id\" is not null",
+        renderTmsTestPlan(Condition.EXISTS, false, "true"));
+    assertEquals("\"tms_test_plan\".\"milestone_id\" is null",
+        renderTmsTestPlan(Condition.EXISTS, false, "false"));
+    assertEquals("\"tms_test_plan\".\"milestone_id\" is null",
+        renderTmsTestPlan(Condition.EXISTS, false, " FALSE "));
+  }
+
+  @Test
+  void existsOnPlainColumnKeepsMeaningForNonBooleanValues() {
+    // existing clients send ids/flags like "1", "10" or "0" with `ex` (e.g. filter.!ex.retryParentId=10)
+    for (String value : new String[] {"1", "10", "0", "TRUE"}) {
+      assertEquals("\"tms_test_plan\".\"milestone_id\" is not null",
+          renderTmsTestPlan(Condition.EXISTS, false, value), value);
+    }
+    assertEquals("not (\"tms_test_plan\".\"milestone_id\" is not null)",
+        renderTmsTestPlan(Condition.EXISTS, true, "10"));
+  }
+
+  @Test
+  void tmsTestPlanMilestoneIdSupportsEqualsAndIn() {
+    assertEquals("\"tms_test_plan\".\"milestone_id\" = 12",
+        renderTmsTestPlan(Condition.EQUALS, false, "12"));
+    assertEquals("\"tms_test_plan\".\"milestone_id\" in (1, 2)",
+        renderTmsTestPlan(Condition.IN, false, "1,2"));
+  }
+
+  @Test
+  void existsOnAggregateCriteriaIsUnchanged() {
+    String sql = DSL.using(SQLDialect.POSTGRES)
+        .renderInlined(FilterCondition.builder()
+            .withCondition(Condition.EXISTS)
+            .withSearchCriteria("ticketId")
+            .withValue("false")
+            .build()
+            .toCondition(FilterTarget.TEST_ITEM_TARGET)
+            .get(ConditionType.HAVING));
+    assertTrue(sql.startsWith("coalesce(array_length(array_remove(array_agg("), sql);
+    assertTrue(sql.endsWith(", null), 1), 0) = 0"), sql);
+
+  }
+
+  private static String renderTmsTestPlan(Condition condition, boolean negative, String value) {
+    return DSL.using(SQLDialect.POSTGRES)
+        .renderInlined(FilterCondition.builder()
+            .withCondition(condition)
+            .withNegative(negative)
+            .withSearchCriteria("milestoneId")
+            .withValue(value)
+            .build()
+            .toCondition(FilterTarget.TMS_TEST_PLAN_TARGET)
+            .get(ConditionType.WHERE));
   }
 
   private static String render(FilterCondition filterCondition) {

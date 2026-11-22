@@ -196,6 +196,89 @@ public class TmsTestPlanIntegrationTest extends BaseMvcTest {
         .andExpect(jsonPath("$.content.length()").value(10));
   }
 
+  private void linkTestPlansToMilestones() {
+    entityManager.createNativeQuery(
+        "INSERT INTO tms_milestone (id, \"name\", status, start_date, end_date, \"type\", project_id, display_id) "
+            + "VALUES (9001, 'Filter milestone A', 'SCHEDULED', '2024-01-01', '2024-02-01', 'SPRINT', 1, 'M-9001'), "
+            + "(9002, 'Filter milestone B', 'SCHEDULED', '2024-01-01', '2024-02-01', 'SPRINT', 1, 'M-9002')"
+    ).executeUpdate();
+    entityManager.createNativeQuery("UPDATE tms_test_plan SET milestone_id = 9001 WHERE id IN (1, 2)")
+        .executeUpdate();
+    entityManager.createNativeQuery("UPDATE tms_test_plan SET milestone_id = 9002 WHERE id = 3")
+        .executeUpdate();
+    entityManager.flush();
+    entityManager.clear();
+  }
+
+  private org.springframework.test.web.servlet.ResultActions getTestPlansWithFilter(String name, String value)
+      throws Exception {
+    return mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-plan")
+        .param("offset", "0")
+        .param("limit", "50")
+        .param(name, value)
+        .with(token(oAuthHelper.getSuperadminToken())));
+  }
+
+  @Test
+  void getTestPlansWithMilestoneExistsTrueReturnsOnlyLinkedPlans() throws Exception {
+    linkTestPlansToMilestones();
+
+    getTestPlansWithFilter("filter.ex.milestoneId", "true")
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content.length()").value(3))
+        .andExpect(jsonPath("$.content[*].milestoneId", org.hamcrest.Matchers.everyItem(
+            org.hamcrest.Matchers.notNullValue())));
+  }
+
+  @Test
+  void getTestPlansWithMilestoneExistsFalseReturnsOnlyUnlinkedPlans() throws Exception {
+    linkTestPlansToMilestones();
+
+    getTestPlansWithFilter("filter.ex.milestoneId", "false")
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content.length()").value(org.hamcrest.Matchers.greaterThan(0)))
+        .andExpect(jsonPath("$.content[*].milestoneId", org.hamcrest.Matchers.everyItem(
+            org.hamcrest.Matchers.nullValue())))
+        .andExpect(jsonPath("$.content[*].id", org.hamcrest.Matchers.not(
+            org.hamcrest.Matchers.hasItems(1, 2, 3))));
+  }
+
+  @Test
+  void getTestPlansWithMilestoneEqualsAndInFilters() throws Exception {
+    linkTestPlansToMilestones();
+
+    getTestPlansWithFilter("filter.eq.milestoneId", "9001")
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content.length()").value(2))
+        .andExpect(jsonPath("$.content[*].milestoneId", org.hamcrest.Matchers.everyItem(
+            org.hamcrest.Matchers.is(9001))));
+
+    getTestPlansWithFilter("filter.in.milestoneId", "9001,9002")
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content.length()").value(3));
+  }
+
+  @Test
+  void getTestPlansWithMilestoneFilterCombinedWithNameFilter() throws Exception {
+    linkTestPlansToMilestones();
+
+    mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-plan")
+            .param("offset", "0")
+            .param("limit", "50")
+            .param("filter.ex.milestoneId", "true")
+            .param("filter.cnt.name", "Plan 2")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content.length()").value(1))
+        .andExpect(jsonPath("$.content[0].id").value(2));
+  }
+
+  @Test
+  void getTestPlansWithUnknownFilterCriteriaIsRejected() throws Exception {
+    getTestPlansWithFilter("filter.ex.unknownCriteria", "true")
+        .andExpect(status().isBadRequest());
+  }
+
   @Test
   void updateTestPlanIntegrationTest() throws Exception {
     TmsTestPlanAttributeRQ attribute = new TmsTestPlanAttributeRQ();

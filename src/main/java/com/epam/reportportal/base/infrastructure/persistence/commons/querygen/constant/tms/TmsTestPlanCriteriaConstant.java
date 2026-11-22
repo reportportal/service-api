@@ -9,6 +9,7 @@ public final class TmsTestPlanCriteriaConstant {
   public static final String CRITERIA_TMS_TEST_PLAN_SEARCH = "search";
   public static final String CRITERIA_TMS_TEST_PLAN_CREATED_AT = "createdAt";
   public static final String CRITERIA_TMS_TEST_PLAN_UPDATED_AT = "updatedAt";
+  public static final String CRITERIA_TMS_TEST_PLAN_MILESTONE_ID = "milestoneId";
 
   private TmsTestPlanCriteriaConstant() {
     //static only

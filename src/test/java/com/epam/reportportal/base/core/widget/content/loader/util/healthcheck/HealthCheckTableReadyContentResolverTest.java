@@ -5,14 +5,21 @@ import static com.epam.reportportal.base.core.widget.content.constant.ContentLoa
 import static com.epam.reportportal.base.infrastructure.persistence.dao.constant.WidgetContentRepositoryConstants.EXECUTIONS_PASSED;
 import static com.epam.reportportal.base.infrastructure.persistence.dao.constant.WidgetContentRepositoryConstants.EXECUTIONS_TOTAL;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.epam.reportportal.base.core.widget.content.loader.materialized.HealthCheckTableReadyContentLoader;
+import com.epam.reportportal.base.core.widget.content.materialized.generator.MaterializedViewNameGenerator;
 import com.epam.reportportal.base.infrastructure.persistence.dao.WidgetContentRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.widget.Widget;
 import com.epam.reportportal.base.infrastructure.persistence.entity.widget.content.healthcheck.HealthCheckTableContent;
+import com.epam.reportportal.base.infrastructure.persistence.entity.widget.content.healthcheck.HealthCheckTableGetParams;
+import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
+import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.model.widget.ContentParameters;
 import com.epam.reportportal.base.model.widget.SortEntry;
 import com.epam.reportportal.base.model.widget.WidgetRQ;
@@ -24,6 +31,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import tools.jackson.databind.json.JsonMapper;
@@ -38,7 +46,8 @@ public class HealthCheckTableReadyContentResolverTest {
   private final JsonMapper objectMapper = JsonMapper.builder().build();
 
   private final HealthCheckTableReadyContentLoader contentResolver =
-      new HealthCheckTableReadyContentLoader(widgetContentRepository, objectMapper);
+      new HealthCheckTableReadyContentLoader(widgetContentRepository, objectMapper,
+          new MaterializedViewNameGenerator());
 
   @Test
   void getContentTest() {
@@ -60,9 +69,11 @@ public class HealthCheckTableReadyContentResolverTest {
 
     SortEntry sortEntry = new SortEntry();
     sortEntry.setSortingColumn("passingRate");
-    Widget widget = new WidgetBuilder().addWidgetRq(widgetRQ).addOption("viewName", "name")
+    Widget widget = new WidgetBuilder().addWidgetRq(widgetRQ).addProject(1L)
+        .addOption("viewName", "widget_1_2")
         .addOption("sort", sortEntry).addOption(ATTRIBUTE_KEYS, Lists.newArrayList("k1", "k2"))
         .get();
+    widget.setId(2L);
 
     HealthCheckTableContent content = new HealthCheckTableContent();
     content.setAttributeValue("v2");
@@ -86,6 +97,26 @@ public class HealthCheckTableReadyContentResolverTest {
 
     assertEquals(content.getPassingRate(), tableContent.getPassingRate());
     assertEquals(content.getAttributeValue(), tableContent.getAttributeValue());
+
+    ArgumentCaptor<HealthCheckTableGetParams> paramsCaptor =
+        ArgumentCaptor.forClass(HealthCheckTableGetParams.class);
+    verify(widgetContentRepository).componentHealthCheckTable(paramsCaptor.capture());
+    assertEquals("widget_1_2", paramsCaptor.getValue().getViewName());
+  }
+
+  @Test
+  void foreignViewNameIsNotUsed() {
+    Widget widget = new WidgetBuilder().addProject(1L)
+        .addOption("viewName", "widget_7_3")
+        .addOption(ATTRIBUTE_KEYS, Lists.newArrayList("k1", "k2"))
+        .get();
+    widget.setId(2L);
+
+    ReportPortalException exception = assertThrows(ReportPortalException.class,
+        () -> contentResolver.loadContent(widget, new LinkedMultiValueMap<>()));
+
+    assertEquals(ErrorType.UNABLE_LOAD_WIDGET_CONTENT, exception.getErrorType());
+    verify(widgetContentRepository, never()).componentHealthCheckTable(any());
   }
 
 }

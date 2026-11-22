@@ -22,4 +22,12 @@ VALUES ('0647cf8f-02e3-4acd-ba3e-f74ec9d2c5cb', now(), 'superadminemail@domain.c
           "metadata": {
             "type": "internal"
           }
+        }'),
+       ('7d1e2f40-3b6a-4c5d-8e9f-0a1b2c3d4e5f', now(), 'pending-change@domain.com', 2,
+        '{
+          "metadata": {
+            "type": "email_change",
+            "userId": 2,
+            "currentEmail": "defaultemail@domain.com"
+          }
         }');

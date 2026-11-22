@@ -99,11 +99,14 @@ public interface GetTestItemHandler {
   /**
    * Get tickets that contains a term as a part inside for specified launch
    *
-   * @param launchId {@link Launch#getId()}
-   * @param term     part of {@link Ticket#getTicketId()} to search
+   * @param launchId          {@link Launch#getId()}
+   * @param membershipDetails caller membership in the project from the request path
+   * @param user              caller
+   * @param term              part of {@link Ticket#getTicketId()} to search
    * @return {@link List} of {@link Ticket#getTicketId()}
    */
-  List<String> getTicketIds(Long launchId, String term);
+  List<String> getTicketIds(Long launchId, MembershipDetails membershipDetails,
+      ReportPortalUser user, String term);
 
   /**
    * Get tickets that contains a term as a part inside for specified project

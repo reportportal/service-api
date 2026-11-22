@@ -24,6 +24,8 @@ import static org.mockito.Mockito.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
 import com.epam.reportportal.base.core.events.domain.PluginUploadedEvent;
@@ -34,6 +36,8 @@ import com.epam.reportportal.base.core.integration.plugin.strategy.PluginUploade
 import com.epam.reportportal.base.core.plugin.PluginInfo;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.model.EntryCreatedRS;
+import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
+import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import java.io.IOException;
 import java.io.InputStream;
 import org.junit.jupiter.api.Test;
@@ -64,7 +68,7 @@ public class CreatePluginHandlerTest {
       mock(ApplicationEventPublisher.class);
 
   private final CreatePluginHandler createPluginHandler =
-      new CreatePluginHandlerImpl(pluginUploaderFactory, applicationEventPublisher);
+      new CreatePluginHandlerImpl(pluginUploaderFactory, applicationEventPublisher, true);
 
   @Test
   void shouldUploadPluginWhenValid() throws IOException {
@@ -91,5 +95,18 @@ public class CreatePluginHandlerTest {
     assertNotNull(entryCreatedRS);
     assertEquals(IntegrationTestUtil.getJiraIntegrationType().getId(), entryCreatedRS.getId());
     verify(applicationEventPublisher, times(1)).publishEvent(isA(PluginUploadedEvent.class));
+  }
+
+  @Test
+  void shouldRefuseUploadWhenManualUploadIsDisabled() {
+    CreatePluginHandler disabled =
+        new CreatePluginHandlerImpl(pluginUploaderFactory, applicationEventPublisher, false);
+    when(multipartFile.getOriginalFilename()).thenReturn(FILE_NAME);
+
+    ReportPortalException ex = assertThrows(ReportPortalException.class,
+        () -> disabled.uploadPlugin(multipartFile, mock(ReportPortalUser.class)));
+
+    assertEquals(ErrorType.FORBIDDEN_OPERATION, ex.getErrorType());
+    verifyNoInteractions(pluginUploaderFactory, applicationEventPublisher);
   }
 }

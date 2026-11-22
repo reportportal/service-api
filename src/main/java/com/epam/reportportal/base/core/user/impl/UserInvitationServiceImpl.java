@@ -65,7 +65,7 @@ import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalExc
 import com.epam.reportportal.base.util.email.MailServiceFactory;
 import com.google.common.collect.Maps;
 import jakarta.servlet.http.HttpServletRequest;
-import java.time.temporal.ChronoUnit;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -74,6 +74,7 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
@@ -97,6 +98,10 @@ public class UserInvitationServiceImpl implements UserInvitationService {
   private final ProjectRepository projectRepository;
   private final ServerSettingsRepository settingsRepository;
   private final LinkGenerator linkGenerator;
+
+  // Same property that UserInvitationHandler enforces at activation and CleanExpiredCreationBidsJob honours.
+  @Value("${rp.invitation.bid.ttl:PT24H}")
+  private Duration invitationBidTtl = Duration.ofHours(24);
 
   @Override
   public Invitation sendInvitation(InvitationRequest invitationRq) {
@@ -124,7 +129,7 @@ public class UserInvitationServiceImpl implements UserInvitationService {
     }
 
     invitation.setCreatedAt(storedUserBid.getLastModified());
-    invitation.setExpiresAt(storedUserBid.getLastModified().plus(1, ChronoUnit.DAYS));
+    invitation.setExpiresAt(storedUserBid.getLastModified().plus(invitationBidTtl));
     invitation.setId(UUID.fromString(userBid.getUuid()));
     invitation.setLink(linkGenerator.generateInvitationUrl(httpServletRequest, userBid.getUuid()));
     invitation.setEmail(userBid.getEmail());

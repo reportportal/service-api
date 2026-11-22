@@ -32,6 +32,7 @@ import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Stream;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
@@ -234,6 +235,17 @@ public interface LaunchRepository extends ReportPortalRepository<Launch, Long>,
    * @return true if launch exists in a project, false otherwise
    */
   boolean existsByIdAndProjectId(Long launchId, Long projectId);
+
+  /**
+   * Selects, in one query, those of the given launch IDs that belong to the project.
+   *
+   * @param ids       launch IDs
+   * @param projectId project ID
+   * @return IDs of the given launches that belong to the project
+   */
+  @Query("SELECT l.id FROM Launch l WHERE l.id IN :ids AND l.projectId = :projectId")
+  Set<Long> findIdsByIdInAndProjectId(@Param("ids") Collection<Long> ids,
+      @Param("projectId") Long projectId);
 
   /**
    * Checks if launch by type exists by ID and project ID.

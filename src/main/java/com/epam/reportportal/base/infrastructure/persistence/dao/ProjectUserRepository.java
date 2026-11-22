@@ -18,6 +18,8 @@ package com.epam.reportportal.base.infrastructure.persistence.dao;
 
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.ProjectUser;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.ProjectUserId;
+import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectRole;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -50,6 +52,24 @@ public interface ProjectUserRepository
    * @return An Optional containing the ProjectUser if found, or empty if not found
    */
   Optional<ProjectUser> findProjectUserByUserIdAndProjectId(Long userId, Long projectId);
+
+  /**
+   * Checks whether the user holds one of the given roles in at least one project of a non-personal organization.
+   * Personal organizations (and the projects inside them) are ignored.
+   *
+   * @param userId The user ID
+   * @param roles  The accepted project roles
+   * @return {@code true} if such a membership exists
+   */
+  @Query("""
+      SELECT COUNT(pu) > 0 FROM ProjectUser pu
+      JOIN Project p ON p.id = pu.id.projectId
+      JOIN Organization o ON o.id = p.organizationId
+      WHERE pu.id.userId = :userId AND pu.projectRole IN :roles
+      AND o.organizationType <> com.epam.reportportal.base.infrastructure.persistence.entity.enums.OrganizationType.PERSONAL
+      """)
+  boolean existsRoleInNonPersonalOrganizationProject(@Param("userId") Long userId,
+      @Param("roles") Collection<ProjectRole> roles);
 
 
   /**

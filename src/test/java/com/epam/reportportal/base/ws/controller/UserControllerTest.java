@@ -35,11 +35,13 @@ import com.epam.reportportal.api.model.SearchCriteriaRQ;
 import com.epam.reportportal.api.model.SearchCriteriaSearchCriteriaInner;
 import com.epam.reportportal.base.core.user.ApiKeyHandler;
 import com.epam.reportportal.base.infrastructure.model.ValidationConstraints;
+import com.epam.reportportal.base.infrastructure.persistence.dao.UserCreationBidRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.UserRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRole;
 import com.epam.reportportal.base.model.ApiKeyRQ;
 import com.epam.reportportal.base.model.Page;
 import com.epam.reportportal.base.model.user.ChangePasswordRQ;
+import com.epam.reportportal.base.model.user.ConfirmEmailChangeRQ;
 import com.epam.reportportal.base.model.user.EditUserRQ;
 import com.epam.reportportal.base.model.user.ResetPasswordRQ;
 import com.epam.reportportal.base.model.user.RestorePasswordRQ;
@@ -74,6 +76,19 @@ class UserControllerTest extends BaseMvcTest {
   private JsonMapper objectMapper;
   @Autowired
   private UserRepository userRepository;
+  @Autowired
+  private com.epam.reportportal.base.auth.userdetails.DefaultUserDetailsService userDetailsService;
+  @Autowired
+  @org.springframework.beans.factory.annotation.Qualifier("caffeineCacheManager")
+  private org.springframework.cache.CacheManager cacheManager;
+
+  @org.junit.jupiter.api.AfterEach
+  void clearUserAuthDataCache() {
+    // the test transaction is rolled back but the cache is not: do not leak entries into other tests
+    cacheManager.getCache("userAuthDataCache").clear();
+  }
+  @Autowired
+  private UserCreationBidRepository userCreationBidRepository;
 
   @Test
   void deleteUserNegative() throws Exception {
@@ -308,6 +323,93 @@ class UserControllerTest extends BaseMvcTest {
     mockMvc.perform(get(USERS_URL + "password/reset/e5f98deb-8966-4b2d-ba2f-35bc69d30c06").with(
             token(oAuthHelper.getDefaultToken()))
         .contentType(APPLICATION_JSON)).andExpect(status().isOk());
+  }
+
+  @Test
+  void selfEmailChangeIsAppliedOnlyAfterConfirmation() throws Exception {
+    final String newEmail = "default-new@reportportal.internal";
+    EditUserRQ rq = new EditUserRQ();
+    rq.setFullName("Renamed Default");
+    rq.setEmail(newEmail);
+    mockMvc.perform(put(USERS_URL + DEFAULT_USERNAME).with(token(oAuthHelper.getDefaultToken()))
+        .contentType(APPLICATION_JSON)
+        .content(objectMapper.writeValueAsBytes(rq))).andExpect(status().isOk());
+
+    var user = userRepository.findByLogin(DEFAULT_USERNAME).orElseThrow();
+    assertEquals(DEFAULT_USERNAME, user.getEmail());
+    assertEquals("Renamed Default", user.getFullName());
+    Assertions.assertTrue(userRepository.findByEmail(newEmail).isEmpty());
+
+    var bid = userCreationBidRepository.findFirstByEmailOrderByLastModifiedDesc(newEmail).orElseThrow();
+    Assertions.assertTrue(userCreationBidRepository.findByUuidAndType(bid.getUuid(), "internal").isEmpty());
+
+    // password login resolves the account through this (cached, keyed by login) lookup: prime the cache for the old
+    // login, as a login attempt right before the confirmation would
+    Assertions.assertEquals(DEFAULT_USERNAME, userDetailsService.loadUserByUsername(DEFAULT_USERNAME).getUsername());
+
+    final ConfirmEmailChangeRQ confirmRq = new ConfirmEmailChangeRQ();
+    confirmRq.setUuid(bid.getUuid());
+    mockMvc.perform(post(USERS_URL + "email/confirm")
+            .contentType(APPLICATION_JSON)
+            .content(objectMapper.writeValueAsBytes(confirmRq)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.message").value("Email has been changed"));
+
+    // the old login no longer exists: it must not be served from the cache
+    Assertions.assertThrows(org.springframework.security.core.userdetails.UsernameNotFoundException.class,
+        () -> userDetailsService.loadUserByUsername(DEFAULT_USERNAME));
+    Assertions.assertEquals(newEmail, userDetailsService.loadUserByUsername(newEmail).getUsername());
+
+    var changed = userRepository.findByEmail(newEmail).orElseThrow();
+    assertEquals(user.getId(), changed.getId());
+    assertEquals(newEmail, changed.getLogin());
+
+    mockMvc.perform(post(USERS_URL + "email/confirm")
+            .contentType(APPLICATION_JSON)
+            .content(objectMapper.writeValueAsBytes(confirmRq)))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  void selfEmailChangeCooldownKeepsSameAddressAndRejectsAnotherOne() throws Exception {
+    final String newEmail = "cooldown-new@reportportal.internal";
+    EditUserRQ rq = new EditUserRQ();
+    rq.setEmail(newEmail);
+    mockMvc.perform(put(USERS_URL + DEFAULT_USERNAME).with(token(oAuthHelper.getDefaultToken()))
+        .contentType(APPLICATION_JSON)
+        .content(objectMapper.writeValueAsBytes(rq))).andExpect(status().isOk());
+    var firstBid = userCreationBidRepository.findFirstByEmailOrderByLastModifiedDesc(newEmail).orElseThrow();
+
+    // the same address again: success, the pending change (and its link) stays as it was
+    mockMvc.perform(put(USERS_URL + DEFAULT_USERNAME).with(token(oAuthHelper.getDefaultToken()))
+        .contentType(APPLICATION_JSON)
+        .content(objectMapper.writeValueAsBytes(rq))).andExpect(status().isOk());
+    assertEquals(firstBid.getUuid(),
+        userCreationBidRepository.findFirstByEmailOrderByLastModifiedDesc(newEmail).orElseThrow().getUuid());
+
+    // another address within the cooldown: rejected, the first change stays pending, the full name is not applied
+    EditUserRQ other = new EditUserRQ();
+    other.setEmail("cooldown-other@reportportal.internal");
+    other.setFullName("Should Not Apply");
+    mockMvc.perform(put(USERS_URL + DEFAULT_USERNAME).with(token(oAuthHelper.getDefaultToken()))
+            .contentType(APPLICATION_JSON)
+            .content(objectMapper.writeValueAsBytes(other)))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.message").value(containsString("Try again in about 60 seconds")));
+    Assertions.assertTrue(userCreationBidRepository
+        .findFirstByEmailOrderByLastModifiedDesc("cooldown-other@reportportal.internal").isEmpty());
+    Assertions.assertNotEquals("Should Not Apply", userRepository.findByLogin(DEFAULT_USERNAME).orElseThrow().getFullName());
+  }
+
+  @Test
+  void confirmEmailChangeWithUnknownTokenWithoutAuthenticationIsBadRequest() throws Exception {
+    final ConfirmEmailChangeRQ confirmRq = new ConfirmEmailChangeRQ();
+    confirmRq.setUuid("0647cf8f-02e3-4acd-ba3e-f74ec9d2c5cb");
+    mockMvc.perform(post(USERS_URL + "email/confirm")
+            .contentType(APPLICATION_JSON)
+            .content(objectMapper.writeValueAsBytes(confirmRq)))
+        .andExpect(status().isBadRequest())
+        .andExpect(content().string(containsString("Email change link is invalid or expired")));
   }
 
   @Test

@@ -6,10 +6,10 @@ import com.epam.reportportal.extension.AuthExtension;
 import com.epam.reportportal.extension.common.ExtensionPoint;
 import java.util.Objects;
 import java.util.Optional;
-import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
+import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,7 +23,6 @@ public class DelegatingPluginOAuth2UserService implements OAuth2UserService<OAut
 
   private final Pf4jPluginBox pluginBox;
   private final OAuthRegistrationResourceRepository clientRegistrationRepository;
-  private final DefaultOAuth2UserService fallback = new DefaultOAuth2UserService();
 
   public DelegatingPluginOAuth2UserService(Pf4jPluginBox pluginBox,
       OAuthRegistrationResourceRepository clientRegistrationRepository) {
@@ -50,6 +49,11 @@ public class DelegatingPluginOAuth2UserService implements OAuth2UserService<OAut
         .map(svc -> svc.loadUser(userRequest))
         .orElse(null);
 
-    return result != null ? result : fallback.loadUser(userRequest);
+    if (result == null) {
+      throw new OAuth2AuthenticationException(
+          new OAuth2Error("invalid_user_info_response", "No OAuth provider plugin handles registration " + registrationId,
+              null));
+    }
+    return result;
   }
 }

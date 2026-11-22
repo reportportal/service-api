@@ -19,26 +19,32 @@ package com.epam.reportportal.base.ws.converter.converters;
 import com.epam.reportportal.api.model.Invitation;
 import com.epam.reportportal.api.model.InvitationStatus;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserCreationBid;
-import java.time.temporal.ChronoUnit;
+import java.time.Duration;
 import java.util.UUID;
-import java.util.function.Function;
 
 public class InvitationConverter {
 
   private InvitationConverter() {
   }
 
-  public static final Function<UserCreationBid, Invitation> TO_INVITATION = bid -> {
+  /**
+   * Converts a pending invitation bid.
+   *
+   * @param bid the invitation bid
+   * @param ttl the invitation lifetime ({@code rp.invitation.bid.ttl}), used for {@code expiresAt}
+   * @return the invitation
+   */
+  public static Invitation toInvitation(UserCreationBid bid, Duration ttl) {
     var invitation = new Invitation();
 
     invitation.setId(UUID.fromString(bid.getUuid()));
     invitation.setEmail(bid.getEmail());
     invitation.setStatus(InvitationStatus.PENDING);
     invitation.setCreatedAt(bid.getLastModified());
-    invitation.setExpiresAt(bid.getLastModified().plus(1, ChronoUnit.DAYS));
+    invitation.setExpiresAt(bid.getLastModified().plus(ttl));
     invitation.setUserId(bid.getInvitingUser().getId());
     invitation.setFullName(bid.getInvitingUser().getFullName());
 
     return invitation;
-  };
+  }
 }

@@ -191,6 +191,7 @@ public class TestItemController {
   @Transactional(readOnly = true)
   @GetMapping("/uuid/{itemId}")
   @ResponseStatus(OK)
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   @Operation(summary = "Find test item by UUID")
   @ApiResponse(
       responseCode = "200",
@@ -238,8 +239,8 @@ public class TestItemController {
   public OperationCompletionRS handleSuggestChoose(@PathVariable String projectKey,
       @AuthenticationPrincipal ReportPortalUser user,
       @RequestBody @Validated List<SuggestInfo> request) {
-    projectExtractor.extractMembershipDetails(user, projectKey);
-    return suggestItemService.handleSuggestChoice(request);
+    return suggestItemService.handleSuggestChoice(request,
+        projectExtractor.extractMembershipDetails(user, projectKey));
   }
 
   //TODO check pre-defined filter
@@ -383,7 +384,8 @@ public class TestItemController {
   public List<String> getTicketIds(@AuthenticationPrincipal ReportPortalUser user,
       @PathVariable String projectKey, @RequestParam(value = "launch") Long id,
       @RequestParam(value = "term") String term) {
-    return getTestItemHandler.getTicketIds(id, normalizeId(term));
+    return getTestItemHandler.getTicketIds(id,
+        projectExtractor.extractMembershipDetails(user, projectKey), user, normalizeId(term));
   }
 
   @Transactional(readOnly = true)
@@ -414,6 +416,7 @@ public class TestItemController {
   @Transactional(readOnly = true)
   @GetMapping("/attribute/values")
   @ResponseStatus(OK)
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   @Operation(summary = "Get all unique attribute values on the project")
   public List<String> getAttributeValues(@PathVariable String projectKey,
       @AuthenticationPrincipal ReportPortalUser user,
@@ -546,6 +549,7 @@ public class TestItemController {
   @Transactional(readOnly = true)
   @PostMapping("/bulk")
   @ResponseStatus(OK)
+  @PreAuthorize(ALLOWED_TO_VIEW_PROJECT)
   @Operation(summary = "Get test items by list of IDs (max 300)")
   public List<TestItemResource> getTestItemsByIds(@PathVariable String projectKey,
       @AuthenticationPrincipal ReportPortalUser user,

@@ -16,6 +16,7 @@
 
 package com.epam.reportportal.base.core.user.impl;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static com.epam.reportportal.base.ReportPortalUserUtil.getRpUser;
 import static com.epam.reportportal.base.infrastructure.persistence.entity.enums.ReservedIntegrationTypeEnum.EMAIL;
 import static org.mockito.ArgumentMatchers.any;
@@ -49,6 +50,8 @@ import com.epam.reportportal.base.util.SecurityContextUtils;
 import com.epam.reportportal.base.util.email.EmailService;
 import com.epam.reportportal.base.util.email.MailServiceFactory;
 import java.net.URI;
+import java.time.Duration;
+import org.springframework.test.util.ReflectionTestUtils;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -251,6 +254,18 @@ class UserInvitationServiceImplTest {
         any(String[].class),
         anyString()
     );
+  }
+
+  @Test
+  void sendInvitationShouldReportExpiryFromConfiguredTtl() {
+    ReflectionTestUtils.setField(userInvitationService, "invitationBidTtl", Duration.ofHours(72));
+    var request = buildRequest(orgWithProjects(ORG_ID, List.of()));
+    when(getIntegrationHandler.findFirstEnabledByOrganizationAndTypeName(ORG_ID, EMAIL_TYPE))
+        .thenReturn(Optional.empty());
+
+    var invitation = userInvitationService.sendInvitation(request);
+
+    assertEquals(invitation.getCreatedAt().plus(Duration.ofHours(72)), invitation.getExpiresAt());
   }
 
   private InvitationRequest buildRequest(InvitationRequestOrganizationsInner... orgs) {

@@ -56,7 +56,7 @@ public class StatisticsQueryProvider extends AbstractHealthCheckTableQueryProvid
             DSL.sum(STATISTICS.S_COUNTER).as(SUM),
             fieldName(VALUE)
         )
-        .from(params.getViewName())
+        .from(DSL.table(DSL.name(params.getViewName())))
         .join(STATISTICS)
         .on(fieldName(params.getViewName(), ITEM_ID)
             .cast(Long.class).eq(STATISTICS.ITEM_ID))

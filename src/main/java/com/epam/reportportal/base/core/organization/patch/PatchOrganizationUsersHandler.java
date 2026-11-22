@@ -32,6 +32,7 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.user.User;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.model.IdContainer;
+import com.epam.reportportal.base.util.OrganizationUserValidator;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -99,6 +100,7 @@ public class PatchOrganizationUsersHandler extends BasePatchOrganizationHandler 
     var beforeUserIds = organizationUserRepository.findUserIdsByOrganizationId(orgId);
 
     if (CollectionUtils.isEmpty(userOrgInfos)) {
+      validateRemoval(org, beforeUserIds);
       organizationUserService.unassignAllUsersFromOrganization(orgId);
       publishEvent(principal, org, beforeUserIds, List.of(), EventAction.UNASSIGN);
       return;
@@ -108,6 +110,7 @@ public class PatchOrganizationUsersHandler extends BasePatchOrganizationHandler 
         .map(UserOrgInfo::getId)
         .toList();
     var usersById = loadAndValidateUsersById(newUserIds);
+    validateReplacement(org, orgId, beforeUserIds, newUserIds, userOrgInfos, usersById);
 
     // Remove users not in new list
     var removedUserIds = organizationUserService.deleteByOrganizationIdAndUserIdNotIn(orgId, newUserIds);
@@ -138,6 +141,7 @@ public class PatchOrganizationUsersHandler extends BasePatchOrganizationHandler 
     var userIdsToRemove = extractUserIdsToRemove(operation);
 
     if (CollectionUtils.isEmpty(userIdsToRemove)) {
+      validateRemoval(org, beforeUserIds);
       organizationUserService.unassignAllUsersFromOrganization(orgId);
       publishEvent(principal, org, beforeUserIds, List.of(), EventAction.UNASSIGN);
       return;
@@ -149,6 +153,7 @@ public class PatchOrganizationUsersHandler extends BasePatchOrganizationHandler 
     if (!missingUserIds.isEmpty()) {
       throw new ReportPortalException(ErrorType.USER_NOT_FOUND, missingUserIds.getFirst());
     }
+    validateRemoval(org, userIdsToRemove);
     organizationUserService.deleteByUserIdsAndOrganizationId(userIdsToRemove, orgId);
 
     var afterUserIds = beforeUserIds.stream()
@@ -156,6 +161,40 @@ public class PatchOrganizationUsersHandler extends BasePatchOrganizationHandler 
         .toList();
 
     publishEvent(principal, org, beforeUserIds, afterUserIds, EventAction.UNASSIGN);
+  }
+
+  /**
+   * Shared check for any operation that removes users: the personal organization owner stays. Removing all users,
+   * managers included, is a documented operation, so there is deliberately no "keep a manager" rule here.
+   */
+  private void validateRemoval(Organization org, List<Long> removedUserIds) {
+    OrganizationUserValidator.validatePersonalOrganizationOwnerKept(org, removedUserIds);
+  }
+
+  /**
+   * Same rules as the single-user endpoints: user type vs organization type, manager cannot demote self, personal
+   * owner is kept when users are dropped from the list.
+   */
+  private void validateReplacement(Organization org, Long orgId, List<Long> beforeUserIds, List<Long> newUserIds,
+      List<UserOrgInfo> infos, Map<Long, User> usersById) {
+    var principal = getPrincipal();
+    var current = beforeUserIds.isEmpty() ? List.<OrganizationUser>of()
+        : organizationUserRepository.findAllByOrganizationIdAndUserIdIn(orgId, beforeUserIds);
+    var currentById = current.stream().collect(Collectors.toMap(ou -> ou.getUser().getId(), Function.identity()));
+
+    for (var info : infos) {
+      var user = usersById.get(info.getId());
+      var newRole = OrganizationRole.valueOf(info.getOrgRole().toString());
+      var existing = currentById.get(info.getId());
+      if (existing == null) {
+        OrganizationUserValidator.validateUserType(org, user);
+      }
+      OrganizationUserValidator.validateManagerChangingRole(principal, info.getId(),
+          existing == null ? null : existing.getOrganizationRole(), newRole);
+    }
+
+    var removed = beforeUserIds.stream().filter(id -> !newUserIds.contains(id)).toList();
+    OrganizationUserValidator.validatePersonalOrganizationOwnerKept(org, removed);
   }
 
   private ReportPortalUser getPrincipal() {

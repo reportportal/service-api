@@ -154,6 +154,7 @@ public class GetLogHandlerImpl implements GetLogHandler {
   @Override
   public long getPageNumber(Long logId, MembershipDetails membershipDetails,
       Filter filterable, Pageable pageable) {
+    validate(findById(logId), membershipDetails);
     return logRepository.getPageNumber(logId,
         logFilterPreparator.prepare(filterable, membershipDetails.getProjectId()),
         pageable);

@@ -53,6 +53,10 @@ public class AnalyzerInfoContributor implements ExtensionContributor {
 
   @Override
   public Map<String, ?> contribute() {
+    if (!InfoAudience.isAuthenticated()) {
+      // not shown to anonymous callers (see AnonymousInfo), so do not call the analyzer for them
+      return Map.of();
+    }
     try {
       Map<?, ?> analyzerRs = restClient.get()
           .uri(analyzerBaseUrl)

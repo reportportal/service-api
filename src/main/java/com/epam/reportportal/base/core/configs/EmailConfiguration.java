@@ -62,7 +62,7 @@ public class EmailConfiguration {
   @Bean
   @Primary
   public TemplateEngine getTemplateEngine() {
-    return new TemplateEngineProvider("/templates/email").get();
+    return new TemplateEngineProvider("/templates/email", true).get();
   }
 
   @Bean

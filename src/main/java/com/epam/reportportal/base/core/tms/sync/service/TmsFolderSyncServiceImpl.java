@@ -60,7 +60,7 @@ public class TmsFolderSyncServiceImpl implements TmsFolderSyncService {
         var existing = existingFolders.get(remoteFolder.getId());
         var savedFolder = processFolder(
             job, remoteFolder, existing, localRootFolderId, folderIdMap, nextIndexMap,
-            folderParents, false
+            folderParents, existingFolders, false
         );
         folderIdMap.put(remoteFolder.getId(), savedFolder.getId());
         iterator.remove();
@@ -72,7 +72,7 @@ public class TmsFolderSyncServiceImpl implements TmsFolderSyncService {
           var existing = existingFolders.get(remoteFolder.getId());
           var savedFolder = processFolder(
               job, remoteFolder, existing, localRootFolderId, folderIdMap, nextIndexMap,
-              folderParents, true
+              folderParents, existingFolders, true
           );
           folderIdMap.put(remoteFolder.getId(), savedFolder.getId());
         }
@@ -91,6 +91,7 @@ public class TmsFolderSyncServiceImpl implements TmsFolderSyncService {
       Map<String, Long> folderIdMap,
       Map<Long, Integer> nextIndexMap,
       FolderParents folderParents,
+      Map<String, TmsTestFolder> existingFolders,
       boolean forceRootParent) {
 
     Long parentFolderId;
@@ -114,6 +115,23 @@ public class TmsFolderSyncServiceImpl implements TmsFolderSyncService {
           if (folderParents.createsCycle(existing.getId(), newParentId)) {
             recordCycleError(job, remoteFolder, existing.getId(), newParentId);
           } else {
+            // Close the gap the folder leaves in its old parent
+            if (existing.getIndex() != null) {
+              tmsTestFolderRepository.shiftIndexes(job.getProject().getId(), currentParentId,
+                  existing.getIndex() + 1, -1);
+              // The bulk update does not touch the loaded entities, and a sibling dirtied later in
+              // this sync (e.g. renamed) would flush its stale index back: mirror the shift
+              existingFolders.values().forEach(sibling -> {
+                var siblingParentId = sibling.getParentTestFolder() != null
+                    ? sibling.getParentTestFolder().getId()
+                    : null;
+                if (Objects.equals(siblingParentId, currentParentId) && sibling.getIndex() != null
+                    && sibling.getIndex() > existing.getIndex()) {
+                  sibling.setIndex(sibling.getIndex() - 1);
+                }
+              });
+              nextIndexMap.computeIfPresent(currentParentId, (pid, next) -> next - 1);
+            }
             parentFolderId = newParentId;
             index = nextIndex(job, parentFolderId, nextIndexMap);
           }

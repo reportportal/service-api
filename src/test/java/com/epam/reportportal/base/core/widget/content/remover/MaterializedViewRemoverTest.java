@@ -17,11 +17,15 @@
 package com.epam.reportportal.base.core.widget.content.remover;
 
 import static com.epam.reportportal.base.core.widget.content.loader.materialized.handler.MaterializedWidgetStateHandler.VIEW_NAME;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import com.epam.reportportal.base.core.widget.content.materialized.generator.MaterializedViewNameGenerator;
 import com.epam.reportportal.base.infrastructure.persistence.dao.WidgetContentRepository;
+import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
 import com.epam.reportportal.base.infrastructure.persistence.entity.widget.Widget;
 import com.epam.reportportal.base.infrastructure.persistence.entity.widget.WidgetOptions;
 import java.util.Map;
@@ -35,17 +39,37 @@ class MaterializedViewRemoverTest {
   private final WidgetContentRepository widgetContentRepository = mock(
       WidgetContentRepository.class);
   private final MaterializedViewRemover materializedViewRemover = new MaterializedViewRemover(
-      widgetContentRepository);
+      widgetContentRepository, new MaterializedViewNameGenerator());
 
   @Test
   void shouldRemove() {
-    final Widget widget = new Widget();
-    final String viewName = "name";
-    widget.setWidgetOptions(new WidgetOptions(Map.of(VIEW_NAME, viewName)));
+    final Widget widget = getWidget(2L, 1L);
+    widget.setWidgetOptions(new WidgetOptions(Map.of(VIEW_NAME, "widget_1_2")));
 
     materializedViewRemover.removeContent(widget);
 
-    verify(widgetContentRepository, times(1)).removeWidgetView(viewName);
+    verify(widgetContentRepository, times(1)).removeWidgetView("widget_1_2");
+  }
+
+  @Test
+  void shouldRemoveOwnViewAndIgnoreForeignStoredViewName() {
+    final Widget widget = getWidget(2L, 1L);
+    widget.setWidgetOptions(new WidgetOptions(Map.of(VIEW_NAME, "widget_5_9")));
+
+    materializedViewRemover.removeContent(widget);
+
+    verify(widgetContentRepository, times(1)).removeWidgetView("widget_1_2");
+    verify(widgetContentRepository, never()).removeWidgetView("widget_5_9");
+    verify(widgetContentRepository, times(1)).removeWidgetView(anyString());
+  }
+
+  private static Widget getWidget(Long id, Long projectId) {
+    final Widget widget = new Widget();
+    widget.setId(id);
+    final Project project = new Project();
+    project.setId(projectId);
+    widget.setProject(project);
+    return widget;
   }
 
 }

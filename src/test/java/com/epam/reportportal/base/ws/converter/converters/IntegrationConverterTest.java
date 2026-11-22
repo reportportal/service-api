@@ -70,6 +70,29 @@ class IntegrationConverterTest {
   }
 
   @Test
+  void nestedSecretsAreMaskedCaseInsensitively() {
+    final Integration integration = getIntegration();
+    var nested = new HashMap<String, Object>();
+    nested.put("PassWord", "cipher");
+    nested.put("keep", "v");
+    var inList = new HashMap<String, Object>();
+    inList.put("apiToken", "cipher");
+    inList.put("name", "n");
+    integration.getParams().getParams().put("auth", nested);
+    integration.getParams().getParams().put("items", java.util.List.of(inList, "plain"));
+    integration.getParams().getParams().put("CLIENTSECRET", "cipher");
+
+    final IntegrationResource resource = IntegrationConverter.TO_INTEGRATION_RESOURCE.apply(integration);
+
+    assertThat(resource.getIntegrationParams()).doesNotContainKey("CLIENTSECRET");
+    assertThat((java.util.Map<String, Object>) resource.getIntegrationParams().get("auth"))
+        .containsOnlyKeys("keep");
+    var items = (java.util.List<Object>) resource.getIntegrationParams().get("items");
+    assertThat((java.util.Map<String, Object>) items.get(0)).containsOnlyKeys("name");
+    assertEquals("plain", items.get(1));
+  }
+
+  @Test
   void toActivityResource() {
     final Integration integration = getIntegration();
     final IntegrationActivityResource resource =

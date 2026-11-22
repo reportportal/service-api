@@ -39,6 +39,7 @@ import com.epam.reportportal.base.infrastructure.persistence.dao.TestItemReposit
 import com.epam.reportportal.base.infrastructure.persistence.entity.ItemAttribute;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.StatusEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItem;
+import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItemResults;
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.issue.IssueEntity;
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.issue.IssueType;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.MembershipDetails;
@@ -49,7 +50,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.BooleanUtils;
 
@@ -195,16 +196,13 @@ public abstract class AbstractFinishHierarchyHandler<T> implements FinishHierarc
             itemIdsWithoutChildrenHandler(status, endTime, membershipDetails, user, updatedCount)
         )
     );
-    // The parent pass reads the final statuses of the children from the database
-    testItemRepository.flush();
     return updatedCount.get();
   }
 
-  private Consumer<List<Long>> itemIdsWithoutChildrenHandler(IssueType issueType, StatusEnum status,
-      Instant endTime,
+  private BiConsumer<List<Long>, Map<Long, TestItem>> itemIdsWithoutChildrenHandler(IssueType issueType,
+      StatusEnum status, Instant endTime,
       MembershipDetails membershipDetails, ReportPortalUser user, AtomicInteger updatedCount) {
-    return itemIds -> {
-      Map<Long, TestItem> itemMapping = getItemMapping(itemIds);
+    return (itemIds, itemMapping) -> {
       itemIds.forEach(itemId -> ofNullable(itemMapping.get(itemId)).filter(this::isInProgress)
           .ifPresent(testItem -> {
             finishItem(testItem, status, endTime);
@@ -216,11 +214,10 @@ public abstract class AbstractFinishHierarchyHandler<T> implements FinishHierarc
     };
   }
 
-  private Consumer<List<Long>> itemIdsWithoutChildrenHandler(StatusEnum status,
+  private BiConsumer<List<Long>, Map<Long, TestItem>> itemIdsWithoutChildrenHandler(StatusEnum status,
       Instant endTime, MembershipDetails membershipDetails,
       ReportPortalUser user, AtomicInteger updatedCount) {
-    return itemIds -> {
-      Map<Long, TestItem> itemMapping = getItemMapping(itemIds);
+    return (itemIds, itemMapping) -> {
       itemIds.forEach(itemId -> ofNullable(itemMapping.get(itemId)).filter(this::isInProgress)
           .ifPresent(testItem -> {
             finishItem(testItem, status, endTime);
@@ -259,15 +256,28 @@ public abstract class AbstractFinishHierarchyHandler<T> implements FinishHierarc
   /**
    * Processes the ids collected once in chunks of {@link #ITEM_PAGE_SIZE}. The ids must not be re-queried page by page
    * with an offset: every processed item leaves the queried status, so an offset would skip unprocessed items.
+   * <p>
+   * Each chunk is flushed (later chunks and the parent pass read the finished statuses from the database) and its items
+   * are then detached, so the persistence context does not grow with the number of descendants. Only the chunk's items
+   * are detached: the caller keeps working with the managed launch and parent.
    */
-  private void processInChunks(List<Long> itemIds, Consumer<List<Long>> handler) {
-    Lists.partition(itemIds, ITEM_PAGE_SIZE).forEach(handler);
+  private void processInChunks(List<Long> itemIds, BiConsumer<List<Long>, Map<Long, TestItem>> handler) {
+    Lists.partition(itemIds, ITEM_PAGE_SIZE).forEach(chunk -> {
+      Map<Long, TestItem> itemMapping = getItemMapping(chunk);
+      handler.accept(chunk, itemMapping);
+      testItemRepository.flush();
+      itemMapping.values().forEach(this::detach);
+    });
   }
 
-  private Consumer<List<Long>> itemIdsWithChildrenHandler(Instant endTime,
+  private void detach(TestItem testItem) {
+    ofNullable(testItem.getItemResults()).map(TestItemResults::getIssue).ifPresent(issueEntityRepository::detach);
+    testItemRepository.detach(testItem);
+  }
+
+  private BiConsumer<List<Long>, Map<Long, TestItem>> itemIdsWithChildrenHandler(Instant endTime,
       AtomicInteger updatedCount) {
-    return itemIds -> {
-      Map<Long, TestItem> itemMapping = getItemMapping(itemIds);
+    return (itemIds, itemMapping) -> {
       itemIds.forEach(itemId -> ofNullable(itemMapping.get(itemId)).filter(this::isInProgress)
           .ifPresent(testItem -> {
             boolean isFailed = testItemRepository.hasDescendantsNotInStatus(testItem.getItemId(),

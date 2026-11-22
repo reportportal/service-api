@@ -51,7 +51,7 @@ public abstract class AbstractHealthCheckTableQueryProvider implements
         .stream()
         .map(levelEntry -> fieldName(params.getViewName(), ITEM_ID).cast(Long.class)
             .in(DSL.selectDistinct(fieldName(ITEM_ID).cast(Long.class))
-                .from(params.getViewName())
+                .from(DSL.table(DSL.name(params.getViewName())))
                 .where(fieldName(KEY).cast(String.class)
                     .eq(levelEntry.getKey())
                     .and(fieldName(VALUE).cast(String.class).eq(levelEntry.getValue())))))

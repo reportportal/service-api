@@ -78,6 +78,7 @@ public interface UserRepository extends ReportPortalRepository<User, Long>, User
   Page<User> findAllByUserTypeAndExpired(@Param("userType") UserType userType,
       @Param("isExpired") boolean isExpired, Pageable pageable);
 
+  @CacheEvict(value = "userAuthDataCache", allEntries = true, cacheManager = "caffeineCacheManager")
   @Modifying(clearAutomatically = true)
   @Query(value = "UPDATE users SET expired = TRUE WHERE CAST(metadata-> 'metadata' ->> 'last_login' AS DOUBLE PRECISION) < (extract(EPOCH FROM CAST (:lastLogin AS TIMESTAMP)) * 1000);", nativeQuery = true)
   void expireUsersLoggedOlderThan(@Param("lastLogin") Instant lastLogin);

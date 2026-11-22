@@ -553,71 +553,6 @@ class TmsAttachmentServiceImplTest {
   }
 
   @Test
-  void duplicateTmsAttachment_ShouldSucceed_WhenValidAttachment() {
-    // Given valid attachment to duplicate and successful data store operations
-    var newFileId = "new-file-id";
-    var duplicatedAttachment = new TmsAttachment();
-    duplicatedAttachment.setId(2L);
-    duplicatedAttachment.setFileName("test_copy_123456_abc.txt");
-    duplicatedAttachment.setPathToFile(newFileId);
-
-    var originalFileStream = new ByteArrayInputStream("test content".getBytes());
-
-    when(tmsAttachmentDataStoreService.load(attachment.getPathToFile()))
-        .thenReturn(Optional.of(originalFileStream));
-    when(tmsAttachmentDataStoreService.save(anyString(), any(InputStream.class))).thenReturn(
-        newFileId);
-    when(tmsAttachmentMapper.duplicateAttachment(eq(attachment), eq(newFileId), any()))
-        .thenReturn(duplicatedAttachment);
-    when(tmsAttachmentRepository.save(duplicatedAttachment)).thenReturn(duplicatedAttachment);
-
-    // When duplicating attachment
-    var result = sut.duplicateTmsAttachment(attachment);
-
-    // Then duplicated attachment should be returned
-    assertNotNull(result);
-    assertEquals(duplicatedAttachment, result);
-
-    verify(tmsAttachmentDataStoreService).load(attachment.getPathToFile());
-    verify(tmsAttachmentDataStoreService).save(anyString(), eq(originalFileStream));
-    verify(tmsAttachmentMapper).duplicateAttachment(eq(attachment), eq(newFileId), any());
-    verify(tmsAttachmentRepository).save(duplicatedAttachment);
-  }
-
-  @Test
-  void duplicateTmsAttachment_ShouldThrowException_WhenOriginalFileNotFound() {
-    // Given original file does not exist in data store
-    when(tmsAttachmentDataStoreService.load(attachment.getPathToFile())).thenReturn(
-        Optional.empty());
-
-    // When/Then exception should be thrown when original file is not found
-    var exception = assertThrows(ReportPortalException.class,
-        () -> sut.duplicateTmsAttachment(attachment));
-
-    assertEquals(ErrorType.BINARY_DATA_CANNOT_BE_SAVED, exception.getErrorType());
-
-    verify(tmsAttachmentDataStoreService).load(attachment.getPathToFile());
-    verifyNoInteractions(tmsAttachmentRepository);
-  }
-
-  @Test
-  void duplicateTmsAttachment_ShouldThrowException_WhenDataStoreSaveFails() {
-    // Given original file exists but data store save operation fails
-    var originalFileStream = new ByteArrayInputStream("test content".getBytes());
-    when(tmsAttachmentDataStoreService.load(attachment.getPathToFile()))
-        .thenReturn(Optional.of(originalFileStream));
-    when(tmsAttachmentDataStoreService.save(anyString(), any(InputStream.class)))
-        .thenThrow(new RuntimeException("Storage error"));
-
-    // When/Then exception should be thrown when data store save fails
-    var exception = assertThrows(ReportPortalException.class,
-        () -> sut.duplicateTmsAttachment(attachment));
-
-    assertEquals(ErrorType.BINARY_DATA_CANNOT_BE_SAVED, exception.getErrorType());
-    assertTrue(exception.getMessage().contains("Failed to duplicate TMS attachment"));
-  }
-
-  @Test
   void duplicateTmsAttachment_ShouldCloseFileAndThumbnailStreams() throws Exception {
     // Given an attachment with a thumbnail
     attachment.setThumbnailPath("thumbnail-id");
@@ -707,6 +642,71 @@ class TmsAttachmentServiceImplTest {
     // Then the attachment is duplicated without a thumbnail
     assertEquals(duplicatedAttachment, result);
     verify(tmsAttachmentDataStoreService, times(1)).save(anyString(), any(InputStream.class));
+  }
+
+  @Test
+  void duplicateTmsAttachment_ShouldSucceed_WhenValidAttachment() {
+    // Given valid attachment to duplicate and successful data store operations
+    var newFileId = "new-file-id";
+    var duplicatedAttachment = new TmsAttachment();
+    duplicatedAttachment.setId(2L);
+    duplicatedAttachment.setFileName("test_copy_123456_abc.txt");
+    duplicatedAttachment.setPathToFile(newFileId);
+
+    var originalFileStream = new ByteArrayInputStream("test content".getBytes());
+
+    when(tmsAttachmentDataStoreService.load(attachment.getPathToFile()))
+        .thenReturn(Optional.of(originalFileStream));
+    when(tmsAttachmentDataStoreService.save(anyString(), any(InputStream.class))).thenReturn(
+        newFileId);
+    when(tmsAttachmentMapper.duplicateAttachment(eq(attachment), eq(newFileId), any()))
+        .thenReturn(duplicatedAttachment);
+    when(tmsAttachmentRepository.save(duplicatedAttachment)).thenReturn(duplicatedAttachment);
+
+    // When duplicating attachment
+    var result = sut.duplicateTmsAttachment(attachment);
+
+    // Then duplicated attachment should be returned
+    assertNotNull(result);
+    assertEquals(duplicatedAttachment, result);
+
+    verify(tmsAttachmentDataStoreService).load(attachment.getPathToFile());
+    verify(tmsAttachmentDataStoreService).save(anyString(), eq(originalFileStream));
+    verify(tmsAttachmentMapper).duplicateAttachment(eq(attachment), eq(newFileId), any());
+    verify(tmsAttachmentRepository).save(duplicatedAttachment);
+  }
+
+  @Test
+  void duplicateTmsAttachment_ShouldThrowException_WhenOriginalFileNotFound() {
+    // Given original file does not exist in data store
+    when(tmsAttachmentDataStoreService.load(attachment.getPathToFile())).thenReturn(
+        Optional.empty());
+
+    // When/Then exception should be thrown when original file is not found
+    var exception = assertThrows(ReportPortalException.class,
+        () -> sut.duplicateTmsAttachment(attachment));
+
+    assertEquals(ErrorType.BINARY_DATA_CANNOT_BE_SAVED, exception.getErrorType());
+
+    verify(tmsAttachmentDataStoreService).load(attachment.getPathToFile());
+    verifyNoInteractions(tmsAttachmentRepository);
+  }
+
+  @Test
+  void duplicateTmsAttachment_ShouldThrowException_WhenDataStoreSaveFails() {
+    // Given original file exists but data store save operation fails
+    var originalFileStream = new ByteArrayInputStream("test content".getBytes());
+    when(tmsAttachmentDataStoreService.load(attachment.getPathToFile()))
+        .thenReturn(Optional.of(originalFileStream));
+    when(tmsAttachmentDataStoreService.save(anyString(), any(InputStream.class)))
+        .thenThrow(new RuntimeException("Storage error"));
+
+    // When/Then exception should be thrown when data store save fails
+    var exception = assertThrows(ReportPortalException.class,
+        () -> sut.duplicateTmsAttachment(attachment));
+
+    assertEquals(ErrorType.BINARY_DATA_CANNOT_BE_SAVED, exception.getErrorType());
+    assertTrue(exception.getMessage().contains("Failed to duplicate TMS attachment"));
   }
 
   @Test

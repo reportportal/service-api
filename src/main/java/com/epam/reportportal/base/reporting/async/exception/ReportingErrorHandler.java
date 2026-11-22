@@ -70,10 +70,12 @@ public class ReportingErrorHandler implements ErrorHandler {
 
   /**
    * Retry budget of a message whose launch or parent item was not found. The default lets it wait through the
-   * millisecond and second tiers and one minute-tier delay (about 2.5 minutes) instead of the full budget, so the
-   * children of a rejected parent reach the parking lot without cycling through the retry queues for 18 minutes.
+   * millisecond and second tiers and two minute-tier delays (about 4.5 minutes) instead of the full budget, so the
+   * children of a rejected parent reach the parking lot without cycling through the retry queues for 18 minutes. A
+   * child is retried in the same queue right after its parent, so it outlives a parent that needs up to two
+   * minute-tier retries itself. The budget counts all retries of the message, not only the NOT_FOUND ones.
    */
-  @Value("${reporting.retry.not-found-max-count:12}")
+  @Value("${reporting.retry.not-found-max-count:13}")
   private Integer notFoundMaxRetryCount;
 
   @Autowired
@@ -116,7 +118,7 @@ public class ReportingErrorHandler implements ErrorHandler {
     RequestType type = toRequestType(requestType);
     if (retryCount >= notFoundMaxRetryCount
         && ReportingFailureClassifier.isRetryableOnlyAsNotFound(cause, type)) {
-      log.warn("Parent of the message was not found after {} retries. Rejecting message to parking lot queue. "
+      log.warn("Launch or parent item of the message was not found after {} retries. Rejecting message to parking lot queue. "
           + "Request Type: {}, Launch UUID: {}, Cause: {}", retryCount, requestType, launchUuid, reason);
       park(failedMessage, requestType, "not_found_retries_exceeded");
       return;

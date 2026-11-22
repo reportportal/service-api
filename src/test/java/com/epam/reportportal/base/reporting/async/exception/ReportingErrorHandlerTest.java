@@ -68,7 +68,7 @@ import org.springframework.transaction.TransactionSystemException;
 class ReportingErrorHandlerTest {
 
   private static final int MAX_RETRY_COUNT = 20;
-  private static final int NOT_FOUND_MAX_RETRY_COUNT = 12;
+  private static final int NOT_FOUND_MAX_RETRY_COUNT = 13;
 
   private final RabbitTemplate rabbitTemplate = mock(RabbitTemplate.class);
   private final SimpleMeterRegistry meterRegistry = new SimpleMeterRegistry();
@@ -189,6 +189,53 @@ class ReportingErrorHandlerTest {
     verify(rabbitTemplate, never()).send(eq(RETRY_EXCHANGE), anyString(), any(Message.class));
     assertEquals(1.0, meterRegistry.get(ReportingErrorHandler.PARKED_METRIC)
         .tag("reason", "not_found_retries_exceeded").counter().count());
+  }
+
+  static Stream<Arguments> failuresBeyondTheNotFoundBudget() {
+    return Stream.of(
+        Arguments.of("duplicate key wrapping not found", RequestType.START_TEST, NOT_FOUND_MAX_RETRY_COUNT,
+            new DataIntegrityViolationException("duplicate",
+                new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, "uuid")),
+            "DataIntegrityViolationException"),
+        Arguments.of("not found with broker failure on log", RequestType.LOG, NOT_FOUND_MAX_RETRY_COUNT,
+            new AmqpTimeoutException("timeout",
+                new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, "uuid")),
+            "not_found_retries_exceeded"),
+        Arguments.of("NPE", RequestType.FINISH_TEST, NOT_FOUND_MAX_RETRY_COUNT, new NullPointerException(),
+            "NullPointerException"),
+        Arguments.of("not found at the global cap", RequestType.FINISH_TEST, MAX_RETRY_COUNT,
+            new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, "uuid"), "retries_exceeded"),
+        Arguments.of("nested not found", RequestType.FINISH_TEST, NOT_FOUND_MAX_RETRY_COUNT,
+            new IllegalStateException(
+                new RuntimeException(new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, "uuid"))),
+            "not_found_retries_exceeded"),
+        Arguments.of("not found well above the budget", RequestType.FINISH_TEST, NOT_FOUND_MAX_RETRY_COUNT + 2,
+            new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, "uuid"), "not_found_retries_exceeded")
+    );
+  }
+
+  @ParameterizedTest(name = "{0}")
+  @MethodSource("failuresBeyondTheNotFoundBudget")
+  void failureBeyondTheNotFoundBudgetIsParkedWithItsReason(String name, RequestType requestType,
+      int retryCount, Throwable cause, String reason) {
+    Message message = message(requestType, retryCount);
+
+    errorHandler.handleError(failure(message, cause));
+
+    verify(rabbitTemplate).send("", REPORTING_PARKING_LOT, message);
+    verify(rabbitTemplate, never()).send(eq(RETRY_EXCHANGE), anyString(), any(Message.class));
+    assertEquals(1.0, meterRegistry.get(ReportingErrorHandler.PARKED_METRIC).tag("reason", reason)
+        .counter().count());
+  }
+
+  @Test
+  void notFoundWithBrokerFailureOnFinishKeepsTheFullBudget() {
+    Message message = message(RequestType.FINISH_TEST, NOT_FOUND_MAX_RETRY_COUNT);
+
+    errorHandler.handleError(failure(message, new AmqpTimeoutException("timeout",
+        new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, "uuid"))));
+
+    verify(rabbitTemplate).send(RETRY_EXCHANGE, TTL_QUEUE_M, message);
   }
 
   @Test

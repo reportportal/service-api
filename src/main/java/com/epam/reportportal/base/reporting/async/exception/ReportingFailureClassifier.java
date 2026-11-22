@@ -76,9 +76,7 @@ public final class ReportingFailureClassifier {
       return false;
     }
     return anyCause(failure, ReportingFailureClassifier::isRetryableNotFound)
-        || anyCause(failure, ReportingFailureClassifier::isTransientDatabaseFailure)
-        || (requestType != RequestType.LOG && anyCause(failure,
-        ReportingFailureClassifier::isTransientBrokerFailure));
+        || isRetryableAsTransient(failure, requestType);
   }
 
   /**
@@ -88,13 +86,7 @@ public final class ReportingFailureClassifier {
    * waits for a parent that is still being started; when the parent was rejected it never appears.
    */
   public static boolean isRetryableOnlyAsNotFound(Throwable failure, RequestType requestType) {
-    if (anyCause(failure, DataIntegrityViolationException.class::isInstance)) {
-      return false;
-    }
-    return anyCause(failure, ReportingFailureClassifier::isRetryableNotFound)
-        && !anyCause(failure, ReportingFailureClassifier::isTransientDatabaseFailure)
-        && !(requestType != RequestType.LOG && anyCause(failure,
-        ReportingFailureClassifier::isTransientBrokerFailure));
+    return isRetryable(failure, requestType) && !isRetryableAsTransient(failure, requestType);
   }
 
   /**
@@ -113,6 +105,12 @@ public final class ReportingFailureClassifier {
         || cause instanceof jakarta.persistence.LockTimeoutException
         || (cause instanceof SQLException sqlException
         && LOCK_CONFLICT_SQL_STATES.contains(sqlException.getSQLState())));
+  }
+
+  private static boolean isRetryableAsTransient(Throwable failure, RequestType requestType) {
+    return anyCause(failure, ReportingFailureClassifier::isTransientDatabaseFailure)
+        || (requestType != RequestType.LOG && anyCause(failure,
+        ReportingFailureClassifier::isTransientBrokerFailure));
   }
 
   private static boolean isRetryableNotFound(Throwable cause) {

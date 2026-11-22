@@ -82,6 +82,22 @@ public final class ReportingFailureClassifier {
   }
 
   /**
+   * @param failure     the failure thrown by the message handler
+   * @param requestType request type of the failed message, may be {@code null}
+   * @return whether the message is retryable only because its launch or parent item was not found. Such a message
+   * waits for a parent that is still being started; when the parent was rejected it never appears.
+   */
+  public static boolean isRetryableOnlyAsNotFound(Throwable failure, RequestType requestType) {
+    if (anyCause(failure, DataIntegrityViolationException.class::isInstance)) {
+      return false;
+    }
+    return anyCause(failure, ReportingFailureClassifier::isRetryableNotFound)
+        && !anyCause(failure, ReportingFailureClassifier::isTransientDatabaseFailure)
+        && !(requestType != RequestType.LOG && anyCause(failure,
+        ReportingFailureClassifier::isTransientBrokerFailure));
+  }
+
+  /**
    * @param failure the failure thrown by the message handler
    * @return whether the failure is a lock conflict (deadlock, serialization failure, lock wait timeout) that is likely
    * to succeed on an immediate retry

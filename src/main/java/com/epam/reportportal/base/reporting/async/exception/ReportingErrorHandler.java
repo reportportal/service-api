@@ -68,6 +68,14 @@ public class ReportingErrorHandler implements ErrorHandler {
   @Value("${reporting.retry.max-count:20}")
   private Integer maxRetryCount;
 
+  /**
+   * Retry budget of a message whose launch or parent item was not found. The default lets it wait through the
+   * millisecond and second tiers and one minute-tier delay (about 2.5 minutes) instead of the full budget, so the
+   * children of a rejected parent reach the parking lot without cycling through the retry queues for 18 minutes.
+   */
+  @Value("${reporting.retry.not-found-max-count:12}")
+  private Integer notFoundMaxRetryCount;
+
   @Autowired
   public ReportingErrorHandler(RabbitTemplate rabbitTemplate,
       ObjectProvider<MeterRegistry> meterRegistry) {
@@ -105,7 +113,16 @@ public class ReportingErrorHandler implements ErrorHandler {
       return;
     }
 
-    if (ReportingFailureClassifier.isRetryable(cause, toRequestType(requestType))) {
+    RequestType type = toRequestType(requestType);
+    if (retryCount >= notFoundMaxRetryCount
+        && ReportingFailureClassifier.isRetryableOnlyAsNotFound(cause, type)) {
+      log.warn("Parent of the message was not found after {} retries. Rejecting message to parking lot queue. "
+          + "Request Type: {}, Launch UUID: {}, Cause: {}", retryCount, requestType, launchUuid, reason);
+      park(failedMessage, requestType, "not_found_retries_exceeded");
+      return;
+    }
+
+    if (ReportingFailureClassifier.isRetryable(cause, type)) {
       log.warn("Retrying reporting message. Attempt count is {}. Request Type: {}, Launch UUID: {}, Cause: {}",
           retryCount + 1, requestType, launchUuid, reason);
       properties.setHeader(RETRY_COUNT_HEADER, retryCount + 1);

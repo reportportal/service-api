@@ -18,6 +18,7 @@ package com.epam.reportportal.base.reporting.async.exception;
 
 import static com.epam.reportportal.base.reporting.async.config.ReportingTopologyConfiguration.REPORTING_PARKING_LOT;
 import static com.epam.reportportal.base.reporting.async.config.ReportingTopologyConfiguration.RETRY_EXCHANGE;
+import static com.epam.reportportal.base.reporting.async.config.ReportingTopologyConfiguration.TTL_QUEUE_M;
 import static com.epam.reportportal.base.reporting.async.config.ReportingTopologyConfiguration.TTL_QUEUE_MS;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -67,6 +68,7 @@ import org.springframework.transaction.TransactionSystemException;
 class ReportingErrorHandlerTest {
 
   private static final int MAX_RETRY_COUNT = 20;
+  private static final int NOT_FOUND_MAX_RETRY_COUNT = 12;
 
   private final RabbitTemplate rabbitTemplate = mock(RabbitTemplate.class);
   private final SimpleMeterRegistry meterRegistry = new SimpleMeterRegistry();
@@ -77,6 +79,7 @@ class ReportingErrorHandlerTest {
   @SuppressWarnings("unchecked")
   void setUp() {
     ReflectionTestUtils.setField(errorHandler, "maxRetryCount", MAX_RETRY_COUNT);
+    ReflectionTestUtils.setField(errorHandler, "notFoundMaxRetryCount", NOT_FOUND_MAX_RETRY_COUNT);
     when(rabbitTemplate.invoke(any(OperationsCallback.class))).thenAnswer(
         invocation -> ((OperationsCallback<Object>) invocation.getArgument(0)).doInRabbit(
             rabbitTemplate));
@@ -173,6 +176,51 @@ class ReportingErrorHandlerTest {
 
     verify(rabbitTemplate).send("", REPORTING_PARKING_LOT, message);
     verify(rabbitTemplate, never()).send(eq(RETRY_EXCHANGE), anyString(), any(Message.class));
+  }
+
+  @Test
+  void notFoundReachingItsBudgetIsSentToParkingLot() {
+    Message message = message(RequestType.LOG, NOT_FOUND_MAX_RETRY_COUNT);
+
+    errorHandler.handleError(failure(message,
+        new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, "uuid")));
+
+    verify(rabbitTemplate).send("", REPORTING_PARKING_LOT, message);
+    verify(rabbitTemplate, never()).send(eq(RETRY_EXCHANGE), anyString(), any(Message.class));
+    assertEquals(1.0, meterRegistry.get(ReportingErrorHandler.PARKED_METRIC)
+        .tag("reason", "not_found_retries_exceeded").counter().count());
+  }
+
+  @Test
+  void notFoundBelowItsBudgetIsRetried() {
+    Message message = message(RequestType.FINISH_TEST, NOT_FOUND_MAX_RETRY_COUNT - 1);
+
+    errorHandler.handleError(failure(message,
+        new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, "uuid")));
+
+    verify(rabbitTemplate).send(RETRY_EXCHANGE, TTL_QUEUE_M, message);
+    verify(rabbitTemplate, never()).send(eq(""), eq(REPORTING_PARKING_LOT), any(Message.class));
+  }
+
+  @Test
+  void notFoundWithTransientCauseKeepsTheFullBudget() {
+    Message message = message(RequestType.FINISH_TEST, NOT_FOUND_MAX_RETRY_COUNT);
+
+    errorHandler.handleError(failure(message,
+        new CannotAcquireLockException("lock",
+            new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, "uuid"))));
+
+    verify(rabbitTemplate).send(RETRY_EXCHANGE, TTL_QUEUE_M, message);
+    verify(rabbitTemplate, never()).send(eq(""), eq(REPORTING_PARKING_LOT), any(Message.class));
+  }
+
+  @Test
+  void transientFailureBeyondTheNotFoundBudgetIsRetried() {
+    Message message = message(RequestType.FINISH_TEST, NOT_FOUND_MAX_RETRY_COUNT + 2);
+
+    errorHandler.handleError(failure(message, new CannotAcquireLockException("lock")));
+
+    verify(rabbitTemplate).send(RETRY_EXCHANGE, TTL_QUEUE_M, message);
   }
 
   @Test

@@ -38,9 +38,10 @@ public class BinaryDataResponseWriter {
    * @param response   Response object
    */
   public void write(BinaryData binaryData, HttpServletResponse response) {
-    try {
+    // the stream belongs to this call: without closing it every served file leaks a handle
+    try (InputStream inputStream = binaryData.getInputStream()) {
       response.setContentType(binaryData.getContentType());
-      IOUtils.copy(binaryData.getInputStream(), response.getOutputStream());
+      IOUtils.copy(inputStream, response.getOutputStream());
     } catch (IOException e) {
       throw new ReportPortalException(ErrorType.UNABLE_TO_LOAD_BINARY_DATA, e.getMessage());
     }

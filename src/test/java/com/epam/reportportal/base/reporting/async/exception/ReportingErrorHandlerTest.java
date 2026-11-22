@@ -151,7 +151,11 @@ class ReportingErrorHandlerTest {
         Arguments.of("broker failure after log row saved", RequestType.LOG,
             new AmqpIOException(new java.io.IOException("channel closed"))),
         Arguments.of("broker connection on log", RequestType.LOG,
-            new AmqpConnectException(new RuntimeException("refused")))
+            new AmqpConnectException(new RuntimeException("refused"))),
+        Arguments.of("lock conflict after log row saved", RequestType.LOG,
+            new LogAlreadySavedException("log-uuid", new CannotAcquireLockException("lock"))),
+        Arguments.of("connection failure after log row saved", RequestType.LOG,
+            new LogAlreadySavedException("log-uuid", new CannotCreateTransactionException("pool exhausted")))
     );
   }
 

@@ -39,7 +39,8 @@ import org.springframework.transaction.CannotCreateTransactionException;
  *
  * <p>Retryable: the NOT_FOUND errors of messages that arrived before their parent, and transient infrastructure
  * failures (lock conflicts, deadlocks, timeouts, lost or refused connections). A unique or foreign key violation is
- * never retryable. A broker failure is not retryable for a LOG message, because the log row may already be committed.
+ * never retryable. A broker failure is not retryable for a LOG message, because the log row may already be committed,
+ * and neither is any failure after the log row was committed ({@link LogAlreadySavedException}).
  */
 public final class ReportingFailureClassifier {
 
@@ -72,7 +73,7 @@ public final class ReportingFailureClassifier {
    * @return whether the message may be sent to the retry queues
    */
   public static boolean isRetryable(Throwable failure, RequestType requestType) {
-    if (anyCause(failure, DataIntegrityViolationException.class::isInstance)) {
+    if (isNeverRetryable(failure)) {
       return false;
     }
     return anyCause(failure, ReportingFailureClassifier::isRetryableNotFound)
@@ -95,7 +96,7 @@ public final class ReportingFailureClassifier {
    * to succeed on an immediate retry
    */
   public static boolean isLockConflict(Throwable failure) {
-    if (anyCause(failure, DataIntegrityViolationException.class::isInstance)) {
+    if (isNeverRetryable(failure)) {
       return false;
     }
     return anyCause(failure, cause -> cause instanceof PessimisticLockingFailureException
@@ -105,6 +106,11 @@ public final class ReportingFailureClassifier {
         || cause instanceof jakarta.persistence.LockTimeoutException
         || (cause instanceof SQLException sqlException && sqlException.getSQLState() != null
         && LOCK_CONFLICT_SQL_STATES.contains(sqlException.getSQLState())));
+  }
+
+  private static boolean isNeverRetryable(Throwable failure) {
+    return anyCause(failure, cause -> cause instanceof DataIntegrityViolationException
+        || cause instanceof LogAlreadySavedException);
   }
 
   private static boolean isRetryableAsTransient(Throwable failure, RequestType requestType) {

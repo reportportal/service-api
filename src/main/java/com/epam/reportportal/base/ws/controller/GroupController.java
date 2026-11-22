@@ -31,6 +31,7 @@ import com.epam.reportportal.api.model.GroupUserInfo;
 import com.epam.reportportal.api.model.GroupUsersPage;
 import com.epam.reportportal.api.model.SuccessfulUpdate;
 import com.epam.reportportal.api.model.UpdateGroupRequest;
+import com.epam.reportportal.base.core.group.GroupAccessCacheEvictor;
 import com.epam.reportportal.base.core.group.GroupExtensionPoint;
 import com.epam.reportportal.base.core.group.GroupOrganizationBinding;
 import com.epam.reportportal.base.core.plugin.Pf4jPluginBox;
@@ -53,17 +54,21 @@ public class GroupController implements GroupsApi {
 
   private final Pf4jPluginBox pluginBox;
   private final GroupOrganizationBinding groupOrganizationBinding;
+  private final GroupAccessCacheEvictor groupAccessCacheEvictor;
 
   /**
    * Constructor for the {@link GroupController} class.
    *
    * @param pluginBox                The {@link Pf4jPluginBox} instance used to access plugin extensions.
    * @param groupOrganizationBinding verifies group, project and user belong to the same organization.
+   * @param groupAccessCacheEvictor  clears cached group-derived project roles after membership changes.
    */
   @Autowired
-  public GroupController(Pf4jPluginBox pluginBox, GroupOrganizationBinding groupOrganizationBinding) {
+  public GroupController(Pf4jPluginBox pluginBox, GroupOrganizationBinding groupOrganizationBinding,
+      GroupAccessCacheEvictor groupAccessCacheEvictor) {
     this.pluginBox = pluginBox;
     this.groupOrganizationBinding = groupOrganizationBinding;
+    this.groupAccessCacheEvictor = groupAccessCacheEvictor;
   }
 
   @Override
@@ -109,6 +114,7 @@ public class GroupController implements GroupsApi {
       UpdateGroupRequest updateGroupRequest
   ) {
     getGroupExtension().updateGroup(groupId, updateGroupRequest);
+    groupAccessCacheEvictor.evictAll();
     return ResponseEntity.ok(new SuccessfulUpdate("Group updated successfully"));
   }
 
@@ -117,6 +123,7 @@ public class GroupController implements GroupsApi {
   @Transactional
   public ResponseEntity<Void> deleteGroup(Long groupId) {
     getGroupExtension().deleteGroup(groupId);
+    groupAccessCacheEvictor.evictAll();
     return new ResponseEntity<>(HttpStatus.NO_CONTENT);
   }
 
@@ -149,6 +156,7 @@ public class GroupController implements GroupsApi {
     var extension = getGroupExtension();
     groupOrganizationBinding.requireUserInGroupOrganization(extension, groupId, userId);
     extension.addUserToGroupById(groupId, userId);
+    groupAccessCacheEvictor.evictAll();
     return ResponseEntity.ok(new SuccessfulUpdate("Group updated successfully"));
   }
 
@@ -157,6 +165,7 @@ public class GroupController implements GroupsApi {
   @Transactional
   public ResponseEntity<Void> deleteUserFromGroupById(Long groupId, Long userId) {
     getGroupExtension().deleteUserFromGroupById(groupId, userId);
+    groupAccessCacheEvictor.evictAll();
     return new ResponseEntity<>(HttpStatus.NO_CONTENT);
   }
 
@@ -193,6 +202,7 @@ public class GroupController implements GroupsApi {
     var extension = getGroupExtension();
     groupOrganizationBinding.requireProjectInGroupOrganization(extension, groupId, projectId);
     extension.addProjectToGroupById(groupId, projectId, addProjectToGroupByIdRequest);
+    groupAccessCacheEvictor.evictAll();
     return ResponseEntity.ok(new SuccessfulUpdate("Group updated successfully"));
   }
 
@@ -201,6 +211,7 @@ public class GroupController implements GroupsApi {
   @Transactional
   public ResponseEntity<Void> deleteProjectFromGroupById(Long groupId, Long projectId) {
     getGroupExtension().deleteProjectFromGroupById(groupId, projectId);
+    groupAccessCacheEvictor.evictAll();
     return new ResponseEntity<>(HttpStatus.NO_CONTENT);
   }
 

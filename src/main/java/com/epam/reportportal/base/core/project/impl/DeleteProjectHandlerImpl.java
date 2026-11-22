@@ -28,6 +28,7 @@ import com.epam.reportportal.base.core.analyzer.auto.impl.AnalyzerUtils;
 import com.epam.reportportal.base.core.events.domain.ProjectBulkDeletedEvent;
 import com.epam.reportportal.base.core.events.domain.ProjectDeletedEvent;
 import com.epam.reportportal.base.core.events.domain.ProjectIndexEvent;
+import com.epam.reportportal.base.core.group.GroupAccessCacheEvictor;
 import com.epam.reportportal.base.core.project.DeleteProjectHandler;
 import com.epam.reportportal.base.core.remover.ContentRemover;
 import com.epam.reportportal.base.core.tms.service.TmsAttachmentService;
@@ -95,6 +96,7 @@ public class DeleteProjectHandlerImpl implements DeleteProjectHandler {
   private final TmsAttachmentService tmsAttachmentService;
 
   private final ProjectUserRepository projectUserRepository;
+  private final GroupAccessCacheEvictor groupAccessCacheEvictor;
 
   @Override
   public OperationCompletionRS deleteProject(Long projectId, ReportPortalUser user) {
@@ -200,6 +202,7 @@ public class DeleteProjectHandlerImpl implements DeleteProjectHandler {
     tmsAttachmentService.deleteAllByProjectId(project.getId());
     projectContentRemover.remove(project);
     projectRepository.delete(project);
+    groupAccessCacheEvictor.evictAll();
 
     return new OperationCompletionRS(
         "Project with id = '" + project.getId() + "' has been successfully deleted.");

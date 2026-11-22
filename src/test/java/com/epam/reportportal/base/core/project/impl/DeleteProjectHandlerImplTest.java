@@ -31,6 +31,7 @@ import com.epam.reportportal.base.core.analyzer.auto.client.AnalyzerServiceClien
 import com.epam.reportportal.base.core.analyzer.auto.impl.AnalyzerStatusCache;
 import com.epam.reportportal.base.core.events.domain.ProjectDeletedEvent;
 import com.epam.reportportal.base.core.events.domain.ProjectIndexEvent;
+import com.epam.reportportal.base.core.group.GroupAccessCacheEvictor;
 import com.epam.reportportal.base.core.remover.ContentRemover;
 import com.epam.reportportal.base.core.tms.service.TmsAttachmentService;
 import com.epam.reportportal.base.infrastructure.persistence.binary.AttachmentBinaryDataService;
@@ -104,6 +105,9 @@ class DeleteProjectHandlerImplTest {
 
   @Mock
   private ProjectUserRepository projectUserRepository;
+
+  @Mock
+  private GroupAccessCacheEvictor groupAccessCacheEvictor;
 
   @InjectMocks
   private DeleteProjectHandlerImpl handler;

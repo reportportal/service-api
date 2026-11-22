@@ -195,7 +195,8 @@ public interface TestItemRepository extends ReportPortalRepository<TestItem, Lon
 
   /**
    * Retrieve the {@link List} of the {@link TestItem#getItemId()} by launch ID, {@link StatusEnum#name()} and
-   * {@link TestItem#isHasChildren()} == false
+   * {@link TestItem#isHasChildren()} == false ordered by id. Not paged: callers that change the status of the returned
+   * items must collect the ids once and then process them in chunks.
    *
    * @param launchId {@link Launch#getId()}
    * @param status   {@link StatusEnum#name()}
@@ -204,14 +205,15 @@ public interface TestItemRepository extends ReportPortalRepository<TestItem, Lon
   @Query(value =
       "SELECT test_item.item_id FROM test_item JOIN test_item_results result ON test_item.item_id = result.result_id "
           + " WHERE test_item.launch_id = :launchId AND NOT test_item.has_children "
-          + " AND result.status = CAST(:#{#status.name()} AS STATUS_ENUM) ORDER BY test_item.item_id LIMIT :pageSize OFFSET :pageOffset", nativeQuery = true)
+          + " AND result.status = CAST(:#{#status.name()} AS STATUS_ENUM) ORDER BY test_item.item_id", nativeQuery = true)
   List<Long> findIdsByNotHasChildrenAndLaunchIdAndStatus(@Param("launchId") Long launchId,
-      @Param("status") StatusEnum status,
-      @Param("pageSize") Integer limit, @Param("pageOffset") Long offset);
+      @Param("status") StatusEnum status);
 
   /**
    * Retrieve the {@link List} of the {@link TestItem#getItemId()} by launch ID, {@link StatusEnum#name()} and
-   * {@link TestItem#isHasChildren()} == true ordered (DESCENDING) by 'nlevel' of the {@link TestItem#getPath()}
+   * {@link TestItem#isHasChildren()} == true ordered (DESCENDING) by 'nlevel' of the {@link TestItem#getPath()}. Not
+   * paged: callers that change the status of the returned items must collect the ids once and then process them in
+   * chunks.
    *
    * @param launchId {@link Launch#getId()}
    * @param status   {@link StatusEnum#name()}
@@ -222,33 +224,36 @@ public interface TestItemRepository extends ReportPortalRepository<TestItem, Lon
   @Query(value =
       "SELECT test_item.item_id FROM test_item JOIN test_item_results result ON test_item.item_id = result.result_id "
           + " WHERE test_item.launch_id = :launchId AND test_item.has_children AND result.status = CAST(:#{#status.name()} AS STATUS_ENUM)"
-          + " ORDER BY nlevel(test_item.path) DESC, test_item.item_id LIMIT :pageSize OFFSET :pageOffset", nativeQuery = true)
+          + " ORDER BY nlevel(test_item.path) DESC, test_item.item_id", nativeQuery = true)
   List<Long> findIdsByHasChildrenAndLaunchIdAndStatusOrderedByPathLevel(
       @Param("launchId") Long launchId,
-      @Param("status") StatusEnum status, @Param("pageSize") Integer limit,
-      @Param("pageOffset") Long offset);
+      @Param("status") StatusEnum status);
 
   /**
-   * Retrieve the {@link Stream} of the {@link TestItem#getItemId()} under parent {@link TestItem#getPath()},
-   * {@link StatusEnum#name()} and {@link TestItem#isHasChildren()} == false
+   * Retrieve the {@link List} of the {@link TestItem#getItemId()} of the launch under parent
+   * {@link TestItem#getPath()}, {@link StatusEnum#name()} and {@link TestItem#isHasChildren()} == false ordered by id.
+   * Not paged: callers that change the status of the returned items must collect the ids once and then process them in
+   * chunks.
    *
+   * @param launchId   {@link TestItem#getLaunchId()} of the parent item
    * @param parentPath {@link TestItem#getPath()} of the parent item
    * @param status     {@link StatusEnum#name()}
    * @return the {@link List} of the {@link TestItem#getItemId()}
    */
   @Query(value =
       "SELECT test_item.item_id FROM test_item JOIN test_item_results result ON test_item.item_id = result.result_id "
-          + " WHERE test_item.path::text LIKE :parentPath || '.%' "
-          + " AND NOT test_item.has_children AND result.status = CAST(:#{#status.name()} AS STATUS_ENUM) ORDER BY test_item.item_id LIMIT :pageSize OFFSET :pageOffset", nativeQuery = true)
-  List<Long> findIdsByNotHasChildrenAndParentPathAndStatus(@Param("parentPath") String parentPath,
-      @Param("status") StatusEnum status,
-      @Param("pageSize") Integer limit, @Param("pageOffset") Long offset);
+          + " WHERE test_item.launch_id = :launchId AND test_item.path::text LIKE :parentPath || '.%' "
+          + " AND NOT test_item.has_children AND result.status = CAST(:#{#status.name()} AS STATUS_ENUM) ORDER BY test_item.item_id", nativeQuery = true)
+  List<Long> findIdsByNotHasChildrenAndLaunchIdAndParentPathAndStatus(@Param("launchId") Long launchId,
+      @Param("parentPath") String parentPath, @Param("status") StatusEnum status);
 
   /**
-   * Retrieve the {@link Stream} of the {@link TestItem#getItemId()} under parent {@link TestItem#getPath()},
-   * {@link StatusEnum#name()} and {@link TestItem#isHasChildren()} == true ordered (DESCENDING) by 'nlevel' of the
-   * {@link TestItem#getPath()}
+   * Retrieve the {@link List} of the {@link TestItem#getItemId()} of the launch under parent
+   * {@link TestItem#getPath()}, {@link StatusEnum#name()} and {@link TestItem#isHasChildren()} == true ordered
+   * (DESCENDING) by 'nlevel' of the {@link TestItem#getPath()}. Not paged: callers that change the status of the
+   * returned items must collect the ids once and then process them in chunks.
    *
+   * @param launchId   {@link TestItem#getLaunchId()} of the parent item
    * @param parentPath {@link TestItem#getPath()} of the parent item
    * @param status     {@link StatusEnum#name()}
    * @return the {@link List} of the {@link TestItem#getItemId()}
@@ -257,13 +262,12 @@ public interface TestItemRepository extends ReportPortalRepository<TestItem, Lon
    */
   @Query(value =
       "SELECT test_item.item_id FROM test_item JOIN test_item_results result ON test_item.item_id = result.result_id "
-          + " WHERE test_item.path::text LIKE :parentPath || '.%' "
+          + " WHERE test_item.launch_id = :launchId AND test_item.path::text LIKE :parentPath || '.%' "
           + " AND test_item.has_children AND result.status = CAST(:#{#status.name()} AS STATUS_ENUM)"
-          + " ORDER BY nlevel(test_item.path) DESC, test_item.item_id LIMIT :pageSize OFFSET :pageOffset", nativeQuery = true)
-  List<Long> findIdsByHasChildrenAndParentPathAndStatusOrderedByPathLevel(
-      @Param("parentPath") String parentPath,
-      @Param("status") StatusEnum status, @Param("pageSize") Integer limit,
-      @Param("pageOffset") Long offset);
+          + " ORDER BY nlevel(test_item.path) DESC, test_item.item_id", nativeQuery = true)
+  List<Long> findIdsByHasChildrenAndLaunchIdAndParentPathAndStatusOrderedByPathLevel(
+      @Param("launchId") Long launchId, @Param("parentPath") String parentPath,
+      @Param("status") StatusEnum status);
 
   List<TestItem> findTestItemsByUniqueId(String uniqueId);
 
@@ -326,6 +330,14 @@ public interface TestItemRepository extends ReportPortalRepository<TestItem, Lon
       @Param("newLaunchId") Long newLaunchId);
 
   Optional<TestItem> findByUuid(String uuid);
+
+  /**
+   * Checks whether a test item with the provided uuid exists (unique index lookup).
+   *
+   * @param uuid {@link TestItem#getUuid()}
+   * @return true if the item exists
+   */
+  boolean existsByUuid(String uuid);
 
   /**
    * Finds {@link TestItem#getItemId()} by {@link TestItem#getUuid()} and sets a lock on the found 'item' row in the

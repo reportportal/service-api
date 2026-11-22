@@ -19,6 +19,7 @@ package com.epam.reportportal.base.reporting.async.handler;
 import com.epam.reportportal.base.auth.userdetails.DefaultUserDetailsService;
 import com.epam.reportportal.base.core.item.StartTestItemHandler;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
+import com.epam.reportportal.base.infrastructure.persistence.dao.TestItemRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.MembershipDetails;
 import com.epam.reportportal.base.reporting.StartTestItemRQ;
 import com.epam.reportportal.base.reporting.async.config.MessageHeaders;
@@ -27,14 +28,20 @@ import com.epam.reportportal.base.util.ProjectExtractor;
 import com.google.common.base.Strings;
 import java.util.Map;
 import java.util.Optional;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.Message;
 import org.springframework.stereotype.Service;
 
 /**
  * Handles RabbitMQ messages for starting a test item.
+ * <p>
+ * A message is delivered at least once, so a START_TEST for an item uuid that already exists is a redelivery and is
+ * acknowledged without starting the item again (which would fail on the unique uuid or, on a rerun, reset a finished
+ * item to IN_PROGRESS).
  *
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
+@Slf4j
 @Service
 public class TestItemStartMessageHandler implements ReportingMessageHandler {
 
@@ -42,14 +49,16 @@ public class TestItemStartMessageHandler implements ReportingMessageHandler {
   private final StartTestItemHandler startTestItemHandler;
   private final ProjectExtractor projectExtractor;
   private final DefaultUserDetailsService userDetailsService;
+  private final TestItemRepository testItemRepository;
 
   public TestItemStartMessageHandler(MessageRetriever retriever,
       StartTestItemHandler startTestItemHandler, ProjectExtractor projectExtractor,
-      DefaultUserDetailsService userDetailsService) {
+      DefaultUserDetailsService userDetailsService, TestItemRepository testItemRepository) {
     this.retriever = retriever;
     this.startTestItemHandler = startTestItemHandler;
     this.projectExtractor = projectExtractor;
     this.userDetailsService = userDetailsService;
+    this.testItemRepository = testItemRepository;
   }
 
   @Override
@@ -59,6 +68,11 @@ public class TestItemStartMessageHandler implements ReportingMessageHandler {
     Map<String, Object> headers = message.getMessageProperties().getHeaders();
 
     startTestItemRQ.ifPresent(rq -> {
+      if (rq.getUuid() != null && testItemRepository.existsByUuid(rq.getUuid())) {
+        log.info("Test item with uuid '{}' of launch '{}' already exists, duplicate START_TEST message is skipped",
+            rq.getUuid(), rq.getLaunchUuid());
+        return;
+      }
       String username = (String) headers.get(MessageHeaders.USERNAME);
       String projectKey = (String) headers.get(MessageHeaders.PROJECT_KEY);
       String parentId = (String) headers.get(MessageHeaders.PARENT_ITEM_ID);

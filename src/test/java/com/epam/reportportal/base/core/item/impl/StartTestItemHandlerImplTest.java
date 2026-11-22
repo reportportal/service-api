@@ -23,6 +23,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.epam.reportportal.base.core.item.validator.parent.ParentItemValidator;
@@ -152,6 +154,7 @@ class StartTestItemHandlerImplTest {
 
     StartTestItemRQ rq = new StartTestItemRQ();
     rq.setLaunchUuid("1");
+    rq.setStartTime(Instant.now());
 
     when(launchRepository.findByUuid("1")).thenReturn(
         Optional.of(getLaunch(1L, StatusEnum.IN_PROGRESS)));
@@ -236,10 +239,77 @@ class StartTestItemHandlerImplTest {
     assertEquals("Launch '1' not found. Did you use correct Launch ID?", exception.getMessage());
   }
 
+  @Test
+  void startChildItemUnderLaunchFromAnotherProject() {
+    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.EDITOR, 1L);
+    StartTestItemRQ startTestItemRQ = new StartTestItemRQ();
+    startTestItemRQ.setLaunchUuid("1");
+    startTestItemRQ.setStartTime(Instant.now());
+
+    when(launchRepository.findByUuid("1")).thenReturn(
+        Optional.of(getLaunch(2L, StatusEnum.IN_PROGRESS)));
+
+    final ReportPortalException exception = assertThrows(ReportPortalException.class,
+        () -> handler.startChildItem(rpUser, rpUserToMembership(rpUser), startTestItemRQ, "parent")
+    );
+    assertEquals(ErrorType.ACCESS_DENIED, exception.getErrorType());
+  }
+
+  @Test
+  void startChildItemUnderParentFromAnotherLaunch() {
+    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.EDITOR, 1L);
+    StartTestItemRQ startTestItemRQ = new StartTestItemRQ();
+    startTestItemRQ.setLaunchUuid("1");
+    startTestItemRQ.setStartTime(Instant.now());
+
+    final Launch launch = getLaunch(1L, StatusEnum.IN_PROGRESS);
+    launch.setId(10L);
+    TestItem parent = new TestItem();
+    parent.setItemId(5L);
+    parent.setLaunchId(20L);
+    when(launchRepository.findByUuid("1")).thenReturn(Optional.of(launch));
+    when(testItemRepository.findByUuid("parent")).thenReturn(Optional.of(parent));
+
+    final ReportPortalException exception = assertThrows(ReportPortalException.class,
+        () -> handler.startChildItem(rpUser, rpUserToMembership(rpUser), startTestItemRQ, "parent")
+    );
+    assertEquals(ErrorType.BAD_REQUEST_ERROR, exception.getErrorType());
+    verify(validator, never()).validate(any(), any());
+  }
+
+  @Test
+  void startChildItemUnderRetryParentUsesLaunchOfMainItem() {
+    final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, OrganizationRole.MEMBER, ProjectRole.EDITOR, 1L);
+    StartTestItemRQ startTestItemRQ = new StartTestItemRQ();
+    startTestItemRQ.setLaunchUuid("1");
+    startTestItemRQ.setStartTime(Instant.now());
+
+    final Launch launch = getLaunch(1L, StatusEnum.IN_PROGRESS);
+    launch.setId(10L);
+    TestItem retryParent = new TestItem();
+    retryParent.setItemId(5L);
+    retryParent.setRetryOf(4L);
+    TestItem mainItem = new TestItem();
+    mainItem.setItemId(4L);
+    mainItem.setLaunchId(10L);
+    when(launchRepository.findByUuid("1")).thenReturn(Optional.of(launch));
+    when(testItemRepository.findByUuid("parent")).thenReturn(Optional.of(retryParent));
+    when(testItemRepository.findById(4L)).thenReturn(Optional.of(mainItem));
+    // stop right after the launch checks pass
+    doThrow(new ReportPortalException(ErrorType.UNABLE_TO_SAVE_CHILD_ITEM_FOR_THE_RETRY, 5L))
+        .when(validator).validate(any(StartTestItemRQ.class), any(TestItem.class));
+
+    final ReportPortalException exception = assertThrows(ReportPortalException.class,
+        () -> handler.startChildItem(rpUser, rpUserToMembership(rpUser), startTestItemRQ, "parent")
+    );
+    assertEquals(ErrorType.UNABLE_TO_SAVE_CHILD_ITEM_FOR_THE_RETRY, exception.getErrorType());
+  }
+
   private Launch getLaunch(Long projectId, StatusEnum status) {
     Launch launch = new Launch();
     launch.setProjectId(projectId);
     launch.setStatus(status);
+    launch.setStartTime(Instant.now().minus(1, ChronoUnit.HOURS));
     return launch;
   }
 }

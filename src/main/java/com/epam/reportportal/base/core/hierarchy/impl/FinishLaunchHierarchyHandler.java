@@ -30,9 +30,7 @@ import com.epam.reportportal.base.infrastructure.persistence.dao.TestItemReposit
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.StatusEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
 import java.util.List;
-import java.util.function.Function;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 /**
@@ -69,20 +67,17 @@ public class FinishLaunchHierarchyHandler extends AbstractFinishHierarchyHandler
   }
 
   @Override
-  protected Function<Pageable, List<Long>> getItemIdsFunction(boolean hasChildren, Launch launch,
-      StatusEnum status) {
+  protected List<Long> getItemIds(boolean hasChildren, Launch launch) {
     return hasChildren ?
-        pageable -> testItemRepository.findIdsByHasChildrenAndLaunchIdAndStatusOrderedByPathLevel(
-            launch.getId(),
-            status,
-            pageable.getPageSize(),
-            pageable.getOffset()
-        ) :
-        pageable -> testItemRepository.findIdsByNotHasChildrenAndLaunchIdAndStatus(launch.getId(),
-            status,
-            pageable.getPageSize(),
-            pageable.getOffset()
-        );
+        testItemRepository.findIdsByHasChildrenAndLaunchIdAndStatusOrderedByPathLevel(launch.getId(),
+            StatusEnum.IN_PROGRESS) :
+        testItemRepository.findIdsByNotHasChildrenAndLaunchIdAndStatus(launch.getId(),
+            StatusEnum.IN_PROGRESS);
+  }
+
+  @Override
+  protected Long getLaunchId(Launch launch) {
+    return launch.getId();
   }
 
 }

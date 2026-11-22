@@ -38,6 +38,44 @@ class FileStorageControllerStreamingResponseTest {
   }
 
   @Test
+  void activeContentIsForcedToDownloadAndSandboxed() {
+    for (var contentType : new String[] {"text/html", "image/svg+xml", "application/xhtml+xml"}) {
+      var binaryData = mock(BinaryData.class);
+      when(binaryData.getInputStream()).thenReturn(new ByteArrayInputStream(new byte[] {1}));
+      when(binaryData.getContentType()).thenReturn(contentType);
+      when(binaryData.getFileName()).thenReturn("a.html");
+      when(binaryData.getLength()).thenReturn(1L);
+
+      var response = invokeToStreamingResponse(binaryData);
+
+      assertEquals("attachment", response.getHeaders().getContentDisposition().getType(),
+          contentType);
+      assertEquals("nosniff", response.getHeaders().getFirst("X-Content-Type-Options"));
+      assertEquals("sandbox", response.getHeaders().getFirst("Content-Security-Policy"));
+    }
+  }
+
+  @Test
+  void safeMediaTypesAreRenderedInline() {
+    for (var contentType : new String[] {"image/png", "video/mp4", "audio/mpeg",
+        "application/pdf", "text/plain"}) {
+      var binaryData = mock(BinaryData.class);
+      when(binaryData.getInputStream()).thenReturn(new ByteArrayInputStream(new byte[] {1}));
+      when(binaryData.getContentType()).thenReturn(contentType);
+      when(binaryData.getFileName()).thenReturn("a.bin");
+      when(binaryData.getLength()).thenReturn(1L);
+
+      var response = invokeToStreamingResponse(binaryData);
+
+      assertEquals("inline", response.getHeaders().getContentDisposition().getType(),
+          contentType);
+      assertEquals("nosniff", response.getHeaders().getFirst("X-Content-Type-Options"));
+      assertEquals("application/pdf".equals(contentType) ? null : "sandbox",
+          response.getHeaders().getFirst("Content-Security-Policy"), contentType);
+    }
+  }
+
+  @Test
   void returnsNoContentWhenStreamIsMissing() {
     var binaryData = mock(BinaryData.class);
     when(binaryData.getInputStream()).thenReturn(null);
@@ -117,7 +155,7 @@ class FileStorageControllerStreamingResponseTest {
 
     assertEquals(HttpStatus.REQUESTED_RANGE_NOT_SATISFIABLE, response.getStatusCode());
     assertEquals(MediaType.APPLICATION_OCTET_STREAM, response.getHeaders().getContentType());
-    assertEquals("inline", response.getHeaders().getContentDisposition().getType());
+    assertEquals("attachment", response.getHeaders().getContentDisposition().getType());
     assertEquals("data.bin", response.getHeaders().getContentDisposition().getFilename());
     assertEquals("bytes", response.getHeaders().getFirst(HttpHeaders.ACCEPT_RANGES));
     assertEquals("bytes */100", response.getHeaders().getFirst(HttpHeaders.CONTENT_RANGE));

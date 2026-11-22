@@ -82,6 +82,9 @@ class UserMutationServiceImplTest {
   @Mock
   private EmailChangeConfirmationService emailChangeConfirmationService;
 
+  @Mock
+  private com.epam.reportportal.base.auth.userdetails.UserAuthDataCacheEvictor userAuthDataCacheEvictor;
+
   @InjectMocks
   private UserMutationServiceImpl userMutationService;
 

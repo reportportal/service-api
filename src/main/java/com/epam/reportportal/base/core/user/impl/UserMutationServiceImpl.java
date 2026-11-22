@@ -27,6 +27,7 @@ import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorTyp
 import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.USER_ALREADY_EXISTS;
 import static com.epam.reportportal.base.util.email.EmailRulesValidator.NORMALIZE_EMAIL;
 
+import com.epam.reportportal.base.auth.userdetails.UserAuthDataCacheEvictor;
 import com.epam.reportportal.base.core.auth.TokenBlacklistService;
 import com.epam.reportportal.base.core.events.domain.ChangeUserTypeEvent;
 import com.epam.reportportal.base.core.user.UserMutationService;
@@ -68,6 +69,7 @@ public class UserMutationServiceImpl implements UserMutationService {
   private final TokenBlacklistService tokenBlacklistService;
   private final PasswordEncoder passwordEncoder;
   private final EmailChangeConfirmationService emailChangeConfirmationService;
+  private final UserAuthDataCacheEvictor userAuthDataCacheEvictor;
 
   @Override
   public void updateEmail(User user, String rawEmail, ReportPortalUser editor) {
@@ -123,8 +125,14 @@ public class UserMutationServiceImpl implements UserMutationService {
     // so ownership moves together with the login, in this transaction.
     userRepository.replaceOwnerLogin(user.getLogin(), email);
 
+    var oldLogin = user.getLogin();
     user.setEmail(email);
     user.setLogin(email);
+
+    // The login-keyed user-details cache must not keep serving the old login (nor a cached "not found" for the new
+    // one). Evicted now and after commit; tokens are revoked again after commit to cover any minted in between.
+    userAuthDataCacheEvictor.evictUser(user.getExternalId(), oldLogin, email);
+    UserAuthDataCacheEvictor.afterCommit(() -> tokenBlacklistService.revokeSubject(oldLogin));
 
     try {
       projectRepository.saveAll(userProjects);
@@ -201,12 +209,14 @@ public class UserMutationServiceImpl implements UserMutationService {
 
     user.setRole(newRole);
     tokenBlacklistService.revokeUserTokens(user);
+    userAuthDataCacheEvictor.evictUser(user.getExternalId(), user.getLogin());
   }
 
   @Override
   public void updatePassword(User user, String rawPassword) {
     user.setPassword(passwordEncoder.encode(rawPassword));
     tokenBlacklistService.revokeUserTokens(user);
+    userAuthDataCacheEvictor.evictUser(user.getExternalId(), user.getLogin());
   }
 
   @Override
@@ -219,6 +229,7 @@ public class UserMutationServiceImpl implements UserMutationService {
 
     boolean active = Boolean.TRUE.equals(value);
     user.setActive(active);
+    userAuthDataCacheEvictor.evictUser(user.getExternalId(), user.getLogin());
 
     if (!active) {
       tokenBlacklistService.revokeUserTokens(user);
@@ -254,7 +265,9 @@ public class UserMutationServiceImpl implements UserMutationService {
           throw new ReportPortalException(USER_ALREADY_EXISTS, externalId);
         });
 
+    var oldExternalId = user.getExternalId();
     user.setExternalId(externalId);
+    userAuthDataCacheEvictor.evict(new String[] {user.getLogin()}, oldExternalId, externalId);
   }
 
   @Override

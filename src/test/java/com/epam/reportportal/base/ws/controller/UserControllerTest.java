@@ -77,6 +77,17 @@ class UserControllerTest extends BaseMvcTest {
   @Autowired
   private UserRepository userRepository;
   @Autowired
+  private com.epam.reportportal.base.auth.userdetails.DefaultUserDetailsService userDetailsService;
+  @Autowired
+  @org.springframework.beans.factory.annotation.Qualifier("caffeineCacheManager")
+  private org.springframework.cache.CacheManager cacheManager;
+
+  @org.junit.jupiter.api.AfterEach
+  void clearUserAuthDataCache() {
+    // the test transaction is rolled back but the cache is not: do not leak entries into other tests
+    cacheManager.getCache("userAuthDataCache").clear();
+  }
+  @Autowired
   private UserCreationBidRepository userCreationBidRepository;
 
   @Test
@@ -332,6 +343,10 @@ class UserControllerTest extends BaseMvcTest {
     var bid = userCreationBidRepository.findFirstByEmailOrderByLastModifiedDesc(newEmail).orElseThrow();
     Assertions.assertTrue(userCreationBidRepository.findByUuidAndType(bid.getUuid(), "internal").isEmpty());
 
+    // password login resolves the account through this (cached, keyed by login) lookup: prime the cache for the old
+    // login, as a login attempt right before the confirmation would
+    Assertions.assertEquals(DEFAULT_USERNAME, userDetailsService.loadUserByUsername(DEFAULT_USERNAME).getUsername());
+
     final ConfirmEmailChangeRQ confirmRq = new ConfirmEmailChangeRQ();
     confirmRq.setUuid(bid.getUuid());
     mockMvc.perform(post(USERS_URL + "email/confirm")
@@ -339,6 +354,11 @@ class UserControllerTest extends BaseMvcTest {
             .content(objectMapper.writeValueAsBytes(confirmRq)))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.message").value("Email has been changed"));
+
+    // the old login no longer exists: it must not be served from the cache
+    Assertions.assertThrows(org.springframework.security.core.userdetails.UsernameNotFoundException.class,
+        () -> userDetailsService.loadUserByUsername(DEFAULT_USERNAME));
+    Assertions.assertEquals(newEmail, userDetailsService.loadUserByUsername(newEmail).getUsername());
 
     var changed = userRepository.findByEmail(newEmail).orElseThrow();
     assertEquals(user.getId(), changed.getId());

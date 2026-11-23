@@ -218,6 +218,7 @@ processTestResources {
     dependsOn 'updateApiSubmodule'
     from(layout.projectDirectory.dir('migrations/migrations')) {
         include '*.up.sql'
+        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
         rename { name ->
             def m = (name =~ /^(\d+)_(.+)\.up\.sql$/)
             m ? "V${String.format('%03d', m[0][1] as int)}__${m[0][2]}.sql" : name

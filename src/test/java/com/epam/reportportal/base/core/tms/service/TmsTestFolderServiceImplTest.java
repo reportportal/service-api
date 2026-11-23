@@ -15,6 +15,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -475,6 +476,7 @@ class TmsTestFolderServiceImplTest {
     verify(tmsTestFolderMapper).update(eq(testFolder), any(TmsTestFolder.class));
     verify(tmsTestFolderRepository, never()).shiftIndexes(anyLong(), any(), anyInt(), anyInt());
     verify(tmsTestFolderRepository).save(testFolder);
+    verify(tmsTestFolderRepository, never()).lockFolderTree(anyLong());
   }
 
   @Test
@@ -635,6 +637,10 @@ class TmsTestFolderServiceImplTest {
     verify(tmsTestFolderMapper).convertFromId(oldParentId); // Restore old parent
     verify(tmsTestFolderMapper).convertFromId(newParentId); // Set new parent
     verify(tmsTestFolderRepository).save(testFolder);
+    // The move is serialized with folder sync before the cycle check reads the hierarchy
+    var order = inOrder(tmsTestFolderRepository);
+    order.verify(tmsTestFolderRepository).lockFolderTree(projectId);
+    order.verify(tmsTestFolderRepository).findAllFolderIdsInHierarchy(projectId, testFolderId);
   }
 
   @Test
@@ -785,6 +791,11 @@ class TmsTestFolderServiceImplTest {
     verify(tmsTestFolderRepository).findMaxIndex(projectId, 5L);
     verify(tmsTestFolderRepository, times(2)).save(any(TmsTestFolder.class));
     verify(tmsTestFolderMapper).convertFromTmsTestFolderToRS(testFolder);
+    // Creating the new parent is a write, so the folder tree is locked before it
+    var order = inOrder(tmsTestFolderRepository);
+    order.verify(tmsTestFolderRepository).lockFolderTree(projectId);
+    order.verify(tmsTestFolderRepository).save(newParentFolder);
+    verify(tmsTestFolderRepository, times(1)).lockFolderTree(projectId);
   }
 
   @Test
@@ -836,6 +847,24 @@ class TmsTestFolderServiceImplTest {
     verify(tmsTestFolderMapper).patch(eq(testFolder), any(TmsTestFolder.class));
     verify(tmsTestFolderRepository).save(testFolder);
     verify(tmsTestFolderMapper).convertFromTmsTestFolderToRS(testFolder);
+    verify(tmsTestFolderRepository, never()).lockFolderTree(anyLong());
+  }
+
+  @Test
+  void testPatch_MoveToOtherParent_LocksFolderTreeBeforeCycleCheck() {
+    var patchRQ = TmsTestFolderRQ.builder().parentTestFolderId(5L).build();
+    when(tmsTestFolderRepository.findByIdAndProjectId(testFolderId, projectId))
+        .thenReturn(Optional.of(testFolder));
+    when(tmsTestFolderRepository.existsByIdAndProjectId(5L, projectId)).thenReturn(true);
+    when(tmsTestFolderMapper.convertFromRQ(projectId, patchRQ)).thenReturn(new TmsTestFolder());
+    when(tmsTestFolderRepository.save(testFolder)).thenReturn(testFolder);
+    when(tmsTestFolderMapper.convertFromTmsTestFolderToRS(testFolder)).thenReturn(testFolderRS);
+
+    sut.patch(projectId, testFolderId, patchRQ);
+
+    var order = inOrder(tmsTestFolderRepository);
+    order.verify(tmsTestFolderRepository).lockFolderTree(projectId);
+    order.verify(tmsTestFolderRepository).findAllFolderIdsInHierarchy(projectId, testFolderId);
   }
 
   @Test

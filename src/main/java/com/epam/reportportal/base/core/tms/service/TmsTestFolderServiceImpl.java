@@ -119,6 +119,13 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
           // Save target index from request
           var targetIndex = inputDto.getIndex();
 
+          // A move is serialized with folder sync of the project. Creating the new parent writes, so
+          // that request locks before resolving it; any other move locks once the parent is known.
+          var folderTreeLocked = createsParentFolder(inputDto);
+          if (folderTreeLocked) {
+            tmsTestFolderRepository.lockFolderTree(projectId);
+          }
+
           // Resolve new parent ID WITHOUT setting it on the folder yet
           var newParentId = resolveNewParentId(
               projectId,
@@ -126,6 +133,9 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
               inputDto.getParentTestFolder()
           );
 
+          if (!folderTreeLocked && !Objects.equals(newParentId, oldParentId)) {
+            tmsTestFolderRepository.lockFolderTree(projectId);
+          }
           validateNoCycle(projectId, existingTestFolder.getId(), newParentId);
 
           // Apply other changes via mapper
@@ -173,6 +183,13 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
           // Save target index from request
           var targetIndex = inputDto.getIndex();
 
+          // A move is serialized with folder sync of the project. Creating the new parent writes, so
+          // that request locks before resolving it; any other move locks once the parent is known.
+          var folderTreeLocked = createsParentFolder(inputDto);
+          if (folderTreeLocked) {
+            tmsTestFolderRepository.lockFolderTree(projectId);
+          }
+
           // Resolve new parent ID WITHOUT setting it on the folder yet
           var newParentId = resolveNewParentIdForPatch(
               projectId,
@@ -181,6 +198,9 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
               inputDto.getParentTestFolder()
           );
 
+          if (!folderTreeLocked && !Objects.equals(newParentId, oldParentId)) {
+            tmsTestFolderRepository.lockFolderTree(projectId);
+          }
           validateNoCycle(projectId, existingTestFolder.getId(), newParentId);
 
           // Apply other changes via mapper
@@ -964,6 +984,12 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
   private static int clampIndex(int index, Integer max, int extraSlots) {
     var upper = (max == null ? -1 : max) + extraSlots;
     return Math.max(0, Math.min(index, Math.max(upper, 0)));
+  }
+
+  private static boolean createsParentFolder(TmsTestFolderRQ inputDto) {
+    return isNull(inputDto.getParentTestFolderId())
+        && nonNull(inputDto.getParentTestFolder())
+        && nonNull(inputDto.getParentTestFolder().getName());
   }
 
   private void validateNoCycle(long projectId, Long currentFolderId, Long newParentId) {

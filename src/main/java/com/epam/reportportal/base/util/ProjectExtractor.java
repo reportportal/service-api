@@ -100,14 +100,14 @@ public class ProjectExtractor {
   public Optional<MembershipDetails> findMembershipDetails(Long userId, String projectKey) {
     return projectUserRepository.findDetailsByUserIdAndProjectKey(userId, projectKey)
         .map(details -> {
-          var projectRoles = groupMembershipRepository.findUserProjectRoles(
-              userId,
-              details.getProjectId()
+          // The repository result is cached and shared between threads, so it must not be mutated.
+          var projectRoles = new ArrayList<>(
+              groupMembershipRepository.findUserProjectRoles(userId, details.getProjectId())
           );
 
           Optional.ofNullable(details.getProjectRole()).ifPresent(projectRoles::add);
 
-          var highestRole = new ArrayList<>(projectRoles).stream()
+          var highestRole = projectRoles.stream()
               .max(ProjectRole::compareTo)
               .orElse(null);
 

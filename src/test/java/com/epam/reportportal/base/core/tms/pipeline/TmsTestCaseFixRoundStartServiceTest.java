@@ -382,4 +382,27 @@ class TmsTestCaseFixRoundStartServiceTest {
 
     assertEquals(ErrorType.NOT_FOUND.getCode(), ex.getErrorType().getCode());
   }
+
+  @Test
+  void jobInputs_OnGitLab_ShouldCarryTheDisplayIdNextToTheInternalId() {
+    var testCase = new TmsTestCase();
+    testCase.setId(103L);
+    testCase.setDisplayId("TC103");
+
+    var inputs = TmsTestCaseFixRoundStartService.jobInputs(testCase, 7L, 41L, true);
+
+    assertEquals(Map.of("test_case_id", "103", "test_case_display_id", "TC103", "fix_round_id", "7",
+        "previous_iteration_id", "41"), inputs);
+  }
+
+  @Test
+  void jobInputs_WhereTheCiRejectsUndeclaredInputs_ShouldKeepTheOriginalThree() {
+    var testCase = new TmsTestCase();
+    testCase.setId(103L);
+    testCase.setDisplayId("TC103");
+
+    var inputs = TmsTestCaseFixRoundStartService.jobInputs(testCase, 7L, 41L, false);
+
+    assertEquals(Map.of("test_case_id", "103", "fix_round_id", "7", "previous_iteration_id", "41"), inputs);
+  }
 }

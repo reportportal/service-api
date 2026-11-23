@@ -53,8 +53,8 @@ import org.springframework.transaction.support.TransactionTemplate;
  * Example: the editor selects TC42, TC43 and TC44 and picks {@code beta5}. TC43 became Draft a moment ago and
  * TC44 is already in an automation iteration, so they are skipped ({@code NOT_READY}, {@code AUTOMATION_IN_PROGRESS}).
  * For TC42 the call creates iteration #8 of "Test automation" (Pending, started by the editor), records the run
- * and starts the job with {@code TEST_CASES=42}, {@code ENVIRONMENT=beta5}, {@code ITERATION_ID=452},
- * {@code PIPELINE_ID=17}. The job reports its stages into iteration 452 itself and does not create an iteration.
+ * and starts the job with {@code TEST_CASES=TC42} (display ids, never internal ids: the job also serves cases made
+ * by hand), {@code ENVIRONMENT=beta5}, {@code ITERATION_ID=452}, {@code PIPELINE_ID=17}. The job reports its stages into iteration 452 itself and does not create an iteration.
  * <p>
  * Deliberately not one transaction, like Push to agent: the CI call in the middle must not run inside a database
  * transaction. The iteration and the runs are recorded first (a second Automate then sees them), the job is started,
@@ -250,7 +250,9 @@ public class TmsAutomationStartService {
     }
 
     var inputs = new LinkedHashMap<String, String>();
-    inputs.put(INPUT_TEST_CASES, accepted.stream().map(String::valueOf).collect(Collectors.joining(",")));
+    // the job takes the human display ids (TC107), never the internal ids: it also serves cases created by hand
+    inputs.put(INPUT_TEST_CASES, accepted.stream().map(id -> found.get(id).getDisplayId())
+        .collect(Collectors.joining(",")));
     inputs.put(INPUT_ENVIRONMENT, rq.getEnvironment());
     inputs.put(INPUT_ITERATION_ID, String.valueOf(iteration.getId()));
     inputs.put(INPUT_PIPELINE_ID, String.valueOf(locked.getId()));

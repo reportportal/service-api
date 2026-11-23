@@ -95,7 +95,7 @@ class TmsAutomationIntegrationTest extends BaseMvcTest {
     var body = ArgumentCaptor.forClass(String.class);
     verify(ciHttpClient).postForStatus(url.capture(), anyMap(), body.capture());
     assertEquals("https://git.epam.com/api/v4/projects/EPM-RPP%2Frp-tests/trigger/pipeline", url.getValue());
-    assertTrue(body.getValue().contains("\"TEST_CASES\":\"900,901\""), body.getValue());
+    assertTrue(body.getValue().contains("\"TEST_CASES\":\"TC-900,TC-901\""), body.getValue());
     assertTrue(body.getValue().contains("\"ENVIRONMENT\":\"beta5\""), body.getValue());
     assertTrue(body.getValue().contains("\"ITERATION_ID\":\""), body.getValue());
     assertTrue(body.getValue().contains("\"PIPELINE_ID\":\""), body.getValue());

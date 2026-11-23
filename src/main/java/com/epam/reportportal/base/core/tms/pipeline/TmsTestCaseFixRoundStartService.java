@@ -54,6 +54,8 @@ import org.springframework.transaction.support.TransactionTemplate;
 public class TmsTestCaseFixRoundStartService {
 
   static final String INPUT_TEST_CASE_ID = "test_case_id";
+  static final String INPUT_TEST_CASE_DISPLAY_ID = "test_case_display_id";
+  static final String GITLAB_INTEGRATION_TYPE = "gitlab-ci";
   static final String INPUT_FIX_ROUND_ID = "fix_round_id";
   static final String INPUT_PREVIOUS_ITERATION_ID = "previous_iteration_id";
 
@@ -175,12 +177,29 @@ public class TmsTestCaseFixRoundStartService {
       commentRepository.save(comment);
     }
 
-    var inputs = new LinkedHashMap<String, String>();
-    inputs.put(INPUT_TEST_CASE_ID, String.valueOf(testCaseId));
-    inputs.put(INPUT_FIX_ROUND_ID, String.valueOf(round.getId()));
-    inputs.put(INPUT_PREVIOUS_ITERATION_ID, String.valueOf(previousIterationId));
+    var inputs = jobInputs(testCase, round.getId(), previousIterationId,
+        GITLAB_INTEGRATION_TYPE.equals(connector.getIntegrationTypeName()));
     var runRequest = new CiRunRequest(resolvedRun.repo(), resolvedRun.workflowRef(), inputs);
     return new Claimed(round.getId(), pipeline.getId(), connector, integration, runRequest);
+  }
+
+  /**
+   * The inputs of the fix job. {@code test_case_id} is the internal id for the job's API calls; the display id
+   * ({@code TC103}) is the human reference and is sent next to it where the CI takes undeclared variables (GitLab).
+   * <p>
+   * Example: TC103 (id 103), round 7, iteration 41 on GitLab gives {@code test_case_id=103},
+   * {@code test_case_display_id=TC103}, {@code fix_round_id=7}, {@code previous_iteration_id=41}.
+   */
+  static Map<String, String> jobInputs(TmsTestCase testCase, Long roundId, Long previousIterationId,
+      boolean withDisplayId) {
+    var inputs = new LinkedHashMap<String, String>();
+    inputs.put(INPUT_TEST_CASE_ID, String.valueOf(testCase.getId()));
+    if (withDisplayId && testCase.getDisplayId() != null) {
+      inputs.put(INPUT_TEST_CASE_DISPLAY_ID, testCase.getDisplayId());
+    }
+    inputs.put(INPUT_FIX_ROUND_ID, String.valueOf(roundId));
+    inputs.put(INPUT_PREVIOUS_ITERATION_ID, String.valueOf(previousIterationId));
+    return inputs;
   }
 
   private void assertCanStartRound(TmsTestCase testCase) {

@@ -277,6 +277,11 @@ public class ProjectInfoCteQueryBuilder {
 
     if (fc.getCondition() == com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Condition.BETWEEN) {
       // same validation as the regular filter path: malformed value is a 400, not a silently dropped filter
+      if (value.contains(",") && value.contains(";")) {
+        throw new ReportPortalException(ErrorType.INCORRECT_FILTER_PARAMETERS,
+            "Incorrect between filter format. Use either 'value1,value2' or 'minutes1;minutes2;timezone'. "
+                + "Provided filter is '" + value + "'");
+      }
       com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Condition.BETWEEN.validate(
           criteriaHolder, value, fc.isNegative(), ErrorType.INCORRECT_FILTER_PARAMETERS);
     }

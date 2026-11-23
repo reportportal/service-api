@@ -55,7 +55,8 @@ class ProjectInfoCteQueryBuilderTest {
 
   @Test
   void malformedBetweenIsRejected() {
-    for (String value : new String[] {"garbage", "1;2", "a;b;+03:00", "1,2,3", "1;2;nonsense", "1,2;x"}) {
+    for (String value : new String[] {"garbage", "1;2", "a;b;+03:00", "1,2,3", "1;2;nonsense", "1,2;x",
+        "1,2;3;+03:00", "0;1440,1;+03:00"}) {
       ReportPortalException exception = assertThrows(ReportPortalException.class,
           () -> builder.findProjectInfo(filter(between(value))), value);
       assertEquals(ErrorType.INCORRECT_FILTER_PARAMETERS, exception.getErrorType(), value);

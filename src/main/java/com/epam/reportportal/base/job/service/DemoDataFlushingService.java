@@ -135,9 +135,13 @@ public class DemoDataFlushingService {
   @Transactional(isolation = Isolation.READ_UNCOMMITTED)
   public void flush() {
     log.info("Flushing demo instance data is starting...");
-    truncateTables();
     Organization presetOrganization = organizationRepository.findByNameIgnoreCase(PRESET_ORGANIZATION)
         .orElseThrow(() -> new IllegalStateException("Organization '" + PRESET_ORGANIZATION + "' is missing"));
+    // Attachments must be queued for deletion before the launch truncation cascades to the attachment rows.
+    projectRepository.findAll().stream()
+        .filter(project -> isRetainedProject(project, presetOrganization))
+        .forEach(project -> attachmentRepository.moveForDeletionByProjectId(project.getId()));
+    truncateTables();
     deleteProjects(presetOrganization);
     deleteOrganizations(presetOrganization);
     if (featureFlagHandler.isEnabled(FeatureFlag.SINGLE_BUCKET)) {
@@ -196,12 +200,14 @@ public class DemoDataFlushingService {
         .toList();
     jdbcTemplate.update("DELETE FROM integration WHERE project_id = ?", projectId);
     customIssueTypeIds.forEach(id -> {
-      jdbcTemplate.update("DELETE FROM project_issue_type WHERE project_id = ? AND issue_type_id = ?", projectId, id);
+      jdbcTemplate.update("DELETE FROM issue_type_project WHERE project_id = ? AND issue_type_id = ?", projectId, id);
       jdbcTemplate.update("DELETE FROM issue_type WHERE id = ?", id);
     });
+    // keep the loaded entity in sync with the raw deletes so later flushes do not re-persist removed links
+    project.getProjectIssueTypes()
+        .removeIf(projectIssueType -> customIssueTypeIds.contains(projectIssueType.getIssueType().getId()));
     analyzerServiceClient.removeSuggest(projectId);
     logIndexer.deleteIndexAsync(projectId);
-    attachmentRepository.moveForDeletionByProjectId(projectId);
     log.info("Data of retained project with id = '{}' has been cleaned.", projectId);
   }
 

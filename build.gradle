@@ -31,7 +31,6 @@ apply from: "$scriptsUrl/build-commons.gradle"
 apply from: "$scriptsUrl/build-info.gradle"
 apply from: "$scriptsUrl/release-service.gradle"
 apply from: "$scriptsUrl/signing.gradle"
-apply from: "$scriptsUrl/copy-database-scripts.gradle"
 apply from: 'jooq.gradle'
 
 // jOOQ codegen plugin always registers target.directory as a main source dir.
@@ -214,6 +213,19 @@ processResources {
     }
 }
 
+// Flyway test migrations are taken straight from the `migrations` submodule: `N_name.up.sql` -> `V00N__name.sql`.
+processTestResources {
+    dependsOn 'updateApiSubmodule'
+    from(layout.projectDirectory.dir('migrations/migrations')) {
+        include '*.up.sql'
+        rename { name ->
+            def m = (name =~ /^(\d+)_(.+)\.up\.sql$/)
+            m ? "V${String.format('%03d', m[0][1] as int)}__${m[0][2]}.sql" : name
+        }
+        into 'db/migration'
+    }
+}
+
 javadoc {
     source = fileTree(dir: "src/main/java")
 }
@@ -263,7 +275,6 @@ jar.enabled = true
 jar.archiveClassifier.set('')
 
 test {
-    dependsOn(copyTestDatabaseScripts)
     useJUnitPlatform()
     maxParallelForks = 1
     testLogging {
@@ -277,11 +288,12 @@ test {
     jvmArgs '-Duser.timezone=UTC'
 }
 
+compileJava.dependsOn 'updateApiSubmodule'
+tasks.named('openApiGenerate') { dependsOn tasks.named('updateApiSubmodule') }
 compileJava.dependsOn tasks.named('openApiGenerate')
 compileJava.dependsOn tasks.named('downloadManifestSchema')
 publish.dependsOn build
 publish.mustRunAfter build
-checkCommitNeeded.dependsOn removeScripts
 
 //replaced with drill4j
 //build.dependsOn jacocoTestReport

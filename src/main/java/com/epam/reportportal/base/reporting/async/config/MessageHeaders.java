@@ -34,6 +34,14 @@ public final class MessageHeaders {
   public static final String XD_HEADER = "x-death";
   public static final String BASE_URL = "baseUrl";
   public static final String LIMIT = "limit";
+  /**
+   * Epoch milliseconds of the moment a finish request of a launch was received by the API.
+   */
+  public static final String RECEIVED_AT = "receivedAt";
+  /**
+   * Set on a finish message of a launch that has already been delayed once to let the children finish.
+   */
+  public static final String LAUNCH_FINISH_DEFERRED = "launchFinishDeferred";
 
   private MessageHeaders() {
     //static only

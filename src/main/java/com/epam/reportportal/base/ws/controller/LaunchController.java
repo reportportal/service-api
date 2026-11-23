@@ -25,6 +25,7 @@ import static org.springframework.http.HttpStatus.OK;
 import com.epam.reportportal.base.core.launch.DeleteLaunchHandler;
 import com.epam.reportportal.base.core.launch.FinishLaunchHandler;
 import com.epam.reportportal.base.core.launch.GetLaunchHandler;
+import com.epam.reportportal.base.core.launch.LaunchFinishGracePeriod;
 import com.epam.reportportal.base.core.launch.MergeLaunchHandler;
 import com.epam.reportportal.base.core.launch.StartLaunchHandler;
 import com.epam.reportportal.base.core.launch.StopLaunchHandler;
@@ -34,6 +35,7 @@ import com.epam.reportportal.base.infrastructure.model.launch.cluster.ClusterInf
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
+import com.epam.reportportal.base.infrastructure.persistence.entity.organization.MembershipDetails;
 import com.epam.reportportal.base.infrastructure.persistence.entity.widget.content.ChartStatisticsContent;
 import com.epam.reportportal.base.model.BulkRQ;
 import com.epam.reportportal.base.model.DeleteBulkRS;
@@ -64,6 +66,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
@@ -109,6 +112,7 @@ public class LaunchController {
   private final MergeLaunchHandler mergeLaunchesHandler;
   private final LaunchConverter launchConverter;
   private final LinkGenerator linkGenerator;
+  private final LaunchFinishGracePeriod launchFinishGracePeriod;
 
   /* Report client API */
 
@@ -131,8 +135,13 @@ public class LaunchController {
   public FinishLaunchRS finishLaunch(@PathVariable String projectKey,
       @PathVariable String launchId, @RequestBody @Validated FinishExecutionRQ finishLaunchRQ,
       @AuthenticationPrincipal ReportPortalUser user, HttpServletRequest request) {
-    return finishLaunchHandler.finishLaunch(launchId, finishLaunchRQ,
-        projectExtractor.extractMembershipDetails(user, normalizeId(projectKey)), user,
+    Instant receivedAt = launchFinishGracePeriod.receivedAt();
+    LaunchFinishGracePeriod.applyReceivedTime(finishLaunchRQ, receivedAt);
+    MembershipDetails membershipDetails =
+        projectExtractor.extractMembershipDetails(user, normalizeId(projectKey));
+    // gives late finish requests of the children a chance to arrive; not within a transaction
+    launchFinishGracePeriod.awaitItemsInProgress(launchId, membershipDetails.getProjectId(), receivedAt);
+    return finishLaunchHandler.finishLaunch(launchId, finishLaunchRQ, membershipDetails, user,
         linkGenerator.composeBaseUrl(request)
     );
   }

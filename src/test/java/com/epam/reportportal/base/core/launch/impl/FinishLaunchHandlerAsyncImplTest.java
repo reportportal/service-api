@@ -18,6 +18,7 @@ package com.epam.reportportal.base.core.launch.impl;
 
 import static com.epam.reportportal.base.ReportPortalUserUtil.getRpUser;
 import static com.epam.reportportal.base.infrastructure.persistence.util.MembershipUtils.rpUserToMembership;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 
@@ -60,5 +61,6 @@ class FinishLaunchHandlerAsyncImplTest {
     finishLaunchHandlerAsync.finishLaunch("0", request,
         rpUserToMembership(user), user, "http://base");
     verify(amqpTemplate).invoke(any());
+    assertNotNull(request.getEndTime(), "a request without an end time ends at the moment it was received");
   }
 }

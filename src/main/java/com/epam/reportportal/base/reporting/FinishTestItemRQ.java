@@ -22,6 +22,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
+import java.time.Instant;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -48,5 +50,15 @@ public class FinishTestItemRQ extends FinishExecutionRQ {
 
   @JsonProperty(value = "retryOf")
   private String retryOf;
+
+  /**
+   * The end time is optional for a launch only.
+   */
+  @NotNull
+  @Override
+  @Schema(requiredMode = RequiredMode.REQUIRED)
+  public Instant getEndTime() {
+    return super.getEndTime();
+  }
 
 }

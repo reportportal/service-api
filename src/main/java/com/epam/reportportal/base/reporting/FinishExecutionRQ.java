@@ -25,9 +25,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.time.Instant;
 import java.util.Set;
@@ -47,10 +45,14 @@ import tools.jackson.databind.annotation.JsonDeserialize;
 @ToString
 public class FinishExecutionRQ {
 
-  @NotNull
-  @JsonProperty(value = "endTime", required = true)
+  /**
+   * Required for a test item (see {@link FinishTestItemRQ#getEndTime()}). Optional for a launch: a launch finish
+   * request without it ends the launch at the moment the request was received.
+   */
+  @JsonProperty(value = "endTime")
   @JsonAlias({"endTime", "end_time"})
-  @Schema(requiredMode = RequiredMode.REQUIRED)
+  @Schema(description = "End time. Required for a test item. For a launch, the moment the request is received "
+      + "is used when it is absent.")
   @JsonDeserialize(using = MultiFormatDateDeserializer.class)
   private Instant endTime;
 

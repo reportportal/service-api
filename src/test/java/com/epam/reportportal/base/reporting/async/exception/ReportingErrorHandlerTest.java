@@ -42,6 +42,7 @@ import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import jakarta.persistence.RollbackException;
 import java.sql.SQLException;
 import java.time.Duration;
+import java.util.Optional;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -472,6 +473,48 @@ class ReportingErrorHandlerTest {
         new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, "parent")));
 
     verify(rabbitTemplate).send(RETRY_EXCHANGE, TTL_QUEUE_MS, child);
+  }
+
+  @Test
+  void itemNotFoundInALaunchRecordedByADuplicateStartIsRetried() {
+    Message duplicateStart = message(RequestType.START_LAUNCH, null, "live-launch", null, null);
+    errorHandler.handleError(failure(duplicateStart,
+        new DataIntegrityViolationException("duplicate", sqlException("23505"))));
+    verify(rabbitTemplate).send("", REPORTING_PARKING_LOT, duplicateStart);
+    Message childStart = message(RequestType.START_TEST, null, "live-launch", "child", "pending-parent");
+    Message log = message(RequestType.LOG, null, "live-launch", "pending-item", null);
+
+    errorHandler.handleError(failure(childStart,
+        new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, "pending-parent")));
+    errorHandler.handleError(failure(log,
+        new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, "pending-item")));
+
+    verify(rabbitTemplate).send(RETRY_EXCHANGE, TTL_QUEUE_MS, childStart);
+    verify(rabbitTemplate).send(RETRY_EXCHANGE, TTL_QUEUE_MS, log);
+    verify(rabbitTemplate, never()).send("", REPORTING_PARKING_LOT, childStart);
+    verify(rabbitTemplate, never()).send("", REPORTING_PARKING_LOT, log);
+  }
+
+  @Test
+  void launchNotFoundIsNotMatchedAgainstAParkedItem() {
+    parkParent(RequestType.START_TEST, "launch-uuid", "parent");
+    Message child = message(RequestType.FINISH_TEST, null, "pending-launch", "parent", null);
+
+    errorHandler.handleError(failure(child,
+        new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, "pending-launch")));
+
+    verify(rabbitTemplate).send(RETRY_EXCHANGE, TTL_QUEUE_MS, child);
+  }
+
+  @Test
+  void notFoundErrorTypeIsTakenFromTheCauseChain() {
+    assertEquals(Optional.of(ErrorType.LAUNCH_NOT_FOUND), ReportingFailureClassifier.notFoundErrorType(
+        new IllegalStateException(new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, "uuid"))));
+    assertEquals(Optional.of(ErrorType.TEST_ITEM_NOT_FOUND), ReportingFailureClassifier.notFoundErrorType(
+        new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, "uuid")));
+    assertEquals(Optional.empty(), ReportingFailureClassifier.notFoundErrorType(
+        new ReportPortalException(ErrorType.FINISH_ITEM_NOT_ALLOWED, "uuid")));
+    assertEquals(Optional.empty(), ReportingFailureClassifier.notFoundErrorType(new NullPointerException()));
   }
 
   private void parkParent(RequestType type, String launchUuid, String itemUuid) {

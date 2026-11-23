@@ -22,6 +22,7 @@ import static com.epam.reportportal.base.reporting.async.config.ReportingTopolog
 import static com.epam.reportportal.base.reporting.async.config.ReportingTopologyConfiguration.TTL_QUEUE_MS;
 import static com.epam.reportportal.base.reporting.async.config.ReportingTopologyConfiguration.TTL_QUEUE_S;
 
+import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.reporting.async.config.MessageHeaders;
 import com.epam.reportportal.base.reporting.async.config.RequestType;
 import com.github.benmanes.caffeine.cache.Cache;
@@ -31,7 +32,6 @@ import io.micrometer.core.instrument.Metrics;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.Optional;
-import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.ImmediateRequeueAmqpException;
 import org.springframework.amqp.core.Message;
@@ -144,7 +144,7 @@ public class ReportingErrorHandler implements ErrorHandler {
     RequestType type = toRequestType(requestType);
     boolean notFoundOnly = ReportingFailureClassifier.isRetryableOnlyAsNotFound(cause, type);
     if (notFoundOnly) {
-      Optional<String> parkedParent = findParkedParent(properties, type);
+      Optional<String> parkedParent = findParkedParent(properties, type, cause);
       if (parkedParent.isPresent()) {
         log.warn("Launch or parent item '{}' of the message was parked. Rejecting message to parking lot queue. "
             + "Request Type: {}, Launch UUID: {}, Cause: {}", parkedParent.get(), requestType, launchUuid, reason);
@@ -191,22 +191,25 @@ public class ReportingErrorHandler implements ErrorHandler {
   }
 
   /**
-   * @return the parked launch or parent item the message refers to: its launch, and the parent item of a START_TEST or
-   * the item of a FINISH_TEST or LOG
+   * Only the entity that was not found is matched: the launch of the message on LAUNCH_NOT_FOUND, and the parent item
+   * of a START_TEST or the item of a FINISH_TEST or LOG on an item NOT_FOUND. A launch recorded by mistake (a duplicate
+   * start that was parked although the launch exists) then never parks the item failures of that launch.
+   *
+   * @return the parked launch or parent item that the failure of the message was about
    */
-  private Optional<String> findParkedParent(MessageProperties properties, RequestType type) {
+  private Optional<String> findParkedParent(MessageProperties properties, RequestType type, Throwable cause) {
     if (type == null || type == RequestType.START_LAUNCH) {
       return Optional.empty();
     }
-    Optional<String> item = switch (type) {
-      case START_TEST -> headerValue(properties, MessageHeaders.PARENT_ITEM_ID);
-      case FINISH_TEST, LOG -> headerValue(properties, MessageHeaders.ITEM_ID);
-      default -> Optional.empty();
-    };
-    return Stream.of(headerValue(properties, MessageHeaders.HASH_ON), item)
-        .flatMap(Optional::stream)
-        .filter(uuid -> parkedParents.getIfPresent(uuid) != null)
-        .findFirst();
+    Optional<String> missing = ReportingFailureClassifier.notFoundErrorType(cause)
+        .flatMap(errorType -> errorType == ErrorType.LAUNCH_NOT_FOUND
+            ? headerValue(properties, MessageHeaders.HASH_ON)
+            : switch (type) {
+              case START_TEST -> headerValue(properties, MessageHeaders.PARENT_ITEM_ID);
+              case FINISH_TEST, LOG -> headerValue(properties, MessageHeaders.ITEM_ID);
+              default -> Optional.empty();
+            });
+    return missing.filter(uuid -> parkedParents.getIfPresent(uuid) != null);
   }
 
   private static Optional<String> headerValue(MessageProperties properties, String header) {

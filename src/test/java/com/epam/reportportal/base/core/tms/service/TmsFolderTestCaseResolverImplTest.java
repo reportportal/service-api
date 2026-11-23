@@ -117,4 +117,20 @@ class TmsFolderTestCaseResolverImplTest {
     assertTrue(exception.getMessage().contains("Folders contain 6 test cases, the limit per request is 5"));
     verify(tmsTestCaseRepository, never()).findIdsByProjectIdAndTestFolderIds(anyLong(), any());
   }
+
+  @Test
+  void shouldThrowBadRequestWhenLoadedIdsExceedLimitAfterCount() {
+    when(tmsTestFolderRepository.findExistingIdsByProjectIdAndIdIn(PROJECT_ID, List.of(7L)))
+        .thenReturn(List.of(7L));
+    when(tmsTestCaseRepository.countByProjectIdAndTestFolderIds(PROJECT_ID, List.of(7L)))
+        .thenReturn((long) MAX_TEST_CASES);
+    when(tmsTestCaseRepository.findIdsByProjectIdAndTestFolderIds(PROJECT_ID, List.of(7L)))
+        .thenReturn(List.of(1L, 2L, 3L, 4L, 5L, 6L));
+
+    var exception = assertThrows(ReportPortalException.class,
+        () -> sut.resolve(PROJECT_ID, List.of(7L)));
+
+    assertEquals(ErrorType.BAD_REQUEST_ERROR, exception.getErrorType());
+    assertTrue(exception.getMessage().contains("Folders contain 6 test cases, the limit per request is 5"));
+  }
 }

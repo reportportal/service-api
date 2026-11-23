@@ -67,13 +67,21 @@ public class TmsFolderTestCaseResolverImpl implements TmsFolderTestCaseResolver 
           TEST_FOLDERS_NOT_FOUND.formatted(missingFolderIds, projectId));
     }
 
-    var testCaseCount = tmsTestCaseRepository.countByProjectIdAndTestFolderIds(projectId,
+    checkLimit(tmsTestCaseRepository.countByProjectIdAndTestFolderIds(projectId,
+        distinctFolderIds));
+
+    // The count and the ID query are separate statements, so test cases committed in between
+    // can push the loaded set over the limit; check it again.
+    var testCaseIds = tmsTestCaseRepository.findIdsByProjectIdAndTestFolderIds(projectId,
         distinctFolderIds);
+    checkLimit(testCaseIds.size());
+    return testCaseIds;
+  }
+
+  private void checkLimit(long testCaseCount) {
     if (testCaseCount > maxTestCases) {
       throw new ReportPortalException(BAD_REQUEST_ERROR,
           TOO_MANY_TEST_CASES.formatted(testCaseCount, maxTestCases));
     }
-
-    return tmsTestCaseRepository.findIdsByProjectIdAndTestFolderIds(projectId, distinctFolderIds);
   }
 }

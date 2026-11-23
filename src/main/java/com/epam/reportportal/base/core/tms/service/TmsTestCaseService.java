@@ -141,8 +141,9 @@ public interface TmsTestCaseService {
    * @param projectId  project the test case must belong to
    * @param testCaseId the test case to (re-)evaluate
    * @param threshold  the pipeline's {@code autoReadyThreshold} (0-100)
+   * @return whether this call made the test case Ready
    */
-  void applyAutoReady(Long projectId, Long testCaseId, int threshold);
+  boolean applyAutoReady(Long projectId, Long testCaseId, int threshold);
 
   /**
    * Batched form of {@link #applyAutoReady(Long, Long, int)} — takes the already-loaded entities

@@ -1,5 +1,6 @@
 package com.epam.reportportal.base.infrastructure.persistence.dao.tms;
 
+import com.epam.reportportal.base.infrastructure.persistence.entity.aifactory.Pipeline;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.PipelineStageTestCase;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCase;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.enums.TmsTestCaseStatus;
@@ -22,6 +23,14 @@ public interface PipelineStageTestCaseRepository extends JpaRepository<PipelineS
    */
   @Query("SELECT l.testCase FROM PipelineStageTestCase l WHERE l.stage.id = :stageId")
   List<TmsTestCase> findTestCasesByStageId(@Param("stageId") Long stageId);
+
+  /**
+   * The pipelines whose stages list the test case, the pipeline of the earliest iteration first: that one produced
+   * the case, e.g. the Test case generation pipeline, ahead of a later automation pipeline that lists it too.
+   */
+  @Query("SELECT l.stage.iteration.pipeline FROM PipelineStageTestCase l WHERE l.testCase.id = :testCaseId "
+      + "ORDER BY l.stage.iteration.id ASC")
+  List<Pipeline> findPipelinesByTestCaseIdOldestIterationFirst(@Param("testCaseId") Long testCaseId);
 
   /**
    * Ids of the iterations that have any of the given test cases linked to one of their stages.

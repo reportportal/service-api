@@ -237,22 +237,23 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
 
   @Override
   @Transactional
-  public void applyAutoReady(Long projectId, Long testCaseId, int threshold) {
+  public boolean applyAutoReady(Long projectId, Long testCaseId, int threshold) {
     var testCase = tmsTestCaseRepository.findByProjectIdAndId(projectId, testCaseId).orElse(null);
     if (testCase == null || !isAutoReadyCandidate(testCase) || !tmsTestCaseReadyEligibilityService.canBecomeReady(testCaseId)) {
-      return;
+      return false;
     }
     var defaultVersion = tmsTestCaseVersionService.getDefaultVersion(testCaseId);
     var metrics = tmsTestCaseQualityService.buildMetrics(defaultVersion);
     if (metrics == null || metrics.getOverallScore() == null || metrics.isObsolete()
         || metrics.getOverallScore() < threshold) {
-      return;
+      return false;
     }
     testCase.setStatus(TmsTestCaseStatus.READY);
     tmsTestCaseLifecycleService.onStatusChanged(testCase, TmsTestCaseStatus.DRAFT,
         TmsTestCaseLifecycleService.Actor.autoReady(metrics.getOverallScore(), threshold));
     tmsTestCaseRepository.save(testCase);
     publishLifecycleChanged(List.of(testCaseId));
+    return true;
   }
 
   /**

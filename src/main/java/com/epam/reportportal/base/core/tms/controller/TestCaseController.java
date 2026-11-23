@@ -14,6 +14,7 @@ import com.epam.reportportal.base.core.tms.dto.batch.BatchDuplicateTestCasesRS;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchPatchTestCaseAttributesRQ;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchPatchTestCasesRQ;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchPatchTestCasesRS;
+import com.epam.reportportal.base.core.tms.pipeline.AutoReadyOnScoresRecorded;
 import com.epam.reportportal.base.core.tms.service.TmsTestCaseService;
 import com.epam.reportportal.base.core.tms.validation.ValidTestFolderIdForPatchTestCase;
 import com.epam.reportportal.base.core.tms.validation.ValidTestFolderIdForUpsertTestCase;
@@ -65,6 +66,8 @@ import org.springframework.web.multipart.MultipartFile;
 public class TestCaseController {
 
   private final TmsTestCaseService tmsTestCaseService;
+
+  private final AutoReadyOnScoresRecorded autoReadyOnScoresRecorded;
 
   private final ProjectExtractor projectExtractor;
 
@@ -216,7 +219,9 @@ public class TestCaseController {
    * Records AI quality scores and/or generation cost for a test case's current default
    * version. Dedicated endpoint for the AI agent, separate from create/patch — submitting
    * this is what flips {@code origin} to {@code AI} and defaults {@code status} to
-   * {@code DRAFT} the first time it happens.
+   * {@code DRAFT} the first time it happens. When the pipeline that produced the case has
+   * Auto-Ready on and the recorded score reaches its threshold, the case is made {@code READY}
+   * right away (the answer carries the new status).
    *
    * @param projectKey The key of the project to which the test case belongs.
    * @param testCaseId The ID of the test case to record scores/generation for.
@@ -239,7 +244,13 @@ public class TestCaseController {
     var projectId = projectExtractor
         .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey))
         .getProjectId();
-    return tmsTestCaseService.applyGeneration(projectId, testCaseId, inputDto);
+    var response = tmsTestCaseService.applyGeneration(projectId, testCaseId, inputDto);
+    // The scores are committed by now. A case of a pipeline with Auto-Ready on is promoted here, whether the
+    // producer recorded the scores before or after its Upload stage passed; the answer then shows the new status.
+    if (autoReadyOnScoresRecorded.evaluate(projectId, testCaseId)) {
+      return tmsTestCaseService.getById(projectId, testCaseId);
+    }
+    return response;
   }
 
   /**

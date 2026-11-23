@@ -4,7 +4,9 @@ import static com.epam.reportportal.base.util.StandaloneMockMvcSupport.standalon
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -100,8 +102,8 @@ public class TmsManualLaunchControllerTest {
         .withProjectKey(projectKey)
         .build();
 
-    given(projectExtractor.extractMembershipDetails(any(), eq(projectKey)))
-        .willReturn(membershipDetails);
+    lenient().when(projectExtractor.extractMembershipDetails(any(), eq(projectKey)))
+        .thenReturn(membershipDetails);
   }
 
   @Test
@@ -119,6 +121,27 @@ public class TmsManualLaunchControllerTest {
         .andExpect(status().isOk());
 
     verify(tmsManualLaunchService).create(eq(projectId), eq(user), any());
+  }
+
+  @Test
+  void createManualLaunchWithNullFolderIdReturnsBadRequestTest() throws Exception {
+    mockMvc.perform(post("/v1/project/{projectKey}/launch/manual", projectKey)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("{\"name\":\"Test Launch\",\"folderIds\":[1,null]}"))
+        .andExpect(status().isBadRequest());
+
+    verify(tmsManualLaunchService, never()).create(any(), any(), any());
+  }
+
+  @Test
+  void batchAddTestCasesWithNullFolderIdReturnsBadRequestTest() throws Exception {
+    mockMvc.perform(post("/v1/project/{projectKey}/launch/manual/{launchId}/test-case/batch",
+            projectKey, launchId)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("{\"folderIds\":[null]}"))
+        .andExpect(status().isBadRequest());
+
+    verify(tmsManualLaunchService, never()).addTestCasesToLaunch(any(), any(), any());
   }
 
   @Test

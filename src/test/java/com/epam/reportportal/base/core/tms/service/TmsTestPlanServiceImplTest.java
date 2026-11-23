@@ -16,6 +16,7 @@ import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -25,6 +26,7 @@ import com.epam.reportportal.base.core.tms.dto.TmsTestCaseInTestPlanRS;
 import com.epam.reportportal.base.core.tms.dto.TmsTestFolderRS;
 import com.epam.reportportal.base.core.tms.dto.TmsTestPlanRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestPlanRS;
+import com.epam.reportportal.base.core.tms.dto.batch.BatchAddTestCasesToPlanRQ;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchTestCaseOperationError;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchTestCaseOperationResultRS;
 import com.epam.reportportal.base.core.tms.mapper.TmsTestPlanMapper;
@@ -48,6 +50,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.LongStream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -93,6 +96,9 @@ class TmsTestPlanServiceImplTest {
 
   @Mock
   private TmsTestFolderService tmsTestFolderService;
+
+  @Mock
+  private TmsFolderTestCaseResolver tmsFolderTestCaseResolver;
 
   @Mock
   private MembershipDetails membershipDetails;
@@ -478,7 +484,8 @@ class TmsTestPlanServiceImplTest {
         .thenReturn(List.of(20L, 30L));
     when(tmsTestPlanMapper.convertToRS(anyInt(), anyInt(), anyList())).thenReturn(expectedResult);
 
-    var result = sut.addTestCasesToPlan(projectId, testPlanId, testCaseIds);
+    var result = sut.addTestCasesToPlan(projectId, testPlanId,
+        BatchAddTestCasesToPlanRQ.builder().testCaseIds(testCaseIds).build());
 
     assertNotNull(result);
     verify(testPlanRepository).existsByIdAndProject_Id(testPlanId, projectId);
@@ -504,7 +511,8 @@ class TmsTestPlanServiceImplTest {
         .thenReturn(List.of(10L));
     when(tmsTestPlanMapper.convertToRS(anyInt(), anyInt(), anyList())).thenReturn(expectedResult);
 
-    var result = sut.addTestCasesToPlan(projectId, testPlanId, testCaseIds);
+    var result = sut.addTestCasesToPlan(projectId, testPlanId,
+        BatchAddTestCasesToPlanRQ.builder().testCaseIds(testCaseIds).build());
 
     assertNotNull(result);
     verify(tmsTestPlanTestCaseRepository)
@@ -523,7 +531,8 @@ class TmsTestPlanServiceImplTest {
         .thenThrow(new RuntimeException("Database error"));
 
     assertThrows(RuntimeException.class,
-        () -> sut.addTestCasesToPlan(projectId, testPlanId, testCaseIds));
+        () -> sut.addTestCasesToPlan(projectId, testPlanId,
+        BatchAddTestCasesToPlanRQ.builder().testCaseIds(testCaseIds).build()));
     verify(tmsTestPlanMapper, never()).convertToRS(anyInt(), anyInt(), anyList());
   }
 
@@ -535,11 +544,152 @@ class TmsTestPlanServiceImplTest {
 
     when(testPlanRepository.existsByIdAndProject_Id(testPlanId, projectId)).thenReturn(false);
 
-    var exception = assertThrows(ReportPortalException.class, () -> sut.addTestCasesToPlan(projectId, testPlanId, testCaseIds));
+    var exception = assertThrows(ReportPortalException.class, () -> sut.addTestCasesToPlan(projectId, testPlanId,
+        BatchAddTestCasesToPlanRQ.builder().testCaseIds(testCaseIds).build()));
 
     assertEquals(ErrorType.NOT_FOUND, exception.getErrorType());
     verify(testPlanRepository).existsByIdAndProject_Id(testPlanId, projectId);
     verify(tmsTestCaseService, never()).getExistingTestCaseIds(any(), any());
+  }
+
+  @Test
+  void shouldAddFolderTestCasesToPlanCountingAlreadyPresentAsSuccess() {
+    var folderIds = List.of(7L);
+    var request = BatchAddTestCasesToPlanRQ.builder().folderIds(folderIds).build();
+
+    when(testPlanRepository.existsByIdAndProject_Id(testPlanId, projectId)).thenReturn(true);
+    when(tmsFolderTestCaseResolver.resolve(projectId, folderIds)).thenReturn(List.of(10L, 20L, 30L));
+    when(tmsTestCaseService.getExistingTestCaseIds(projectId, List.of())).thenReturn(List.of());
+    when(tmsTestPlanTestCaseRepository.findTestCaseIdsByTestPlanId(testPlanId)).thenReturn(List.of(10L));
+    stubInsertReturnsAllIds();
+    stubConvertToRS();
+
+    var result = sut.addTestCasesToPlan(projectId, testPlanId, request);
+
+    verify(tmsTestPlanTestCaseRepository)
+        .insertTestPlanTestCasesInProject(projectId, testPlanId, List.of(20L, 30L));
+    assertEquals(3, result.getTotalCount());
+    assertEquals(3, result.getSuccessCount());
+    assertEquals(0, result.getFailureCount());
+    assertEquals(List.of(20L, 30L, 10L), result.getSuccessTestCaseIds());
+    assertTrue(result.getErrors().isEmpty());
+  }
+
+  @Test
+  void shouldKeepExplicitIdErrorsWhenAddingTestCasesAndFoldersToPlan() {
+    var request = BatchAddTestCasesToPlanRQ.builder()
+        .testCaseIds(List.of(10L))
+        .folderIds(List.of(7L))
+        .build();
+
+    when(testPlanRepository.existsByIdAndProject_Id(testPlanId, projectId)).thenReturn(true);
+    when(tmsFolderTestCaseResolver.resolve(projectId, List.of(7L))).thenReturn(List.of(10L, 20L));
+    when(tmsTestCaseService.getExistingTestCaseIds(projectId, List.of(10L))).thenReturn(List.of(10L));
+    when(tmsTestPlanTestCaseRepository.findTestCaseIdsByTestPlanId(testPlanId)).thenReturn(List.of(10L));
+    stubInsertReturnsAllIds();
+    stubConvertToRS();
+
+    var result = sut.addTestCasesToPlan(projectId, testPlanId, request);
+
+    // 10 is an explicit id already in the plan: an error, and not counted again for the folder
+    verify(tmsTestPlanTestCaseRepository)
+        .insertTestPlanTestCasesInProject(projectId, testPlanId, List.of(20L));
+    assertEquals(2, result.getTotalCount());
+    assertEquals(1, result.getSuccessCount());
+    assertEquals(1, result.getFailureCount());
+    assertEquals(List.of(20L), result.getSuccessTestCaseIds());
+    assertEquals(10L, result.getErrors().getFirst().getTestCaseId());
+  }
+
+  @Test
+  void shouldInsertFolderTestCasesIntoPlanInChunksOfThousand() {
+    var folderTestCaseIds = LongStream.rangeClosed(1, 2500).boxed().toList();
+    var request = BatchAddTestCasesToPlanRQ.builder().folderIds(List.of(7L)).build();
+
+    when(testPlanRepository.existsByIdAndProject_Id(testPlanId, projectId)).thenReturn(true);
+    when(tmsFolderTestCaseResolver.resolve(projectId, List.of(7L))).thenReturn(folderTestCaseIds);
+    when(tmsTestCaseService.getExistingTestCaseIds(projectId, List.of())).thenReturn(List.of());
+    when(tmsTestPlanTestCaseRepository.findTestCaseIdsByTestPlanId(testPlanId)).thenReturn(List.of());
+    stubInsertReturnsAllIds();
+    stubConvertToRS();
+
+    var result = sut.addTestCasesToPlan(projectId, testPlanId, request);
+
+    verify(tmsTestPlanTestCaseRepository, times(3))
+        .insertTestPlanTestCasesInProject(eq(projectId), eq(testPlanId), anyList());
+    verify(tmsTestPlanTestCaseRepository)
+        .insertTestPlanTestCasesInProject(projectId, testPlanId, folderTestCaseIds.subList(2000, 2500));
+    assertEquals(2500, result.getSuccessCount());
+    assertEquals(folderTestCaseIds, result.getSuccessTestCaseIds());
+  }
+
+  @Test
+  void shouldCountFolderIdsSkippedByInsertAsSuccessAndExplicitIdsAsErrors() {
+    var request = BatchAddTestCasesToPlanRQ.builder()
+        .testCaseIds(List.of(40L, 50L))
+        .folderIds(List.of(7L))
+        .build();
+
+    when(testPlanRepository.existsByIdAndProject_Id(testPlanId, projectId)).thenReturn(true);
+    when(tmsFolderTestCaseResolver.resolve(projectId, List.of(7L))).thenReturn(List.of(10L, 20L, 30L));
+    when(tmsTestCaseService.getExistingTestCaseIds(projectId, List.of(40L, 50L))).thenReturn(List.of(40L, 50L));
+    when(tmsTestPlanTestCaseRepository.findTestCaseIdsByTestPlanId(testPlanId)).thenReturn(List.of(10L));
+    // 30 and 50 were added by a concurrent request after the validation, so the insert skips them
+    when(tmsTestPlanTestCaseRepository.insertTestPlanTestCasesInProject(projectId, testPlanId,
+        List.of(40L, 50L, 20L, 30L))).thenReturn(List.of(40L, 20L));
+    stubConvertToRS();
+
+    var result = sut.addTestCasesToPlan(projectId, testPlanId, request);
+
+    assertEquals(5, result.getTotalCount());
+    assertEquals(4, result.getSuccessCount());
+    assertEquals(1, result.getFailureCount());
+    assertEquals(List.of(40L, 20L, 30L, 10L), result.getSuccessTestCaseIds());
+    assertEquals(List.of(
+            new BatchTestCaseOperationError(50L, "Test case with id 50 already exists in test plan")),
+        result.getErrors());
+  }
+
+  @Test
+  void shouldNotWriteWhenFolderResolutionFailsForPlan() {
+    var request = BatchAddTestCasesToPlanRQ.builder().folderIds(List.of(7L)).build();
+
+    when(testPlanRepository.existsByIdAndProject_Id(testPlanId, projectId)).thenReturn(true);
+    when(tmsFolderTestCaseResolver.resolve(projectId, List.of(7L)))
+        .thenThrow(new ReportPortalException(ErrorType.NOT_FOUND, "folder"));
+
+    var exception = assertThrows(ReportPortalException.class,
+        () -> sut.addTestCasesToPlan(projectId, testPlanId, request));
+
+    assertEquals(ErrorType.NOT_FOUND, exception.getErrorType());
+    verifyNoInteractions(tmsTestPlanTestCaseRepository);
+  }
+
+  @Test
+  void shouldNotResolveFoldersWhenPlanDoesNotExist() {
+    var request = BatchAddTestCasesToPlanRQ.builder().folderIds(List.of(7L)).build();
+
+    when(testPlanRepository.existsByIdAndProject_Id(testPlanId, projectId)).thenReturn(false);
+
+    assertThrows(ReportPortalException.class,
+        () -> sut.addTestCasesToPlan(projectId, testPlanId, request));
+
+    verifyNoInteractions(tmsFolderTestCaseResolver);
+  }
+
+  private void stubInsertReturnsAllIds() {
+    when(tmsTestPlanTestCaseRepository.insertTestPlanTestCasesInProject(eq(projectId), eq(testPlanId),
+        anyList())).thenAnswer(invocation -> invocation.getArgument(2));
+  }
+
+  private void stubConvertToRS() {
+    when(tmsTestPlanMapper.convertToRS(anyInt(), anyInt(), anyList())).thenAnswer(invocation ->
+        BatchTestCaseOperationResultRS.builder()
+            .totalCount(invocation.getArgument(0))
+            .successCount(invocation.getArgument(1))
+            .failureCount((int) invocation.getArgument(0) - (int) invocation.getArgument(1))
+            .errors(invocation.getArgument(2))
+            .build());
   }
 
   @Test
@@ -594,11 +744,14 @@ class TmsTestPlanServiceImplTest {
     // 20 was added by a concurrent request after the validation, so the insert skips it
     when(tmsTestPlanTestCaseRepository.insertTestPlanTestCasesInProject(projectId, testPlanId, testCaseIds))
         .thenReturn(List.of(10L));
+    stubConvertToRS();
 
-    sut.addTestCasesToPlan(projectId, testPlanId, testCaseIds);
+    var result = sut.addTestCasesToPlan(projectId, testPlanId,
+        BatchAddTestCasesToPlanRQ.builder().testCaseIds(testCaseIds).build());
 
     verify(tmsTestPlanMapper).convertToRS(eq(2), eq(1), eq(List.of(
         new BatchTestCaseOperationError(20L, "Test case with id 20 already exists in test plan"))));
+    assertEquals(List.of(10L), result.getSuccessTestCaseIds());
   }
 
   @Test
@@ -629,7 +782,8 @@ class TmsTestPlanServiceImplTest {
     when(tmsTestPlanTestCaseRepository.findTestCaseIdsByTestPlanId(testPlanId)).thenReturn(List.of());
     when(tmsTestPlanMapper.convertToRS(anyInt(), anyInt(), anyList())).thenReturn(expectedResult);
 
-    var result = sut.addTestCasesToPlan(projectId, testPlanId, testCaseIds);
+    var result = sut.addTestCasesToPlan(projectId, testPlanId,
+        BatchAddTestCasesToPlanRQ.builder().testCaseIds(testCaseIds).build());
 
     assertNotNull(result);
     verify(tmsTestPlanTestCaseRepository, never()).insertTestPlanTestCasesInProject(any(), any(), any());

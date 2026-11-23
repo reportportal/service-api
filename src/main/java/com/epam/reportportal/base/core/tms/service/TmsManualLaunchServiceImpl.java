@@ -30,6 +30,7 @@ import com.epam.reportportal.base.core.user.GetUserHandler;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
 import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestCaseExecutionRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.filterable.TmsManualLaunchFilterableRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.LaunchTypeEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.StatusEnum;
@@ -88,6 +89,8 @@ public class TmsManualLaunchServiceImpl implements TmsManualLaunchService {
   private final GetUserHandler getUserHandler;
   private final TmsTestPlanService tmsTestPlanService;
   private final RetentionPolicyAttributeHandler retentionPolicyAttributeHandler;
+  private final TmsFolderTestCaseResolver tmsFolderTestCaseResolver;
+  private final TmsTestCaseExecutionRepository tmsTestCaseExecutionRepository;
 
   private TmsTestCaseExecutionService tmsTestCaseExecutionService;
   private TmsTestCaseService tmsTestCaseService;
@@ -121,6 +124,7 @@ public class TmsManualLaunchServiceImpl implements TmsManualLaunchService {
     if (request.getTestPlan() != null && request.getTestPlan().getId() != null) {
       tmsTestPlanService.verifyTestPlanExists(projectId, request.getTestPlan().getId());
     }
+    var folderTestCaseIds = tmsFolderTestCaseResolver.resolve(projectId, request.getFolderIds());
 
     // Create Launch entity
     var launch = tmsManualLaunchMapper.convertFromCreateTmsManualLaunchRQ(projectId, user, request);
@@ -139,16 +143,14 @@ public class TmsManualLaunchServiceImpl implements TmsManualLaunchService {
 
     launch = launchRepository.save(launch);
 
-    // Add test cases to launch if present
-    var addTestCasesResult = tmsTestCaseExecutionService
-        .addTestCasesToLaunch(
-            projectId,
-            launch,
-            CollectionUtils.isEmpty(request.getTestCaseIds()) ?
+    // Add test cases to launch if present; the whole test plan only when no ids and no folders
+    var addTestCasesResult =
+        CollectionUtils.isEmpty(request.getTestCaseIds()) && CollectionUtils.isEmpty(
+            request.getFolderIds())
+            ? tmsTestCaseExecutionService.addTestCasesToLaunch(projectId, launch,
                 tmsTestPlanService.getTestCaseIdsAddedToPlan(projectId,
-                    request.getTestPlan() != null ? request.getTestPlan().getId() : null) :
-                request.getTestCaseIds()
-        );
+                    request.getTestPlan() != null ? request.getTestPlan().getId() : null))
+            : addTestCasesToLaunch(projectId, launch, request.getTestCaseIds(), folderTestCaseIds);
 
     log.debug("Created manual launch with ID: {} for project: {}", launch.getId(), projectId);
 
@@ -365,8 +367,49 @@ public class TmsManualLaunchServiceImpl implements TmsManualLaunchService {
             NOT_FOUND, LAUNCH_NOT_FOUND_BY_ID.formatted(launchId, projectId))
         );
 
-    return tmsTestCaseExecutionService.addTestCasesToLaunch(projectId, launch,
-        request.getTestCaseIds());
+    var folderTestCaseIds = tmsFolderTestCaseResolver.resolve(projectId, request.getFolderIds());
+    return addTestCasesToLaunch(projectId, launch, request.getTestCaseIds(), folderTestCaseIds);
+  }
+
+  /**
+   * Adds the explicit test cases (per-id errors as before) and the folder-resolved test cases; the
+   * folder-resolved ones already in the launch are skipped and counted as success.
+   */
+  private BatchTestCaseOperationResultRS addTestCasesToLaunch(Long projectId, Launch launch,
+      List<Long> testCaseIds, List<Long> folderTestCaseIds) {
+    var explicitTestCaseIds = testCaseIds != null ? testCaseIds : List.<Long>of();
+    if (folderTestCaseIds.isEmpty()) {
+      return tmsTestCaseExecutionService.addTestCasesToLaunch(projectId, launch,
+          explicitTestCaseIds);
+    }
+
+    var explicitTestCaseIdSet = new HashSet<>(explicitTestCaseIds);
+    var testCaseIdsInLaunch = tmsTestCaseExecutionRepository.findTestCaseIdsByLaunchId(
+        launch.getId());
+
+    var testCaseIdsToAdd = new ArrayList<>(explicitTestCaseIds);
+    var folderTestCaseIdsInLaunch = new ArrayList<Long>();
+    for (var testCaseId : folderTestCaseIds) {
+      if (explicitTestCaseIdSet.contains(testCaseId)) {
+        continue;
+      }
+      if (testCaseIdsInLaunch.contains(testCaseId)) {
+        folderTestCaseIdsInLaunch.add(testCaseId);
+      } else {
+        testCaseIdsToAdd.add(testCaseId);
+      }
+    }
+
+    var result = tmsTestCaseExecutionService.addTestCasesToLaunch(projectId, launch,
+        testCaseIdsToAdd);
+    if (!folderTestCaseIdsInLaunch.isEmpty()) {
+      var successTestCaseIds = new ArrayList<>(result.getSuccessTestCaseIds());
+      successTestCaseIds.addAll(folderTestCaseIdsInLaunch);
+      result.setSuccessTestCaseIds(successTestCaseIds);
+      result.setSuccessCount(result.getSuccessCount() + folderTestCaseIdsInLaunch.size());
+      result.setTotalCount(result.getTotalCount() + folderTestCaseIdsInLaunch.size());
+    }
+    return result;
   }
 
   @Override

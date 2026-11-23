@@ -16,6 +16,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import com.epam.reportportal.base.core.item.TestItemService;
@@ -30,6 +31,7 @@ import com.epam.reportportal.base.core.tms.dto.TmsManualLaunchRS;
 import com.epam.reportportal.base.core.tms.dto.TmsManualLaunchTestPlanRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseExecutionCommentRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseExecutionCommentRS;
+import com.epam.reportportal.base.core.tms.dto.batch.BatchAddTestCasesToLaunchRQ;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchDeleteManualLaunchesRQ;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchDeleteTestCaseExecutionsRQ;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchTestCaseOperationResultRS;
@@ -37,6 +39,7 @@ import com.epam.reportportal.base.core.tms.mapper.TmsManualLaunchMapper;
 import com.epam.reportportal.base.core.user.GetUserHandler;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestCaseExecutionRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.filterable.TmsManualLaunchFilterableRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.LaunchTypeEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.StatusEnum;
@@ -48,6 +51,7 @@ import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalExc
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -91,6 +95,10 @@ class TmsManualLaunchServiceImplTest {
   private RetentionPolicyAttributeHandler retentionPolicyAttributeHandler;
   @Mock
   private PlatformTransactionManager transactionManager;
+  @Mock
+  private TmsFolderTestCaseResolver tmsFolderTestCaseResolver;
+  @Mock
+  private TmsTestCaseExecutionRepository tmsTestCaseExecutionRepository;
   @InjectMocks
   private TmsManualLaunchServiceImpl sut;
   private MembershipDetails membershipDetails;
@@ -440,6 +448,126 @@ class TmsManualLaunchServiceImplTest {
     assertEquals(BAD_REQUEST_ERROR, exception.getErrorType());
   
     verify(tmsTestCaseExecutionService, never()).addTestCaseToLaunch(anyLong(), any(), anyLong());
+  }
+
+  // -------------------------------------------------------------------------
+  // ADD BY FOLDER
+  // -------------------------------------------------------------------------
+
+  @Test
+  void create_WithFolderIds_ShouldAddFolderTestCasesInsteadOfWholePlan() {
+    TmsManualLaunchTestPlanRQ planRQ = new TmsManualLaunchTestPlanRQ();
+    planRQ.setId(testPlanId);
+    createLaunchRQ.setTestPlan(planRQ);
+    createLaunchRQ.setFolderIds(List.of(7L));
+
+    when(tmsFolderTestCaseResolver.resolve(projectId, List.of(7L))).thenReturn(List.of(10L, 20L));
+    when(tmsManualLaunchMapper.convertFromCreateTmsManualLaunchRQ(projectId, user, createLaunchRQ))
+        .thenReturn(launch);
+    when(launchRepository.save(launch)).thenReturn(launch);
+    when(tmsTestCaseExecutionRepository.findTestCaseIdsByLaunchId(launchId)).thenReturn(Set.of());
+    var batchResult = successResult(List.of(10L, 20L));
+    when(tmsTestCaseExecutionService.addTestCasesToLaunch(projectId, launch, List.of(10L, 20L)))
+        .thenReturn(batchResult);
+    when(tmsManualLaunchMapper.convertToCreateTmsManualLaunchRS(launch, batchResult))
+        .thenReturn(createLaunchRS);
+
+    sut.create(projectId, user, createLaunchRQ);
+
+    verify(tmsTestPlanService, never()).getTestCaseIdsAddedToPlan(anyLong(), any());
+    verify(tmsTestCaseExecutionService).addTestCasesToLaunch(projectId, launch, List.of(10L, 20L));
+  }
+
+  @Test
+  void create_WithEmptyFolder_ShouldNotFallBackToWholePlan() {
+    TmsManualLaunchTestPlanRQ planRQ = new TmsManualLaunchTestPlanRQ();
+    planRQ.setId(testPlanId);
+    createLaunchRQ.setTestPlan(planRQ);
+    createLaunchRQ.setFolderIds(List.of(7L));
+
+    when(tmsFolderTestCaseResolver.resolve(projectId, List.of(7L))).thenReturn(List.of());
+    when(tmsManualLaunchMapper.convertFromCreateTmsManualLaunchRQ(projectId, user, createLaunchRQ))
+        .thenReturn(launch);
+    when(launchRepository.save(launch)).thenReturn(launch);
+
+    sut.create(projectId, user, createLaunchRQ);
+
+    verify(tmsTestPlanService, never()).getTestCaseIdsAddedToPlan(anyLong(), any());
+    verify(tmsTestCaseExecutionService).addTestCasesToLaunch(projectId, launch, List.of());
+  }
+
+  @Test
+  void create_WhenFolderResolutionFails_ShouldNotSaveLaunch() {
+    createLaunchRQ.setFolderIds(List.of(7L));
+
+    when(tmsFolderTestCaseResolver.resolve(projectId, List.of(7L)))
+        .thenThrow(new ReportPortalException(BAD_REQUEST_ERROR, "limit"));
+
+    var exception = assertThrows(ReportPortalException.class,
+        () -> sut.create(projectId, user, createLaunchRQ));
+    assertEquals(BAD_REQUEST_ERROR, exception.getErrorType());
+
+    verify(launchRepository, never()).save(any());
+    verifyNoInteractions(tmsTestCaseExecutionService);
+  }
+
+  @Test
+  void addTestCasesToLaunch_WithFolderIds_ShouldSkipAlreadyPresentAsSuccess() {
+    var request = BatchAddTestCasesToLaunchRQ.builder()
+        .testCaseIds(List.of(5L))
+        .folderIds(List.of(7L))
+        .build();
+
+    when(launchRepository.findManualLaunchByIdAndProjectId(launchId, projectId))
+        .thenReturn(Optional.of(launch));
+    when(tmsFolderTestCaseResolver.resolve(projectId, List.of(7L)))
+        .thenReturn(List.of(5L, 10L, 20L, 30L));
+    when(tmsTestCaseExecutionRepository.findTestCaseIdsByLaunchId(launchId)).thenReturn(Set.of(10L));
+    when(tmsTestCaseExecutionService.addTestCasesToLaunch(projectId, launch, List.of(5L, 20L, 30L)))
+        .thenReturn(successResult(List.of(5L, 20L, 30L)));
+
+    var result = sut.addTestCasesToLaunch(projectId, launchId, request);
+
+    assertEquals(4, result.getTotalCount());
+    assertEquals(4, result.getSuccessCount());
+    assertEquals(0, result.getFailureCount());
+    assertEquals(List.of(5L, 20L, 30L, 10L), result.getSuccessTestCaseIds());
+  }
+
+  @Test
+  void addTestCasesToLaunch_WithoutFolderIds_ShouldPassExplicitIdsUnchanged() {
+    var request = BatchAddTestCasesToLaunchRQ.builder().testCaseIds(List.of(5L, 6L)).build();
+    var batchResult = successResult(List.of(5L, 6L));
+
+    when(launchRepository.findManualLaunchByIdAndProjectId(launchId, projectId))
+        .thenReturn(Optional.of(launch));
+    when(tmsTestCaseExecutionService.addTestCasesToLaunch(projectId, launch, List.of(5L, 6L)))
+        .thenReturn(batchResult);
+
+    assertEquals(batchResult, sut.addTestCasesToLaunch(projectId, launchId, request));
+    verifyNoInteractions(tmsTestCaseExecutionRepository);
+  }
+
+  @Test
+  void addTestCasesToLaunch_WhenLaunchNotFound_ShouldNotResolveFolders() {
+    var request = BatchAddTestCasesToLaunchRQ.builder().folderIds(List.of(7L)).build();
+
+    when(launchRepository.findManualLaunchByIdAndProjectId(launchId, projectId))
+        .thenReturn(Optional.empty());
+
+    assertThrows(ReportPortalException.class,
+        () -> sut.addTestCasesToLaunch(projectId, launchId, request));
+    verifyNoInteractions(tmsFolderTestCaseResolver);
+  }
+
+  private static BatchTestCaseOperationResultRS successResult(List<Long> testCaseIds) {
+    return BatchTestCaseOperationResultRS.builder()
+        .totalCount(testCaseIds.size())
+        .successCount(testCaseIds.size())
+        .failureCount(0)
+        .successTestCaseIds(testCaseIds)
+        .errors(List.of())
+        .build();
   }
 
   // -------------------------------------------------------------------------

@@ -8,6 +8,7 @@ import com.epam.reportportal.base.core.tms.dto.TmsTestCaseInTestPlanRS;
 import com.epam.reportportal.base.core.tms.dto.TmsTestFolderRS;
 import com.epam.reportportal.base.core.tms.dto.TmsTestPlanRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestPlanRS;
+import com.epam.reportportal.base.core.tms.dto.batch.BatchAddTestCasesToPlanRQ;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchTestCaseOperationError;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchTestCaseOperationResultRS;
 import com.epam.reportportal.base.core.tms.mapper.TmsTestPlanMapper;
@@ -23,7 +24,6 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestP
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.model.Page;
 import com.epam.reportportal.base.ws.converter.PagedResourcesAssembler;
-import jakarta.validation.constraints.NotEmpty;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -34,6 +34,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.ListUtils;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -51,6 +52,7 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
       "Test plan '%s' is not under the specified project.";
   private static final String TMS_MILESTONE_NOT_FOUND_BY_ID =
       "TMS Milestone with id: %d for project: %d";
+  private static final int INSERT_CHUNK_SIZE = 1000;
 
   private final LaunchRepository launchRepository;
   private final TmsTestPlanRepository testPlanRepository;
@@ -62,6 +64,7 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
   private final TmsTestCaseService tmsTestCaseService;
   private final TmsTestPlanExecutionService tmsTestPlanExecutionService;
   private final TmsTestFolderService tmsTestFolderService;
+  private final TmsFolderTestCaseResolver tmsFolderTestCaseResolver;
 
   @Override
   @Transactional(readOnly = true)
@@ -173,12 +176,24 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
                 testPlanIds.getTotalElements()));
   }
 
+  private BatchTestCaseOperationResultRS addTestCasesToPlan(Long projectId, Long testPlanId,
+      List<Long> testCaseIds) {
+    verifyTestPlanExists(projectId, testPlanId);
+    return addTestCasesToPlan(projectId, testPlanId, testCaseIds, List.of());
+  }
+
   @Override
   @Transactional
   public BatchTestCaseOperationResultRS addTestCasesToPlan(Long projectId, Long testPlanId,
-      @NotEmpty List<Long> testCaseIds) {
+      BatchAddTestCasesToPlanRQ request) {
     verifyTestPlanExists(projectId, testPlanId);
+    var folderTestCaseIds = tmsFolderTestCaseResolver.resolve(projectId, request.getFolderIds());
+    return addTestCasesToPlan(projectId, testPlanId,
+        request.getTestCaseIds() != null ? request.getTestCaseIds() : List.of(), folderTestCaseIds);
+  }
 
+  private BatchTestCaseOperationResultRS addTestCasesToPlan(Long projectId, Long testPlanId,
+      List<Long> testCaseIds, List<Long> folderTestCaseIds) {
     var errors = new ArrayList<BatchTestCaseOperationError>();
     var totalCount = testCaseIds.size();
 
@@ -210,20 +225,43 @@ public class TmsTestPlanServiceImpl implements TmsTestPlanService {
       }
     }
 
-    var addedTestCaseIds = new HashSet<Long>();
-    if (!testCaseIdsToAdd.isEmpty()) {
-      // Count only the rows the statement really inserted: a concurrent request may have won
-      addedTestCaseIds.addAll(tmsTestPlanTestCaseRepository.insertTestPlanTestCasesInProject(
-          projectId, testPlanId, List.copyOf(testCaseIdsToAdd)));
-      for (var testCaseId : testCaseIdsToAdd) {
-        if (!addedTestCaseIds.contains(testCaseId)) {
-          errors.add(new BatchTestCaseOperationError(testCaseId,
-              String.format("Test case with id %s already exists in test plan", testCaseId)));
-        }
+    // Folder-resolved test cases are added idempotently: those already in the plan count as success
+    var explicitTestCaseIds = new HashSet<>(testCaseIds);
+    var folderTestCaseIdsInTestPlan = new ArrayList<Long>();
+    for (var testCaseId : folderTestCaseIds) {
+      if (explicitTestCaseIds.contains(testCaseId)) {
+        continue;
+      }
+      totalCount++;
+      if (testCaseIdsAreInTestPlan.contains(testCaseId)) {
+        folderTestCaseIdsInTestPlan.add(testCaseId);
+      } else {
+        testCaseIdsToAdd.add(testCaseId);
       }
     }
 
-    return tmsTestPlanMapper.convertToRS(totalCount, addedTestCaseIds.size(), errors);
+    // Count only the rows the statement really inserted: a concurrent request may have won
+    var addedTestCaseIds = new HashSet<Long>();
+    for (var chunk : ListUtils.partition(List.copyOf(testCaseIdsToAdd), INSERT_CHUNK_SIZE)) {
+      addedTestCaseIds.addAll(
+          tmsTestPlanTestCaseRepository.insertTestPlanTestCasesInProject(projectId, testPlanId,
+              chunk));
+    }
+
+    var successTestCaseIds = new ArrayList<Long>();
+    for (var testCaseId : testCaseIdsToAdd) {
+      if (addedTestCaseIds.contains(testCaseId) || !explicitTestCaseIds.contains(testCaseId)) {
+        // A folder-resolved test case skipped by the insert is already in the plan
+        successTestCaseIds.add(testCaseId);
+      } else {
+        errors.add(new BatchTestCaseOperationError(testCaseId,
+            String.format("Test case with id %s already exists in test plan", testCaseId)));
+      }
+    }
+    successTestCaseIds.addAll(folderTestCaseIdsInTestPlan);
+    var result = tmsTestPlanMapper.convertToRS(totalCount, successTestCaseIds.size(), errors);
+    result.setSuccessTestCaseIds(successTestCaseIds);
+    return result;
   }
 
   @Override

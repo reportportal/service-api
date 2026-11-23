@@ -61,7 +61,13 @@ public class TmsManualLaunchController {
 
   @PostMapping
   @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
-  @Operation(summary = "Create a new TMS Manual Launch")
+  @Operation(
+      summary = "Create a new TMS Manual Launch",
+      description = "Adds the test cases given by testCaseIds and/or the whole subtrees of folderIds; "
+          + "when both are empty, adds all test cases of the test plan. An unknown folder returns "
+          + "404; folders with more test cases than rp.tms.add-by-folder.max-test-cases "
+          + "(default 5000) return 400."
+  )
   public CreateTmsManualLaunchRS createManualLaunch(
       @Parameter(description = "Project key", required = true)
       @PathVariable String projectKey,
@@ -187,7 +193,14 @@ public class TmsManualLaunchController {
 
   @PostMapping("{launchId}/test-case/batch")
   @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
-  @Operation(summary = "Batch add multiple test cases to Manual Launch")
+  @Operation(
+      summary = "Batch add multiple test cases to Manual Launch",
+      description = "Adds test cases by their IDs and/or the whole subtrees of folders (folderIds). "
+          + "Explicit IDs that are unknown or already in the launch are reported as errors; folder "
+          + "test cases already in the launch count as success. An unknown folder returns 404; "
+          + "folders with more test cases than rp.tms.add-by-folder.max-test-cases (default 5000) "
+          + "return 400. All-or-nothing: nothing is written when the request fails."
+  )
   public BatchTestCaseOperationResultRS addTestCasesToLaunch(
       @Parameter(description = "Project key", required = true)
       @PathVariable String projectKey,

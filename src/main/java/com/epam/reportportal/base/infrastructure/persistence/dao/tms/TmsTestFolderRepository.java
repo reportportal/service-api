@@ -229,6 +229,17 @@ public interface TmsTestFolderRepository extends ReportPortalRepository<TmsTestF
       @Param("folderId") Long folderId);
 
   /**
+   * Returns those of the given folder IDs that exist in the project.
+   *
+   * @param projectId the project ID
+   * @param ids       folder IDs to check
+   * @return IDs of the folders that belong to the project
+   */
+  @Query("SELECT tf.id FROM TmsTestFolder tf WHERE tf.project.id = :projectId AND tf.id IN :ids")
+  List<Long> findExistingIdsByProjectIdAndIdIn(@Param("projectId") Long projectId,
+      @Param("ids") Collection<Long> ids);
+
+  /**
    * Finds all folder IDs in the hierarchy starting from a given folder.
    *
    * <p>This method uses a recursive CTE to traverse the folder hierarchy and return all folder

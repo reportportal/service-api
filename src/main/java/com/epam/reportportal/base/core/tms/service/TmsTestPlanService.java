@@ -6,6 +6,7 @@ import com.epam.reportportal.base.core.tms.dto.TmsTestCaseInTestPlanRS;
 import com.epam.reportportal.base.core.tms.dto.TmsTestFolderRS;
 import com.epam.reportportal.base.core.tms.dto.TmsTestPlanRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestPlanRS;
+import com.epam.reportportal.base.core.tms.dto.batch.BatchAddTestCasesToPlanRQ;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchTestCaseOperationResultRS;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
@@ -22,7 +23,18 @@ public interface TmsTestPlanService extends CrudService<TmsTestPlanRQ, TmsTestPl
 
   Page<TmsTestPlanRS> getByCriteria(Long projectId, Filter filter, Pageable pageable);
 
-  BatchTestCaseOperationResultRS addTestCasesToPlan(Long projectId, Long testPlanId, @NotEmpty List<Long> testCaseIds);
+  /**
+   * Adds the explicit test cases and the whole subtrees of the given folders to a test plan. Explicit
+   * IDs report "not found" / "already exists" errors per ID; folder-resolved test cases already in
+   * the plan are counted as success.
+   *
+   * @param projectId project ID
+   * @param testPlanId test plan ID
+   * @param request explicit test case IDs and/or folder IDs
+   * @return the batch result; {@code successTestCaseIds} lists added and already present cases
+   */
+  BatchTestCaseOperationResultRS addTestCasesToPlan(Long projectId, Long testPlanId,
+      BatchAddTestCasesToPlanRQ request);
 
   BatchTestCaseOperationResultRS removeTestCasesFromPlan(Long projectId, Long testPlanId,
       @NotEmpty List<Long> testCaseIds);

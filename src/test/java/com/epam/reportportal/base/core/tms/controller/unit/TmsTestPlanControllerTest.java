@@ -35,6 +35,7 @@ import com.epam.reportportal.base.ws.resolver.OffsetArgumentResolver;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.LongStream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -386,7 +387,7 @@ public class TmsTestPlanControllerTest {
 
     String jsonContent = objectMapper.writeValueAsString(addRequest);
 
-    given(tmsTestPlanService.addTestCasesToPlan(projectId, testPlanId, testCaseIds))
+    given(tmsTestPlanService.addTestCasesToPlan(projectId, testPlanId, addRequest))
         .willReturn(expectedResult);
 
     // When & Then
@@ -401,7 +402,7 @@ public class TmsTestPlanControllerTest {
         .andExpect(jsonPath("$.errors").isArray());
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
-    verify(tmsTestPlanService).addTestCasesToPlan(projectId, testPlanId, testCaseIds);
+    verify(tmsTestPlanService).addTestCasesToPlan(projectId, testPlanId, addRequest);
   }
 
   @Test
@@ -422,7 +423,7 @@ public class TmsTestPlanControllerTest {
 
     String jsonContent = objectMapper.writeValueAsString(addRequest);
 
-    given(tmsTestPlanService.addTestCasesToPlan(projectId, testPlanId, testCaseIds))
+    given(tmsTestPlanService.addTestCasesToPlan(projectId, testPlanId, addRequest))
         .willReturn(expectedResult);
 
     // When & Then
@@ -436,7 +437,7 @@ public class TmsTestPlanControllerTest {
         .andExpect(jsonPath("$.failureCount").value(0));
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
-    verify(tmsTestPlanService).addTestCasesToPlan(projectId, testPlanId, testCaseIds);
+    verify(tmsTestPlanService).addTestCasesToPlan(projectId, testPlanId, addRequest);
   }
 
   @Test
@@ -458,6 +459,67 @@ public class TmsTestPlanControllerTest {
   }
 
   @Test
+  void addTestCasesToPlanByFoldersTest() throws Exception {
+    // Given
+    Long testPlanId = 5L;
+    BatchAddTestCasesToPlanRQ addRequest = BatchAddTestCasesToPlanRQ.builder()
+        .folderIds(List.of(7L, 8L))
+        .build();
+    BatchTestCaseOperationResultRS expectedResult = BatchTestCaseOperationResultRS.builder()
+        .totalCount(2)
+        .successCount(2)
+        .failureCount(0)
+        .successTestCaseIds(List.of(70L, 80L))
+        .errors(Collections.emptyList())
+        .build();
+    String jsonContent = objectMapper.writeValueAsString(addRequest);
+
+    given(tmsTestPlanService.addTestCasesToPlan(projectId, testPlanId, addRequest))
+        .willReturn(expectedResult);
+
+    // When & Then
+    mockMvc.perform(post("/v1/project/{projectKey}/tms/test-plan/{testPlanId}/test-case/batch",
+            projectKey, testPlanId)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(jsonContent))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.successTestCaseIds[1]").value(80));
+
+    verify(tmsTestPlanService).addTestCasesToPlan(projectId, testPlanId, addRequest);
+  }
+
+  @Test
+  void addTestCasesToPlanWithoutTestCasesAndFoldersTest() throws Exception {
+    mockMvc.perform(post("/v1/project/{projectKey}/tms/test-plan/{testPlanId}/test-case/batch",
+            projectKey, 6L)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("{\"testCaseIds\":[],\"folderIds\":[]}"))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  void addTestCasesToPlanWithTooManyFoldersTest() throws Exception {
+    BatchAddTestCasesToPlanRQ addRequest = BatchAddTestCasesToPlanRQ.builder()
+        .folderIds(LongStream.rangeClosed(1, 101).boxed().toList())
+        .build();
+
+    mockMvc.perform(post("/v1/project/{projectKey}/tms/test-plan/{testPlanId}/test-case/batch",
+            projectKey, 6L)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(addRequest)))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  void addTestCasesToPlanWithNullFolderIdTest() throws Exception {
+    mockMvc.perform(post("/v1/project/{projectKey}/tms/test-plan/{testPlanId}/test-case/batch",
+            projectKey, 6L)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("{\"folderIds\":[null]}"))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
   void addTestCasesToPlanWithPartialSuccessTest() throws Exception {
     // Given
     Long testPlanId = 9L;
@@ -475,7 +537,7 @@ public class TmsTestPlanControllerTest {
 
     String jsonContent = objectMapper.writeValueAsString(addRequest);
 
-    given(tmsTestPlanService.addTestCasesToPlan(projectId, testPlanId, testCaseIds))
+    given(tmsTestPlanService.addTestCasesToPlan(projectId, testPlanId, addRequest))
         .willReturn(expectedResult);
 
     // When & Then
@@ -489,7 +551,7 @@ public class TmsTestPlanControllerTest {
         .andExpect(jsonPath("$.failureCount").value(1));
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
-    verify(tmsTestPlanService).addTestCasesToPlan(projectId, testPlanId, testCaseIds);
+    verify(tmsTestPlanService).addTestCasesToPlan(projectId, testPlanId, addRequest);
   }
 
   @Test
@@ -669,7 +731,7 @@ public class TmsTestPlanControllerTest {
 
     String jsonContent = objectMapper.writeValueAsString(addRequest);
 
-    given(tmsTestPlanService.addTestCasesToPlan(projectId, testPlanId, testCaseIds))
+    given(tmsTestPlanService.addTestCasesToPlan(projectId, testPlanId, addRequest))
         .willReturn(expectedResult);
 
     // When & Then
@@ -683,7 +745,7 @@ public class TmsTestPlanControllerTest {
         .andExpect(jsonPath("$.failureCount").value(0));
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
-    verify(tmsTestPlanService).addTestCasesToPlan(projectId, testPlanId, testCaseIds);
+    verify(tmsTestPlanService).addTestCasesToPlan(projectId, testPlanId, addRequest);
   }
 
   @Test

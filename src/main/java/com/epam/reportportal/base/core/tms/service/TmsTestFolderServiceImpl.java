@@ -30,6 +30,7 @@ import com.epam.reportportal.base.model.Page;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -815,7 +816,12 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
     );
 
     if (CollectionUtils.isNotEmpty(sourceFolder.getSubFolders())) {
-      for (var subFolder : List.copyOf(sourceFolder.getSubFolders())) {
+      // a skipped (already visited) child must not leave a gap: copies get dense indexes in source order
+      var subFolders = sourceFolder.getSubFolders().stream()
+          .sorted(Comparator.comparing(TmsTestFolder::getIndex,
+              Comparator.nullsLast(Comparator.naturalOrder())))
+          .toList();
+      for (var subFolder : subFolders) {
         if (visitedFolderIds.contains(subFolder.getId())) {
           continue;
         }
@@ -825,7 +831,7 @@ public class TmsTestFolderServiceImpl implements TmsTestFolderService {
             subFolder,
             subFolder.getName() + "-copy",
             duplicatedFolder.getId(),
-            subFolder.getIndex(),
+            duplicatedFolder.getSubFolders().size(),
             folderStatistics,
             testCaseStatistics,
             visitedFolderIds

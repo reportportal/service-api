@@ -49,8 +49,10 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicLong;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -1707,7 +1709,7 @@ class TmsTestFolderServiceImplTest {
   }
 
   @Test
-  void testDuplicateFolder_SubfoldersPreserveIndex() {
+  void testDuplicateFolder_SubfoldersPreserveOrderWithDenseIndexes() {
     // Arrange
     var duplicateRQ = TmsTestFolderRQ.builder()
         .name("Duplicated Folder")
@@ -1816,7 +1818,7 @@ class TmsTestFolderServiceImplTest {
     // Assert
     assertNotNull(result);
 
-    // Verify subfolders preserve their original indexes
+    // Verify subfolders keep their source order with dense indexes
     var subFolder1Saved = savedFolders.stream()
         .filter(f -> "Sub Folder 1-copy".equals(f.getName()))
         .findFirst()
@@ -1828,8 +1830,8 @@ class TmsTestFolderServiceImplTest {
 
     assertNotNull(subFolder1Saved, "Sub Folder 1-copy should have been saved");
     assertNotNull(subFolder2Saved, "Sub Folder 2-copy should have been saved");
-    assertEquals(2, subFolder1Saved.getIndex(), "Sub Folder 1 should preserve index 2");
-    assertEquals(5, subFolder2Saved.getIndex(), "Sub Folder 2 should preserve index 5");
+    assertEquals(0, subFolder1Saved.getIndex(), "Sub Folder 1 (source index 2) should get index 0");
+    assertEquals(1, subFolder2Saved.getIndex(), "Sub Folder 2 (source index 5) should get index 1");
 
     verify(tmsTestFolderRepository, times(3)).save(any(TmsTestFolder.class));
   }
@@ -3212,5 +3214,57 @@ class TmsTestFolderServiceImplTest {
 
     verify(tmsTestFolderRepository).shiftIndexes(projectId, 3L, 5, 1);
     assertEquals(5, copy.getIndex());
+  }
+
+  @Test
+  void duplicateFolder_SkippedCycleChild_LeavesNoIndexGap() {
+    // source 8 has children 3 (index 0) and 9 (index 1); 3 is also 8's parent, a corrupt cycle
+    var folder3 = new TmsTestFolder();
+    folder3.setId(3L);
+    folder3.setName("F3");
+    folder3.setSubFolders(new ArrayList<>());
+    folder3.setIndex(0);
+    var folder8 = new TmsTestFolder();
+    folder8.setId(8L);
+    folder8.setName("F8");
+    folder8.setParentTestFolder(folder3);
+    folder8.setSubFolders(new ArrayList<>());
+    folder8.setIndex(0);
+    var folder9 = new TmsTestFolder();
+    folder9.setId(9L);
+    folder9.setName("F9");
+    folder9.setParentTestFolder(folder8);
+    folder9.setSubFolders(new ArrayList<>());
+    folder9.setIndex(1);
+    folder3.setParentTestFolder(folder8);
+
+    when(tmsTestFolderRepository.findAllFolderIdsInHierarchy(projectId, 3L))
+        .thenReturn(List.of(3L, 8L, 9L));
+    when(tmsTestFolderRepository.findAllById(List.of(3L, 8L, 9L)))
+        .thenReturn(List.of(folder3, folder8, folder9));
+    var nextId = new AtomicLong(100L);
+    var savedIndexes = new HashMap<String, Integer>();
+    when(tmsTestFolderMapper.duplicateTestFolder(any(), any())).thenAnswer(invocation -> {
+      var copy = new TmsTestFolder();
+      copy.setSubFolders(new ArrayList<>());
+      return copy;
+    });
+    when(tmsTestFolderRepository.save(any(TmsTestFolder.class))).thenAnswer(invocation -> {
+      TmsTestFolder folder = invocation.getArgument(0);
+      folder.setId(nextId.getAndIncrement());
+      savedIndexes.put(folder.getName(), folder.getIndex());
+      return folder;
+    });
+    when(tmsTestFolderRepository.findByIdAndProjectId(anyLong(), eq(projectId)))
+        .thenReturn(Optional.of(new TmsTestFolder()));
+    when(tmsTestFolderRepository.findTestCaseIdsByFolderId(anyLong()))
+        .thenReturn(Collections.emptyList());
+
+    sut.duplicateFolder(membershipDetails, user, 3L,
+        TmsTestFolderRQ.builder().name("Copy").build());
+
+    assertEquals(0, savedIndexes.get("F8-copy"));
+    assertEquals(0, savedIndexes.get("F9-copy"), "skipped child 3 must not leave index 0 empty");
+    assertEquals(3, savedIndexes.size());
   }
 }

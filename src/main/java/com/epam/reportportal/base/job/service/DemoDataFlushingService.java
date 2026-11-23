@@ -173,9 +173,36 @@ public class DemoDataFlushingService {
    * (not through the organization cascade) so that their indexes, suggestions and storage are cleaned as well.
    */
   private void deleteProjects(Organization presetOrganization) {
-    projectRepository.findAll().stream()
-        .filter(project -> !isRetainedProject(project, presetOrganization))
-        .forEach(this::deleteProject);
+    projectRepository.findAll().forEach(project -> {
+      if (isRetainedProject(project, presetOrganization)) {
+        cleanRetainedProject(project);
+      } else {
+        deleteProject(project);
+      }
+    });
+  }
+
+  /**
+   * Removes project-scoped data of a retained project that is not covered by the {@code launch} truncation: custom
+   * defect types, project integrations, analyzer index and suggestions, and attachments.
+   */
+  private void cleanRetainedProject(Project project) {
+    Long projectId = project.getId();
+    Set<Long> defaultIssueTypeIds = issueTypeRepository.getDefaultIssueTypes().stream().map(IssueType::getId)
+        .collect(Collectors.toSet());
+    List<Long> customIssueTypeIds = project.getProjectIssueTypes().stream()
+        .map(projectIssueType -> projectIssueType.getIssueType().getId())
+        .filter(id -> !defaultIssueTypeIds.contains(id))
+        .toList();
+    jdbcTemplate.update("DELETE FROM integration WHERE project_id = ?", projectId);
+    customIssueTypeIds.forEach(id -> {
+      jdbcTemplate.update("DELETE FROM project_issue_type WHERE project_id = ? AND issue_type_id = ?", projectId, id);
+      jdbcTemplate.update("DELETE FROM issue_type WHERE id = ?", id);
+    });
+    analyzerServiceClient.removeSuggest(projectId);
+    logIndexer.deleteIndexAsync(projectId);
+    attachmentRepository.moveForDeletionByProjectId(projectId);
+    log.info("Data of retained project with id = '{}' has been cleaned.", projectId);
   }
 
   private boolean isRetainedProject(Project project, Organization presetOrganization) {

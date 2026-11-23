@@ -95,6 +95,7 @@ public class TmsTestFolderWithTestCaseCountRepository {
     );
   }
 
+  // Only a positive "eq" pins the plan; an exclusion such as "ne" keeps the project's folders
   private Long extractTestPlanId(Filter filter) {
     return filter
         .getFilterConditions()
@@ -102,6 +103,7 @@ public class TmsTestFolderWithTestCaseCountRepository {
         .filter(condition -> condition instanceof FilterCondition)
         .map(condition -> (FilterCondition) condition)
         .filter(fc -> CRITERIA_TMS_TEST_FOLDER_TEST_PLAN_ID.equals(fc.getSearchCriteria()))
+        .filter(fc -> fc.getCondition() == Condition.EQUALS && !fc.isNegative())
         .findFirst()
         .map(fc -> Long.valueOf(fc.getValue()))
         .orElse(null);

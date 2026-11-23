@@ -34,6 +34,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -46,6 +47,8 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.multipart.MultipartFile;
 
 @ExtendWith(MockitoExtension.class)
@@ -260,6 +263,41 @@ class TmsAttachmentServiceImplTest {
     inOrder.verify(tmsAttachmentRepository).flush();
     inOrder.verify(tmsAttachmentDataStoreService).delete(fileId);
     inOrder.verify(tmsAttachmentDataStoreService).delete("thumb-1");
+  }
+
+  @AfterEach
+  void clearTransactionSynchronization() {
+    if (TransactionSynchronizationManager.isSynchronizationActive()) {
+      TransactionSynchronizationManager.clearSynchronization();
+    }
+  }
+
+  @Test
+  void deleteAttachment_InTransaction_DeletesBinariesOnlyAfterCommit() {
+    attachment.setThumbnailPath("thumb-1");
+    when(tmsAttachmentRepository.findByIdAndProjectId(attachmentId, PROJECT_ID)).thenReturn(Optional.of(attachment));
+    TransactionSynchronizationManager.initSynchronization();
+
+    sut.deleteAttachment(PROJECT_ID, attachmentId);
+
+    verifyNoInteractions(tmsAttachmentDataStoreService);
+    TransactionSynchronizationManager.getSynchronizations()
+        .forEach(TransactionSynchronization::afterCommit);
+    verify(tmsAttachmentDataStoreService).delete(fileId);
+    verify(tmsAttachmentDataStoreService).delete("thumb-1");
+  }
+
+  @Test
+  void deleteAttachment_InRolledBackTransaction_KeepsBinaries() {
+    attachment.setThumbnailPath("thumb-1");
+    when(tmsAttachmentRepository.findByIdAndProjectId(attachmentId, PROJECT_ID)).thenReturn(Optional.of(attachment));
+    TransactionSynchronizationManager.initSynchronization();
+
+    sut.deleteAttachment(PROJECT_ID, attachmentId);
+
+    TransactionSynchronizationManager.getSynchronizations()
+        .forEach(sync -> sync.afterCompletion(TransactionSynchronization.STATUS_ROLLED_BACK));
+    verifyNoInteractions(tmsAttachmentDataStoreService);
   }
 
   @Test

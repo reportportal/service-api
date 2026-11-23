@@ -36,6 +36,8 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestP
 import com.epam.reportportal.base.ws.BaseMvcTest;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import javax.sql.DataSource;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -67,6 +69,9 @@ class TmsTestFolderIntegrationTest extends BaseMvcTest {
 
   @Autowired
   private TmsTestPlanTestCaseRepository tmsTestPlanTestCaseRepository;
+
+  @Autowired
+  private DataSource dataSource;
 
   @Test
   void createRootTestFolderIntegrationTest() throws Exception {
@@ -1566,5 +1571,27 @@ class TmsTestFolderIntegrationTest extends BaseMvcTest {
     }
     assertEquals("req-value-1", original.get(0)[1]);
     assertEquals("req-value-2", original.get(1)[1]);
+  }
+
+  @Test
+  void lockFolderTree_HeldUntilTransactionEnds_BlocksOtherSessionsForSameProjectOnly()
+      throws SQLException {
+    tmsTestFolderRepository.lockFolderTree(1L);
+
+    // a separate connection, outside the test transaction that holds the lock
+    try (var connection = dataSource.getConnection();
+        var statement = connection.prepareStatement(
+            "SELECT pg_try_advisory_xact_lock(hashtext('tms_folder_tree'), ?)")) {
+      statement.setInt(1, 1);
+      try (var rs = statement.executeQuery()) {
+        rs.next();
+        assertFalse(rs.getBoolean(1), "same project must wait for the lock holder");
+      }
+      statement.setInt(1, 2);
+      try (var rs = statement.executeQuery()) {
+        rs.next();
+        assertTrue(rs.getBoolean(1), "another project is not blocked");
+      }
+    }
   }
 }

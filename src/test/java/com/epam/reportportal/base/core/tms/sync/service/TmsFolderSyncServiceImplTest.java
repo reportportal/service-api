@@ -20,6 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -181,6 +182,20 @@ class TmsFolderSyncServiceImplTest {
     assertEquals(1, c.getIndex());
     verify(tmsTestFolderRepository).shiftIndexes(PROJECT_ID, 7L, 1, -1);
     verify(tmsTestFolderRepository).shiftIndexes(PROJECT_ID, 7L, 2, -1);
+  }
+
+  @Test
+  void syncFolders_LocksProjectFolderTreeBeforeReadingFolders() {
+    var existing = folder(10L, "R", 7L);
+    var remote = RemoteFolder.builder().id("R").name("R").parentId("X").build();
+    when(tmsTestFolderRepository.findByProjectIdAndExternalIdIn(eq(PROJECT_ID), any()))
+        .thenReturn(List.of(existing));
+
+    sut.syncFolders(job, List.of(remote), 30L);
+
+    var order = inOrder(tmsTestFolderRepository);
+    order.verify(tmsTestFolderRepository).lockFolderTree(PROJECT_ID);
+    order.verify(tmsTestFolderRepository).findByProjectIdAndExternalIdIn(eq(PROJECT_ID), any());
   }
 
   private TmsTestFolder indexed(Long id, String externalId, Long parentId, int index) {

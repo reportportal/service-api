@@ -33,6 +33,10 @@ public class TmsFolderSyncServiceImpl implements TmsFolderSyncService {
   @Transactional
   public Map<String, Long> syncFolders(TmsSyncJob job, List<RemoteFolder> remoteFolders,
       Long localRootFolderId) {
+    // Taken before anything is read: a concurrent sync of the project (e.g. one still running after
+    // its job was canceled) commits first, and its moves are visible to the cycle checks below
+    tmsTestFolderRepository.lockFolderTree(job.getProject().getId());
+
     var folderIdMap = new HashMap<String, Long>();
     folderIdMap.put(job.getScopeConfig().getRemoteFolderId(), localRootFolderId);
 

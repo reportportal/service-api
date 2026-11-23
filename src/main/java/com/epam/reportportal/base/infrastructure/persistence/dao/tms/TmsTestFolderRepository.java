@@ -474,4 +474,15 @@ public interface TmsTestFolderRepository extends ReportPortalRepository<TmsTestF
       + "WHERE tf.project.id = :projectId")
   List<Object[]> findFolderIdAndParentIdByProjectId(@Param("projectId") Long projectId);
 
+  /**
+   * Acquires a transaction-scoped PostgreSQL advisory lock on the folder tree of a project. Used to
+   * serialize folder syncs of one project, so a cycle check sees the moves committed by the other.
+   * The two-key form keeps it apart from the single-key locks taken on launch ids.
+   *
+   * @param projectId the project ID
+   */
+  @Query(value = "SELECT pg_advisory_xact_lock(hashtext('tms_folder_tree'), "
+      + "CAST(:projectId % 2147483647 AS integer))", nativeQuery = true)
+  void lockFolderTree(@Param("projectId") Long projectId);
+
 }

@@ -1,5 +1,6 @@
 package com.epam.reportportal.base.core.tms.sync.service;
 
+import com.epam.reportportal.base.core.tms.enums.TmsSyncStatus;
 import com.epam.reportportal.base.core.tms.mapper.TmsTestFolderMapper;
 import com.epam.reportportal.base.core.tms.sync.dto.RemoteFolder;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsSyncJobRepository;
@@ -39,6 +40,11 @@ public class TmsFolderSyncServiceImpl implements TmsFolderSyncService {
 
     var folderIdMap = new HashMap<String, Long>();
     folderIdMap.put(job.getScopeConfig().getRemoteFolderId(), localRootFolderId);
+    // A job canceled while waiting for the lock moves nothing; the caller stops at its next check
+    if (tmsSyncJobRepository.existsByIdAndStatus(job.getId(), TmsSyncStatus.CANCELED)) {
+      log.info("TMS Sync Job {} was cancelled before its folders were synced.", job.getId());
+      return folderIdMap;
+    }
 
     var externalIds = remoteFolders.stream().map(RemoteFolder::getId).toList();
     var existingFolders = tmsTestFolderRepository

@@ -21,10 +21,12 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.epam.reportportal.base.core.tms.enums.TmsSyncStatus;
 import com.epam.reportportal.base.core.tms.mapper.TmsTestFolderMapper;
 import com.epam.reportportal.base.core.tms.sync.dto.RemoteFolder;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsSyncJobRepository;
@@ -34,6 +36,7 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsSyncJ
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestFolder;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.sync.SyncScopeConfig;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -68,9 +71,10 @@ class TmsFolderSyncServiceImplTest {
     job.setProject(project);
     job.setScopeConfig(new SyncScopeConfig("S", null));
 
-    when(tmsTestFolderRepository.save(any(TmsTestFolder.class)))
+    // lenient: a canceled job never reaches them
+    lenient().when(tmsTestFolderRepository.save(any(TmsTestFolder.class)))
         .thenAnswer(invocation -> invocation.getArgument(0));
-    when(tmsTestFolderMapper.convertFromRemote(any(), any(), any(), any(), any()))
+    lenient().when(tmsTestFolderMapper.convertFromRemote(any(), any(), any(), any(), any()))
         .thenAnswer(invocation -> invocation.getArgument(1));
   }
 
@@ -196,6 +200,21 @@ class TmsFolderSyncServiceImplTest {
     var order = inOrder(tmsTestFolderRepository);
     order.verify(tmsTestFolderRepository).lockFolderTree(PROJECT_ID);
     order.verify(tmsTestFolderRepository).findByProjectIdAndExternalIdIn(eq(PROJECT_ID), any());
+  }
+
+  @Test
+  void syncFolders_JobCanceledWhileWaitingForLock_MovesNothing() {
+    var remote = RemoteFolder.builder().id("R").name("R").parentId("S").build();
+    when(tmsSyncJobRepository.existsByIdAndStatus(5L, TmsSyncStatus.CANCELED)).thenReturn(true);
+
+    var result = sut.syncFolders(job, List.of(remote), 30L);
+
+    assertEquals(Map.of("S", 30L), result);
+    var order = inOrder(tmsTestFolderRepository, tmsSyncJobRepository);
+    order.verify(tmsTestFolderRepository).lockFolderTree(PROJECT_ID);
+    order.verify(tmsSyncJobRepository).existsByIdAndStatus(5L, TmsSyncStatus.CANCELED);
+    verify(tmsTestFolderRepository, never()).findByProjectIdAndExternalIdIn(any(), any());
+    verify(tmsTestFolderRepository, never()).save(any(TmsTestFolder.class));
   }
 
   private TmsTestFolder indexed(Long id, String externalId, Long parentId, int index) {

@@ -47,6 +47,15 @@ public interface TmsSyncJobRepository extends ReportPortalRepository<TmsSyncJob,
   );
 
   /**
+   * Checks whether a synchronization job has the given status.
+   *
+   * @param id synchronization job identifier
+   * @param status synchronization status
+   * @return {@code true} if the job exists and has the status
+   */
+  boolean existsByIdAndStatus(Long id, TmsSyncStatus status);
+
+  /**
    * Finds the latest synchronization job with the specified status.
    *
    * @param projectId project identifier

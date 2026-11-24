@@ -443,11 +443,11 @@ public class GetMarketplaceCatalogueHandlerImpl implements GetMarketplaceCatalog
       return null;
     }
     // the cached history must agree with the listing that sent us here: a row for the latest that
-    // runs here means the ceiling was cleared since, and an older update would contradict it
+    // runs here means the ceiling was cleared since, and an older update would contradict it.
+    // Exact match: compare ignores build metadata, and a +build sibling is a separate version
     var disagrees = versions.stream()
         .filter(Objects::nonNull)
-        .filter(summary -> StringUtils.isNotBlank(summary.version()))
-        .filter(summary -> PluginVersions.compare(summary.version(), latest) == 0)
+        .filter(summary -> StringUtils.equals(summary.version(), latest))
         .anyMatch(summary -> !summary.blocked() && runsHere(summary));
     if (disagrees) {
       return null;

@@ -1403,6 +1403,25 @@ class GetMarketplaceCatalogueHandlerTest {
   }
 
   @Test
+  void aCompatibleBuildSiblingOfTheCappedLatestStillLetsAnOlderUpdateBeOffered() {
+    // semver ignores build metadata, so only the latest's own row may contradict the listing
+    handler = newHandler(new ProductVersion("26.1"));
+    when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(
+        List.of(installed(7L, "jira", IntegrationGroupEnum.BTS, "1.4.2", null)));
+    when(client.getCatalogue(null, null)).thenReturn(List.of(
+        registryPluginRequiring("jira", "Jira", "1.6.0+build.2", ">=25.1, <26.0")));
+    when(client.listVersions("jira")).thenReturn(List.of(
+        summary("1.6.0+build.2", ">=25.1", ">=25.1, <26.0", "<26.0", false),
+        summary("1.6.0+build.1", ">=25.1", ">=25.1", null, false),
+        summary("1.5.0", ">=25.1", ">=25.1", null, false),
+        summary("1.4.2", ">=25.1", ">=25.1", null, false)));
+
+    var entry = installedNamed(handler.getCatalogue(null, null), "jira").marketplace();
+
+    assertEquals("1.5.0", entry.updateAvailable().version());
+  }
+
+  @Test
   void aVersionWithBuildMetadataIsOfferedBecauseInstallAcceptsIt() {
     var catalogue = cappedLatestWithHistory(
         summary("1.5.0+build.5", ">=25.1", ">=25.1", null, false),

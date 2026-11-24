@@ -1,0 +1,70 @@
+name: Manual Docker Hub publish
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Git branch to build the image from'
+        required: true
+        default: 'develop'
+      image-tag:
+        description: 'Docker image tag to publish (e.g. 1.2.3, 1.2.3-rc1)'
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    name: Build and push ${{ inputs.image-tag }} to Docker Hub
+    runs-on: ubuntu-latest
+    env:
+      IMAGE_TAG: ${{ inputs.image-tag }}
+      TARGET_REPOSITORY: ${{ vars.TARGET_REPOSITORY || 'reportportal/service-api' }}
+      PLATFORMS: ${{ vars.BUILD_PLATFORMS || 'linux/amd64,linux/arm64' }}
+
+    steps:
+      - name: Validate image tag
+        run: |
+          if [[ ! "${IMAGE_TAG}" =~ ^[A-Za-z0-9_][A-Za-z0-9_.-]{0,127}$ ]]; then
+            echo "::error::Invalid Docker tag: '${IMAGE_TAG}'. Allowed: letters, digits, '_', '.', '-'; max 128 chars."
+            exit 1
+          fi
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.branch }}
+          submodules: true
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v4
+        with:
+          username: ${{ secrets.REGISTRY_USERNAME }}
+          password: ${{ secrets.REGISTRY_PASSWORD }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          push: true
+          platforms: ${{ env.PLATFORMS }}
+          build-args: |
+            APP_VERSION=${{ inputs.image-tag }}
+          tags: ${{ env.TARGET_REPOSITORY }}:${{ inputs.image-tag }}
+
+      - name: Summary
+        run: |
+          {
+            echo "## Docker Hub publish"
+            echo ""
+            echo "- Source branch: \`${{ inputs.branch }}\`"
+            echo "- Commit: [${GITHUB_SHA}](https://github.com/${GITHUB_REPOSITORY}/commit/${GITHUB_SHA})"
+            echo "- Image: \`${TARGET_REPOSITORY}:${IMAGE_TAG}\`"
+          } >> "$GITHUB_STEP_SUMMARY"

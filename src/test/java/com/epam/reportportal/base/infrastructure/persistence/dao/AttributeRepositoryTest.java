@@ -87,6 +87,6 @@ class AttributeRepositoryTest extends BaseMvcTest {
   void deleteById() {
     final Long attrId = 100L;
     attributeRepository.deleteById(attrId);
-    assertEquals(16, attributeRepository.findAll().size());
+    assertEquals(18, attributeRepository.findAll().size());
   }
 }

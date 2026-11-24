@@ -40,8 +40,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.test.context.jdbc.Sql;
-import org.springframework.test.util.ReflectionTestUtils;
 
 /**
  * @author Ivan Budaev
@@ -50,9 +48,6 @@ class ProjectRepositoryTest extends BaseMvcTest {
 
   @Autowired
   private ProjectRepository projectRepository;
-
-  @Autowired
-  private ProjectRepositoryCustomImpl projectRepositoryCustomImpl;
 
   @Test
   void findAllIdsAndProjectAttributesTest() {
@@ -64,7 +59,7 @@ class ProjectRepositoryTest extends BaseMvcTest {
     projects.getContent().forEach(project -> {
       assertNotNull(project.getId());
       assertTrue(CollectionUtils.isNotEmpty(project.getProjectAttributes()));
-      assertEquals(16, project.getProjectAttributes().size());
+      assertEquals(18, project.getProjectAttributes().size());
       assertTrue(project.getProjectAttributes()
           .stream()
           .anyMatch(pa -> ofNullable(pa.getValue()).isPresent() && pa.getAttribute()
@@ -162,25 +157,6 @@ class ProjectRepositoryTest extends BaseMvcTest {
         .stream()
         .allMatch(prInfo -> prInfo.getSlug() != null);
     assertTrue(slugNotNull);
-  }
-
-  @Sql("/db/fill/project/project-without-users-fill.sql")
-  @Test
-  void findProjectInfoByFilterCte() {
-    ReflectionTestUtils.setField(projectRepositoryCustomImpl, "useCteQuery", true);
-    try {
-      final List<ProjectInfo> projectInfos = projectRepository.findProjectInfoByFilter(
-          new Filter(ProjectInfo.class,
-              Condition.EQUALS,
-              false,
-              "0",
-              USERS_QUANTITY
-          ));
-      assertEquals(1, projectInfos.size());
-      assertEquals("no_users_project", projectInfos.get(0).getName());
-    } finally {
-      ReflectionTestUtils.setField(projectRepositoryCustomImpl, "useCteQuery", false);
-    }
   }
 
   @Test

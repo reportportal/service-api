@@ -25,7 +25,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.saml2.provider.service.authentication.AbstractSaml2AuthenticationRequest;
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistrationRepository;
 import org.springframework.security.saml2.provider.service.web.Saml2AuthenticationRequestRepository;
@@ -92,7 +92,8 @@ public class Saml2AuthenticationConfiguration {
         .addFilterBefore(legacyAcsForwardFilter, Saml2WebSsoAuthenticationRequestFilter.class)
         .addFilterBefore(validationFilter, Saml2WebSsoAuthenticationRequestFilter.class)
         .addFilterBefore(saml2Filter, Saml2WebSsoAuthenticationFilter.class)
-        .csrf(AbstractHttpConfigurer::disable);
+        .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+        .csrf(csrf -> csrf.ignoringRequestMatchers(SAML_PROCESSING_URL, "/saml/sp/SSO/**"));
 
     return http.build();
   }

@@ -119,6 +119,8 @@ public class AuthorizationServerConfig {
     http
         .securityMatcher("/sso/oauth/token")
         .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
+        // CSRF is not applicable: token endpoint is stateless, no session or auth cookies are used
+        // deepcode ignore DisablesCSRFProtection: stateless endpoint, credentials are sent explicitly in the request
         .csrf(AbstractHttpConfigurer::disable)
         .sessionManagement(session -> session
             .sessionCreationPolicy(SessionCreationPolicy.STATELESS));
@@ -170,6 +172,9 @@ public class AuthorizationServerConfig {
             .permitAll()
             .anyRequest().authenticated())
         .oauth2ResourceServer(oauth2ResourceServerCustomizer())
+        // CSRF is not applicable: stateless chain authenticated by Bearer JWT / API key (no session cookie);
+        // the OAuth2 login state is bound via the state parameter stored in a short-lived cookie
+        // deepcode ignore DisablesCSRFProtection: stateless Bearer-token API, no ambient credentials
         .csrf(AbstractHttpConfigurer::disable)
         .formLogin(AbstractHttpConfigurer::disable)
         .sessionManagement(session -> session

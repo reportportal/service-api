@@ -325,7 +325,7 @@ class ReportingErrorHandlerTest {
     verify(rabbitTemplate, never()).send(anyString(), anyString(), any(Message.class));
   }
 
-  static Stream<Arguments> childrenOfAParkedParent() {
+  static Stream<Arguments> childrenOfParkedParent() {
     return Stream.of(
         Arguments.of("child start of a parked item", RequestType.START_TEST, "launch-uuid", "parent",
             message(RequestType.START_TEST, null, "launch-uuid", "child", "parent"),
@@ -349,8 +349,8 @@ class ReportingErrorHandlerTest {
   }
 
   @ParameterizedTest(name = "{0}")
-  @MethodSource("childrenOfAParkedParent")
-  void notFoundChildOfAParkedParentIsParkedAtOnce(String name, RequestType parentType, String launchUuid,
+  @MethodSource("childrenOfParkedParent")
+  void notFoundChildOfParkedParentIsParkedAtOnce(String name, RequestType parentType, String launchUuid,
       String parentUuid, Message child, Throwable cause) {
     parkParent(parentType, launchUuid, parentUuid);
 
@@ -363,7 +363,7 @@ class ReportingErrorHandlerTest {
   }
 
   @Test
-  void unrelatedNotFoundIsRetriedAfterAParentWasParked() {
+  void unrelatedNotFoundIsRetriedAfterParentWasParked() {
     parkParent(RequestType.START_TEST, "launch-uuid", "parent");
     Message other = message(RequestType.FINISH_TEST, null, "other-launch", "other-item", null);
 
@@ -411,7 +411,7 @@ class ReportingErrorHandlerTest {
         .counter().count());
   }
 
-  static Stream<Arguments> transientFailuresOfAChild() {
+  static Stream<Arguments> transientFailuresOfChild() {
     return Stream.of(
         Arguments.of("lock conflict", new CannotAcquireLockException("lock")),
         Arguments.of("not found with a transient cause", new CannotAcquireLockException("lock",
@@ -421,8 +421,8 @@ class ReportingErrorHandlerTest {
   }
 
   @ParameterizedTest(name = "{0}")
-  @MethodSource("transientFailuresOfAChild")
-  void transientFailureOfAChildOfAParkedParentKeepsTheFullBudget(String name, Throwable cause) {
+  @MethodSource("transientFailuresOfChild")
+  void transientFailureOfChildOfParkedParentKeepsTheFullBudget(String name, Throwable cause) {
     parkParent(RequestType.START_TEST, "launch-uuid", "parent");
     Message child = message(RequestType.FINISH_TEST, NOT_FOUND_MAX_RETRY_COUNT, "launch-uuid", "parent", null);
 
@@ -476,7 +476,7 @@ class ReportingErrorHandlerTest {
   }
 
   @Test
-  void itemNotFoundInALaunchRecordedByADuplicateStartIsRetried() {
+  void itemNotFoundInLaunchRecordedByDuplicateStartIsRetried() {
     Message duplicateStart = message(RequestType.START_LAUNCH, null, "live-launch", null, null);
     errorHandler.handleError(failure(duplicateStart,
         new DataIntegrityViolationException("duplicate", sqlException("23505"))));
@@ -496,7 +496,7 @@ class ReportingErrorHandlerTest {
   }
 
   @Test
-  void launchNotFoundIsNotMatchedAgainstAParkedItem() {
+  void launchNotFoundIsNotMatchedAgainstParkedItem() {
     parkParent(RequestType.START_TEST, "launch-uuid", "parent");
     Message child = message(RequestType.FINISH_TEST, null, "pending-launch", "parent", null);
 

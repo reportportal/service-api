@@ -92,9 +92,11 @@ public final class ReportingFailureClassifier {
   }
 
   /**
+   * Finds the NOT_FOUND error type of a reporting failure.
+   *
    * @param failure the failure thrown by the message handler
    * @return the NOT_FOUND error type (launch, suite or item) of the first such {@link ReportPortalException} in the
-   * cause chain, which tells whether the launch or the item of the message was missing
+   *     cause chain, which tells whether the launch or the item of the message was missing
    */
   public static Optional<ErrorType> notFoundErrorType(Throwable failure) {
     Throwable current = failure;

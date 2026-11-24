@@ -32,6 +32,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingPathVariableException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.client.RestClientException;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.multipart.support.MissingServletRequestPartException;
 
@@ -55,6 +56,8 @@ public final class ExceptionMappings {
       .<Class<? extends Throwable>, RestErrorDefinition>builder()
       .put(MethodArgumentNotValidException.class, new RestErrorDefinition<>(400, ErrorType.INCORRECT_REQUEST,
           new ArgumentNotValidMessageBuilder(MESSAGE_SOURCE)))
+      .put(HandlerMethodValidationException.class,
+          new RestErrorDefinition<>(400, ErrorType.INCORRECT_REQUEST, DEFAULT_MESSAGE_BUILDER))
       .put(MethodArgumentTypeMismatchException.class,
           new RestErrorDefinition<>(400, ErrorType.INCORRECT_REQUEST, DEFAULT_MESSAGE_BUILDER))
       .put(HttpMessageNotReadableException.class,

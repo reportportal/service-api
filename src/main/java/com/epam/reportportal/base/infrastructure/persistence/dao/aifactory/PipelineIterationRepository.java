@@ -26,6 +26,19 @@ public interface PipelineIterationRepository extends JpaRepository<PipelineItera
 
   Optional<PipelineIteration> findFirstByPipelineIdOrderByIterationNumberDesc(Long pipelineId);
 
+  /**
+   * Iterations of pipelines of the given type that are in the given status category and were created before the
+   * given moment.
+   * <p>
+   * Example: type {@code TEST_AUTOMATION}, category {@code PENDING}, before 10:00 gives the automation iterations
+   * created before 10:00 that no job has reported anything into.
+   */
+  @Query("select it from PipelineIteration it where it.pipeline.type = :type "
+      + "and it.statusCategory = :category and it.createdAt < :before")
+  List<PipelineIteration> findByPipelineTypeAndStatusCategoryAndCreatedAtBefore(@Param("type") String type,
+      @Param("category") com.epam.reportportal.base.core.aifactory.enums.StatusCategory category,
+      @Param("before") java.time.Instant before);
+
   Optional<PipelineIteration> findByPipelineIdAndIdempotencyKey(Long pipelineId, String idempotencyKey);
 
   /**

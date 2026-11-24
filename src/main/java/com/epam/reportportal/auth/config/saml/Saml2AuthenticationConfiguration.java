@@ -42,6 +42,8 @@ public class Saml2AuthenticationConfiguration {
 
   private static final String SAML_PROCESSING_URL = "/login/saml2/sso/{registrationId}";
 
+  private static final String LEGACY_SAML_ACS_URL = "/saml/sp/SSO/**";
+
   private final SamlAuthSuccessHandler successHandler;
 
   private final AuthFailureHandler failureHandler;
@@ -83,9 +85,9 @@ public class Saml2AuthenticationConfiguration {
     LegacySamlAcsForwardFilter legacyAcsForwardFilter = new LegacySamlAcsForwardFilter();
 
     http
-        .securityMatcher("/saml2/**", "/login/**", "/saml/sp/SSO/**")
+        .securityMatcher("/saml2/**", "/login/**", LEGACY_SAML_ACS_URL)
         .authorizeHttpRequests(auth -> auth
-            .requestMatchers("/saml2/**", "/saml/sp/SSO/**").permitAll()
+            .requestMatchers("/saml2/**", LEGACY_SAML_ACS_URL).permitAll()
             .anyRequest().authenticated()
         )
         .saml2Login(Customizer.withDefaults())
@@ -93,7 +95,7 @@ public class Saml2AuthenticationConfiguration {
         .addFilterBefore(validationFilter, Saml2WebSsoAuthenticationRequestFilter.class)
         .addFilterBefore(saml2Filter, Saml2WebSsoAuthenticationFilter.class)
         .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-        .csrf(csrf -> csrf.ignoringRequestMatchers(SAML_PROCESSING_URL, "/saml/sp/SSO/**"));
+        .csrf(csrf -> csrf.ignoringRequestMatchers(SAML_PROCESSING_URL, LEGACY_SAML_ACS_URL));
 
     return http.build();
   }

@@ -74,6 +74,8 @@ import tools.jackson.databind.json.JsonMapper;
 public class TmsTestCaseIntegrationTest extends BaseMvcTest {
 
   private static final String SUPERADMIN_PROJECT_KEY = "superadmin_personal";
+  private static final String FOLDER_VALIDATION_MESSAGE =
+      "Either testFolderId or testFolderName must be provided and not empty";
   private static final String DEFAULT_PROJECT_KEY = "default_personal";
 
   @Autowired
@@ -308,9 +310,9 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
             .contentType("application/json")
             .content(jsonContent)
             .with(token(oAuthHelper.getSuperadminToken())))
-        .andExpect(
-            content().string(
-                containsString("Validation failure")));
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.errorCode").value(4001))
+        .andExpect(content().string(containsString(FOLDER_VALIDATION_MESSAGE)));
   }
 
   @Test
@@ -329,9 +331,9 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
             .contentType("application/json")
             .content(jsonContent)
             .with(token(oAuthHelper.getSuperadminToken())))
-        .andExpect(
-            content().string(containsString(
-                "Validation failure")));
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.errorCode").value(4001))
+        .andExpect(content().string(containsString(FOLDER_VALIDATION_MESSAGE)));
   }
 
   @Test

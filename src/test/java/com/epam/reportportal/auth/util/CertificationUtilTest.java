@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -76,6 +77,15 @@ class CertificationUtilTest {
     Path file = Files.copy(keystoreFile, dir.resolve("ks.jks"));
     String location = file.toUri().toString();
     assertTrue(location.contains("%20"));
+    assertNotNull(CertificationUtil.getCertificateByName(ALIAS, location, PASSWORD));
+  }
+
+  @Test
+  void loadsFromLocalhostFileUrlWithUnencodedSpaces() throws IOException {
+    Path dir = Files.createDirectories(tempDir.resolve("localhost certs"));
+    Path file = Files.copy(keystoreFile, dir.resolve("ks.jks"), StandardCopyOption.REPLACE_EXISTING);
+    String location = "file://localhost" + file.toAbsolutePath();
+    assertTrue(location.contains(" "));
     assertNotNull(CertificationUtil.getCertificateByName(ALIAS, location, PASSWORD));
   }
 

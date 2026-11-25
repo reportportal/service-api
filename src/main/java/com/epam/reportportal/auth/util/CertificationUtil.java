@@ -53,6 +53,7 @@ import java.util.Optional;
 public class CertificationUtil {
 
   private static final String FILE_URL_PREFIX = "file:";
+  private static final String LOCALHOST = "localhost";
 
   private CertificationUtil() {
   }
@@ -161,7 +162,7 @@ public class CertificationUtil {
     try {
       URI uri = new URI(location);
       String authority = uri.getRawAuthority();
-      if (!uri.isOpaque() && (authority == null || "localhost".equalsIgnoreCase(authority))) {
+      if (!uri.isOpaque() && (authority == null || LOCALHOST.equalsIgnoreCase(authority))) {
         return Paths.get(new URI("file", null, uri.getPath(), null));
       }
     } catch (URISyntaxException | IllegalArgumentException e) {
@@ -170,6 +171,9 @@ public class CertificationUtil {
     String path = location.substring(FILE_URL_PREFIX.length());
     if (path.startsWith("//")) {
       path = path.substring(2);
+      if (path.regionMatches(true, 0, LOCALHOST + "/", 0, LOCALHOST.length() + 1)) {
+        path = path.substring(LOCALHOST.length());
+      }
     }
     return Paths.get(path);
   }

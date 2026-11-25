@@ -57,7 +57,9 @@ class CertificationUtilTest {
         "/" + RESOURCE,
         absolute,
         "file://" + absolute,
-        "file:" + absolute
+        "file:" + absolute,
+        "file://localhost" + absolute,
+        keystoreFile.toUri().toString()
     };
   }
 
@@ -69,9 +71,18 @@ class CertificationUtilTest {
   }
 
   @Test
+  void loadsFromFileUrlWithPercentEncodedPath() throws IOException {
+    Path dir = Files.createDirectories(tempDir.resolve("my certs"));
+    Path file = Files.copy(keystoreFile, dir.resolve("ks.jks"));
+    String location = file.toUri().toString();
+    assertTrue(location.contains("%20"));
+    assertNotNull(CertificationUtil.getCertificateByName(ALIAS, location, PASSWORD));
+  }
+
+  @Test
   void missingKeystoreFailsWithClearMessage() {
     String location = tempDir.resolve("missing.jks").toString();
-    IllegalStateException ex = assertThrows(IllegalStateException.class,
+    Error ex = assertThrows(Error.class,
         () -> CertificationUtil.getCertificateByName(ALIAS, location, PASSWORD));
     assertTrue(ex.getMessage().contains(location));
     assertTrue(ex.getMessage().contains("not found"));
@@ -79,17 +90,17 @@ class CertificationUtilTest {
 
   @Test
   void missingAliasFailsWithClearMessage() {
-    IllegalStateException certEx = assertThrows(IllegalStateException.class,
+    Error certEx = assertThrows(Error.class,
         () -> CertificationUtil.getCertificateByName("unknown", RESOURCE, PASSWORD));
     assertTrue(certEx.getMessage().contains("'unknown' not found"));
 
-    IllegalStateException keyEx = assertThrows(IllegalStateException.class,
+    Error keyEx = assertThrows(Error.class,
         () -> CertificationUtil.getPrivateKey("unknown", PASSWORD, RESOURCE, PASSWORD));
     assertTrue(keyEx.getMessage().contains("'unknown' not found"));
   }
 
   @Test
   void blankLocationFails() {
-    assertThrows(IllegalStateException.class, () -> CertificationUtil.getCertificateByName(ALIAS, " ", PASSWORD));
+    assertThrows(Error.class, () -> CertificationUtil.getCertificateByName(ALIAS, " ", PASSWORD));
   }
 }

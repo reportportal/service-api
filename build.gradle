@@ -289,7 +289,7 @@ test {
     jvmArgs '-Duser.timezone=UTC'
 }
 
-compileJava.dependsOn 'updateApiSubmodule'
+//compileJava.dependsOn 'updateApiSubmodule'
 tasks.named('openApiGenerate') { dependsOn tasks.named('updateApiSubmodule') }
 compileJava.dependsOn tasks.named('openApiGenerate')
 compileJava.dependsOn tasks.named('downloadManifestSchema')

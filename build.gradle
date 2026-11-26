@@ -215,6 +215,7 @@ processResources {
 
 // Flyway test migrations are taken straight from the `migrations` submodule: `N_name.up.sql` -> `V00N__name.sql`.
 processTestResources {
+    dependsOn 'updateApiSubmodule'
     from(layout.projectDirectory.dir('migrations/migrations')) {
         include '*.up.sql'
         duplicatesStrategy = DuplicatesStrategy.EXCLUDE
@@ -228,6 +229,10 @@ processTestResources {
 
 javadoc {
     source = fileTree(dir: "src/main/java")
+}
+
+tasks.register('updateApiSubmodule', Exec) {
+    commandLine 'git', 'submodule', 'update', '--init', "--recursive"
 }
 
 tasks.withType(JavaCompile).configureEach {
@@ -284,6 +289,8 @@ test {
     jvmArgs '-Duser.timezone=UTC'
 }
 
+compileJava.dependsOn 'updateApiSubmodule'
+tasks.named('openApiGenerate') { dependsOn tasks.named('updateApiSubmodule') }
 compileJava.dependsOn tasks.named('openApiGenerate')
 compileJava.dependsOn tasks.named('downloadManifestSchema')
 publish.dependsOn build

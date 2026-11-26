@@ -290,7 +290,7 @@ test {
 }
 
 //compileJava.dependsOn 'updateApiSubmodule'
-tasks.named('openApiGenerate') { dependsOn tasks.named('updateApiSubmodule') }
+//tasks.named('openApiGenerate') { dependsOn tasks.named('updateApiSubmodule') }
 compileJava.dependsOn tasks.named('openApiGenerate')
 compileJava.dependsOn tasks.named('downloadManifestSchema')
 publish.dependsOn build

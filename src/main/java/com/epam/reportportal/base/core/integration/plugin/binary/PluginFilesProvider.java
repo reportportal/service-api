@@ -64,51 +64,57 @@ public class PluginFilesProvider {
     final IntegrationType integrationType = integrationTypeRepository.findByName(pluginName)
         .orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, pluginName));
 
-    validateFileName(fileName);
+    final String typeName = integrationType.getName();
+    validateFileName(fileName, typeName);
 
-    final Path basePath = Paths.get(baseDirectory, integrationType.getName(), folderQualifier)
+    final Path basePath = Paths.get(baseDirectory, typeName, folderQualifier)
         .toAbsolutePath().normalize();
-    final File file = getFile(fileName, basePath);
+    final File file = getFile(fileName, basePath, typeName);
 
-    return getBinaryData(file);
+    return getBinaryData(file, typeName);
   }
 
-  private File getFile(String fileName, Path basePath) {
+  private File getFile(String fileName, Path basePath, String pluginName) {
     final Path filePath = basePath.resolve(fileName).normalize();
 
     if (!filePath.startsWith(basePath)) {
       throw new ReportPortalException(ErrorType.UNABLE_TO_LOAD_BINARY_DATA,
-          "Invalid file path: " + fileName);
+          withPlugin("Invalid file path: " + fileName, pluginName));
     }
 
     final File file = filePath.toFile();
 
     if (!file.exists() || file.isDirectory()) {
-      throw new ReportPortalException(ErrorType.UNABLE_TO_LOAD_BINARY_DATA, fileName);
+      throw new ReportPortalException(ErrorType.UNABLE_TO_LOAD_BINARY_DATA, withPlugin(fileName, pluginName));
     }
     return file;
   }
 
-  private void validateFileName(String fileName) {
+  private void validateFileName(String fileName, String pluginName) {
     if (Objects.isNull(fileName) || fileName.isBlank()) {
       throw new ReportPortalException(ErrorType.UNABLE_TO_LOAD_BINARY_DATA,
-          "File name cannot be null or blank");
+          withPlugin("File name cannot be null or blank", pluginName));
     }
 
     if (fileName.contains("..") || fileName.contains("/") || fileName.contains("\\")
         || fileName.startsWith("/") || fileName.matches("^[a-zA-Z]:.*")) {
       throw new ReportPortalException(ErrorType.UNABLE_TO_LOAD_BINARY_DATA,
-          "Invalid or unsafe file name: " + fileName);
+          withPlugin("Invalid or unsafe file name: " + fileName, pluginName));
     }
   }
 
-  private BinaryData getBinaryData(File file) {
+  private BinaryData getBinaryData(File file, String pluginName) {
     try {
       final InputStream fileStream = FileUtils.openInputStream(file);
       final String contentType = fileTypeResolver.getContentType(file.getName());
       return new BinaryData(contentType, (long) fileStream.available(), fileStream);
     } catch (IOException e) {
-      throw new ReportPortalException(ErrorType.UNABLE_TO_LOAD_BINARY_DATA, e.getMessage());
+      throw new ReportPortalException(ErrorType.UNABLE_TO_LOAD_BINARY_DATA,
+          withPlugin(file.getName() + ": " + e.getMessage(), pluginName));
     }
+  }
+
+  private static String withPlugin(String details, String pluginName) {
+    return details + " (plugin: " + pluginName + ")";
   }
 }

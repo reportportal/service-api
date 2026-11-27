@@ -245,10 +245,6 @@ public class TmsManualLaunchServiceImpl implements TmsManualLaunchService {
     testItemService.deleteByLaunchId(projectId,
         launchId); //TODO check if that is required ( potential CASCADE REMOVAL)
 
-    // Delete attributes
-    tmsManualLaunchAttributeService.deleteAllByLaunchId(
-        launchId); //TODO check if that is required ( potential CASCADE REMOVAL)
-
     // Delete launch
     deleteLaunchHandler.deleteLaunch(launchId, membershipDetails, user);
 
@@ -547,10 +543,6 @@ public class TmsManualLaunchServiceImpl implements TmsManualLaunchService {
 
         // Delete test items
         testItemService.deleteByLaunchId(projectId,
-            launchId); //TODO check if that is required ( potential CASCADE REMOVAL)
-
-        // Delete attributes
-        tmsManualLaunchAttributeService.deleteAllByLaunchId(
             launchId); //TODO check if that is required ( potential CASCADE REMOVAL)
 
         // Delete launch

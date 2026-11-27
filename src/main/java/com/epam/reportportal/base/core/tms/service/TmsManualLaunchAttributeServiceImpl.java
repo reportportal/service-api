@@ -83,16 +83,6 @@ public class TmsManualLaunchAttributeServiceImpl implements TmsManualLaunchAttri
     log.debug("Updated attributes for launch: {}", existingLaunch.getId());
   }
 
-  @Override
-  @Transactional
-  public void deleteAllByLaunchId(Long launchId) {
-    log.debug("Deleting all non-system attributes for launch: {}", launchId);
-
-    launchAttributeRepository.deleteAllByLaunchIdAndSystem(launchId, false);
-
-    log.debug("Deleted all non-system attributes for launch: {}", launchId);
-  }
-
   private boolean isReplaced(LaunchAttribute attribute, boolean replacesRetentionPolicy) {
     if (!Boolean.TRUE.equals(attribute.isSystem())) {
       return true;

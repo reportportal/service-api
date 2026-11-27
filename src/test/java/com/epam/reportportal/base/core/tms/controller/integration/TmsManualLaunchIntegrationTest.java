@@ -523,6 +523,50 @@ public class TmsManualLaunchIntegrationTest extends BaseMvcTest {
   }
 
   @Test
+  void deleteManualLaunch_WithUserAttributes_ShouldSucceed() throws Exception {
+    assertEquals(3L, countLaunchAttributes(200L));
+
+    mockMvc.perform(
+            delete("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/200")
+                .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk());
+
+    entityManager.flush();
+    entityManager.clear();
+
+    assertTrue(launchRepository.findById(200L).isEmpty());
+    assertEquals(0L, countLaunchAttributes(200L));
+  }
+
+  @Test
+  void batchDeleteManualLaunches_WithUserAttributes_ShouldSucceed() throws Exception {
+    assertEquals(3L, countLaunchAttributes(200L));
+    var batchDeleteRQ = BatchDeleteManualLaunchesRQ.builder().launchIds(List.of(200L)).build();
+
+    mockMvc.perform(
+            delete("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual")
+                .contentType(APPLICATION_JSON)
+                .content(mapper.writeValueAsString(batchDeleteRQ))
+                .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.successCount").value(1))
+        .andExpect(jsonPath("$.failureCount").value(0));
+
+    entityManager.flush();
+    entityManager.clear();
+
+    assertTrue(launchRepository.findById(200L).isEmpty());
+    assertEquals(0L, countLaunchAttributes(200L));
+  }
+
+  private long countLaunchAttributes(Long launchId) {
+    return ((Number) entityManager
+        .createNativeQuery("SELECT count(*) FROM launch_attribute WHERE launch_id = :launchId")
+        .setParameter("launchId", launchId)
+        .getSingleResult()).longValue();
+  }
+
+  @Test
   void deleteManualLaunch_NonExistent_ShouldReturnNotFound() throws Exception {
     mockMvc.perform(
             delete("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/launch/manual/999")

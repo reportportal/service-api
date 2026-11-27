@@ -8,7 +8,5 @@ public interface TmsManualLaunchAttributeService {
 
   void updateAttributes(Launch existingLaunch, Collection<ItemAttributesRQ> attributes);
 
-  void deleteAllByLaunchId(Long launchId);
-
   void createAttributes(Launch launch, Collection<ItemAttributesRQ> attributes);
 }

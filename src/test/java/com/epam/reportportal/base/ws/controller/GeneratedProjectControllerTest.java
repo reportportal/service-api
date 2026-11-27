@@ -44,7 +44,7 @@ class GeneratedProjectControllerTest extends BaseMvcTest {
     mockMvc.perform(get("/projects/default_personal/log-types")
             .with(token(oAuthHelper.getDefaultToken())))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.items", hasSize(7)));
+        .andExpect(jsonPath("$.items", hasSize(8)));
   }
 
   @Test
@@ -52,7 +52,7 @@ class GeneratedProjectControllerTest extends BaseMvcTest {
     mockMvc.perform(get("/projects/Default_Personal/log-types")
             .with(token(oAuthHelper.getDefaultToken())))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.items", hasSize(7)));
+        .andExpect(jsonPath("$.items", hasSize(8)));
   }
 
   @Test

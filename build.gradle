@@ -31,7 +31,6 @@ apply from: "$scriptsUrl/build-commons.gradle"
 apply from: "$scriptsUrl/build-info.gradle"
 apply from: "$scriptsUrl/release-service.gradle"
 apply from: "$scriptsUrl/signing.gradle"
-apply from: "$scriptsUrl/copy-database-scripts.gradle"
 apply from: 'jooq.gradle'
 
 // jOOQ codegen plugin always registers target.directory as a main source dir.
@@ -56,17 +55,8 @@ java {
 println("Release mode: $releaseMode")
 
 dependencies {
-    // Patch-level Snyk fixes newer than what the Spring Boot 4.2.0-M2 BOM (and its transitive consumers) resolve.
-    // TODO remove each pin once the Spring Boot BOM catches up
+    // TODO remove once Jackson 2 is gone or the transitive consumers resolve >= 2.22.3
     implementation(platform('com.fasterxml.jackson:jackson-bom:2.22.3'))
-    implementation(platform('tools.jackson:jackson-bom:3.2.3'))
-    constraints {
-        implementation('ch.qos.logback:logback-classic:1.6.5')
-        implementation('ch.qos.logback:logback-core:1.6.5')
-        implementation('com.rabbitmq:amqp-client:5.37.0')
-        implementation('org.bouncycastle:bcpkix-jdk18on:1.86')
-        implementation('org.bouncycastle:bcutil-jdk18on:1.86')
-    }
 
     implementation(platform(libs.zonky.postgres.bom))
     api(libs.embedded.postgres)
@@ -158,13 +148,7 @@ dependencies {
     implementation(libs.caffeine)
     implementation(libs.apache.commons.compress)
     implementation(libs.apache.commons.lang3)
-    implementation(libs.json.schema.validator) {
-        // TODO remove the excludes and the direct pins below once json-schema-validator requires tools.jackson >= 3.2.3
-        exclude group: 'tools.jackson.core', module: 'jackson-core'
-        exclude group: 'tools.jackson.core', module: 'jackson-databind'
-    }
-    implementation('tools.jackson.core:jackson-core:3.2.3')
-    implementation('tools.jackson.core:jackson-databind:3.2.3')
+    implementation(libs.json.schema.validator)
 
     // Add lombok support
     compileOnly(libs.lombok)
@@ -228,6 +212,20 @@ processResources {
     }
 }
 
+// Flyway test migrations are taken straight from the `migrations` submodule: `N_name.up.sql` -> `V00N__name.sql`.
+processTestResources {
+    dependsOn 'updateApiSubmodule'
+    from(layout.projectDirectory.dir('migrations/migrations')) {
+        include '*.up.sql'
+        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+        rename { name ->
+            def m = (name =~ /^(\d+)_(.+)\.up\.sql$/)
+            m ? "V${String.format('%03d', m[0][1] as int)}__${m[0][2]}.sql" : name
+        }
+        into 'db/migration'
+    }
+}
+
 javadoc {
     source = fileTree(dir: "src/main/java")
 }
@@ -277,7 +275,6 @@ jar.enabled = true
 jar.archiveClassifier.set('')
 
 test {
-    dependsOn(copyTestDatabaseScripts)
     useJUnitPlatform()
     maxParallelForks = 1
     testLogging {
@@ -291,11 +288,12 @@ test {
     jvmArgs '-Duser.timezone=UTC'
 }
 
+//compileJava.dependsOn 'updateApiSubmodule'
+//tasks.named('openApiGenerate') { dependsOn tasks.named('updateApiSubmodule') }
 compileJava.dependsOn tasks.named('openApiGenerate')
 compileJava.dependsOn tasks.named('downloadManifestSchema')
 publish.dependsOn build
 publish.mustRunAfter build
-checkCommitNeeded.dependsOn removeScripts
 
 //replaced with drill4j
 //build.dependsOn jacocoTestReport

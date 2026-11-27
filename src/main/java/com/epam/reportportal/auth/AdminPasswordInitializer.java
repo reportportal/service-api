@@ -22,7 +22,6 @@ import com.epam.reportportal.auth.exception.EnvironmentVariablesNotProvidedExcep
 import com.epam.reportportal.base.infrastructure.persistence.dao.UserRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.User;
 import jakarta.persistence.EntityNotFoundException;
-import java.util.Optional;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,7 +58,7 @@ public class AdminPasswordInitializer implements CommandLineRunner {
     Object lastLogin = ofNullable(user.getMetadata())
         .flatMap(metadata -> ofNullable(metadata.getMetadata()))
         .map(meta -> meta.get(USER_LAST_LOGIN))
-        .orElseGet(() -> Optional.of(INITIAL_LAST_LOGIN));
+        .orElse(INITIAL_LAST_LOGIN);
     checkPasswordEnvVariable(lastLogin);
 
     boolean isMatches = passwordEncoder().matches(adminPassword, user.getPassword());

@@ -37,6 +37,7 @@ import com.epam.reportportal.base.core.item.impl.merge.strategy.LaunchMergeFacto
 import com.epam.reportportal.base.core.item.impl.merge.strategy.MergeStrategyType;
 import com.epam.reportportal.base.core.item.merge.LaunchMergeStrategy;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
+import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchAttributeRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.LaunchModeEnum;
@@ -74,6 +75,9 @@ class MergeLaunchHandlerImplTest {
 
   @Mock
   private LaunchRepository launchRepository;
+
+  @Mock
+  private LaunchAttributeRepository launchAttributeRepository;
 
   @Mock
   private ProjectRepository projectRepository;

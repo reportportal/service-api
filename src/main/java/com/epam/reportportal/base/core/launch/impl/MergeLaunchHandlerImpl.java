@@ -36,6 +36,7 @@ import com.epam.reportportal.base.core.statistics.StatisticsHelper;
 import com.epam.reportportal.base.infrastructure.model.project.AnalyzerConfig;
 import com.epam.reportportal.base.infrastructure.persistence.commons.Preconditions;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
+import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchAttributeRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
@@ -65,6 +66,8 @@ public class MergeLaunchHandlerImpl implements MergeLaunchHandler {
 
   private final LaunchRepository launchRepository;
 
+  private final LaunchAttributeRepository launchAttributeRepository;
+
   private final ProjectRepository projectRepository;
 
   private final LaunchMergeFactory launchMergeFactory;
@@ -75,10 +78,11 @@ public class MergeLaunchHandlerImpl implements MergeLaunchHandler {
 
   @Autowired
   public MergeLaunchHandlerImpl(LaunchRepository launchRepository,
-      ProjectRepository projectRepository,
+      LaunchAttributeRepository launchAttributeRepository, ProjectRepository projectRepository,
       LaunchMergeFactory launchMergeFactory, LaunchConverter launchConverter,
       LogIndexer logIndexer) {
     this.launchRepository = launchRepository;
+    this.launchAttributeRepository = launchAttributeRepository;
     this.projectRepository = projectRepository;
     this.launchMergeFactory = launchMergeFactory;
     this.launchConverter = launchConverter;
@@ -118,6 +122,9 @@ public class MergeLaunchHandlerImpl implements MergeLaunchHandler {
     newLaunch.setStatus(StatisticsHelper.getStatusFromStatistics(newLaunch.getStatistics()));
 
     List<Launch> mergedLaunches = launchRepository.findAllById(launchesIds);
+    // Launch#getAttributes() is a set and doesn't expose rows that are equal by key, value and
+    // system flag, so all attribute rows are removed explicitly
+    launchAttributeRepository.deleteAll(launchAttributeRepository.findAllByLaunchIdIn(launchesIds));
     mergedLaunches.forEach(launch -> launch.getAttributes().clear());
     launchRepository.deleteAll(mergedLaunches);
 

@@ -187,13 +187,13 @@ public abstract class AbstractLaunchMergeStrategy implements LaunchMergeStrategy
       mergedAttributes.addAll(
           launchesToMerge.stream().map(Launch::getAttributes).flatMap(Collection::stream)
               .filter(this::shouldSkipAttribute)
-              .peek(it -> it.setLaunch(resultedLaunch)).collect(Collectors.toSet()));
+              .map(it -> copyAttribute(it, resultedLaunch)).collect(Collectors.toSet()));
     } else {
       mergedAttributes.addAll(
           launchesToMerge.stream().map(Launch::getAttributes).flatMap(Collection::stream)
               .filter(LaunchAttribute::isSystem)
               .filter(this::shouldSkipAttribute)
-              .peek(it -> it.setLaunch(resultedLaunch))
+              .map(it -> copyAttribute(it, resultedLaunch))
               .collect(Collectors.toSet()));
       mergedAttributes.addAll(
           attributesFromRq.stream().map(FROM_LAUNCH_RESOURCE)
@@ -201,6 +201,23 @@ public abstract class AbstractLaunchMergeStrategy implements LaunchMergeStrategy
               .collect(Collectors.toSet()));
     }
     resultedLaunch.setAttributes(mergedAttributes);
+  }
+
+  /**
+   * Creates a copy of the attribute for the resulted launch. Attributes of the merged launches are
+   * not moved: equal attributes of different launches collapse into one element of the resulted
+   * launch attributes set, so moved rows would be left in the database as duplicates that are not
+   * tracked by the set. The originals are removed together with the merged launches.
+   *
+   * @param attribute      {@link LaunchAttribute} of the launch to be merged
+   * @param resultedLaunch {@link Launch} - result of merge
+   * @return new {@link LaunchAttribute} of the resulted launch
+   */
+  private LaunchAttribute copyAttribute(LaunchAttribute attribute, Launch resultedLaunch) {
+    LaunchAttribute copy =
+        new LaunchAttribute(attribute.getKey(), attribute.getValue(), attribute.isSystem());
+    copy.setLaunch(resultedLaunch);
+    return copy;
   }
 
   private boolean shouldSkipAttribute(LaunchAttribute attribute) {

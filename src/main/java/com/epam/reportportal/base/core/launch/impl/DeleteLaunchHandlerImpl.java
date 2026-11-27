@@ -32,6 +32,7 @@ import com.epam.reportportal.base.core.log.LogService;
 import com.epam.reportportal.base.core.remover.ContentRemover;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.dao.AttachmentRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchAttributeRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.StatusEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
@@ -70,6 +71,8 @@ public class DeleteLaunchHandlerImpl implements DeleteLaunchHandler {
 
   private final LaunchRepository launchRepository;
 
+  private final LaunchAttributeRepository launchAttributeRepository;
+
   private final ApplicationEventPublisher eventPublisher;
 
   private final LogIndexer logIndexer;
@@ -88,7 +91,7 @@ public class DeleteLaunchHandlerImpl implements DeleteLaunchHandler {
     logIndexer.indexLaunchesRemove(membershipDetails.getProjectId(), Lists.newArrayList(launchId));
     launchContentRemover.remove(launch);
     logService.deleteLogMessageByLaunch(membershipDetails.getProjectId(), launch.getId());
-    launch.getAttributes().clear();
+    deleteAttributes(Lists.newArrayList(launch));
     launchRepository.delete(launch);
     attachmentRepository.moveForDeletionByLaunchId(launchId);
 
@@ -126,7 +129,7 @@ public class DeleteLaunchHandlerImpl implements DeleteLaunchHandler {
       logIndexer.indexLaunchesRemove(membershipDetails.getProjectId(), launchIds);
       toDelete.forEach(launchContentRemover::remove);
       logService.deleteLogMessageByLaunchList(membershipDetails.getProjectId(), launchIds);
-      toDelete.forEach(launch -> launch.getAttributes().clear());
+      deleteAttributes(toDelete);
       launchRepository.deleteAll(toDelete);
       attachmentRepository.moveForDeletionByLaunchIds(launchIds);
 
@@ -140,6 +143,20 @@ public class DeleteLaunchHandlerImpl implements DeleteLaunchHandler {
       errorResponse.setMessage(ex.getMessage());
       return errorResponse;
     }).collect(Collectors.toList()));
+  }
+
+  /**
+   * Removes all attributes of the launches. {@link Launch#getAttributes()} is a set, so attribute
+   * rows that are equal by key, value and system flag (left by launch merge) are represented by a
+   * single element. The rest are still loaded into the persistence context and reference the
+   * launch, which fails the flush after the launch removal, so every row is removed explicitly.
+   *
+   * @param launches {@link List} of {@link Launch} to be deleted
+   */
+  private void deleteAttributes(List<Launch> launches) {
+    launchAttributeRepository.deleteAll(launchAttributeRepository.findAllByLaunchIdIn(
+        launches.stream().map(Launch::getId).collect(Collectors.toList())));
+    launches.forEach(launch -> launch.getAttributes().clear());
   }
 
   /**

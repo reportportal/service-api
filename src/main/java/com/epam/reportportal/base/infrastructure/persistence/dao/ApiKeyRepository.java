@@ -35,7 +35,8 @@ public interface ApiKeyRepository
    * @param hash hash of api key
    * @return {@link ApiKey}
    */
-  @Cacheable(value = "apiKeyCache", key = "#hash", cacheResolver = "apiKeyCacheResolver")
+  @Cacheable(value = "apiKeyCache", key = "#hash", cacheResolver = "apiKeyCacheResolver",
+      unless = "#result == null")
   ApiKey findByHash(String hash);
 
   /**

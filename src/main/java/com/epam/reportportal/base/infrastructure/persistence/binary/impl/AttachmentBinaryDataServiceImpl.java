@@ -125,7 +125,10 @@ public class AttachmentBinaryDataServiceImpl implements AttachmentBinaryDataServ
           BinaryDataMetaInfo.BinaryDataMetaInfoBuilder.aBinaryDataMetaInfo().withFileId(fileId)
               .withContentType(contentType).withFileSize(file.getSize()).build());
     } catch (IOException e) {
-      LOGGER.error("Unable to save binary data", e);
+      LOGGER.error("Unable to save binary data: attachment '{}' of log {} (id {}) of launch {} "
+              + "(id {}, project {}) is lost", file.getOriginalFilename(), metaInfo.getLogUuid(),
+          metaInfo.getLogId(), metaInfo.getLaunchUuid(), metaInfo.getLaunchId(),
+          metaInfo.getProjectId(), e);
     }
     return result;
   }

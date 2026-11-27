@@ -22,7 +22,9 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static com.epam.reportportal.base.core.user.impl.CreateUserHandlerImpl.EMAIL_HAS_BEEN_SENT;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -56,6 +58,8 @@ import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.core.task.TaskRejectedException;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.test.util.ReflectionTestUtils;
 
 /**
@@ -82,12 +86,16 @@ class CreateUserHandlerImplTest {
   @Mock
   private EmailService emailService;
 
+  @Mock
+  private ThreadPoolTaskExecutor emailExecutorService;
+
   @InjectMocks
   private CreateUserHandlerImpl handler;
 
   @BeforeEach
   void setUp() {
     ReflectionTestUtils.setField(handler, "restorePasswordBidTtl", Duration.ofHours(24));
+    ReflectionTestUtils.setField(handler, "restorePasswordCooldown", Duration.ofSeconds(60));
   }
 
   @Test
@@ -258,6 +266,7 @@ class CreateUserHandlerImplTest {
     user.setEmail("internal@example.com");
     user.setUserType(UserType.INTERNAL);
     when(userRepository.findByEmail("internal@example.com")).thenReturn(Optional.of(user));
+    runEmailTasksInline();
     when(emailServiceFactory.getDefaultEmailService(true)).thenReturn(emailService);
 
     var rs = handler.createRestorePasswordBid(restoreRq("internal@example.com"), "http://rp/");
@@ -267,6 +276,105 @@ class CreateUserHandlerImplTest {
     verify(restorePasswordBidRepository).save(any(RestorePasswordBid.class));
     verify(emailService).sendRestorePasswordEmail(eq("Password recovery"),
         eq(new String[]{"internal@example.com"}), any(), any());
+  }
+
+  @Test
+  void restorePasswordWithUntrustedBaseUrlShouldNotSendEmail() {
+    var user = new User();
+    user.setEmail("internal@example.com");
+    user.setUserType(UserType.INTERNAL);
+    when(userRepository.findByEmail("internal@example.com")).thenReturn(Optional.of(user));
+
+    var rs = handler.createRestorePasswordBid(restoreRq("internal@example.com"), null);
+
+    assertEquals(EMAIL_HAS_BEEN_SENT, rs.getResultMessage());
+    verifyNoInteractions(restorePasswordBidRepository, emailServiceFactory);
+  }
+
+  @Test
+  void restorePasswordWithinCooldownShouldNotCreateBidOrSendEmail() {
+    var user = new User();
+    user.setEmail("internal@example.com");
+    user.setUserType(UserType.INTERNAL);
+    when(userRepository.findByEmail("internal@example.com")).thenReturn(Optional.of(user));
+    var existingBid = new RestorePasswordBid();
+    existingBid.setLastModifiedDate(Instant.now().minusSeconds(10));
+    when(restorePasswordBidRepository.findByEmail("internal@example.com")).thenReturn(Optional.of(existingBid));
+
+    var rs = handler.createRestorePasswordBid(restoreRq("internal@example.com"), "http://rp/");
+
+    assertEquals(EMAIL_HAS_BEEN_SENT, rs.getResultMessage());
+    verify(restorePasswordBidRepository, never()).deleteByEmail(any());
+    verify(restorePasswordBidRepository, never()).save(any());
+    verifyNoInteractions(emailServiceFactory);
+  }
+
+  @Test
+  void restorePasswordAfterCooldownShouldReplaceBidAndSendEmail() {
+    var user = new User();
+    user.setEmail("internal@example.com");
+    user.setUserType(UserType.INTERNAL);
+    when(userRepository.findByEmail("internal@example.com")).thenReturn(Optional.of(user));
+    var existingBid = new RestorePasswordBid();
+    existingBid.setLastModifiedDate(Instant.now().minusSeconds(120));
+    when(restorePasswordBidRepository.findByEmail("internal@example.com")).thenReturn(Optional.of(existingBid));
+    runEmailTasksInline();
+    when(emailServiceFactory.getDefaultEmailService(true)).thenReturn(emailService);
+
+    handler.createRestorePasswordBid(restoreRq("internal@example.com"), "http://rp/");
+
+    verify(restorePasswordBidRepository).deleteByEmail("internal@example.com");
+    verify(restorePasswordBidRepository).save(any(RestorePasswordBid.class));
+  }
+
+  @Test
+  void restorePasswordForInternalUserShouldNotSendEmailInRequestThread() {
+    var user = new User();
+    user.setEmail("internal@example.com");
+    user.setUserType(UserType.INTERNAL);
+    when(userRepository.findByEmail("internal@example.com")).thenReturn(Optional.of(user));
+
+    var rs = handler.createRestorePasswordBid(restoreRq("internal@example.com"), "http://rp/");
+
+    assertEquals(EMAIL_HAS_BEEN_SENT, rs.getResultMessage());
+    verify(emailExecutorService).execute(any(Runnable.class));
+    verifyNoInteractions(emailServiceFactory);
+  }
+
+  @Test
+  void restorePasswordWhenMailServerNotConfiguredShouldStillReturnGenericMessage() {
+    var user = new User();
+    user.setEmail("internal@example.com");
+    user.setUserType(UserType.INTERNAL);
+    when(userRepository.findByEmail("internal@example.com")).thenReturn(Optional.of(user));
+    runEmailTasksInline();
+    when(emailServiceFactory.getDefaultEmailService(true))
+        .thenThrow(new ReportPortalException(ErrorType.EMAIL_CONFIGURATION_IS_INCORRECT, "not configured"));
+
+    var rs = handler.createRestorePasswordBid(restoreRq("internal@example.com"), "http://rp/");
+
+    assertEquals(EMAIL_HAS_BEEN_SENT, rs.getResultMessage());
+    verify(restorePasswordBidRepository).save(any(RestorePasswordBid.class));
+  }
+
+  @Test
+  void restorePasswordWhenEmailQueueIsFullShouldStillReturnGenericMessage() {
+    var user = new User();
+    user.setEmail("internal@example.com");
+    user.setUserType(UserType.INTERNAL);
+    when(userRepository.findByEmail("internal@example.com")).thenReturn(Optional.of(user));
+    doThrow(new TaskRejectedException("queue full")).when(emailExecutorService).execute(any(Runnable.class));
+
+    var rs = handler.createRestorePasswordBid(restoreRq("internal@example.com"), "http://rp/");
+
+    assertEquals(EMAIL_HAS_BEEN_SENT, rs.getResultMessage());
+  }
+
+  private void runEmailTasksInline() {
+    doAnswer(inv -> {
+      ((Runnable) inv.getArgument(0)).run();
+      return null;
+    }).when(emailExecutorService).execute(any(Runnable.class));
   }
 
   private static RestorePasswordRQ restoreRq(String email) {

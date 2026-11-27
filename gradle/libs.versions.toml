@@ -124,7 +124,6 @@ spring-data-commons = { group = "org.springframework.data", name = "spring-data-
 hibernate-core = { group = "org.hibernate.orm", name = "hibernate-core" }
 jakarta-validation = { group = "jakarta.validation", name = "jakarta.validation-api" }
 apache-commons-commonscsv = { group = "org.apache.commons", name = "commons-csv", version.ref = "apache-commons-csv" }
-pf4j-update = { group = "org.pf4j", name = "pf4j-update", version.ref = "pf4j-update" }
 kotlin-stdlib = { group = "org.jetbrains.kotlin", name = "kotlin-stdlib" }
 flyway-core = { group = "org.flywaydb", name = "flyway-core" }
 flyway-database-postgresql = { group = "org.flywaydb", name = "flyway-database-postgresql" }

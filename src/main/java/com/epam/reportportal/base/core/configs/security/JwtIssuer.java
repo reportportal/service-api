@@ -32,6 +32,14 @@ public class JwtIssuer {
   private String secretKey;
   private String algorithm = "HS256";
   private String usernameClaim = "sub";
-  private String authoritiesClaim = "authorities";
+  /**
+   * Claim holding the user's authorities. When not configured, the token's authorities are ignored and the user's
+   * ReportPortal role is used.
+   */
+  private String authoritiesClaim;
+  /**
+   * Expected {@code aud} value. When configured, tokens whose audience does not contain it are rejected.
+   */
+  private String audience;
   private UserResolverType userResolver = UserResolverType.DEFAULT;
 }

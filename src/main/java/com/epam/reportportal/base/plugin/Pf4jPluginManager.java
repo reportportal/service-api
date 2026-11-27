@@ -23,6 +23,7 @@ import static java.util.Optional.ofNullable;
 import com.epam.reportportal.base.core.events.domain.PluginDeletedEvent;
 import com.epam.reportportal.base.core.events.domain.PluginUploadedEvent;
 import com.epam.reportportal.base.core.integration.plugin.PluginLoader;
+import com.epam.reportportal.base.core.marketplace.PluginArtifacts;
 import com.epam.reportportal.base.core.plugin.Pf4jPluginBox;
 import com.epam.reportportal.base.core.plugin.Plugin;
 import com.epam.reportportal.base.core.plugin.PluginInfo;
@@ -82,6 +83,12 @@ public class Pf4jPluginManager implements Pf4jPluginBox {
 
   private static final long MAXIMUM_UPLOADED_PLUGINS = 50;
   private static final long PLUGIN_LIVE_TIME = 2;
+
+  /**
+   * The plugin id and version from an uploaded jar's manifest become part of file system paths and file names, so they
+   * must not carry separators or dot segments. The same allow-list as the marketplace install path (PluginArtifacts),
+   * including '+' in versions (semver build metadata).
+   */
 
   private final String pluginsDir;
   private final String pluginsTempDir;
@@ -460,10 +467,25 @@ public class Pf4jPluginManager implements Pf4jPluginBox {
       PluginInfo newPluginInfo = pluginLoader.extractPluginInfo(tempPluginPath);
       BusinessRule.expect(validatePluginMetaInfo(newPluginInfo), equalTo(Boolean.TRUE))
           .verify(ErrorType.PLUGIN_UPLOAD_ERROR, "Plugin version should be specified.");
+      validatePluginIdAndVersion(newPluginInfo);
       return newPluginInfo;
     } catch (PluginRuntimeException e) {
       removeUploadingPlugin(fileName);
       throw new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR, e.getMessage());
+    } catch (ReportPortalException e) {
+      deleteTempPlugin(fileName);
+      throw e;
+    }
+  }
+
+  private void validatePluginIdAndVersion(PluginInfo info) {
+    if (!PluginArtifacts.isSafeIdentifier(info.getId())) {
+      throw new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR,
+          "Plugin id in the manifest is not valid: only letters, digits, '.', '_' and '-' are allowed");
+    }
+    if (!PluginArtifacts.isSafeVersion(info.getVersion())) {
+      throw new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR,
+          "Plugin version in the manifest is not valid: only letters, digits, '.', '_', '+' and '-' are allowed");
     }
   }
 
@@ -478,6 +500,7 @@ public class Pf4jPluginManager implements Pf4jPluginBox {
     Path pluginsTempDirPath = Paths.get(pluginsTempDir);
     createTempPluginsFolderIfNotExists(pluginsTempDirPath);
 
+    validateFileName(fileName);
     validateFileExtension(fileName);
 
     try {
@@ -527,6 +550,17 @@ public class Pf4jPluginManager implements Pf4jPluginBox {
             Suppliers.formattedSupplier("Unsupported plugin file extension = '{}'",
                 resolvedExtension).get()
         );
+  }
+
+  /**
+   * Rejects file names that could escape the temporary plugins directory.
+   *
+   * @param fileName uploaded plugin file name
+   */
+  private void validateFileName(String fileName) {
+    BusinessRule.expect(fileName, name -> name != null && !name.isBlank() && !name.contains("..")
+            && name.indexOf('/') < 0 && name.indexOf('\\') < 0 && name.indexOf('\0') < 0)
+        .verify(ErrorType.PLUGIN_UPLOAD_ERROR, "Plugin file name is not valid");
   }
 
   /**

@@ -20,33 +20,46 @@ import static com.epam.reportportal.base.ReportPortalUserUtil.getRpUser;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.epam.reportportal.base.core.auth.TokenBlacklistService;
 import com.epam.reportportal.base.core.events.domain.ChangeUserTypeEvent;
+import com.epam.reportportal.base.core.user.impl.EmailChangeConfirmationService.PendingEmailChange;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.UserRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationRole;
+import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectRole;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.User;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRole;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserType;
+import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 
 @ExtendWith(MockitoExtension.class)
 class UserMutationServiceImplTest {
@@ -65,6 +78,12 @@ class UserMutationServiceImplTest {
 
   @Mock
   private PasswordEncoder passwordEncoder;
+
+  @Mock
+  private EmailChangeConfirmationService emailChangeConfirmationService;
+
+  @Mock
+  private com.epam.reportportal.base.auth.userdetails.UserAuthDataCacheEvictor userAuthDataCacheEvictor;
 
   @InjectMocks
   private UserMutationServiceImpl userMutationService;
@@ -89,6 +108,135 @@ class UserMutationServiceImplTest {
   @Nested
   @DisplayName("updateEmail")
   class UpdateEmail {
+
+    @BeforeEach
+    void authenticateWithJwt() {
+      // getRpUser always yields userId=1; give the target a different id so adminEditor edits another user.
+      user.setId(10L);
+      var jwt = Jwt.withTokenValue("token").header("alg", "HS256").subject("user@example.com").build();
+      SecurityContextHolder.getContext().setAuthentication(new JwtAuthenticationToken(jwt));
+    }
+
+    @AfterEach
+    void clearSecurityContext() {
+      SecurityContextHolder.clearContext();
+    }
+
+    private ReportPortalUser selfEditor() {
+      return editorWithId(UserRole.USER, user.getId());
+    }
+
+    private ReportPortalUser editorWithId(UserRole role, Long userId) {
+      return ReportPortalUser.userBuilder()
+          .withUserName("user@example.com")
+          .withPassword("test")
+          .withAuthorities(Collections.emptySet())
+          .withUserId(userId)
+          .withEmail("user@example.com")
+          .withUserRole(role)
+          .withOrganizationDetails(new java.util.HashMap<>())
+          .build();
+    }
+
+    @Test
+    @DisplayName("Should record a pending change instead of changing the email when an internal user changes their own")
+    void updateEmailWhenSelfInternalShouldRequestConfirmation() {
+      when(userRepository.findByEmail("new@example.com")).thenReturn(Optional.empty());
+
+      userMutationService.updateEmail(user, "New@Example.com", selfEditor());
+
+      verify(emailChangeConfirmationService).requestChange(user, "new@example.com");
+      assertThat(user.getEmail()).isEqualTo("user@example.com");
+      assertThat(user.getLogin()).isEqualTo("user@example.com");
+      verify(tokenBlacklistService, never()).revokeUserTokens(any());
+      verify(projectRepository, never()).saveAll(any());
+    }
+
+    @Test
+    @DisplayName("Should require confirmation when an administrator changes their own email")
+    void updateEmailWhenAdminSelfShouldRequestConfirmation() {
+      when(userRepository.findByEmail("new@example.com")).thenReturn(Optional.empty());
+
+      userMutationService.updateEmail(user, "new@example.com", editorWithId(UserRole.ADMINISTRATOR, user.getId()));
+
+      verify(emailChangeConfirmationService).requestChange(user, "new@example.com");
+      assertThat(user.getEmail()).isEqualTo("user@example.com");
+      verify(tokenBlacklistService, never()).revokeUserTokens(any());
+    }
+
+    @Test
+    @DisplayName("Should not record a pending change for an email that is already taken")
+    void updateEmailWhenSelfAndDuplicateShouldThrowWithoutRequest() {
+      var existingUser = new User();
+      existingUser.setId(99L);
+      when(userRepository.findByEmail("new@example.com")).thenReturn(Optional.of(existingUser));
+
+      assertThatThrownBy(() -> userMutationService.updateEmail(user, "new@example.com", selfEditor()))
+          .isInstanceOf(ReportPortalException.class)
+          .hasMessageContaining("already exists");
+      verify(emailChangeConfirmationService, never()).requestChange(any(), any());
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = UserType.class, names = "INTERNAL", mode = EnumSource.Mode.EXCLUDE)
+    @DisplayName("Should reject a self-service email change of an externally managed account")
+    void updateEmailWhenSelfExternalShouldThrow(UserType type) {
+      user.setUserType(type);
+
+      assertThatThrownBy(() -> userMutationService.updateEmail(user, "new@example.com", selfEditor()))
+          .isInstanceOf(ReportPortalException.class)
+          .hasMessageContaining("externally managed");
+
+      assertThat(user.getEmail()).isEqualTo("user@example.com");
+      verify(tokenBlacklistService, never()).revokeUserTokens(any());
+    }
+
+    @Test
+    @DisplayName("Should reject an administrator changing the email of their own externally managed account")
+    void updateEmailWhenAdminSelfExternalShouldThrow() {
+      user.setUserType(UserType.SAML);
+      var adminSelf = editorWithId(UserRole.ADMINISTRATOR, user.getId());
+
+      assertThatThrownBy(() -> userMutationService.updateEmail(user, "new@example.com", adminSelf))
+          .isInstanceOf(ReportPortalException.class)
+          .hasMessageContaining("externally managed");
+    }
+
+    @Test
+    @DisplayName("Should reject an email change authenticated by an API key")
+    void updateEmailWhenApiKeyAuthenticationShouldThrow() {
+      var apiKeyPrincipal = selfEditor();
+      SecurityContextHolder.getContext().setAuthentication(
+          new UsernamePasswordAuthenticationToken(apiKeyPrincipal, null, apiKeyPrincipal.getAuthorities()));
+
+      assertThatThrownBy(() -> userMutationService.updateEmail(user, "new@example.com", apiKeyPrincipal))
+          .isInstanceOf(ReportPortalException.class)
+          .hasMessageContaining("API key");
+
+      assertThat(user.getEmail()).isEqualTo("user@example.com");
+      verify(userRepository, never()).findByEmail(any());
+      verify(tokenBlacklistService, never()).revokeUserTokens(any());
+    }
+
+    @Test
+    @DisplayName("Should reject an administrator's email change of another user authenticated by an API key")
+    void updateEmailWhenAdminApiKeyAuthenticationShouldThrow() {
+      SecurityContextHolder.getContext().setAuthentication(
+          new UsernamePasswordAuthenticationToken(adminEditor, null, adminEditor.getAuthorities()));
+
+      assertThatThrownBy(() -> userMutationService.updateEmail(user, "new@example.com", adminEditor))
+          .isInstanceOf(ReportPortalException.class)
+          .hasMessageContaining("API key");
+    }
+
+    @Test
+    @DisplayName("Should reject an email change without an authentication")
+    void updateEmailWhenNoAuthenticationShouldThrow() {
+      SecurityContextHolder.clearContext();
+
+      assertThatThrownBy(() -> userMutationService.updateEmail(user, "new@example.com", adminEditor))
+          .isInstanceOf(ReportPortalException.class);
+    }
 
     @Test
     @DisplayName("Should allow admin to change external user email")
@@ -140,6 +288,7 @@ class UserMutationServiceImplTest {
           () -> userMutationService.updateEmail(user, "new@example.com", adminEditor))
           .isInstanceOf(ReportPortalException.class)
           .hasMessageContaining("already exists");
+      verify(tokenBlacklistService, never()).revokeUserTokens(any());
     }
 
     @Test
@@ -162,6 +311,132 @@ class UserMutationServiceImplTest {
 
       assertThat(user.getEmail()).isEqualTo("new@example.com");
       assertThat(user.getLogin()).isEqualTo("new@example.com");
+      verify(tokenBlacklistService).revokeUserTokens(user);
+      verify(userRepository).replaceOwnerLogin("user@example.com", "new@example.com");
+      verify(emailChangeConfirmationService, never()).requestChange(any(), any());
+    }
+  }
+
+  @Nested
+  @DisplayName("confirmEmailChange")
+  class ConfirmEmailChange {
+
+    private static final String TOKEN = "3f1c1a52-1c2e-4a4b-9a7e-0d5b8c0e9f11";
+
+    private PendingEmailChange pending() {
+      return new PendingEmailChange(TOKEN, user.getId(), "user@example.com", "new@example.com");
+    }
+
+    @Test
+    @DisplayName("Should apply the change, revoke tokens of the old login and remove the pending change")
+    void confirmShouldApplyEmailAndRevokeTokensOfOldLogin() {
+      Project project = new Project();
+      when(emailChangeConfirmationService.findPending(TOKEN)).thenReturn(Optional.of(pending()));
+      when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+      when(userRepository.findByEmail("new@example.com")).thenReturn(Optional.empty());
+      when(projectRepository.findUserProjects("user@example.com")).thenReturn(List.of(project));
+      List<String> revokedLogins = new ArrayList<>();
+      doAnswer(inv -> revokedLogins.add(((User) inv.getArgument(0)).getLogin()))
+          .when(tokenBlacklistService).revokeUserTokens(user);
+
+      User result = userMutationService.confirmEmailChange(TOKEN);
+
+      assertThat(result).isSameAs(user);
+      assertThat(user.getEmail()).isEqualTo("new@example.com");
+      assertThat(user.getLogin()).isEqualTo("new@example.com");
+      assertThat(revokedLogins).containsExactly("user@example.com");
+      verify(projectRepository).saveAll(List.of(project));
+      verify(userRepository).replaceOwnerLogin("user@example.com", "new@example.com");
+      verify(emailChangeConfirmationService).completeChange(user.getId());
+    }
+
+    @Test
+    @DisplayName("Should reject an unknown, used or expired token with 400")
+    void confirmWhenTokenUnknownShouldThrowIncorrectRequest() {
+      when(emailChangeConfirmationService.findPending(TOKEN)).thenReturn(Optional.empty());
+
+      assertThatThrownBy(() -> userMutationService.confirmEmailChange(TOKEN))
+          .isInstanceOf(ReportPortalException.class)
+          .hasMessageContaining("Email change link is invalid or expired")
+          .extracting(e -> ((ReportPortalException) e).getErrorType())
+          .isEqualTo(ErrorType.INCORRECT_REQUEST);
+      verify(tokenBlacklistService, never()).revokeUserTokens(any());
+    }
+
+    @Test
+    @DisplayName("Should reject the token when the user no longer exists")
+    void confirmWhenUserMissingShouldThrowIncorrectRequest() {
+      when(emailChangeConfirmationService.findPending(TOKEN)).thenReturn(Optional.of(pending()));
+      when(userRepository.findById(user.getId())).thenReturn(Optional.empty());
+
+      assertThatThrownBy(() -> userMutationService.confirmEmailChange(TOKEN))
+          .isInstanceOf(ReportPortalException.class)
+          .extracting(e -> ((ReportPortalException) e).getErrorType())
+          .isEqualTo(ErrorType.INCORRECT_REQUEST);
+    }
+
+    @Test
+    @DisplayName("Should reject the token when the email was changed another way after it was issued")
+    void confirmWhenEmailChangedMeanwhileShouldThrowIncorrectRequest() {
+      user.setEmail("admin-set@example.com");
+      user.setLogin("admin-set@example.com");
+      when(emailChangeConfirmationService.findPending(TOKEN)).thenReturn(Optional.of(pending()));
+      when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+
+      assertThatThrownBy(() -> userMutationService.confirmEmailChange(TOKEN))
+          .isInstanceOf(ReportPortalException.class)
+          .extracting(e -> ((ReportPortalException) e).getErrorType())
+          .isEqualTo(ErrorType.INCORRECT_REQUEST);
+      assertThat(user.getEmail()).isEqualTo("admin-set@example.com");
+      verify(emailChangeConfirmationService, never()).completeChange(any());
+    }
+
+    @Test
+    @DisplayName("Should answer 409 when the new email was taken in the meantime")
+    void confirmWhenEmailTakenShouldThrowUserAlreadyExists() {
+      var existingUser = new User();
+      existingUser.setId(99L);
+      when(emailChangeConfirmationService.findPending(TOKEN)).thenReturn(Optional.of(pending()));
+      when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+      when(userRepository.findByEmail("new@example.com")).thenReturn(Optional.of(existingUser));
+
+      assertThatThrownBy(() -> userMutationService.confirmEmailChange(TOKEN))
+          .isInstanceOf(ReportPortalException.class)
+          .extracting(e -> ((ReportPortalException) e).getErrorType())
+          .isEqualTo(ErrorType.USER_ALREADY_EXISTS);
+      assertThat(user.getEmail()).isEqualTo("user@example.com");
+      verify(tokenBlacklistService, never()).revokeUserTokens(any());
+      verify(emailChangeConfirmationService, never()).completeChange(any());
+    }
+
+    @Test
+    @DisplayName("Should refuse when the account has been deactivated")
+    void confirmWhenUserInactiveShouldThrowAccessDenied() {
+      user.setActive(false);
+      when(emailChangeConfirmationService.findPending(TOKEN)).thenReturn(Optional.of(pending()));
+      when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+
+      assertThatThrownBy(() -> userMutationService.confirmEmailChange(TOKEN))
+          .isInstanceOf(ReportPortalException.class)
+          .extracting(e -> ((ReportPortalException) e).getErrorType())
+          .isEqualTo(ErrorType.ACCESS_DENIED);
+      assertThat(user.getEmail()).isEqualTo("user@example.com");
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = UserType.class, names = "INTERNAL", mode = EnumSource.Mode.EXCLUDE)
+    @DisplayName("Should refuse when the account is no longer INTERNAL")
+    void confirmWhenUserNotInternalShouldThrowAccessDenied(UserType type) {
+      user.setUserType(type);
+      when(emailChangeConfirmationService.findPending(TOKEN)).thenReturn(Optional.of(pending()));
+      when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+
+      assertThatThrownBy(() -> userMutationService.confirmEmailChange(TOKEN))
+          .isInstanceOf(ReportPortalException.class)
+          .extracting(e -> ((ReportPortalException) e).getErrorType())
+          .isEqualTo(ErrorType.ACCESS_DENIED);
+      assertThat(user.getEmail()).isEqualTo("user@example.com");
+      verify(tokenBlacklistService, never()).revokeUserTokens(any());
     }
   }
 

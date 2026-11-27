@@ -28,7 +28,9 @@ import com.epam.reportportal.api.model.LogTypeResponse;
 import com.epam.reportportal.api.model.ProjectGroupInfo;
 import com.epam.reportportal.api.model.ProjectGroupsPage;
 import com.epam.reportportal.api.model.SuccessfulUpdate;
+import com.epam.reportportal.base.core.group.GroupAccessCacheEvictor;
 import com.epam.reportportal.base.core.group.GroupExtensionPoint;
+import com.epam.reportportal.base.core.group.GroupOrganizationBinding;
 import com.epam.reportportal.base.core.logtype.CreateLogTypeHandler;
 import com.epam.reportportal.base.core.logtype.DeleteLogTypeHandler;
 import com.epam.reportportal.base.core.logtype.GetLogTypeHandler;
@@ -57,6 +59,8 @@ public class GeneratedProjectController implements ProjectsApi {
 
   private final PluginManager pluginManager;
   private final PluginBox pluginBox;
+  private final GroupOrganizationBinding groupOrganizationBinding;
+  private final GroupAccessCacheEvictor groupAccessCacheEvictor;
   private final GetLogTypeHandler getLogTypeHandler;
   private final CreateLogTypeHandler createLogTypeHandler;
   private final UpdateLogTypeHandler updateLogTypeHandler;
@@ -92,7 +96,10 @@ public class GeneratedProjectController implements ProjectsApi {
       Long groupId,
       AddProjectToGroupByIdRequest addProjectToGroupByIdRequest
   ) {
-    getGroupExtension().addGroupToProject(projectKey, groupId, addProjectToGroupByIdRequest);
+    var extension = getGroupExtension();
+    groupOrganizationBinding.requireProjectInGroupOrganization(extension, groupId, normalizeId(projectKey));
+    extension.addGroupToProject(projectKey, groupId, addProjectToGroupByIdRequest);
+    groupAccessCacheEvictor.evictAll();
     return ResponseEntity.ok(new SuccessfulUpdate("Group updated successfully"));
   }
 
@@ -101,6 +108,7 @@ public class GeneratedProjectController implements ProjectsApi {
   @Transactional
   public ResponseEntity<Void> deleteGroupFromProjectById(String projectKey, Long groupId) {
     getGroupExtension().deleteGroupFromProject(projectKey, groupId);
+    groupAccessCacheEvictor.evictAll();
     return new ResponseEntity<>(HttpStatus.NO_CONTENT);
   }
 

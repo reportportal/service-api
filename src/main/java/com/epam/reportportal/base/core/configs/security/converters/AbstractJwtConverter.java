@@ -19,6 +19,8 @@ package com.epam.reportportal.base.core.configs.security.converters;
 import com.epam.reportportal.base.core.auth.TokenBlacklistService;
 import com.epam.reportportal.base.core.configs.security.JwtIssuer;
 import java.util.Collection;
+import java.util.List;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
@@ -39,6 +41,11 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtGra
  */
 public abstract class AbstractJwtConverter implements Converter<Jwt, AbstractAuthenticationToken> {
 
+  /**
+   * Authorities claim of tokens issued by ReportPortal itself.
+   */
+  public static final String DEFAULT_AUTHORITIES_CLAIM = "authorities";
+
   protected final UserDetailsService userDetailsService;
   protected final TokenBlacklistService tokenBlacklistService;
 
@@ -53,7 +60,13 @@ public abstract class AbstractJwtConverter implements Converter<Jwt, AbstractAut
    * @param tokenBlacklistService The service to for JWT blacklisting
    */
   protected AbstractJwtConverter(UserDetailsService userDetailsService, TokenBlacklistService tokenBlacklistService) {
-    this(userDetailsService, tokenBlacklistService, new JwtIssuer());
+    this(userDetailsService, tokenBlacklistService, defaultIssuer());
+  }
+
+  private static JwtIssuer defaultIssuer() {
+    var issuer = new JwtIssuer();
+    issuer.setAuthoritiesClaim(DEFAULT_AUTHORITIES_CLAIM);
+    return issuer;
   }
 
   /**
@@ -68,6 +81,10 @@ public abstract class AbstractJwtConverter implements Converter<Jwt, AbstractAut
     this.userDetailsService = userDetailsService;
     this.tokenBlacklistService = tokenBlacklistService;
     this.config = config;
+    if (StringUtils.isBlank(config.getAuthoritiesClaim())) {
+      this.jwtGrantedAuthoritiesConverter = jwt -> List.of();
+      return;
+    }
     var authoritiesConverter = new JwtGrantedAuthoritiesConverter();
     authoritiesConverter.setAuthoritiesClaimName(config.getAuthoritiesClaim());
     authoritiesConverter.setAuthorityPrefix("");
@@ -101,10 +118,24 @@ public abstract class AbstractJwtConverter implements Converter<Jwt, AbstractAut
 
   protected UserDetails findUser(String identifier) {
     try {
-      return userDetailsService.loadUserByUsername(identifier);
+      return requireEnabled(userDetailsService.loadUserByUsername(identifier));
     } catch (UsernameNotFoundException e) {
       throw new UsernameNotFoundException("User not found: " + identifier, e);
     }
+  }
+
+  /**
+   * Rejects a token whose user has been deactivated, even if the issuer still hands out valid tokens for it.
+   *
+   * @param user the loaded principal
+   * @return the same principal, if enabled
+   * @throws OAuth2AuthenticationException if the principal is not enabled
+   */
+  protected UserDetails requireEnabled(UserDetails user) {
+    if (!user.isEnabled()) {
+      throw new OAuth2AuthenticationException(new OAuth2Error("invalid_token", "User account is disabled", null));
+    }
+    return user;
   }
 
   /**

@@ -17,6 +17,7 @@
 package com.epam.reportportal.base.ws;
 
 import com.epam.reportportal.auth.basic.LoginService;
+import com.epam.reportportal.auth.event.UiAuthenticationFailureEventHandler;
 import com.epam.reportportal.auth.integration.handler.CreateAuthIntegrationHandler;
 import com.epam.reportportal.base.TestConfig;
 import com.epam.reportportal.base.auth.OAuthHelper;
@@ -125,6 +126,11 @@ public abstract class BaseMvcTest {
 
   @MockitoBean
   protected LoginService loginService;
+
+  // Beans of the auth module are sliced out of this module test. Tests that exercise the login brute-force counter
+  // delegate this mock to a real instance (see InvitationControllerTest).
+  @MockitoBean
+  protected UiAuthenticationFailureEventHandler uiAuthenticationFailureEventHandler;
 
   @MockitoBean(name = "rabbitClient")
   protected Client rabbitClient;

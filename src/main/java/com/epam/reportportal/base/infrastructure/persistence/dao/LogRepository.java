@@ -22,6 +22,7 @@ import java.sql.Timestamp;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -36,6 +37,17 @@ public interface LogRepository extends ReportPortalRepository<Log, Long>, LogRep
   Optional<Log> findByUuid(String uuid);
 
   List<Log> findLogsByLogTime(Timestamp timestamp);
+
+  /**
+   * Selects, in one query, those of the given log IDs that belong to the project.
+   *
+   * @param ids       log IDs
+   * @param projectId project ID
+   * @return IDs of the given logs that belong to the project
+   */
+  @Query("SELECT l.id FROM Log l WHERE l.id IN :ids AND l.projectId = :projectId")
+  Set<Long> findIdsByIdInAndProjectId(@Param("ids") Collection<Long> ids,
+      @Param("projectId") Long projectId);
 
   @Query(value = """
       WITH RECURSIVE item_tree AS (

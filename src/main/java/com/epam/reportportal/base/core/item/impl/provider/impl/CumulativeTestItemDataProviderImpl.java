@@ -18,6 +18,7 @@ package com.epam.reportportal.base.core.item.impl.provider.impl;
 
 import static com.epam.reportportal.base.core.widget.content.loader.materialized.handler.MaterializedWidgetStateHandler.VIEW_NAME;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_LAUNCH_ID;
+import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT_ID;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.ItemAttributeConstant.CRITERIA_LEVEL_ATTRIBUTE;
 import static com.epam.reportportal.base.ws.resolver.FilterCriteriaResolver.DEFAULT_FILTER_PREFIX;
 
@@ -35,8 +36,10 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.organization
 import com.epam.reportportal.base.infrastructure.persistence.entity.statistics.Statistics;
 import com.epam.reportportal.base.infrastructure.rules.commons.validation.BusinessRule;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import org.apache.commons.collections4.CollectionUtils;
 import org.jooq.Operator;
@@ -64,20 +67,31 @@ public class CumulativeTestItemDataProviderImpl implements DataProviderHandler {
   public Page<TestItem> getTestItems(Queryable filter, Pageable pageable,
       MembershipDetails membershipDetails,
       ReportPortalUser user, Map<String, String> params) {
-    filter = updateFilter(filter, params);
-    return testItemRepository.findByFilter(filter, pageable);
-
+    return updateFilter(filter, membershipDetails.getProjectId(), params)
+        .map(it -> testItemRepository.findByFilter(it, pageable))
+        .orElseGet(() -> Page.empty(pageable));
   }
 
   @Override
   public Set<Statistics> accumulateStatistics(Queryable filter,
       MembershipDetails membershipDetails, ReportPortalUser user,
       Map<String, String> params) {
-    filter = updateFilter(filter, params);
-    return testItemRepository.accumulateStatisticsByFilter(filter);
+    return updateFilter(filter, membershipDetails.getProjectId(), params)
+        .map(it -> testItemRepository.accumulateStatisticsByFilter(it))
+        .orElseGet(Collections::emptySet);
   }
 
-  public Queryable updateFilter(Queryable filter, Map<String, String> providerParams) {
+  /**
+   * Restricts the caller's filter to the launches behind the requested cumulative chart level and
+   * to the given project.
+   *
+   * @param filter         caller's filter
+   * @param projectId      id of the project the widget belongs to
+   * @param providerParams provider parameters, including the verified view name
+   * @return restricted filter, or empty when the level resolves to no launches (nothing to return)
+   */
+  public Optional<Queryable> updateFilter(Queryable filter, Long projectId,
+      Map<String, String> providerParams) {
     String compositeAttribute = providerParams.get(
         DEFAULT_FILTER_PREFIX + Condition.HAS_FILTER + CRITERIA_LEVEL_ATTRIBUTE);
     BusinessRule.expect(compositeAttribute, it -> !ObjectUtils.isEmpty(it))
@@ -87,14 +101,16 @@ public class CumulativeTestItemDataProviderImpl implements DataProviderHandler {
         providerParams.get(VIEW_NAME),
         compositeAttribute
     );
-    if (CollectionUtils.isNotEmpty(redirectLaunchIds)) {
-      Queryable launchesBasedFilter = Filter.builder()
-          .withTarget(TestItem.class)
-          .withCondition(
-              FilterCondition.builder().in(CRITERIA_LAUNCH_ID, redirectLaunchIds).build())
-          .build();
-      return new CompositeFilter(Operator.AND, filter, launchesBasedFilter);
+    if (CollectionUtils.isEmpty(redirectLaunchIds)) {
+      return Optional.empty();
     }
-    return filter;
+    Queryable launchesBasedFilter = Filter.builder()
+        .withTarget(TestItem.class)
+        .withCondition(
+            FilterCondition.builder().eq(CRITERIA_PROJECT_ID, String.valueOf(projectId)).build())
+        .withCondition(
+            FilterCondition.builder().in(CRITERIA_LAUNCH_ID, redirectLaunchIds).build())
+        .build();
+    return Optional.of(new CompositeFilter(Operator.AND, filter, launchesBasedFilter));
   }
 }

@@ -26,20 +26,40 @@ import com.epam.reportportal.api.model.PluginCommandContext;
 import com.epam.reportportal.api.model.PluginCommandRQ;
 import com.epam.reportportal.base.core.integration.ExecuteIntegrationHandler;
 import com.epam.reportportal.base.core.plugin.PluginBox;
+import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationTypeRepository;
+import com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationType;
+import com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationTypeDetails;
+import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectUserRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.organization.OrganizationUserRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.PluginTypeEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.Integration;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.MembershipDetails;
+import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationRole;
+import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
+import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectRole;
+import com.epam.reportportal.base.infrastructure.persistence.entity.user.OrganizationUser;
+import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRole;
 import com.epam.reportportal.base.infrastructure.rules.commons.validation.BusinessRule;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.reporting.OperationCompletionRS;
+import com.epam.reportportal.base.util.ProjectExtractor;
+import com.epam.reportportal.base.util.SecurityContextUtils;
 import com.epam.reportportal.extension.ReportPortalExtensionPoint;
 import com.epam.reportportal.extension.builtin.BuiltinCommandResolver;
+import com.epam.reportportal.extension.command.AbstractExtensionCommand;
+import com.epam.reportportal.extension.command.ExtensionCommand;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -60,6 +80,8 @@ public class ExecuteIntegrationHandlerImpl implements ExecuteIntegrationHandler 
   private static final String PROJECT_ID = "projectId";
   private static final String PROJECT_NAME = "projectName";
   private static final String PUBLIC_COMMAND_PREFIX = "public_";
+  private static final String ACCESS_TYPE_KEY = "accessType";
+  private static final String ACCESS_TYPE_PUBLIC = "public";
 
   private final IntegrationRepository integrationRepository;
   private final IntegrationTypeRepository integrationTypeRepository;
@@ -67,13 +89,23 @@ public class ExecuteIntegrationHandlerImpl implements ExecuteIntegrationHandler 
 
   private final PluginBox pluginBox;
 
+  private final ProjectRepository projectRepository;
+  private final ProjectExtractor projectExtractor;
+  private final OrganizationUserRepository organizationUserRepository;
+  private final ProjectUserRepository projectUserRepository;
+
   public ExecuteIntegrationHandlerImpl(IntegrationRepository integrationRepository,
       IntegrationTypeRepository integrationTypeRepository, BuiltinCommandResolver builtinCommandResolver,
-      PluginBox pluginBox) {
+      PluginBox pluginBox, ProjectRepository projectRepository, ProjectExtractor projectExtractor,
+      OrganizationUserRepository organizationUserRepository, ProjectUserRepository projectUserRepository) {
     this.integrationRepository = integrationRepository;
     this.integrationTypeRepository = integrationTypeRepository;
     this.builtinCommandResolver = builtinCommandResolver;
     this.pluginBox = pluginBox;
+    this.projectRepository = projectRepository;
+    this.projectExtractor = projectExtractor;
+    this.organizationUserRepository = organizationUserRepository;
+    this.projectUserRepository = projectUserRepository;
   }
 
   @Override
@@ -97,6 +129,18 @@ public class ExecuteIntegrationHandlerImpl implements ExecuteIntegrationHandler 
       Map<String, Object> executionParams) {
     BusinessRule.expect(command, c -> c.startsWith(PUBLIC_COMMAND_PREFIX))
         .verify(ACCESS_DENIED, formattedSupplier("Command '{}' is not public.", command).get());
+    // Anonymous callers may only reach plugins that declare the public access type, the same
+    // criterion the public plugin listing uses.
+    boolean publicPlugin = integrationTypeRepository.findByName(pluginName)
+        .map(IntegrationType::getDetails)
+        .map(IntegrationTypeDetails::getDetails)
+        .map(details -> details.get(ACCESS_TYPE_KEY))
+        .map(ACCESS_TYPE_PUBLIC::equals)
+        .orElse(false);
+    if (!publicPlugin) {
+      throw new ReportPortalException(ACCESS_DENIED,
+          formattedSupplier("Plugin '{}' is not public.", pluginName).get());
+    }
     ReportPortalExtensionPoint pluginInstance = pluginBox.getInstance(pluginName,
             ReportPortalExtensionPoint.class)
         .orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR,
@@ -164,11 +208,15 @@ public class ExecuteIntegrationHandlerImpl implements ExecuteIntegrationHandler 
 
   @Override
   public Object executeExtensionCommand(String pluginName, String command, PluginCommandRQ pluginCommandRq) {
+    Long requestedProjectId = resolveRequestedProjectId(pluginCommandRq);
+    Long requestedOrgId = ofNullable(pluginCommandRq.getContext()).map(PluginCommandContext::getOrgId).orElse(null);
     enrichArgumentsFromContext(pluginCommandRq);
 
     if (isBuiltinExtension(pluginName)) {
-      return builtinCommandResolver.resolve(pluginName, command)
-          .executeCommand(resolveIntegration(pluginName, pluginCommandRq.getContext()), pluginCommandRq);
+      var builtinCommand = builtinCommandResolver.resolve(pluginName, command);
+      Integration integration = resolveAndAuthorize(builtinCommand, pluginName, pluginCommandRq.getContext(),
+          requestedProjectId, requestedOrgId);
+      return builtinCommand.executeCommand(integration, pluginCommandRq);
     }
 
     ReportPortalExtensionPoint pluginInstance = pluginBox.getInstance(pluginName, ReportPortalExtensionPoint.class)
@@ -177,18 +225,45 @@ public class ExecuteIntegrationHandlerImpl implements ExecuteIntegrationHandler 
         ));
 
     if (isCommonCommand(command, pluginInstance)) {
-      return pluginInstance.getCommonExtensionCommand(command)
-          .executeCommand(pluginCommandRq);
+      var commonCommand = pluginInstance.getCommonExtensionCommand(command);
+      authorizeCommand(commonCommand, null, requestedProjectId, requestedOrgId);
+      return commonCommand.executeCommand(pluginCommandRq);
     }
 
     if (isIntegrationCommand(command, pluginInstance)) {
-      Integration integration = resolveIntegration(pluginName, pluginCommandRq.getContext());
-      return pluginInstance.getIntegrationExtensionCommand(command)
-          .executeCommand(integration, pluginCommandRq);
+      var integrationCommand = pluginInstance.getIntegrationExtensionCommand(command);
+      Integration integration = resolveAndAuthorize(integrationCommand, pluginName, pluginCommandRq.getContext(),
+          requestedProjectId, requestedOrgId);
+      return integrationCommand.executeCommand(integration, pluginCommandRq);
     }
     throw new ReportPortalException(BAD_REQUEST_ERROR,
         formattedSupplier("Command '{}' is not found in plugin {}.", command, pluginName).get()
     );
+  }
+
+  /**
+   * Resolves the integration and checks the caller's access to it. To a caller who is not an administrator "no such
+   * integration" and "no access to it" are reported identically (ACCESS_DENIED with one message), so that command
+   * calls cannot be used to probe which integration ids, or which projects' integrations, exist. Administrators see
+   * the precise error.
+   */
+  private Integration resolveAndAuthorize(ExtensionCommand<?> command, String pluginName,
+      PluginCommandContext context, Long requestedProjectId, Long requestedOrgId) {
+    try {
+      Integration integration = resolveIntegration(pluginName, context);
+      authorizeCommand(command, integration, requestedProjectId, requestedOrgId);
+      return integration;
+    } catch (ReportPortalException e) {
+      if ((e.getErrorType() == INTEGRATION_NOT_FOUND || e.getErrorType() == ACCESS_DENIED) && !isCallerAdmin()) {
+        throw new ReportPortalException(ACCESS_DENIED, "Integration not found or access denied");
+      }
+      throw e;
+    }
+  }
+
+  private static boolean isCallerAdmin() {
+    ReportPortalUser user = SecurityContextUtils.getPrincipal();
+    return user != null && user.getUserRole() == UserRole.ADMINISTRATOR;
   }
 
   private static boolean isIntegrationCommand(String command, ReportPortalExtensionPoint pluginInstance) {
@@ -218,10 +293,139 @@ public class ExecuteIntegrationHandlerImpl implements ExecuteIntegrationHandler 
     }
   }
 
+  /**
+   * Returns the project the caller asks the command to act on: the context {@code project_id}, or, when absent, the
+   * legacy {@code projectId} argument that plugins read for authorization.
+   */
+  private Long resolveRequestedProjectId(PluginCommandRQ pluginCommandRq) {
+    var context = pluginCommandRq.getContext();
+    if (context != null && context.getProjectId() != null) {
+      return context.getProjectId();
+    }
+    var argument = ofNullable(pluginCommandRq.getArguments()).map(args -> args.get(PROJECT_ID)).orElse(null);
+    if (argument == null) {
+      return null;
+    }
+    try {
+      return Long.valueOf(String.valueOf(argument));
+    } catch (NumberFormatException _) {
+      throw new ReportPortalException(BAD_REQUEST_ERROR, "Argument 'projectId' must be a number");
+    }
+  }
+
+  /**
+   * Enforces the caller's access to the scope the command acts on, independently of the plugin's own checks. The scope
+   * is derived from the integration (the project or organization it belongs to); the requested project/organization
+   * must agree with it. Global integrations and common commands are scoped by the requested project/organization, if
+   * any; a global integration with no project/organization at all requires the caller to hold the command's required
+   * role in at least one project or organization (or be an administrator), personal organizations and their projects
+   * not counting. The required
+   * role is the one declared by the command ({@link AbstractExtensionCommand}), otherwise
+   * {@link ProjectRole#EDITOR} on a project and {@link OrganizationRole#MEMBER} on an organization. Organization
+   * managers pass project checks within their organization; administrators bypass role checks.
+   */
+  private void authorizeCommand(ExtensionCommand<?> command, Integration integration, Long requestedProjectId,
+      Long requestedOrgId) {
+    Long projectId = requestedProjectId;
+    Long orgId = requestedOrgId;
+    if (integration != null && integration.getProject() != null) {
+      Long integrationProjectId = integration.getProject().getId();
+      BusinessRule.expect(projectId, id -> id == null || id.equals(integrationProjectId))
+          .verify(ACCESS_DENIED, "Integration does not belong to the requested project");
+      projectId = integrationProjectId;
+    } else if (integration != null && integration.getOrganizationId() != null) {
+      Long integrationOrgId = integration.getOrganizationId();
+      BusinessRule.expect(orgId, id -> id == null || id.equals(integrationOrgId))
+          .verify(ACCESS_DENIED, "Integration does not belong to the requested organization");
+      orgId = integrationOrgId;
+    }
+
+    ReportPortalUser user = SecurityContextUtils.getPrincipal();
+    BusinessRule.expect(user, Objects::nonNull).verify(ACCESS_DENIED);
+    boolean isAdmin = user.getUserRole() == UserRole.ADMINISTRATOR;
+
+    if (integration != null && isGlobal(integration) && projectId == null && orgId == null && !isAdmin) {
+      // a global integration is inherited by every project, and the contract has the caller send only its id, so
+      // nothing scopes the request. The caller must still hold the command's required role somewhere.
+      BusinessRule.expect(holdsRequiredRoleSomewhere(user, command), Boolean::booleanValue).verify(ACCESS_DENIED);
+    }
+
+    if (projectId != null) {
+      Project project = projectRepository.findById(projectId)
+          .orElseThrow(() -> new ReportPortalException(ACCESS_DENIED));
+      Long projectOrgId = project.getOrganizationId();
+      BusinessRule.expect(orgId, id -> id == null || id.equals(projectOrgId))
+          .verify(ACCESS_DENIED, "Project does not belong to the requested organization");
+      if (!isAdmin) {
+        validateProjectRole(user, project, requiredProjectRole(command));
+      }
+    } else if (orgId != null && !isAdmin) {
+      OrganizationRole requiredRole = requiredOrgRole(command);
+      OrganizationRole orgRole = organizationUserRepository.findByUserIdAndOrganization_Id(user.getUserId(), orgId)
+          .map(OrganizationUser::getOrganizationRole)
+          .orElseThrow(() -> new ReportPortalException(ACCESS_DENIED));
+      BusinessRule.expect(orgRole, role -> role.sameOrHigherThan(requiredRole)).verify(ACCESS_DENIED);
+    }
+  }
+
+  /**
+   * Whether the user holds the role the command requires in at least one project or organization: the command's
+   * minimum project role (or organization MANAGER, which passes project checks) in any project/organization, or its
+   * explicitly declared minimum organization role in any organization. Personal organizations and the projects inside
+   * them are ignored, so the user's own personal workspace never satisfies the rule.
+   */
+  private boolean holdsRequiredRoleSomewhere(ReportPortalUser user, ExtensionCommand<?> command) {
+    Long userId = user.getUserId();
+    ProjectRole requiredProjectRole = requiredProjectRole(command);
+    Set<ProjectRole> projectRoles = Arrays.stream(ProjectRole.values())
+        .filter(role -> role.sameOrHigherThan(requiredProjectRole)).collect(Collectors.toSet());
+    if (projectUserRepository.existsRoleInNonPersonalOrganizationProject(userId, projectRoles)) {
+      return true;
+    }
+    Set<OrganizationRole> orgRoles = Arrays.stream(OrganizationRole.values())
+        .filter(role -> role.sameOrHigherThan(OrganizationRole.MANAGER))
+        .collect(Collectors.toCollection(HashSet::new));
+    if (command instanceof AbstractExtensionCommand<?> roleAware && roleAware.getMinOrgRole() != null) {
+      OrganizationRole minOrgRole = roleAware.getMinOrgRole();
+      Arrays.stream(OrganizationRole.values()).filter(role -> role.sameOrHigherThan(minOrgRole))
+          .forEach(orgRoles::add);
+    }
+    return organizationUserRepository.existsRoleInNonPersonalOrganization(userId, orgRoles);
+  }
+
+  private static boolean isGlobal(Integration integration) {
+    return integration.getProject() == null && integration.getOrganizationId() == null;
+  }
+
+  private void validateProjectRole(ReportPortalUser user, Project project, ProjectRole requiredRole) {
+    MembershipDetails membership = projectExtractor.findMembershipDetails(user, project.getKey())
+        .orElseThrow(() -> new ReportPortalException(ACCESS_DENIED));
+    if (membership.getOrgRole() != null && membership.getOrgRole().sameOrHigherThan(OrganizationRole.MANAGER)) {
+      return;
+    }
+    BusinessRule.expect(membership.getProjectRole(), role -> role != null && role.sameOrHigherThan(requiredRole))
+        .verify(ACCESS_DENIED);
+  }
+
+  private static ProjectRole requiredProjectRole(ExtensionCommand<?> command) {
+    if (command instanceof AbstractExtensionCommand<?> roleAware && roleAware.getMinProjectRole() != null) {
+      return roleAware.getMinProjectRole();
+    }
+    return ProjectRole.EDITOR;
+  }
+
+  private static OrganizationRole requiredOrgRole(ExtensionCommand<?> command) {
+    if (command instanceof AbstractExtensionCommand<?> roleAware && roleAware.getMinOrgRole() != null) {
+      return roleAware.getMinOrgRole();
+    }
+    return OrganizationRole.MEMBER;
+  }
+
   private Integration resolveIntegration(String pluginName, PluginCommandContext context) {
     if (context != null && context.getIntegrationId() != null) {
       Long integrationId = context.getIntegrationId();
       return integrationRepository.findById(integrationId)
+          .filter(integration -> pluginName.equals(integration.getType().getName()))
           .orElseThrow(() -> new ReportPortalException(INTEGRATION_NOT_FOUND, integrationId));
     }
 

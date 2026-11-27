@@ -17,6 +17,8 @@
 package com.epam.reportportal.base.core.dashboard.impl;
 
 import static com.epam.reportportal.base.util.OwnedEntityUtils.validateOwnedEntityLocked;
+import static com.epam.reportportal.base.util.OwnedEntityUtils.isHeldByOtherLockedDashboard;
+import static com.epam.reportportal.base.util.OwnedEntityUtils.validateWidgetLocked;
 import static com.epam.reportportal.base.ws.converter.converters.DashboardConverter.TO_ACTIVITY_RESOURCE;
 import static java.util.stream.Collectors.toSet;
 
@@ -85,14 +87,26 @@ public class DeleteDashboardHandlerImpl implements DeleteDashboardHandler {
     List<Widget> widgets = dashboardWidgets.stream()
         .filter(DashboardWidget::isCreatedOn)
         .map(DashboardWidget::getWidget)
-        .peek(widgetContentRemover::removeContent)
         .collect(Collectors.toList());
+    // Widgets created on this dashboard are deleted with it, so none of them may be locked against the user.
+    // The whole operation is refused before anything is removed.
+    widgets.forEach(widget -> validateWidgetLocked(widget, membershipDetails, user));
+    widgets.forEach(widgetContentRemover::removeContent);
     dashboardWidgets.addAll(
         widgets.stream().flatMap(w -> w.getDashboardWidgets().stream()).collect(toSet()));
 
     dashboardWidgetRepository.deleteAll(dashboardWidgets);
     dashboardRepository.delete(dashboard);
     widgetRepository.deleteAll(widgets);
+    // Widgets that stay on other dashboards must not keep a stale lock once the last locked holder is gone.
+    dashboard.getWidgets().stream()
+        .map(DashboardWidget::getWidget)
+        .filter(w -> !widgets.contains(w))
+        .filter(w -> Boolean.TRUE.equals(w.getLocked()) && !isHeldByOtherLockedDashboard(w, dashboardId))
+        .forEach(w -> {
+          w.setLocked(false);
+          widgetRepository.save(w);
+        });
 
     eventPublisher.publishEvent(
         new DashboardDeletedEvent(TO_ACTIVITY_RESOURCE.apply(dashboard), user.getUserId(),

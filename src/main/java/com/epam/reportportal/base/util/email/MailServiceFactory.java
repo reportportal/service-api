@@ -30,6 +30,12 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.integration.
 import com.epam.reportportal.base.infrastructure.rules.commons.validation.BusinessRule;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
+import jakarta.mail.AuthenticationFailedException;
+import jakarta.mail.MessagingException;
+import java.net.ConnectException;
+import java.net.NoRouteToHostException;
+import java.net.SocketException;
+import java.net.UnknownHostException;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -43,6 +49,7 @@ import org.jasypt.util.text.BasicTextEncryptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mail.MailAuthenticationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -103,12 +110,15 @@ public class MailServiceFactory {
       javaMailProperties.put("mail.smtp.writetimeout", 20000);
       javaMailProperties.put("mail.smtp.connectiontimeout", DEFAULT_CONNECTION_TIMEOUT);
       javaMailProperties.put("mail.smtp.auth", authRequired);
-      javaMailProperties.put("mail.smtp.starttls.enable",
-          authRequired
-              && ofNullable(config.get(EmailSettingsEnum.STAR_TLS_ENABLED.getAttribute())).map(
-              e -> BooleanUtils.toBoolean(
-                  String.valueOf(e))).orElse(false)
-      );
+      boolean starTlsEnabled = authRequired
+          && ofNullable(config.get(EmailSettingsEnum.STAR_TLS_ENABLED.getAttribute())).map(
+          e -> BooleanUtils.toBoolean(
+              String.valueOf(e))).orElse(false);
+      javaMailProperties.put("mail.smtp.starttls.enable", starTlsEnabled);
+      if (starTlsEnabled) {
+        javaMailProperties.put("mail.smtp.starttls.required", true);
+        javaMailProperties.put("mail.smtp.ssl.checkserveridentity", true);
+      }
 
       if (ofNullable(config.get(EmailSettingsEnum.SSL_ENABLED.getAttribute())).map(
               e -> BooleanUtils.toBoolean(String.valueOf(e)))
@@ -222,6 +232,55 @@ public class MailServiceFactory {
     } catch (Exception e) {
       throw emailConfigurationFail(e);
     }
+  }
+
+  /**
+   * Maps a failure of a test email / connection test (a checked {@link MessagingException} or Spring's unchecked
+   * {@code MailException} family, e.g. {@code MailAuthenticationException}, {@code MailSendException}) to
+   * {@link ErrorType#EMAIL_CONFIGURATION_IS_INCORRECT}. The message names the cause without echoing server banners:
+   * only the SMTP reason phrase of non-authentication, non-connection failures is included.
+   *
+   * @param e the failure
+   * @return exception to throw
+   */
+  public static ReportPortalException toConfigurationError(Exception e) {
+    String reason;
+    if (e instanceof MailAuthenticationException || hasCause(e, AuthenticationFailedException.class)) {
+      reason = "Authentication failed. Check the username and password.";
+    } else if (hasCause(e, ConnectException.class) || hasCause(e, UnknownHostException.class)
+        || hasCause(e, NoRouteToHostException.class) || hasCause(e, SocketException.class)
+        || hasCause(e, java.net.SocketTimeoutException.class)
+        || (e.getMessage() != null && e.getMessage().startsWith("Mail server connection failed"))) {
+      reason = "Unable to connect to the mail server. Check the host, port and security settings.";
+    } else {
+      reason = "The mail server rejected the message: " + reasonPhrase(e);
+    }
+    return new ReportPortalException(EMAIL_CONFIGURATION_IS_INCORRECT,
+        "Please, check your configuration. " + reason);
+  }
+
+  private static boolean hasCause(Throwable e, Class<? extends Throwable> type) {
+    for (Throwable t = e; t != null; t = t.getCause() == t ? null : t.getCause()) {
+      if (type.isInstance(t)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /** First line of the innermost {@link MessagingException} message, truncated. */
+  private static String reasonPhrase(Throwable e) {
+    String message = null;
+    for (Throwable t = e; t != null; t = t.getCause() == t ? null : t.getCause()) {
+      if (t instanceof MessagingException && t.getMessage() != null) {
+        message = t.getMessage();
+      }
+    }
+    if (message == null) {
+      return "unknown error";
+    }
+    String firstLine = message.lines().findFirst().orElse("").trim();
+    return firstLine.length() > 200 ? firstLine.substring(0, 200) : firstLine;
   }
 
   private ReportPortalException emailConfigurationFail(Throwable e) {

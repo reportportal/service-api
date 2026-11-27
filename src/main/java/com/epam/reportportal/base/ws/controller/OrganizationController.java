@@ -32,6 +32,7 @@ import com.epam.reportportal.api.model.SearchCriteriaRQ;
 import com.epam.reportportal.api.model.SuccessfulUpdate;
 import com.epam.reportportal.api.model.UpdateOrganizationRequest;
 import com.epam.reportportal.base.core.filter.SearchCriteriaService;
+import com.epam.reportportal.base.core.group.GroupAccessCacheEvictor;
 import com.epam.reportportal.base.core.jasper.ReportFormat;
 import com.epam.reportportal.base.core.jasper.impl.OrganizationJasperReportHandler;
 import com.epam.reportportal.base.core.organization.GetOrganizationHandler;
@@ -84,6 +85,7 @@ public class OrganizationController extends BaseController implements Organizati
   private final OrganizationJasperReportHandler organizationReportHandler;
   private final HttpServletResponse httpServletResponse;
   private final PatchOrganizationHandler patchOrganizationHandler;
+  private final GroupAccessCacheEvictor groupAccessCacheEvictor;
 
   @Transactional(readOnly = true)
   @PreAuthorize(ORGANIZATION_MEMBER)
@@ -180,6 +182,7 @@ public class OrganizationController extends BaseController implements Organizati
   public ResponseEntity<Void> deleteOrganizationsOrgId(Long orgId) {
     var principal = SecurityContextUtils.getPrincipal();
     getOrgExtension().deleteOrganization(orgId, principal);
+    groupAccessCacheEvictor.evictAll();
     return new ResponseEntity<>(HttpStatus.NO_CONTENT);
   }
 

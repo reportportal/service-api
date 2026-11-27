@@ -43,7 +43,7 @@ public class CustomColumnQueryProvider extends AbstractHealthCheckTableQueryProv
     SelectHavingStep<?> selectQuery = dsl.select(DSL.arrayAggDistinct(fieldName(UNNESTED_ARRAY))
             .filterWhere(fieldName(UNNESTED_ARRAY).isNotNull())
             .as(AGGREGATED_VALUES), fieldName(VALUE))
-        .from(DSL.table(params.getViewName()),
+        .from(DSL.table(DSL.name(params.getViewName())),
             DSL.table(DSL.sql("unnest(?)", fieldName(CUSTOM_COLUMN))).as(UNNESTED_ARRAY))
         .where(fieldName(KEY).cast(String.class)
             .eq(params.getCurrentLevelKey())

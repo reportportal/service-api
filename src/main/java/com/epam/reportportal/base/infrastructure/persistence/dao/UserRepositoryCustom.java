@@ -72,4 +72,16 @@ public interface UserRepositoryCustom extends FilterableRepository<User> {
   Optional<ReportPortalUser> findReportPortalUser(String login);
 
   Optional<ReportPortalUser> findReportPortalUser(Long userId);
+
+  /**
+   * Rewrites the login-keyed ownership references (dashboards, widgets and user filters share
+   * {@code owned_entity.owner}; {@code dashboard_widget.widget_owner} is the denormalised widget owner) from the old
+   * login to the new one. Must run in the same transaction as the login change, because lock and ownership checks
+   * compare these strings with the caller's login.
+   *
+   * @param oldLogin the login being replaced
+   * @param newLogin the new login
+   * @return number of rewritten rows
+   */
+  int replaceOwnerLogin(String oldLogin, String newLogin);
 }

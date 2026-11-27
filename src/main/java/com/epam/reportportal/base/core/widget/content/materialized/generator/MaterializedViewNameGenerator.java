@@ -16,7 +16,13 @@
 
 package com.epam.reportportal.base.core.widget.content.materialized.generator;
 
+import static com.epam.reportportal.base.core.widget.content.loader.materialized.handler.MaterializedWidgetStateHandler.VIEW_NAME;
+
+import com.epam.reportportal.base.core.widget.util.WidgetOptionUtil;
 import com.epam.reportportal.base.infrastructure.persistence.entity.widget.Widget;
+import java.util.Optional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 /**
@@ -27,11 +33,36 @@ import org.springframework.stereotype.Component;
 @Component
 public class MaterializedViewNameGenerator {
 
+  private static final Logger LOGGER = LoggerFactory.getLogger(MaterializedViewNameGenerator.class);
+
   private static final String VIEW_PREFIX = "widget";
   private static final String NAME_SEPARATOR = "_";
 
   public String generate(Widget widget) {
     return String.join(NAME_SEPARATOR, VIEW_PREFIX, String.valueOf(widget.getProject().getId()),
         String.valueOf(widget.getId()));
+  }
+
+  /**
+   * Resolves the materialized view name of a widget that has one. The name stored in the widget
+   * options is never used as is: it is accepted only when it equals the name generated from the
+   * widget's own project and id, and the generated value is returned.
+   *
+   * @param widget widget with materialized content
+   * @return generated view name, or empty when the widget has no stored view name or the stored
+   *     name does not belong to this widget
+   */
+  public Optional<String> resolveStored(Widget widget) {
+    String stored = WidgetOptionUtil.getValueByKey(VIEW_NAME, widget.getWidgetOptions());
+    if (stored == null) {
+      return Optional.empty();
+    }
+    String generated = generate(widget);
+    if (!generated.equals(stored)) {
+      LOGGER.warn("Widget {}: stored materialized view name does not match the expected one",
+          widget.getId());
+      return Optional.empty();
+    }
+    return Optional.of(generated);
   }
 }

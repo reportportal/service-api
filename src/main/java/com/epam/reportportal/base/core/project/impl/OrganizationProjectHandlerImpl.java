@@ -35,6 +35,7 @@ import com.epam.reportportal.base.core.analyzer.auto.LogIndexer;
 import com.epam.reportportal.base.core.analyzer.auto.client.AnalyzerServiceClient;
 import com.epam.reportportal.base.core.events.domain.ProjectCreatedEvent;
 import com.epam.reportportal.base.core.events.domain.ProjectDeletedEvent;
+import com.epam.reportportal.base.core.group.GroupAccessCacheEvictor;
 import com.epam.reportportal.base.core.project.OrganizationProjectHandler;
 import com.epam.reportportal.base.core.remover.ContentRemover;
 import com.epam.reportportal.base.core.tms.service.TmsAttachmentService;
@@ -96,6 +97,7 @@ public class OrganizationProjectHandlerImpl implements OrganizationProjectHandle
   private final LogIndexer logIndexer;
   private final AnalyzerServiceClient analyzerServiceClient;
   private final GroupMembershipRepository groupMembershipRepository;
+  private final GroupAccessCacheEvictor groupAccessCacheEvictor;
 
   @Override
   public OrganizationProjectsPage getOrganizationProjectsPage(Long orgId, Queryable filter,
@@ -229,6 +231,7 @@ public class OrganizationProjectHandlerImpl implements OrganizationProjectHandle
 
     projectContentRemover.remove(project);
     projectRepository.delete(project);
+    groupAccessCacheEvictor.evictAll();
     issueTypeRepository.deleteAll(issueTypesToRemove);
     logIndexer.deleteIndex(project.getId());
     analyzerServiceClient.removeSuggest(project.getId());

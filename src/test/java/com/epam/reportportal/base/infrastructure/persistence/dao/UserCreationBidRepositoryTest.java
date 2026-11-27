@@ -38,6 +38,8 @@ class UserCreationBidRepositoryTest extends BaseMvcTest {
 
   public static final String INTERNAL_TYPE = "internal";
   public static final String UNKNOWN_TYPE = "unknown";
+  public static final String EMAIL_CHANGE_TYPE = "email_change";
+  public static final String EMAIL_CHANGE_UUID = "7d1e2f40-3b6a-4c5d-8e9f-0a1b2c3d4e5f";
 
   @Autowired
   private UserCreationBidRepository repository;
@@ -89,5 +91,21 @@ class UserCreationBidRepositoryTest extends BaseMvcTest {
   void deleteAllByEmail() {
     int deletedCount = repository.deleteAllByEmail("defaultemail@domain.com");
     assertEquals(2, deletedCount);
+  }
+
+  @Test
+  void emailChangeBidIsNotFoundAsInvitation() {
+    assertTrue(repository.findByUuidAndType(EMAIL_CHANGE_UUID, INTERNAL_TYPE).isEmpty());
+    assertTrue(repository.findByUuidAndType(EMAIL_CHANGE_UUID, EMAIL_CHANGE_TYPE).isPresent());
+  }
+
+  @Test
+  void deleteByInvitingUserIdAndTypeKeepsInvitations() {
+    int deletedCount = repository.deleteByInvitingUserIdAndType(2L, EMAIL_CHANGE_TYPE);
+
+    assertEquals(1, deletedCount);
+    assertTrue(repository.findById(EMAIL_CHANGE_UUID).isEmpty());
+    assertTrue(repository.findById("0647cf8f-02e3-4acd-ba3e-f74ec9d2c5cb").isPresent());
+    assertTrue(repository.findById("6cb0ce2a-e974-44d8-ae78-d86baa38c356").isPresent());
   }
 }

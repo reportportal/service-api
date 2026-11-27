@@ -100,7 +100,6 @@ dependencies {
     api(libs.hibernate.core)
     api(libs.jakarta.validation)
 
-    api(libs.pf4j.update) // TODO get rid of and rewrite with the latest version of pf4j
     implementation(libs.bundles.spring.boot.starters)
     implementation(libs.bundles.spring.security)
 

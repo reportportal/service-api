@@ -31,6 +31,7 @@ import com.epam.reportportal.base.core.analyzer.auto.strategy.search.SearchColle
 import com.epam.reportportal.base.core.analyzer.auto.strategy.search.SearchLogsMode;
 import com.epam.reportportal.base.core.log.LogService;
 import com.epam.reportportal.base.infrastructure.model.project.AnalyzerConfig;
+import com.epam.reportportal.base.infrastructure.persistence.commons.Predicates;
 import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.TestItemRepository;
@@ -42,6 +43,7 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launc
 import com.epam.reportportal.base.infrastructure.persistence.entity.log.LogFull;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.MembershipDetails;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
+import com.epam.reportportal.base.infrastructure.rules.commons.validation.Suppliers;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.model.analyzer.SearchRq;
@@ -102,6 +104,11 @@ public class SearchLogServiceImpl implements SearchLogService {
     Launch launch = launchRepository.findById(item.getLaunchId())
         .orElseThrow(
             () -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, item.getLaunchId()));
+
+    expect(launch.getProjectId(), Predicates.equalTo(membershipDetails.getProjectId())).verify(
+        ErrorType.FORBIDDEN_OPERATION, Suppliers.formattedSupplier(
+            "Specified test item with id '{}' not referenced to specified project with id '{}'",
+            itemId, membershipDetails.getProjectId()));
 
     expect(item.getItemResults().getStatus(), not(statusIn(StatusEnum.IN_PROGRESS))).verify(
         ErrorType.TEST_ITEM_IS_NOT_FINISHED);

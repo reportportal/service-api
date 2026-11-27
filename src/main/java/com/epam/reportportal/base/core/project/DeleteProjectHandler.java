@@ -41,6 +41,16 @@ public interface DeleteProjectHandler {
   OperationCompletionRS deleteProject(Long projectId, ReportPortalUser user);
 
   /**
+   * Delete the project with its content: logs, log storage documents, index, analyzer suggestions,
+   * and attachments (moved for deletion, binaries are removed after commit by service-jobs). Does
+   * not publish activity events, the caller is responsible for them.
+   *
+   * @param project {@link Project} to delete
+   * @return Result of operation
+   */
+  OperationCompletionRS deleteProject(Project project);
+
+  /**
    * Delete specified project.
    *
    * @param ids  projects ids

@@ -25,15 +25,18 @@ import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyMap;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.isA;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import com.epam.reportportal.base.core.auth.TokenBlacklistService;
 import com.epam.reportportal.base.core.events.domain.OrganizationDeletedEvent;
 import com.epam.reportportal.base.core.events.domain.ProjectDeletedEvent;
 import com.epam.reportportal.base.core.events.domain.UserDeletedEvent;
+import com.epam.reportportal.base.core.project.DeleteProjectHandler;
 import com.epam.reportportal.base.core.remover.ContentRemover;
 import com.epam.reportportal.base.infrastructure.persistence.binary.UserBinaryDataService;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectRepository;
@@ -57,6 +60,7 @@ import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -101,6 +105,9 @@ class DeleteUserHandlerImplTest {
   @Mock
   private TokenBlacklistService tokenBlacklistService;
 
+  @Mock
+  private DeleteProjectHandler deleteProjectHandler;
+
   @InjectMocks
   private DeleteUserHandlerImpl handler;
 
@@ -116,7 +123,6 @@ class DeleteUserHandlerImplTest {
     when(projectRepository.findAllByUserLogin(user.getLogin())).thenReturn(Lists.newArrayList());
     when(organizationRepository.findByOwnerIdAndOrganizationType(user.getId(), OrganizationType.PERSONAL))
         .thenReturn(Optional.empty());
-    doNothing().when(dataStore).deleteUserPhoto(any());
     when(emailNotificationStrategyMapping.get(any())).thenReturn(emailNotificationStrategy);
     doNothing().when(emailNotificationStrategy).sendEmail(any(), anyMap());
     doNothing().when(applicationEventPublisher).publishEvent(isA(UserDeletedEvent.class));
@@ -126,7 +132,7 @@ class DeleteUserHandlerImplTest {
             1L));
 
     verify(repository, times(1)).findById(2L);
-    verify(dataStore, times(1)).deleteUserPhoto(any());
+    verifyNoInteractions(dataStore);
     verify(tokenBlacklistService).revokeUserTokens(user);
   }
 
@@ -143,7 +149,6 @@ class DeleteUserHandlerImplTest {
     when(projectRepository.findAllByUserLogin(user.getLogin())).thenReturn(Lists.newArrayList());
     when(organizationRepository.findByOwnerIdAndOrganizationType(user.getId(), OrganizationType.PERSONAL))
         .thenReturn(Optional.empty());
-    doNothing().when(dataStore).deleteUserPhoto(any());
     when(emailNotificationStrategyMapping.get(any())).thenReturn(emailNotificationStrategy);
     doNothing().when(emailNotificationStrategy).sendEmail(any(), anyMap());
     doNothing().when(applicationEventPublisher).publishEvent(isA(UserDeletedEvent.class));
@@ -211,7 +216,6 @@ class DeleteUserHandlerImplTest {
     when(organizationUserRepository.findUserIdsByOrganizationId(10L)).thenReturn(List.of(2L));
     when(projectRepository.findAllByOrganizationId(10L)).thenReturn(List.of(project));
     when(projectUserRepository.findUserIdsByProjectId(100L)).thenReturn(List.of(2L));
-    doNothing().when(dataStore).deleteUserPhoto(any());
     when(emailNotificationStrategyMapping.get(any())).thenReturn(emailNotificationStrategy);
     doNothing().when(emailNotificationStrategy).sendEmail(any(), anyMap());
 
@@ -226,6 +230,9 @@ class DeleteUserHandlerImplTest {
             && projectEvent.getProjectId().equals(100L)));
     verify(applicationEventPublisher).publishEvent(isA(OrganizationDeletedEvent.class));
     verify(applicationEventPublisher).publishEvent(isA(UserDeletedEvent.class));
+    InOrder inOrder = inOrder(deleteProjectHandler, repository);
+    inOrder.verify(deleteProjectHandler).deleteProject(project);
+    inOrder.verify(repository).delete(user);
   }
 
 }

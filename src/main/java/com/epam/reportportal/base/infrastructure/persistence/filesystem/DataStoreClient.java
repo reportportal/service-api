@@ -20,14 +20,16 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.enums.Featur
 import com.epam.reportportal.base.infrastructure.persistence.util.FeatureFlagHandler;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PushbackInputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.opendal.Operator;
 import org.apache.opendal.ReadOptions;
 
@@ -71,6 +73,7 @@ public class DataStoreClient implements DataStore {
     if (filePath == null) {
       return "";
     }
+    filePath = normalizePath(filePath);
     StoredFile storedFile = getStoredFile(filePath);
     try {
       byte[] data = inputStream.readAllBytes();
@@ -89,11 +92,37 @@ public class DataStoreClient implements DataStore {
       log.error("Unable to find file");
       throw new ReportPortalException(ErrorType.UNABLE_TO_LOAD_BINARY_DATA, "Unable to find file");
     }
+    filePath = normalizePath(filePath);
+    StoredFile storedFile = getStoredFile(filePath);
+    String fullPath = getFullPath(storedFile);
+    InputStream stream = null;
+    try {
+      stream = operator.createInputStream(fullPath);
+      // the operator opens the object lazily: read the first byte so that a missing file fails here
+      PushbackInputStream checkedStream = new PushbackInputStream(stream);
+      int firstByte = checkedStream.read();
+      if (firstByte != -1) {
+        checkedStream.unread(firstByte);
+      }
+      return checkedStream;
+    } catch (Exception e) {
+      closeQuietly(stream);
+      log.error("Unable to find file '{}'", filePath, e);
+      throw new ReportPortalException(ErrorType.UNABLE_TO_LOAD_BINARY_DATA, "Unable to find file");
+    }
+  }
+
+  @Override
+  public long getSize(String filePath) {
+    if (filePath == null) {
+      log.error("Unable to find file");
+      throw new ReportPortalException(ErrorType.UNABLE_TO_LOAD_BINARY_DATA, "Unable to find file");
+    }
+    filePath = normalizePath(filePath);
     StoredFile storedFile = getStoredFile(filePath);
     String fullPath = getFullPath(storedFile);
     try {
-      byte[] data = operator.read(fullPath);
-      return new ByteArrayInputStream(data);
+      return operator.stat(fullPath).getContentLength();
     } catch (Exception e) {
       log.error("Unable to find file '{}'", filePath, e);
       throw new ReportPortalException(ErrorType.UNABLE_TO_LOAD_BINARY_DATA, "Unable to find file");
@@ -106,6 +135,7 @@ public class DataStoreClient implements DataStore {
       log.error("Unable to find file");
       throw new ReportPortalException(ErrorType.UNABLE_TO_LOAD_BINARY_DATA, "Unable to find file");
     }
+    filePath = normalizePath(filePath);
     if (offset < 0 || length < 0) {
       throw new ReportPortalException(ErrorType.INCORRECT_REQUEST,
           "Range offset and length must be non-negative");
@@ -146,6 +176,7 @@ public class DataStoreClient implements DataStore {
     if (filePath == null) {
       return;
     }
+    filePath = normalizePath(filePath);
     StoredFile storedFile = getStoredFile(filePath);
     String fullPath = getFullPath(storedFile);
     try {
@@ -184,6 +215,31 @@ public class DataStoreClient implements DataStore {
     } catch (Exception e) {
       log.error("Unable to delete container '{}'", bucket, e);
       throw new ReportPortalException(ErrorType.INCORRECT_REQUEST, "Unable to delete container");
+    }
+  }
+
+  /**
+   * Normalises a key and rejects keys that could resolve outside the storage root. Backslashes are
+   * treated as separators, leading slashes are stripped (OpenDAL resolves "/a/b" and "a/b" to the
+   * same object under its root, so absolute configured paths keep working), and keys with a ".."
+   * segment are rejected.
+   */
+  private String normalizePath(String filePath) {
+    String normalized = filePath.replace('\\', '/');
+    if (Arrays.asList(normalized.split(PATH_DELIMITER)).contains("..")) {
+      log.error("Rejected file path '{}'", filePath);
+      throw new ReportPortalException(ErrorType.INCORRECT_REQUEST, "Invalid file path");
+    }
+    return StringUtils.stripStart(normalized, PATH_DELIMITER);
+  }
+
+  private static void closeQuietly(InputStream stream) {
+    if (stream != null) {
+      try {
+        stream.close();
+      } catch (Exception e) {
+        log.debug("Unable to close stream", e);
+      }
     }
   }
 

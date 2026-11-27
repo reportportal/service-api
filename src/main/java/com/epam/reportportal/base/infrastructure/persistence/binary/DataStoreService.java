@@ -40,4 +40,12 @@ public interface DataStoreService {
   Optional<InputStream> load(String fileId);
 
   Optional<InputStream> loadRange(String fileId, long offset, long length);
+
+  /**
+   * Returns the size of a stored file without reading its content.
+   *
+   * @param fileId encoded file id
+   * @return file size in bytes
+   */
+  long getSize(String fileId);
 }

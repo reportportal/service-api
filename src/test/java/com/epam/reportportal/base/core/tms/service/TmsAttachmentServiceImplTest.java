@@ -13,6 +13,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -549,6 +550,98 @@ class TmsAttachmentServiceImplTest {
     assertNotNull(result);
     assertTrue(result.isEmpty());
     verifyNoInteractions(tmsAttachmentRepository);
+  }
+
+  @Test
+  void duplicateTmsAttachment_ShouldCloseFileAndThumbnailStreams() throws Exception {
+    // Given an attachment with a thumbnail
+    attachment.setThumbnailPath("thumbnail-id");
+    var originalFileStream = spy(new ByteArrayInputStream("test content".getBytes()));
+    var thumbnailStream = spy(new ByteArrayInputStream("thumbnail".getBytes()));
+    var duplicatedAttachment = new TmsAttachment();
+
+    when(tmsAttachmentDataStoreService.load(fileId)).thenReturn(Optional.of(originalFileStream));
+    when(tmsAttachmentDataStoreService.load("thumbnail-id"))
+        .thenReturn(Optional.of(thumbnailStream));
+    when(tmsAttachmentDataStoreService.save(anyString(), eq(originalFileStream)))
+        .thenReturn("new-file-id");
+    when(tmsAttachmentDataStoreService.save(anyString(), eq(thumbnailStream)))
+        .thenReturn("new-thumbnail-id");
+    when(tmsAttachmentMapper.duplicateAttachment(attachment, "new-file-id", "new-thumbnail-id"))
+        .thenReturn(duplicatedAttachment);
+    when(tmsAttachmentRepository.save(duplicatedAttachment)).thenReturn(duplicatedAttachment);
+
+    // When duplicating attachment
+    sut.duplicateTmsAttachment(attachment);
+
+    // Then both loaded streams are closed once
+    verify(originalFileStream, times(1)).close();
+    verify(thumbnailStream, times(1)).close();
+  }
+
+  @Test
+  void duplicateTmsAttachment_ShouldCloseFileStream_WhenSaveFails() throws Exception {
+    // Given original file exists but saving its copy fails
+    var originalFileStream = spy(new ByteArrayInputStream("test content".getBytes()));
+    when(tmsAttachmentDataStoreService.load(fileId)).thenReturn(Optional.of(originalFileStream));
+    when(tmsAttachmentDataStoreService.save(anyString(), any(InputStream.class)))
+        .thenThrow(new RuntimeException("Storage error"));
+
+    // When/Then duplication fails and the loaded stream is closed
+    assertThrows(ReportPortalException.class, () -> sut.duplicateTmsAttachment(attachment));
+    verify(originalFileStream, times(1)).close();
+  }
+
+  @Test
+  void duplicateTmsAttachment_ShouldCloseThumbnailStreamAndSkipThumbnail_WhenThumbnailSaveFails()
+      throws Exception {
+    // Given an attachment whose thumbnail copy cannot be saved
+    attachment.setThumbnailPath("thumbnail-id");
+    var originalFileStream = spy(new ByteArrayInputStream("test content".getBytes()));
+    var thumbnailStream = spy(new ByteArrayInputStream("thumbnail".getBytes()));
+    var duplicatedAttachment = new TmsAttachment();
+
+    when(tmsAttachmentDataStoreService.load(fileId)).thenReturn(Optional.of(originalFileStream));
+    when(tmsAttachmentDataStoreService.load("thumbnail-id"))
+        .thenReturn(Optional.of(thumbnailStream));
+    when(tmsAttachmentDataStoreService.save(anyString(), eq(originalFileStream)))
+        .thenReturn("new-file-id");
+    when(tmsAttachmentDataStoreService.save(anyString(), eq(thumbnailStream)))
+        .thenThrow(new RuntimeException("Storage error"));
+    when(tmsAttachmentMapper.duplicateAttachment(attachment, "new-file-id", null))
+        .thenReturn(duplicatedAttachment);
+    when(tmsAttachmentRepository.save(duplicatedAttachment)).thenReturn(duplicatedAttachment);
+
+    // When duplicating attachment
+    var result = sut.duplicateTmsAttachment(attachment);
+
+    // Then the attachment is duplicated without a thumbnail and both streams are closed
+    assertEquals(duplicatedAttachment, result);
+    verify(originalFileStream, times(1)).close();
+    verify(thumbnailStream, times(1)).close();
+  }
+
+  @Test
+  void duplicateTmsAttachment_ShouldSkipThumbnail_WhenThumbnailFileMissing() {
+    // Given an attachment whose thumbnail file is missing in the data store
+    attachment.setThumbnailPath("thumbnail-id");
+    var duplicatedAttachment = new TmsAttachment();
+
+    when(tmsAttachmentDataStoreService.load(fileId))
+        .thenReturn(Optional.of(new ByteArrayInputStream("test content".getBytes())));
+    when(tmsAttachmentDataStoreService.load("thumbnail-id")).thenReturn(Optional.empty());
+    when(tmsAttachmentDataStoreService.save(anyString(), any(InputStream.class)))
+        .thenReturn("new-file-id");
+    when(tmsAttachmentMapper.duplicateAttachment(attachment, "new-file-id", null))
+        .thenReturn(duplicatedAttachment);
+    when(tmsAttachmentRepository.save(duplicatedAttachment)).thenReturn(duplicatedAttachment);
+
+    // When duplicating attachment
+    var result = sut.duplicateTmsAttachment(attachment);
+
+    // Then the attachment is duplicated without a thumbnail
+    assertEquals(duplicatedAttachment, result);
+    verify(tmsAttachmentDataStoreService, times(1)).save(anyString(), any(InputStream.class));
   }
 
   @Test

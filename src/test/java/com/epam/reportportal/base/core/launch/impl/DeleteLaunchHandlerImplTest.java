@@ -21,22 +21,31 @@ import static com.epam.reportportal.base.core.launch.impl.LaunchTestUtil.getLaun
 import static com.epam.reportportal.base.infrastructure.persistence.util.MembershipUtils.rpUserToMembership;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.when;
 
+import com.epam.reportportal.base.core.analyzer.auto.LogIndexer;
+import com.epam.reportportal.base.core.log.LogService;
+import com.epam.reportportal.base.core.remover.ContentRemover;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.dao.AttachmentRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.LaunchModeEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.StatusEnum;
+import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationRole;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectRole;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRole;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
+import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -50,8 +59,48 @@ class DeleteLaunchHandlerImplTest {
   @Mock
   private AttachmentRepository attachmentRepository;
 
+  @Mock
+  private ContentRemover<Launch> launchContentRemover;
+
+  @Mock
+  private ApplicationEventPublisher eventPublisher;
+
+  @Mock
+  private LogIndexer logIndexer;
+
+  @Mock
+  private LogService logService;
+
   @InjectMocks
   private DeleteLaunchHandlerImpl handler;
+
+  @Test
+  void deleteLaunchMovesAttachmentsBeforeDeletingLaunch() {
+    final ReportPortalUser rpUser = getRpUser("owner", UserRole.ADMINISTRATOR,
+        OrganizationRole.MEMBER, ProjectRole.EDITOR, 1L);
+    Launch launch = getLaunch(StatusEnum.PASSED, LaunchModeEnum.DEFAULT).orElseThrow();
+    when(launchRepository.findById(1L)).thenReturn(Optional.of(launch));
+
+    handler.deleteLaunch(1L, rpUserToMembership(rpUser), rpUser);
+
+    InOrder inOrder = inOrder(attachmentRepository, launchRepository);
+    inOrder.verify(attachmentRepository).moveForDeletionByLaunchId(1L);
+    inOrder.verify(launchRepository).delete(launch);
+  }
+
+  @Test
+  void deleteLaunchesMovesAttachmentsBeforeDeletingLaunches() {
+    final ReportPortalUser rpUser = getRpUser("owner", UserRole.ADMINISTRATOR,
+        OrganizationRole.MEMBER, ProjectRole.EDITOR, 1L);
+    Launch launch = getLaunch(StatusEnum.PASSED, LaunchModeEnum.DEFAULT).orElseThrow();
+    when(launchRepository.findById(1L)).thenReturn(Optional.of(launch));
+
+    handler.deleteLaunches(List.of(1L), rpUserToMembership(rpUser), rpUser);
+
+    InOrder inOrder = inOrder(attachmentRepository, launchRepository);
+    inOrder.verify(attachmentRepository).moveForDeletionByLaunchIds(List.of(1L));
+    inOrder.verify(launchRepository).deleteAll(List.of(launch));
+  }
 
   @Test
   void deleteNotOwnLaunch() {

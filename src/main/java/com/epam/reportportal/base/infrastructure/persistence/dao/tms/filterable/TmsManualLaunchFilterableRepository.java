@@ -43,6 +43,12 @@ public class TmsManualLaunchFilterableRepository implements FilterableRepository
   private static final String HAS_NOT_EXECUTED = "has_not_executed";
   private static final String DONE = "done";
   private static final String MANUAL = "MANUAL";
+  /**
+   * Execution statuses that mean "not executed yet": an active launch with any of them is not
+   * complete.
+   */
+  private static final List<JStatusEnum> NOT_EXECUTED_STATUSES = List.of(JStatusEnum.TO_RUN,
+      JStatusEnum.IN_PROGRESS);
   private static final Table<Record> TEST_CASE_EXECUTION_TABLE = DSL.table(
       "tms_test_case_execution");
   private static final Field<Long> TEST_CASE_EXECUTION_TEST_ITEM_ID = DSL.field(
@@ -177,13 +183,18 @@ public class TmsManualLaunchFilterableRepository implements FilterableRepository
     ));
   }
 
+  /**
+   * Applies the "Launch completion" filter. {@code has_not_executed}: the launch has at least one
+   * execution in {@link #NOT_EXECUTED_STATUSES}. {@code done}: the launch has executions and none
+   * of them is in {@link #NOT_EXECUTED_STATUSES}.
+   */
   private void applyCompletionFilter(FilterCondition filterCondition,
       List<org.jooq.Condition> customConditions) {
     var completionLogic = filterCondition.getValue();
 
     if (HAS_NOT_EXECUTED.equalsIgnoreCase(completionLogic)) {
       customConditions.add(DSL.exists(
-          getBaseExecutionSelect().and(TEST_ITEM_RESULTS.STATUS.eq(JStatusEnum.TO_RUN))
+          getBaseExecutionSelect().and(TEST_ITEM_RESULTS.STATUS.in(NOT_EXECUTED_STATUSES))
       ));
     } else if (DONE.equalsIgnoreCase(completionLogic)) {
       customConditions.add(DSL.exists(
@@ -191,8 +202,7 @@ public class TmsManualLaunchFilterableRepository implements FilterableRepository
               .where(TEST_CASE_EXECUTION_LAUNCH_ID.eq(LAUNCH.ID))
       ));
       customConditions.add(DSL.notExists(
-          getBaseExecutionSelect().and(
-              TEST_ITEM_RESULTS.STATUS.notIn(JStatusEnum.PASSED, JStatusEnum.FAILED))
+          getBaseExecutionSelect().and(TEST_ITEM_RESULTS.STATUS.in(NOT_EXECUTED_STATUSES))
       ));
     }
   }

@@ -17,10 +17,12 @@
 package com.epam.reportportal.base.util;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.epam.reportportal.base.core.configs.JsonSchemaValidatorConfig;
 import com.networknt.schema.Error;
+import com.networknt.schema.InvalidSchemaException;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,5 +60,13 @@ public class JsonSchemaValidatorTest {
 
     List<Error> messages = jsonSchemaValidator.validate(schemaLocation, invalidJson);
     assertFalse(messages.isEmpty(), "Validation should fail for invalid JSON");
+  }
+
+  @Test
+  public void testValidateForeignSchemaIsNotFetched() {
+    assertThrows(InvalidSchemaException.class,
+        () -> jsonSchemaValidator.validate("https://evil.example/x.json", "{}"));
+    assertThrows(InvalidSchemaException.class,
+        () -> jsonSchemaValidator.validate("file:///etc/passwd", "{}"));
   }
 }

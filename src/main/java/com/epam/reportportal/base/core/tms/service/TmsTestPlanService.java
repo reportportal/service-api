@@ -27,9 +27,16 @@ public interface TmsTestPlanService extends CrudService<TmsTestPlanRQ, TmsTestPl
   BatchTestCaseOperationResultRS removeTestCasesFromPlan(Long projectId, Long testPlanId,
       @NotEmpty List<Long> testCaseIds);
 
-  boolean addTestCaseToTestPlan(Long testPlanId, Long testCaseId);
-
-  boolean removeSingleTestCaseFromPlan(Long testPlanId, Long testCaseId);
+  /**
+   * Adds a test case to a test plan if both belong to the project. Does nothing if the pair is
+   * already present or either id is not found in the project.
+   *
+   * @param projectId  the project ID
+   * @param testPlanId the test plan ID
+   * @param testCaseId the test case ID
+   * @return true if a new association was inserted
+   */
+  boolean addTestCaseToTestPlan(Long projectId, Long testPlanId, Long testCaseId);
 
   DuplicateTmsTestPlanRS duplicate(MembershipDetails membershipDetails, ReportPortalUser user, Long testPlanId,
       TmsTestPlanRQ duplicateTestPlanRQ);
@@ -80,12 +87,13 @@ public interface TmsTestPlanService extends CrudService<TmsTestPlanRQ, TmsTestPl
   Page<TmsTestFolderRS> getTestFoldersFromPlan(Long projectId, Long testPlanId, Pageable pageable);
 
   /**
-   * Get test plans map by test plan IDs
+   * Get test plans map by test plan IDs. Test plans of other projects are not included.
    *
+   * @param projectId   the project ID
    * @param testPlanIds list of test plan IDs
    * @return map where key is test plan ID and value is TmsTestPlan entity
    */
-  Map<Long, TmsTestPlan> getTestPlanMap(List<Long> testPlanIds);
+  Map<Long, TmsTestPlan> getTestPlanMap(Long projectId, List<Long> testPlanIds);
 
   TmsTestPlan getEntityById(Long projectId, Long testPlanId);
 

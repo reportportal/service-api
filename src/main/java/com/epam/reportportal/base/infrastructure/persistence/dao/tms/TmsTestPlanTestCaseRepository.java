@@ -18,11 +18,19 @@ public interface TmsTestPlanTestCaseRepository extends
       + "WHERE tptc.id.testPlanId = :testPlanId")
   List<Long> findTestCaseIdsByTestPlanId(@Param("testPlanId") Long testPlanId);
 
-  @Modifying
-  @Query("DELETE FROM TmsTestPlanTestCase tptc "
-      + "WHERE tptc.id.testPlanId = :testPlanId "
-      + "AND tptc.id.testCaseId IN :testCaseIds")
-  void deleteByTestPlanIdAndTestCaseIds(@Param("testPlanId") Long testPlanId,
+  /**
+   * Deletes the test cases from the test plan in one statement.
+   *
+   * @param testPlanId  the test plan ID
+   * @param testCaseIds the test case IDs
+   * @return IDs of the test cases that were actually deleted from the plan
+   */
+  @Query(value = """
+      DELETE FROM tms_test_plan_test_case
+      WHERE test_plan_id = :testPlanId AND test_case_id IN (:testCaseIds)
+      RETURNING test_case_id
+      """, nativeQuery = true)
+  List<Long> deleteByTestPlanIdAndTestCaseIds(@Param("testPlanId") Long testPlanId,
       @Param("testCaseIds") List<Long> testCaseIds);
 
   @Modifying
@@ -31,14 +39,26 @@ public interface TmsTestPlanTestCaseRepository extends
   )
   void deleteAllByTestCaseIds(@Param("testCaseIds") List<Long> testCaseIds);
 
-  @Modifying
+  /**
+   * Adds the test cases of the project to the test plan in one statement. Test cases of other
+   * projects and test cases already in the plan are skipped. The caller must verify that the test
+   * plan belongs to the project.
+   *
+   * @param projectId   the project ID
+   * @param testPlanId  the test plan ID
+   * @param testCaseIds the test case IDs
+   * @return IDs of the test cases that were actually inserted
+   */
   @Query(value = """
       INSERT INTO tms_test_plan_test_case (test_plan_id, test_case_id)
-      SELECT :testPlanId, t.test_case_id
-      FROM (VALUES(:#{#testCaseIds})) AS t(test_case_id)
+      SELECT :testPlanId, tc.id
+      FROM tms_test_case tc
+      WHERE tc.id IN (:testCaseIds) AND tc.project_id = :projectId
+      ON CONFLICT (test_plan_id, test_case_id) DO NOTHING
+      RETURNING test_case_id
       """, nativeQuery = true)
-  void batchInsertTestPlanTestCases(@Param("testPlanId") Long testPlanId,
-      @Param("testCaseIds") List<Long> testCaseIds);
+  List<Long> insertTestPlanTestCasesInProject(@Param("projectId") Long projectId,
+      @Param("testPlanId") Long testPlanId, @Param("testCaseIds") List<Long> testCaseIds);
 
   /**
    * Deletes all test plan-test case associations for the specified test case.
@@ -86,6 +106,27 @@ public interface TmsTestPlanTestCaseRepository extends
       nativeQuery = true)
   int insertTestPlanTestCaseIgnoreConflict(@Param("testPlanId") Long testPlanId,
       @Param("testCaseId") Long testCaseId);
+
+  /**
+   * Inserts a test plan - test case association only if the test plan and the test case both exist
+   * and belong to the project. Never raises a foreign key or unique violation.
+   *
+   * @param projectId  the project ID
+   * @param testPlanId the test plan ID
+   * @param testCaseId the test case ID
+   * @return number of inserted rows (0 or 1)
+   */
+  @Modifying
+  @Query(value = """
+      INSERT INTO tms_test_plan_test_case (test_plan_id, test_case_id)
+      SELECT tp.id, tc.id
+      FROM tms_test_plan tp
+      JOIN tms_test_case tc ON tc.project_id = tp.project_id
+      WHERE tp.id = :testPlanId AND tc.id = :testCaseId AND tp.project_id = :projectId
+      ON CONFLICT (test_plan_id, test_case_id) DO NOTHING
+      """, nativeQuery = true)
+  int insertTestPlanTestCaseInProject(@Param("projectId") Long projectId,
+      @Param("testPlanId") Long testPlanId, @Param("testCaseId") Long testCaseId);
 
   @Modifying
   @Query("DELETE FROM TmsTestPlanTestCase tptc " +

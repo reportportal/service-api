@@ -233,6 +233,15 @@ public interface TmsTestCaseExecutionService {
 
   boolean existsByTestCaseExecutionIdAndLaunchId(Long executionId, Long launchId);
 
+  /**
+   * Finds which of the given executions belong to the launch.
+   *
+   * @param executionIds test case execution IDs
+   * @param launchId     launch ID
+   * @return IDs of the executions that exist in the launch
+   */
+  List<Long> findExecutionIdsInLaunch(List<Long> executionIds, Long launchId);
+
   TmsTestCaseExecutionCommentRS putTestCaseExecutionComment(Long projectId, Long launchId,
       Long executionId, TmsTestCaseExecutionCommentRQ request);
   

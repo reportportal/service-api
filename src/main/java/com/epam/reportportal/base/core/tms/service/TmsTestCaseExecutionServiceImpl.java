@@ -37,7 +37,6 @@ import com.epam.reportportal.base.model.Page;
 import com.epam.reportportal.base.model.item.UpdateTestItemRQ;
 import com.epam.reportportal.base.reporting.FinishTestItemRQ;
 import com.epam.reportportal.base.ws.converter.PagedResourcesAssembler;
-import jakarta.persistence.PersistenceException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -54,7 +53,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -388,32 +386,18 @@ public class TmsTestCaseExecutionServiceImpl implements TmsTestCaseExecutionServ
       var testCasesMap = tmsTestCaseService.getByIdsMap(projectId, testCaseIdsInPartition, false);
 
       for (var testCaseId : testCaseIdsInPartition) {
-        try {
-          var testCase = testCasesMap.get(testCaseId);
-          if (testCase == null) {
-            log.warn("Test case {} for project {} not found in batch fetch", testCaseId, projectId);
-            errors.add(new BatchTestCaseOperationError(testCaseId, "Test case does not exist in the project"));
-            continue;
-          }
-
-          // Create execution
-          createExecution(projectId, testCase, launch, suiteItemsByIds, testItemNamesByIds, existingExecutionTestCaseIds);
-          successfulIds.add(testCaseId);
-
-          log.debug("Successfully added test case {} to launch {}", testCaseId, launch.getId());
-
-        } catch (DataAccessException | PersistenceException e) {
-          throw e;
-        } catch (ReportPortalException e) {
-          log.warn("Failed to add test case {} to launch {}: {}", testCaseId, launch.getId(),
-            e.getMessage());
-          errors.add(new BatchTestCaseOperationError(testCaseId, e.getMessage()));
-        } catch (Exception e) {
-          log.error("Unexpected error adding test case {} to launch {}: {}", testCaseId,
-              launch.getId(), e.getMessage(), e);
-          errors.add(new BatchTestCaseOperationError(testCaseId,
-              "Unexpected error: " + e.getMessage()));
+        var testCase = testCasesMap.get(testCaseId);
+        if (testCase == null) {
+          log.warn("Test case {} for project {} not found in batch fetch", testCaseId, projectId);
+          errors.add(new BatchTestCaseOperationError(testCaseId, "Test case does not exist in the project"));
+          continue;
         }
+
+        // Create execution; any failure fails the whole request (one transaction)
+        createExecution(projectId, testCase, launch, suiteItemsByIds, testItemNamesByIds, existingExecutionTestCaseIds);
+        successfulIds.add(testCaseId);
+
+        log.debug("Successfully added test case {} to launch {}", testCaseId, launch.getId());
       }
     }
 
@@ -460,8 +444,6 @@ public class TmsTestCaseExecutionServiceImpl implements TmsTestCaseExecutionServ
     }
 
     var testItem = execution.getTestItem();
-    var suiteItemId = testItem.getParentId();
-    var testItemId = testItem.getItemId();
 
     // Delete associated step executions
     tmsStepExecutionService.deleteStepExecutionsByTestCaseExecution(executionId);
@@ -470,6 +452,14 @@ public class TmsTestCaseExecutionServiceImpl implements TmsTestCaseExecutionServ
     // Delete the execution record
     tmsTestCaseExecutionRepository.deleteById(executionId);
     log.debug("Deleted test case execution: {}", executionId);
+
+    // The test item may already be gone (test_item_id is ON DELETE SET NULL)
+    if (testItem == null) {
+      log.debug("Test case execution: {} has no test item, nothing else to remove", executionId);
+      return;
+    }
+    var suiteItemId = testItem.getParentId();
+    var testItemId = testItem.getItemId();
 
     // Delete the TEST item and all its nested steps (cascade)
     testItemRepository.deleteById(testItemId);
@@ -698,7 +688,8 @@ public class TmsTestCaseExecutionServiceImpl implements TmsTestCaseExecutionServ
                 );
               }
               // Add the test case to test plan for PASSED or FAILED status
-              addTestCaseToTestPlan(execution, request.getStatus());
+              addTestCaseToTestPlan(membershipDetails.getProjectId(), execution,
+                  request.getStatus());
               updated = true;
             }
           }
@@ -725,10 +716,12 @@ public class TmsTestCaseExecutionServiceImpl implements TmsTestCaseExecutionServ
   /**
    * Adds a test case to test plan if test item status is PASSED or FAILED.
    *
+   * @param projectId the project ID of the launch
    * @param execution the test case execution
    * @param status    the new status
    */
-  private void addTestCaseToTestPlan(TmsTestCaseExecution execution, String status) {
+  private void addTestCaseToTestPlan(Long projectId, TmsTestCaseExecution execution,
+      String status) {
     if (status == null) {
       return;
     }
@@ -742,7 +735,8 @@ public class TmsTestCaseExecutionServiceImpl implements TmsTestCaseExecutionServ
               testPlanId -> {
                 var testCaseId = execution.getTestCaseId();
 
-                var added = tmsTestPlanService.addTestCaseToTestPlan(testPlanId, testCaseId);
+                var added = tmsTestPlanService.addTestCaseToTestPlan(projectId, testPlanId,
+                    testCaseId);
 
                 if (added) {
                   log.debug("Added test case: {} to test plan: {} due to {} status",
@@ -763,6 +757,15 @@ public class TmsTestCaseExecutionServiceImpl implements TmsTestCaseExecutionServ
   public boolean existsByTestCaseExecutionIdAndLaunchId(Long executionId, Long launchId) {
     return tmsTestCaseExecutionRepository.existsByTestCaseExecutionIdAndLaunchId(executionId,
         launchId);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<Long> findExecutionIdsInLaunch(List<Long> executionIds, Long launchId) {
+    if (executionIds.isEmpty()) {
+      return List.of();
+    }
+    return tmsTestCaseExecutionRepository.findIdsByIdInAndLaunchId(executionIds, launchId);
   }
 
   @Override

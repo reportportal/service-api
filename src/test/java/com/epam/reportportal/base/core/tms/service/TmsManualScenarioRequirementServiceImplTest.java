@@ -1,6 +1,8 @@
 package com.epam.reportportal.base.core.tms.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.never;
@@ -12,10 +14,11 @@ import com.epam.reportportal.base.core.tms.mapper.TmsManualScenarioRequirementMa
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsManualScenarioRequirementRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsManualScenario;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsManualScenarioRequirement;
+import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
+import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -92,6 +95,7 @@ class TmsManualScenarioRequirementServiceImplTest {
     var requirements = List.of(requirementRQ);
 
     var existingEntity = createRequirementEntity("REQ-001", "Old Value");
+    existingEntity.setManualScenario(manualScenario);
     existingEntity.setNumber(5); // Old number
 
     when(tmsManualScenarioRequirementRepository.findAllById(any()))
@@ -111,6 +115,46 @@ class TmsManualScenarioRequirementServiceImplTest {
     assertThat(savedRequirements.get(0).getValue()).isEqualTo("Updated Value");
     assertThat(savedRequirements.get(0).getNumber()).isEqualTo(0); // Number reset to 0
     assertThat(savedRequirements.get(0).getManualScenario()).isEqualTo(manualScenario);
+  }
+
+  @Test
+  void shouldRejectCreateWithRequirementIdOfAnotherScenario() {
+    var requirementRQ = TmsRequirementRQ.builder().id("REQ-001").value("Hijack").build();
+    var foreignEntity = createRequirementEntity("REQ-001", "Foreign Value");
+    var otherScenario = new TmsManualScenario();
+    otherScenario.setId(999L);
+    foreignEntity.setManualScenario(otherScenario);
+
+    when(tmsManualScenarioRequirementRepository.findAllById(any()))
+        .thenReturn(List.of(foreignEntity));
+
+    var exception = assertThrows(ReportPortalException.class,
+        () -> tmsManualScenarioRequirementService.createRequirements(manualScenario,
+            List.of(requirementRQ)));
+
+    assertEquals(ErrorType.RESOURCE_ALREADY_EXISTS, exception.getErrorType());
+    assertThat(foreignEntity.getManualScenario()).isEqualTo(otherScenario);
+    assertThat(foreignEntity.getValue()).isEqualTo("Foreign Value");
+    verify(tmsManualScenarioRequirementRepository, never()).saveAll(any());
+  }
+
+  @Test
+  void shouldRejectBatchCreateWithRequirementIdOfAnotherScenario() {
+    var requirementRQ = TmsRequirementRQ.builder().id("REQ-001").value("Hijack").build();
+    var foreignEntity = createRequirementEntity("REQ-001", "Foreign Value");
+    var otherScenario = new TmsManualScenario();
+    otherScenario.setId(999L);
+    foreignEntity.setManualScenario(otherScenario);
+
+    when(tmsManualScenarioRequirementRepository.findAllById(any()))
+        .thenReturn(List.of(foreignEntity));
+
+    assertThrows(ReportPortalException.class,
+        () -> tmsManualScenarioRequirementService.createRequirementsBatch(
+            List.of(manualScenario), List.of(List.of(requirementRQ))));
+
+    assertThat(foreignEntity.getManualScenario()).isEqualTo(otherScenario);
+    verify(tmsManualScenarioRequirementRepository, never()).saveAll(any());
   }
 
   @Test
@@ -262,7 +306,7 @@ class TmsManualScenarioRequirementServiceImplTest {
 
     when(tmsManualScenarioRequirementRepository.findByManualScenarioIdOrderByNumberAsc(
         manualScenario.getId())).thenReturn(List.of(existingReq1, existingReq2));
-    when(tmsManualScenarioRequirementRepository.findById("REQ-NEW")).thenReturn(Optional.empty());
+    when(tmsManualScenarioRequirementRepository.existsById("REQ-NEW")).thenReturn(false);
     when(tmsManualScenarioRequirementMapper.toEntity(requirementRQ)).thenReturn(entity);
     when(tmsManualScenarioRequirementRepository.saveAll(anyList())).thenReturn(List.of(entity));
 
@@ -308,38 +352,26 @@ class TmsManualScenarioRequirementServiceImplTest {
   }
 
   @Test
-  void shouldPatchRequirementsWithGlobalExistingEntity() {
+  void shouldRejectPatchWithRequirementIdOfAnotherScenario() {
     // Given
     var requirementRQ = TmsRequirementRQ.builder().id("REQ-GLOBAL").value("Global Value").build();
     var requirements = List.of(requirementRQ);
-
-    var globalEntity = createRequirementEntity("REQ-GLOBAL", "Old Global Value");
-    var otherScenario = new TmsManualScenario();
-    otherScenario.setId(999L);
-    globalEntity.setManualScenario(otherScenario);
-    globalEntity.setNumber(5);
 
     manualScenario.setRequirements(new ArrayList<>());
 
     when(tmsManualScenarioRequirementRepository.findByManualScenarioIdOrderByNumberAsc(
         manualScenario.getId())).thenReturn(Collections.emptyList());
-    when(tmsManualScenarioRequirementRepository.findById("REQ-GLOBAL"))
-        .thenReturn(Optional.of(globalEntity));
-    when(tmsManualScenarioRequirementRepository.saveAll(anyList()))
-        .thenReturn(List.of(globalEntity));
+    when(tmsManualScenarioRequirementRepository.existsById("REQ-GLOBAL")).thenReturn(true);
 
     // When
-    tmsManualScenarioRequirementService.patchRequirements(manualScenario, requirements);
+    var exception = assertThrows(ReportPortalException.class,
+        () -> tmsManualScenarioRequirementService.patchRequirements(manualScenario,
+            requirements));
 
-    // Then
-    verify(tmsManualScenarioRequirementMapper, never()).toEntity(any());
-    verify(tmsManualScenarioRequirementRepository).saveAll(requirementsCaptor.capture());
-
-    var savedRequirements = requirementsCaptor.getValue();
-    assertThat(savedRequirements).hasSize(1);
-    assertThat(savedRequirements.get(0).getValue()).isEqualTo("Global Value");
-    assertThat(savedRequirements.get(0).getNumber()).isEqualTo(0); // maxNumber was -1, so next is 0
-    assertThat(savedRequirements.get(0).getManualScenario()).isEqualTo(manualScenario);
+    // Then: the other scenario's requirement is neither moved nor overwritten
+    assertEquals(ErrorType.RESOURCE_ALREADY_EXISTS, exception.getErrorType());
+    verify(tmsManualScenarioRequirementRepository, never()).findById(any());
+    verify(tmsManualScenarioRequirementRepository, never()).saveAll(any());
   }
 
   @Test
@@ -480,6 +512,13 @@ class TmsManualScenarioRequirementServiceImplTest {
     // Verify manual scenario assignment
     savedRequirements.forEach(req ->
         assertThat(req.getManualScenario()).isEqualTo(duplicatedScenario));
+
+    // Copies get fresh ids (the id is the primary key)
+    assertThat(savedRequirements).extracting(TmsManualScenarioRequirement::getId)
+        .doesNotContain("REQ-001", "REQ-002")
+        .doesNotHaveDuplicates();
+    assertThat(savedRequirements).extracting(TmsManualScenarioRequirement::getValue)
+        .containsExactly("Requirement 2", "Requirement 1");
   }
 
   @Test

@@ -4,10 +4,6 @@ import com.epam.reportportal.base.core.tms.dto.UploadAttachmentRS;
 import com.epam.reportportal.base.core.tms.mapper.TmsAttachmentMapper;
 import com.epam.reportportal.base.infrastructure.persistence.binary.tms.TmsAttachmentDataStoreService;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsAttachmentRepository;
-import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsManualScenarioPreconditionsAttachmentRepository;
-import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsStepAttachmentRepository;
-import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestCaseExecutionCommentAttachmentRepository;
-import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTextManualScenarioAttachmentRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.FeatureFlag;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsAttachment;
 import com.epam.reportportal.base.infrastructure.persistence.util.FeatureFlagHandler;
@@ -20,7 +16,6 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -34,8 +29,15 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataAccessException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
 @Service
@@ -47,10 +49,7 @@ public class TmsAttachmentServiceImpl implements TmsAttachmentService {
   private final TmsAttachmentDataStoreService tmsAttachmentDataStoreService;
   private final TmsAttachmentMapper tmsAttachmentMapper;
   private final TmsAttachmentPersistenceService tmsAttachmentPersistenceService;
-  private final TmsStepAttachmentRepository tmsStepAttachmentRepository;
-  private final TmsTextManualScenarioAttachmentRepository tmsTextManualScenarioAttachmentRepository;
-  private final TmsManualScenarioPreconditionsAttachmentRepository tmsManualScenarioPreconditionsAttachmentRepository;
-  private final TmsTestCaseExecutionCommentAttachmentRepository tmsTestCaseExecutionCommentAttachmentRepository;
+  private final PlatformTransactionManager transactionManager;
   private final FeatureFlagHandler featureFlagHandler;
 
   @Value("${rp.tms.attachment.ttl:PT24H}")
@@ -125,25 +124,28 @@ public class TmsAttachmentServiceImpl implements TmsAttachmentService {
         .orElseThrow(() -> new ReportPortalException(ErrorType.NOT_FOUND,
             "Attachment not found: " + attachmentId));
 
+    // DB row first: an attachment still referenced fails here and keeps its binary
     try {
-      // Delete file from data store
-      tmsAttachmentDataStoreService.delete(attachment.getPathToFile());
+      tmsAttachmentRepository.delete(attachment);
+      tmsAttachmentRepository.flush();
+    } catch (DataIntegrityViolationException e) {
+      throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
+          "Attachment " + attachmentId + " is in use and cannot be deleted");
+    }
 
-      // Delete thumbnail if exists
-      if (attachment.getThumbnailPath() != null) {
-        try {
-          tmsAttachmentDataStoreService.delete(attachment.getThumbnailPath());
-        } catch (Exception e) {
-          log.warn("Failed to delete thumbnail {} for attachment {}: {}",
-              attachment.getThumbnailPath(), attachmentId, e.getMessage());
+    // Binaries are removed only once the deletion is committed
+    var paths = Stream.of(attachment.getPathToFile(), attachment.getThumbnailPath())
+        .filter(Objects::nonNull)
+        .toList();
+    if (TransactionSynchronizationManager.isSynchronizationActive()) {
+      TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+        @Override
+        public void afterCommit() {
+          deleteBinaries(attachmentId, paths);
         }
-      }
-
-      // Delete attachment record
-      tmsAttachmentRepository.deleteById(attachmentId);
-    } catch (Exception e) {
-      throw new ReportPortalException(ErrorType.UNCLASSIFIED_REPORT_PORTAL_ERROR,
-          "Failed to delete attachment: " + e.getMessage());
+      });
+    } else {
+      deleteBinaries(attachmentId, paths);
     }
   }
 
@@ -155,36 +157,55 @@ public class TmsAttachmentServiceImpl implements TmsAttachmentService {
     }
   }
 
+  /**
+   * Deletes expired attachments one by one, each in its own transaction, so that one attachment
+   * that cannot be deleted (e.g. linked meanwhile) does not stop the cleanup of the others.
+   * Binaries are deleted only after the row deletion is committed.
+   */
   @Override
-  @Transactional
   public void cleanupExpiredAttachments() {
-    var expiredAttachments = tmsAttachmentRepository.findExpiredAttachments(Instant.now());
+    var now = Instant.now();
+    var expiredAttachments = tmsAttachmentRepository.findExpiredAttachments(now);
 
-    if (!expiredAttachments.isEmpty()) {
-      log.debug("Found {} expired attachments for cleanup", expiredAttachments.size());
+    if (expiredAttachments.isEmpty()) {
+      return;
+    }
+    log.debug("Found {} expired attachments for cleanup", expiredAttachments.size());
 
-      // Delete files from data store
-      expiredAttachments.forEach(attachment -> {
-        try {
-          tmsAttachmentDataStoreService.delete(attachment.getPathToFile());
+    var transactionTemplate = new TransactionTemplate(transactionManager);
+    transactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
 
-          if (attachment.getThumbnailPath() != null) {
-            tmsAttachmentDataStoreService.delete(attachment.getThumbnailPath());
-          }
-        } catch (Exception e) {
-          log.warn("Failed to delete file/thumbnail for expired attachment {}: {}",
-              attachment.getId(), e.getMessage());
-        }
-      });
+    var deletedCount = 0;
+    for (var attachment : expiredAttachments) {
+      Integer deleted;
+      try {
+        deleted = transactionTemplate.execute(
+            status -> tmsAttachmentRepository.deleteIfExpired(attachment.getId(), now));
+      } catch (DataAccessException e) {
+        log.warn("Failed to delete expired attachment {}: {}", attachment.getId(),
+            e.getMessage());
+        continue;
+      }
+      if (deleted != null && deleted > 0) {
+        deletedCount++;
+        deleteBinaries(attachment.getId(),
+            Stream.of(attachment.getPathToFile(), attachment.getThumbnailPath())
+                .filter(Objects::nonNull)
+                .toList());
+      }
+    }
 
-      // Delete attachment records
-      var expiredIds = expiredAttachments
-          .stream()
-          .map(TmsAttachment::getId)
-          .toList();
-      tmsAttachmentRepository.deleteByIds(expiredIds);
+    log.debug("Cleaned up {} expired attachments", deletedCount);
+  }
 
-      log.debug("Cleaned up {} expired attachments", expiredIds.size());
+  private void deleteBinaries(Long attachmentId, List<String> paths) {
+    for (var path : paths) {
+      try {
+        tmsAttachmentDataStoreService.delete(path);
+      } catch (Exception e) {
+        log.warn("Failed to delete file {} of attachment {}: {}", path, attachmentId,
+            e.getMessage());
+      }
     }
   }
 
@@ -299,39 +320,10 @@ public class TmsAttachmentServiceImpl implements TmsAttachmentService {
   public void setExpirationForUnusedAttachments() {
     log.debug("Setting TTL for unused TMS attachments (TTL: {})", ttl);
 
-    // Find all attachments without TTL
-    var attachmentsWithoutTtl = tmsAttachmentRepository.findAttachmentsWithoutTtl();
-
-    if (CollectionUtils.isEmpty(attachmentsWithoutTtl)) {
-      log.debug("No TMS attachments found without TTL");
-      return;
-    }
-
-    log.debug("Found {} TMS attachments without TTL", attachmentsWithoutTtl.size());
-
-    // Get all attachment IDs that are referenced in junction tables
-    var usedAttachmentIds = getUsedAttachmentIds();
-
-    log.debug("Found {} TMS attachments referenced in junction tables", usedAttachmentIds.size());
-
-    // Filter out used attachments to get only unused ones
-    var unusedAttachmentIds = attachmentsWithoutTtl
-        .stream()
-        .map(TmsAttachment::getId)
-        .filter(id -> !usedAttachmentIds.contains(id))
-        .toList();
-
-    if (CollectionUtils.isEmpty(unusedAttachmentIds)) {
-      log.debug("No unused TMS attachments found without TTL");
-      return;
-    }
-
     // Set expires_at to configured hours from now
     var expirationTime = Instant.now().plus(ttl);
 
-    var updatedCount = tmsAttachmentRepository.setExpirationForAttachments(
-        unusedAttachmentIds, expirationTime
-    );
+    var updatedCount = tmsAttachmentRepository.setExpirationForUnusedAttachments(expirationTime);
 
     log.debug("Set TTL (expires at: {}) for {} unused TMS attachments",
         expirationTime, updatedCount);
@@ -361,32 +353,6 @@ public class TmsAttachmentServiceImpl implements TmsAttachmentService {
     } catch (Exception e) {
       log.warn("Failed to delete TMS attachment storage for project {}: {}", projectId, e.getMessage());
     }
-  }
-
-  private Set<Long> getUsedAttachmentIds() {
-    // Get attachment IDs from step attachments
-    var stepAttachmentIds = tmsStepAttachmentRepository.findAllAttachmentIds();
-    var usedIds = new HashSet<>(stepAttachmentIds);
-    log.debug("Found {} attachment IDs in step attachments", stepAttachmentIds.size());
-
-    // Get attachment IDs from text manual scenario attachments
-    var textScenarioAttachmentIds = tmsTextManualScenarioAttachmentRepository.findAllAttachmentIds();
-    usedIds.addAll(textScenarioAttachmentIds);
-    log.debug("Found {} attachment IDs in text manual scenario attachments", textScenarioAttachmentIds.size());
-
-    // Get attachment IDs from preconditions attachments
-    var preconditionsAttachmentIds = tmsManualScenarioPreconditionsAttachmentRepository.findAllAttachmentIds();
-    usedIds.addAll(preconditionsAttachmentIds);
-    log.debug("Found {} attachment IDs in preconditions attachments", preconditionsAttachmentIds.size());
-
-    // Get attachment IDs from test case execution comment attachments
-    var testCaseExecutionCommentAttachmentIds = tmsTestCaseExecutionCommentAttachmentRepository.findAllAttachmentIds();
-    usedIds.addAll(testCaseExecutionCommentAttachmentIds);
-    log.debug("Found {} attachment IDs in test case execution comment attachments",
-        testCaseExecutionCommentAttachmentIds.size());
-
-    log.debug("Total unique attachment IDs in use: {}", usedIds.size());
-    return usedIds;
   }
 
   /**

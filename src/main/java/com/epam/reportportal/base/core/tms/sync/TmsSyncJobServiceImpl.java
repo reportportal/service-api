@@ -10,6 +10,7 @@ import com.epam.reportportal.base.core.tms.sync.service.TmsFolderSyncService;
 import com.epam.reportportal.base.core.tms.sync.service.TmsTestCaseSyncService;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsSyncJobRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsTestFolderRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.Integration;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsSyncJob;
@@ -46,6 +47,7 @@ public class TmsSyncJobServiceImpl implements TmsSyncJobService {
 
   private final TmsSyncJobRepository tmsSyncJobRepository;
   private final IntegrationRepository integrationRepository;
+  private final TmsTestFolderRepository tmsTestFolderRepository;
   private final List<TmsSyncConnector<Integration>> connectors;
   private final TmsSyncJobMapper tmsSyncJobMapper;
   private final TmsFolderSyncService tmsFolderSyncService;
@@ -56,6 +58,7 @@ public class TmsSyncJobServiceImpl implements TmsSyncJobService {
   public TmsSyncJobServiceImpl(
       TmsSyncJobRepository tmsSyncJobRepository,
       IntegrationRepository integrationRepository,
+      TmsTestFolderRepository tmsTestFolderRepository,
       List<TmsSyncConnector<Integration>> connectors,
       TmsSyncJobMapper tmsSyncJobMapper,
       TmsFolderSyncService tmsFolderSyncService,
@@ -64,6 +67,7 @@ public class TmsSyncJobServiceImpl implements TmsSyncJobService {
       ApplicationEventPublisher eventPublisher) {
     this.tmsSyncJobRepository = tmsSyncJobRepository;
     this.integrationRepository = integrationRepository;
+    this.tmsTestFolderRepository = tmsTestFolderRepository;
     this.connectors = connectors;
     this.tmsSyncJobMapper = tmsSyncJobMapper;
     this.tmsFolderSyncService = tmsFolderSyncService;
@@ -81,6 +85,12 @@ public class TmsSyncJobServiceImpl implements TmsSyncJobService {
     var integration = integrationRepository.findByIdAndProjectIdForUpdate(integrationId, projectId)
         .orElseThrow(
             () -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, integrationId));
+
+    if (localFolderId != null
+        && !tmsTestFolderRepository.existsByIdAndProjectId(localFolderId, projectId)) {
+      throw new ReportPortalException(ErrorType.NOT_FOUND,
+          "Test Folder with id: %d for project: %d".formatted(localFolderId, projectId));
+    }
 
     var provider = parseProvider(integration.getType().getName());
 
@@ -174,19 +184,17 @@ public class TmsSyncJobServiceImpl implements TmsSyncJobService {
     log.info("Starting TMS Sync Job: {}", jobId);
 
     var executingJob = transactionTemplate.execute(status -> {
-      var job = tmsSyncJobRepository
-          .findByIdWithIntegration(jobId)
-          .orElse(null);
-      if (job != null && job.getStatus() == TmsSyncStatus.PENDING) {
-        job.setStatus(TmsSyncStatus.IN_PROGRESS);
-        job.setStartedAt(Instant.now());
-        job.setCounters(new SyncCounters(0, 0, 0, 0));
-        if (job.getErrorLog() == null) {
-          job.setErrorLog(new SyncErrorLog(new ArrayList<>()));
-        }
-        return tmsSyncJobRepository.save(job);
+      // Atomic PENDING -> IN_PROGRESS claim: of concurrent executors (Quartz trigger, outbox
+      // poller, other nodes) only the one that updates the row runs the job
+      if (tmsSyncJobRepository.claimPendingJob(jobId, Instant.now()) != 1) {
+        return null;
       }
-      return null;
+      var job = tmsSyncJobRepository.findByIdWithIntegration(jobId).orElseThrow();
+      job.setCounters(new SyncCounters(0, 0, 0, 0));
+      if (job.getErrorLog() == null) {
+        job.setErrorLog(new SyncErrorLog(new ArrayList<>()));
+      }
+      return tmsSyncJobRepository.save(job);
     });
 
     if (executingJob == null) {

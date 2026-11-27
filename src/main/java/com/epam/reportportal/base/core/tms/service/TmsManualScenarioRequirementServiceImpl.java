@@ -5,6 +5,8 @@ import com.epam.reportportal.base.core.tms.mapper.TmsManualScenarioRequirementMa
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsManualScenarioRequirementRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsManualScenario;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsManualScenarioRequirement;
+import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
+import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -12,6 +14,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -55,8 +58,8 @@ public class TmsManualScenarioRequirementServiceImpl implements
       var requirementRQ = requirements.get(i);
       var existing = existingById.get(requirementRQ.getId());
       if (existing != null) {
+        verifyBelongsToScenario(existing, tmsManualScenario);
         existing.setValue(requirementRQ.getValue());
-        existing.setManualScenario(tmsManualScenario);
         existing.setNumber(i);
         entities.add(existing);
       } else {
@@ -113,8 +116,8 @@ public class TmsManualScenarioRequirementServiceImpl implements
       var existing = existingById.get(p.rq().getId());
       TmsManualScenarioRequirement entity;
       if (existing != null) {
+        verifyBelongsToScenario(existing, p.scenario());
         existing.setValue(p.rq().getValue());
-        existing.setManualScenario(p.scenario());
         existing.setNumber(p.number());
         entity = existing;
       } else {
@@ -186,20 +189,16 @@ public class TmsManualScenarioRequirementServiceImpl implements
         existing.setValue(requirementRQ.getValue());
         entitiesToSave.add(existing);
       } else {
-        // Check if requirement exists globally (different scenario)
-        var globalOpt = tmsManualScenarioRequirementRepository.findById(requirementRQ.getId());
-        if (globalOpt.isPresent()) {
-          var global = globalOpt.get();
-          global.setValue(requirementRQ.getValue());
-          global.setManualScenario(existingManualScenario);
-          global.setNumber(++maxNumber);
-          entitiesToSave.add(global);
-        } else {
-          var entity = tmsManualScenarioRequirementMapper.toEntity(requirementRQ);
-          entity.setManualScenario(existingManualScenario);
-          entity.setNumber(++maxNumber);
-          entitiesToSave.add(entity);
+        // The id is the primary key: an id used by another scenario is a conflict, it is never
+        // moved over to this scenario
+        if (requirementRQ.getId() != null
+            && tmsManualScenarioRequirementRepository.existsById(requirementRQ.getId())) {
+          throw requirementIdConflict(requirementRQ.getId());
         }
+        var entity = tmsManualScenarioRequirementMapper.toEntity(requirementRQ);
+        entity.setManualScenario(existingManualScenario);
+        entity.setNumber(++maxNumber);
+        entitiesToSave.add(entity);
       }
     }
 
@@ -274,6 +273,9 @@ public class TmsManualScenarioRequirementServiceImpl implements
         .sorted(Comparator.comparing(TmsManualScenarioRequirement::getNumber))
         .map(original -> {
           var duplicated = tmsManualScenarioRequirementMapper.duplicate(original);
+          // The id is the table's primary key and an opaque UUID (see the CSV importer and the
+          // sync mapper), so the copy gets a fresh one
+          duplicated.setId(UUID.randomUUID().toString());
           duplicated.setManualScenario(duplicatedScenario);
           return duplicated;
         })
@@ -283,6 +285,23 @@ public class TmsManualScenarioRequirementServiceImpl implements
 
     log.debug("Duplicated {} requirements from manual scenario: {} to: {}",
         duplicatedEntities.size(), originalScenario.getId(), duplicatedScenario.getId());
+  }
+
+  /**
+   * Requirement ids are client-supplied and are the table's primary key, so a requirement found by
+   * id may belong to another scenario (or project). It is reused only for its own scenario.
+   */
+  private static void verifyBelongsToScenario(TmsManualScenarioRequirement existing,
+      TmsManualScenario scenario) {
+    if (existing.getManualScenario() == null || scenario.getId() == null
+        || !Objects.equals(existing.getManualScenario().getId(), scenario.getId())) {
+      throw requirementIdConflict(existing.getId());
+    }
+  }
+
+  private static ReportPortalException requirementIdConflict(String requirementId) {
+    return new ReportPortalException(ErrorType.RESOURCE_ALREADY_EXISTS,
+        "Requirement with id: " + requirementId);
   }
 
   private record PendingRequirement(TmsManualScenario scenario, TmsRequirementRQ rq, int number) {

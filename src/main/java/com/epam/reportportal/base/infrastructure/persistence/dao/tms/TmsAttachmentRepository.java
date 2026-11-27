@@ -25,23 +25,38 @@ public interface TmsAttachmentRepository extends ReportPortalRepository<TmsAttac
   List<TmsAttachment> findExpiredAttachments(@Param("currentTime") Instant currentTime);
 
   /**
-   * Finds attachments that have no TTL set (expiresAt is null). These are candidates for TTL assignment if they are
-   * unused.
-   */
-  @Query("SELECT a FROM TmsAttachment a WHERE a.expiresAt IS NULL")
-  List<TmsAttachment> findAttachmentsWithoutTtl();
-
-  /**
-   * Sets expiration time for specified attachments.
+   * Sets the expiration time on every attachment without TTL that is not referenced by any step,
+   * text manual scenario, preconditions or test case execution comment.
    *
-   * @param attachmentIds  list of attachment IDs to set expiration for
-   * @param expirationTime the expiration timestamp
-   * @return number of updated records
+   * @param expirationTime expiration time to set
+   * @return number of updated attachments
    */
   @Modifying
-  @Query("UPDATE TmsAttachment a SET a.expiresAt = :expirationTime WHERE a.id IN :attachmentIds")
-  int setExpirationForAttachments(@Param("attachmentIds") List<Long> attachmentIds,
-      @Param("expirationTime") Instant expirationTime);
+  @Query(value = "UPDATE tms_attachment a SET expires_at = :expirationTime "
+      + "WHERE a.expires_at IS NULL "
+      + "AND NOT EXISTS (SELECT 1 FROM tms_step_attachment x WHERE x.attachment_id = a.id) "
+      + "AND NOT EXISTS (SELECT 1 FROM tms_text_manual_scenario_attachment x "
+      + "  WHERE x.attachment_id = a.id) "
+      + "AND NOT EXISTS (SELECT 1 FROM tms_manual_scenario_preconditions_attachment x "
+      + "  WHERE x.attachment_id = a.id) "
+      + "AND NOT EXISTS (SELECT 1 FROM tms_test_case_execution_comment_attachment x "
+      + "  WHERE x.attachment_id = a.id)",
+      nativeQuery = true)
+  int setExpirationForUnusedAttachments(@Param("expirationTime") Instant expirationTime);
+
+  /**
+   * Deletes an attachment only if it is still expired (linking an attachment clears its
+   * expiration).
+   *
+   * @param attachmentId attachment id
+   * @param currentTime  current time
+   * @return number of deleted rows
+   */
+  @Modifying
+  @Query("DELETE FROM TmsAttachment a WHERE a.id = :attachmentId "
+      + "AND a.expiresAt IS NOT NULL AND a.expiresAt < :currentTime")
+  int deleteIfExpired(@Param("attachmentId") Long attachmentId,
+      @Param("currentTime") Instant currentTime);
 
   /**
    * Removes expiration from attachments (makes them permanent).
@@ -49,13 +64,6 @@ public interface TmsAttachmentRepository extends ReportPortalRepository<TmsAttac
   @Modifying
   @Query("UPDATE TmsAttachment a SET a.expiresAt = null WHERE a.id IN :attachmentIds")
   void removeExpirationFromAttachments(@Param("attachmentIds") List<Long> attachmentIds);
-
-  /**
-   * Deletes attachments by IDs.
-   */
-  @Modifying
-  @Query("DELETE FROM TmsAttachment a WHERE a.id IN :attachmentIds")
-  void deleteByIds(@Param("attachmentIds") List<Long> attachmentIds);
 
   /**
    * Finds an attachment by ID, scoped to a project. Used to prevent cross-project access to attachments referenced by

@@ -217,9 +217,10 @@ public interface TmsTestFolderRepository extends ReportPortalRepository<TmsTestF
       + "    SELECT tf.id FROM tms_test_folder tf "
       + "    JOIN project p ON tf.project_id = p.id "
       + "    WHERE tf.id = :folderId AND p.id = :projectId "
-      + "    UNION ALL "
+      + "    UNION "
       + "    SELECT tf.id FROM tms_test_folder tf "
       + "    JOIN folder_hierarchy fh ON tf.parent_id = fh.id "
+      + "    WHERE tf.project_id = :projectId "
       + "  ) "
       + "  SELECT id FROM folder_hierarchy"
       + ") ",
@@ -244,8 +245,9 @@ public interface TmsTestFolderRepository extends ReportPortalRepository<TmsTestF
   @Query(value =
       "WITH RECURSIVE ids AS ("
           + "  SELECT id FROM tms_test_folder WHERE id = :folderId AND project_id = :projectId "
-          + "  UNION ALL "
+          + "  UNION "
           + "  SELECT tf.id FROM tms_test_folder tf JOIN ids ON tf.parent_id = ids.id"
+          + "  WHERE tf.project_id = :projectId"
           + ") "
           + "SELECT id FROM ids",
       nativeQuery = true)
@@ -460,5 +462,27 @@ public interface TmsTestFolderRepository extends ReportPortalRepository<TmsTestF
    * @return a list of test folders matching the criteria
    */
   List<TmsTestFolder> findByProjectIdAndExternalIdIn(Long projectId, Collection<String> externalIds);
+
+  /**
+   * Finds the (folder id, parent folder id) pairs of all test folders of a project. The parent id
+   * is null for root folders.
+   *
+   * @param projectId the project ID
+   * @return list of two-element arrays: folder id and parent folder id
+   */
+  @Query("SELECT tf.id, p.id FROM TmsTestFolder tf LEFT JOIN tf.parentTestFolder p "
+      + "WHERE tf.project.id = :projectId")
+  List<Object[]> findFolderIdAndParentIdByProjectId(@Param("projectId") Long projectId);
+
+  /**
+   * Acquires a transaction-scoped PostgreSQL advisory lock on the folder tree of a project. Used to
+   * serialize folder syncs of one project, so a cycle check sees the moves committed by the other.
+   * The two-key form keeps it apart from the single-key locks taken on launch ids.
+   *
+   * @param projectId the project ID
+   */
+  @Query(value = "SELECT pg_advisory_xact_lock(hashtext('tms_folder_tree'), "
+      + "CAST(:projectId % 2147483647 AS integer))", nativeQuery = true)
+  void lockFolderTree(@Param("projectId") Long projectId);
 
 }

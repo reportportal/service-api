@@ -48,9 +48,24 @@ public class ProjectConfigDelegatingSubscriber<T extends AbstractEvent<?>> imple
   }
 
   @Override
+  public boolean isApplicable(T event) {
+    return eventHandlers.stream().anyMatch(h -> h.isApplicable(event));
+  }
+
+  /**
+   * Runs the handlers that apply to the event, in their configured order. The project config is loaded only when at
+   * least one handler applies, since it is read from the database on every call.
+   */
+  @Override
   public void handleEvent(T event) {
+    final List<ConfigurableEventHandler<T, Map<String, String>>> applicable = eventHandlers.stream()
+        .filter(h -> h.isApplicable(event))
+        .toList();
+    if (applicable.isEmpty()) {
+      return;
+    }
     final Map<String, String> projectConfig = projectConfigProvider.provide(event.getProjectId());
-    eventHandlers.forEach(h -> {
+    applicable.forEach(h -> {
       try {
         h.handle(event, projectConfig);
       } catch (Exception e) {

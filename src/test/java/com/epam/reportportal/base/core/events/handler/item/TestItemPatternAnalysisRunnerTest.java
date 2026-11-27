@@ -17,10 +17,11 @@
 package com.epam.reportportal.base.core.events.handler.item;
 
 import static com.epam.reportportal.base.core.events.handler.item.TestItemPatternAnalysisRunner.IMMEDIATE_PATTERN_ANALYSIS;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 
 import com.epam.reportportal.base.core.analyzer.pattern.handler.proxy.ItemsPatternAnalyzeProducer;
 import com.epam.reportportal.base.core.events.domain.item.TestItemFinishedEvent;
@@ -43,15 +44,14 @@ public class TestItemPatternAnalysisRunnerTest {
       itemsPatternAnalyzer);
 
   @Test
-  void shouldNotInvokePatternAnalyzer() {
+  void notApplicableWithoutAttribute() {
     TestItem testItem = new TestItem();
     TestItemFinishedEvent event = new TestItemFinishedEvent(testItem, 1L);
-    runner.handle(event, Collections.emptyMap());
-    verifyNoInteractions(itemsPatternAnalyzer);
+    assertFalse(runner.isApplicable(event));
   }
 
   @Test
-  void shouldNotInvokeFalseFlagPatternAnalyzer() {
+  void notApplicableWithFalseFlag() {
     TestItem testItem = new TestItem();
     testItem.setItemId(1L);
     testItem.setLaunchId(1L);
@@ -61,8 +61,15 @@ public class TestItemPatternAnalysisRunnerTest {
     testItem.setAttributes(hash);
 
     TestItemFinishedEvent event = new TestItemFinishedEvent(testItem, 1L);
-    runner.handle(event, Collections.emptyMap());
-    verifyNoInteractions(itemsPatternAnalyzer);
+    assertFalse(runner.isApplicable(event));
+  }
+
+  @Test
+  void applicableWithNonSystemTrueFlag() {
+    TestItem testItem = new TestItem();
+    testItem.setAttributes(
+        Sets.newHashSet(new ItemAttribute(IMMEDIATE_PATTERN_ANALYSIS, "true", false)));
+    assertTrue(runner.isApplicable(new TestItemFinishedEvent(testItem, 1L)));
   }
 
   @Test
@@ -73,6 +80,7 @@ public class TestItemPatternAnalysisRunnerTest {
     testItem.setAttributes(
         Sets.newHashSet(new ItemAttribute(IMMEDIATE_PATTERN_ANALYSIS, "true", true)));
     TestItemFinishedEvent event = new TestItemFinishedEvent(testItem, 1L);
+    assertTrue(runner.isApplicable(event));
     runner.handle(event, Collections.emptyMap());
 
     verify(itemsPatternAnalyzer, times(1)).analyze(1L, 1L, Lists.newArrayList(1L));

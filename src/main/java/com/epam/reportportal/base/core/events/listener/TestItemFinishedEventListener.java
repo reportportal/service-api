@@ -16,12 +16,8 @@
 
 package com.epam.reportportal.base.core.events.listener;
 
-import static com.epam.reportportal.base.core.events.handler.item.TestItemAutoAnalysisRunner.IMMEDIATE_AUTO_ANALYSIS;
-import static com.epam.reportportal.base.core.events.handler.item.TestItemPatternAnalysisRunner.IMMEDIATE_PATTERN_ANALYSIS;
-
 import com.epam.reportportal.base.core.events.domain.item.TestItemFinishedEvent;
 import com.epam.reportportal.base.core.events.subscriber.EventSubscriber;
-import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItem;
 import java.util.List;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.transaction.event.TransactionalEventListener;
@@ -29,10 +25,9 @@ import org.springframework.transaction.event.TransactionalEventListener;
 /**
  * Multicast dispatch for test item finished subscribers.
  *
- * <p>The only subscribers run immediate auto/pattern analysis, which needs an
- * {@code immediateAutoAnalysis} or {@code immediatePatternAnalysis} attribute on the item. Items without them are
- * filtered here, before the task is queued, so the per-item project config lookup and the executor slot are spent only
- * on items that can use them.
+ * <p>Subscribers are asked first whether the item applies to them, and the task is queued only if one does. The
+ * executor discards tasks once its queue is full, so items no subscriber can use (most items, since immediate analysis
+ * is opted into per item) must not take queue slots from the ones that can.
  *
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
@@ -50,16 +45,9 @@ public class TestItemFinishedEventListener {
 
   @TransactionalEventListener
   public void onApplicationEvent(TestItemFinishedEvent event) {
-    if (!isImmediateAnalysisRequested(event.getTestItem())) {
+    if (subscribers.stream().noneMatch(s -> s.isApplicable(event))) {
       return;
     }
     eventListenerExecutor.execute(() -> subscribers.forEach(s -> s.handleEvent(event)));
-  }
-
-  static boolean isImmediateAnalysisRequested(TestItem testItem) {
-    return testItem.getAttributes().stream().anyMatch(
-        attribute -> (IMMEDIATE_AUTO_ANALYSIS.equals(attribute.getKey())
-            || IMMEDIATE_PATTERN_ANALYSIS.equals(attribute.getKey()))
-            && Boolean.parseBoolean(attribute.getValue()));
   }
 }

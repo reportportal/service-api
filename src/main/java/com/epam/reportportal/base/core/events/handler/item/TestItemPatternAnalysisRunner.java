@@ -42,7 +42,11 @@ public class TestItemPatternAnalysisRunner implements
     this.patternsAnalyzer = patternsAnalyzer;
   }
 
-  private static boolean isImmediatePaProvided(TestItemFinishedEvent event) {
+  /**
+   * Applies to an item that has the attribute {@code immediatePatternAnalysis=true}.
+   */
+  @Override
+  public boolean isApplicable(TestItemFinishedEvent event) {
     Optional<ItemAttribute> immediatePa = event.getTestItem().getAttributes().stream()
         .filter(it -> IMMEDIATE_PATTERN_ANALYSIS.equals(it.getKey())).findAny();
     return immediatePa.isPresent() && Boolean.parseBoolean(immediatePa.get().getValue());
@@ -50,9 +54,7 @@ public class TestItemPatternAnalysisRunner implements
 
   @Override
   public void handle(TestItemFinishedEvent event, Map<String, String> config) {
-    if (isImmediatePaProvided(event)) {
-      patternsAnalyzer.analyze(event.getProjectId(), event.getTestItem().getLaunchId(),
-          Collections.singletonList(event.getTestItem().getItemId()));
-    }
+    patternsAnalyzer.analyze(event.getProjectId(), event.getTestItem().getLaunchId(),
+        Collections.singletonList(event.getTestItem().getItemId()));
   }
 }

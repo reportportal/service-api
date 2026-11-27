@@ -20,11 +20,10 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 import com.epam.reportportal.base.core.events.domain.item.TestItemFinishedEvent;
 import com.epam.reportportal.base.core.events.subscriber.EventSubscriber;
-import com.epam.reportportal.base.infrastructure.persistence.entity.ItemAttribute;
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItem;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -36,44 +35,33 @@ class TestItemFinishedEventListenerTest {
   @SuppressWarnings("unchecked")
   private final EventSubscriber<TestItemFinishedEvent> subscriber = mock(EventSubscriber.class);
 
+  @SuppressWarnings("unchecked")
+  private final EventSubscriber<TestItemFinishedEvent> other = mock(EventSubscriber.class);
+
+  private final TestItemFinishedEvent event = new TestItemFinishedEvent(new TestItem(), 1L);
+
   @Test
-  void itemWithoutImmediateAnalysisAttributesIsNotDispatched() {
+  void eventNoSubscriberAppliesToIsNotQueued() {
     TaskExecutor executor = mock(TaskExecutor.class);
     TestItemFinishedEventListener listener =
-        new TestItemFinishedEventListener(List.of(subscriber), executor);
-    TestItem item = new TestItem();
-    item.getAttributes().add(new ItemAttribute("os", "linux", false));
-    item.getAttributes().add(new ItemAttribute("immediateAutoAnalysis", "false", true));
+        new TestItemFinishedEventListener(List.of(subscriber, other), executor);
 
-    listener.onApplicationEvent(new TestItemFinishedEvent(item, 1L));
+    listener.onApplicationEvent(event);
 
     verify(executor, never()).execute(any());
-    verifyNoInteractions(subscriber);
+    verify(subscriber, never()).handleEvent(any());
+    verify(other, never()).handleEvent(any());
   }
 
   @Test
-  void itemWithImmediateAutoAnalysisIsDispatched() {
+  void eventIsDispatchedToAllSubscribersWhenOneApplies() {
+    when(other.isApplicable(event)).thenReturn(true);
     TestItemFinishedEventListener listener =
-        new TestItemFinishedEventListener(List.of(subscriber), new SyncTaskExecutor());
-    TestItem item = new TestItem();
-    item.getAttributes().add(new ItemAttribute("immediateAutoAnalysis", "true", true));
-    TestItemFinishedEvent event = new TestItemFinishedEvent(item, 1L);
+        new TestItemFinishedEventListener(List.of(subscriber, other), new SyncTaskExecutor());
 
     listener.onApplicationEvent(event);
 
     verify(subscriber).handleEvent(event);
-  }
-
-  @Test
-  void itemWithImmediatePatternAnalysisIsDispatched() {
-    TestItemFinishedEventListener listener =
-        new TestItemFinishedEventListener(List.of(subscriber), new SyncTaskExecutor());
-    TestItem item = new TestItem();
-    item.getAttributes().add(new ItemAttribute("immediatePatternAnalysis", "true", false));
-    TestItemFinishedEvent event = new TestItemFinishedEvent(item, 1L);
-
-    listener.onApplicationEvent(event);
-
-    verify(subscriber).handleEvent(event);
+    verify(other).handleEvent(event);
   }
 }

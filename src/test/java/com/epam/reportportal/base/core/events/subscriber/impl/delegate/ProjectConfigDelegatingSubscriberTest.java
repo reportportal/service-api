@@ -17,11 +17,15 @@
 package com.epam.reportportal.base.core.events.subscriber.impl.delegate;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import ch.qos.logback.classic.Level;
@@ -69,6 +73,8 @@ class ProjectConfigDelegatingSubscriberTest {
         mock(ConfigurableEventHandler.class);
     ConfigurableEventHandler<IssueResolvedEvent, Map<String, String>> next =
         mock(ConfigurableEventHandler.class);
+    when(failing.isApplicable(any())).thenReturn(true);
+    when(next.isApplicable(any())).thenReturn(true);
     RuntimeException failure = new RuntimeException("analyzer is down");
     doThrow(failure).when(failing).handle(any(), any());
     IssueResolvedEvent event = new IssueResolvedEvent(3L, 2L, 1L);
@@ -80,5 +86,48 @@ class ProjectConfigDelegatingSubscriberTest {
     ILoggingEvent logged = appender.list.get(0);
     assertEquals(Level.WARN, logged.getLevel());
     assertSame(failure, ((ThrowableProxy) logged.getThrowableProxy()).getThrowable());
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  void projectConfigIsNotLoadedWhenNoHandlerApplies() {
+    ProjectConfigProvider provider = mock(ProjectConfigProvider.class);
+    ConfigurableEventHandler<IssueResolvedEvent, Map<String, String>> first =
+        mock(ConfigurableEventHandler.class);
+    ConfigurableEventHandler<IssueResolvedEvent, Map<String, String>> second =
+        mock(ConfigurableEventHandler.class);
+    IssueResolvedEvent event = new IssueResolvedEvent(3L, 2L, 1L);
+    ProjectConfigDelegatingSubscriber<IssueResolvedEvent> subscriber =
+        new ProjectConfigDelegatingSubscriber<>(provider, List.of(first, second));
+
+    assertFalse(subscriber.isApplicable(event));
+    subscriber.handleEvent(event);
+
+    verifyNoInteractions(provider);
+    verify(first, never()).handle(any(), any());
+    verify(second, never()).handle(any(), any());
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  void onlyApplicableHandlersRunAndConfigIsLoadedOnce() {
+    ProjectConfigProvider provider = mock(ProjectConfigProvider.class);
+    Map<String, String> config = Map.of("key", "value");
+    when(provider.provide(1L)).thenReturn(config);
+    ConfigurableEventHandler<IssueResolvedEvent, Map<String, String>> skipped =
+        mock(ConfigurableEventHandler.class);
+    ConfigurableEventHandler<IssueResolvedEvent, Map<String, String>> applicable =
+        mock(ConfigurableEventHandler.class);
+    IssueResolvedEvent event = new IssueResolvedEvent(3L, 2L, 1L);
+    when(applicable.isApplicable(event)).thenReturn(true);
+    ProjectConfigDelegatingSubscriber<IssueResolvedEvent> subscriber =
+        new ProjectConfigDelegatingSubscriber<>(provider, List.of(skipped, applicable));
+
+    assertTrue(subscriber.isApplicable(event));
+    subscriber.handleEvent(event);
+
+    verify(provider).provide(1L);
+    verify(applicable).handle(event, config);
+    verify(skipped, never()).handle(any(), any());
   }
 }

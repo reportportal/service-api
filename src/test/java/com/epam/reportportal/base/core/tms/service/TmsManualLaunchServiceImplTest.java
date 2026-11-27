@@ -179,6 +179,51 @@ class TmsManualLaunchServiceImplTest {
     verify(tmsTestCaseExecutionService).addTestCasesToLaunch(projectId, launch, List.of(10L, 20L));
   }
 
+  @Test
+  void create_WithoutTestPlanAndEmptyTestCaseIds_ShouldCreateEmptyLaunchWithoutPlanLookup() {
+    launch.setTestPlanId(null);
+    createLaunchRQ.setTestCaseIds(Collections.emptyList());
+
+    when(tmsManualLaunchMapper.convertFromCreateTmsManualLaunchRQ(projectId, user, createLaunchRQ))
+        .thenReturn(launch);
+    when(launchRepository.save(launch)).thenReturn(launch);
+
+    BatchTestCaseOperationResultRS batchResult = new BatchTestCaseOperationResultRS();
+    when(tmsTestCaseExecutionService.addTestCasesToLaunch(projectId, launch, List.of()))
+        .thenReturn(batchResult);
+    when(tmsManualLaunchMapper.convertToCreateTmsManualLaunchRS(launch, batchResult))
+        .thenReturn(createLaunchRS);
+
+    var result = sut.create(projectId, user, createLaunchRQ);
+
+    assertNotNull(result);
+    assertEquals(launchId, result.getId());
+    verify(tmsTestPlanService, never()).getTestCaseIdsAddedToPlan(anyLong(), any());
+    verify(tmsTestCaseExecutionService).addTestCasesToLaunch(projectId, launch, List.of());
+  }
+
+  @Test
+  void create_WithTestPlanWithoutIdAndNullTestCaseIds_ShouldCreateEmptyLaunchWithoutPlanLookup() {
+    launch.setTestPlanId(null);
+    createLaunchRQ.setTestPlan(new TmsManualLaunchTestPlanRQ());
+    createLaunchRQ.setTestCaseIds(null);
+
+    when(tmsManualLaunchMapper.convertFromCreateTmsManualLaunchRQ(projectId, user, createLaunchRQ))
+        .thenReturn(launch);
+    when(launchRepository.save(launch)).thenReturn(launch);
+
+    BatchTestCaseOperationResultRS batchResult = new BatchTestCaseOperationResultRS();
+    when(tmsTestCaseExecutionService.addTestCasesToLaunch(projectId, launch, List.of()))
+        .thenReturn(batchResult);
+    when(tmsManualLaunchMapper.convertToCreateTmsManualLaunchRS(launch, batchResult))
+        .thenReturn(createLaunchRS);
+
+    var result = sut.create(projectId, user, createLaunchRQ);
+
+    assertNotNull(result);
+    verify(tmsTestPlanService, never()).getTestCaseIdsAddedToPlan(anyLong(), any());
+  }
+
   // -------------------------------------------------------------------------
   // GET BY ID
   // -------------------------------------------------------------------------
@@ -205,6 +250,27 @@ class TmsManualLaunchServiceImplTest {
     assertEquals(launchId, result.getId());
     verify(launchRepository).findManualLaunchByIdAndProjectId(launchId, projectId);
     verify(tmsTestCaseExecutionService).getTestCaseExecutionStatistic(launchId);
+  }
+
+  @Test
+  void getById_WhenLaunchHasNoTestPlan_ShouldReturnLaunchWithoutPlanLookup() {
+    launch.setTestPlanId(null);
+    when(launchRepository.findManualLaunchByIdAndProjectId(launchId, projectId))
+        .thenReturn(Optional.of(launch));
+
+    var stats = new TmsManualLaunchExecutionStatisticRS();
+    when(tmsTestCaseExecutionService.getTestCaseExecutionStatistic(launchId)).thenReturn(stats);
+
+    var launchUser = new User();
+    when(getUserHandler.getUserById(launch.getUserId())).thenReturn(launchUser);
+
+    when(tmsManualLaunchMapper.convert(launch, stats, launchUser, null)).thenReturn(launchRS);
+
+    var result = sut.getById(projectId, launchId);
+
+    assertNotNull(result);
+    assertEquals(launchId, result.getId());
+    verify(tmsTestPlanService, never()).getEntityById(any(), any());
   }
 
   @Test

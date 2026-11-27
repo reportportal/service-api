@@ -16,16 +16,19 @@
 
 package com.epam.reportportal.base.plugin;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.epam.reportportal.base.core.integration.plugin.strategy.JsonPluginUploader;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationTypeRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationType;
+import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.util.JsonSchemaValidator;
 import java.io.ByteArrayInputStream;
@@ -35,10 +38,11 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
@@ -63,7 +67,9 @@ public class JsonPluginUploaderTest {
   @Spy
   private JsonMapper objectMapper;
 
-  @InjectMocks
+  private static final String SCHEMA_SOURCE = "https://schema.reportportal.io/";
+  private static final String VALID_SCHEMA = SCHEMA_SOURCE + "manifest.schema.json";
+
   private JsonPluginUploader jsonPluginUploader;
 
   private AutoCloseable closeable;
@@ -71,6 +77,8 @@ public class JsonPluginUploaderTest {
   @BeforeEach
   void setUp() {
     closeable = MockitoAnnotations.openMocks(this);
+    jsonPluginUploader = new JsonPluginUploader(integrationTypeRepository, objectMapper, jsonSchemaValidator,
+        SCHEMA_SOURCE);
   }
 
   @AfterEach
@@ -81,7 +89,7 @@ public class JsonPluginUploaderTest {
   @Test
   void uploadPlugin() throws IOException {
     Map<String, Object> manifestMap = new HashMap<>();
-    manifestMap.put("$schema", "https://schema.url");
+    manifestMap.put("$schema", VALID_SCHEMA);
     manifestMap.put("id", "test-plugin");
     manifestMap.put("group", "BTS");
     String manifestJson = objectMapper.writeValueAsString(manifestMap);
@@ -105,7 +113,7 @@ public class JsonPluginUploaderTest {
   @Test
   void uploadPluginWithEmptyId() throws IOException {
     Map<String, Object> manifestMap = new HashMap<>();
-    manifestMap.put("$schema", "https://schema.url");
+    manifestMap.put("$schema", VALID_SCHEMA);
     String manifestWithoutId = objectMapper.writeValueAsString(manifestMap);
     InputStream manifestStream = new ByteArrayInputStream(manifestWithoutId.getBytes());
 
@@ -136,7 +144,7 @@ public class JsonPluginUploaderTest {
   @Test
   void uploadPluginWithoutGroup() throws IOException {
     Map<String, Object> manifestMap = new HashMap<>();
-    manifestMap.put("$schema", "https://schema.url");
+    manifestMap.put("$schema", VALID_SCHEMA);
     manifestMap.put("id", "test-plugin");
     String manifestJson = objectMapper.writeValueAsString(manifestMap);
     InputStream manifestStream = new ByteArrayInputStream(manifestJson.getBytes());
@@ -153,5 +161,45 @@ public class JsonPluginUploaderTest {
     verify(integrationTypeRepository).findByName(any());
     verify(integrationTypeRepository).saveAndFlush(argThat(type ->
         type.getIntegrationGroup().name().equals("OTHER")));
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {
+      "http://127.0.0.1:1/x",
+      "http://169.254.169.254/latest/meta-data",
+      "file:///etc/passwd",
+      "https://evil.example/x.json",
+      "https://schema.reportportal.io/../x",
+      "https://schema.reportportal.io/%2e%2e/x",
+      "https://schema.reportportal.io/a b"
+  })
+  void uploadPluginWithForeignSchemaIsRejectedWithoutValidation(String schema) throws IOException {
+    Map<String, Object> manifestMap = new HashMap<>();
+    manifestMap.put("$schema", schema);
+    manifestMap.put("id", "test-plugin");
+    InputStream manifestStream = new ByteArrayInputStream(objectMapper.writeValueAsString(manifestMap).getBytes());
+
+    var exception = assertThrows(ReportPortalException.class, () ->
+        jsonPluginUploader.uploadPlugin("manifest.json", manifestStream));
+
+    assertEquals(ErrorType.PLUGIN_UPLOAD_ERROR, exception.getErrorType());
+    verify(jsonSchemaValidator, never()).validate(any(String.class), any(JsonNode.class));
+    verify(integrationTypeRepository, never()).saveAndFlush(any(IntegrationType.class));
+  }
+
+  @Test
+  void uploadPluginWithSchemaSourceWithoutTrailingSlashDoesNotAcceptSiblingHost() throws IOException {
+    var uploader = new JsonPluginUploader(integrationTypeRepository, objectMapper, jsonSchemaValidator,
+        "https://schema.reportportal.io");
+    Map<String, Object> manifestMap = new HashMap<>();
+    manifestMap.put("$schema", "https://schema.reportportal.io.evil.example/x.json");
+    manifestMap.put("id", "test-plugin");
+    InputStream manifestStream = new ByteArrayInputStream(objectMapper.writeValueAsString(manifestMap).getBytes());
+
+    var exception = assertThrows(ReportPortalException.class, () ->
+        uploader.uploadPlugin("manifest.json", manifestStream));
+
+    assertEquals(ErrorType.PLUGIN_UPLOAD_ERROR, exception.getErrorType());
+    verify(jsonSchemaValidator, never()).validate(any(String.class), any(JsonNode.class));
   }
 }

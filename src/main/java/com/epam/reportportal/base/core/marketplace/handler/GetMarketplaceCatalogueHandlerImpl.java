@@ -16,6 +16,7 @@
 
 package com.epam.reportportal.base.core.marketplace.handler;
 
+import com.epam.reportportal.base.core.marketplace.EffectiveRange;
 import com.epam.reportportal.base.core.marketplace.MarketplaceClient;
 import com.epam.reportportal.base.core.marketplace.MarketplaceLicence;
 import com.epam.reportportal.base.core.marketplace.MarketplaceRegistryCache;
@@ -27,7 +28,10 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.enums.Integr
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationType;
 import com.epam.reportportal.base.model.marketplace.MarketplaceAuthor;
 import com.epam.reportportal.base.model.marketplace.MarketplacePlugin;
+import com.epam.reportportal.base.model.marketplace.MarketplaceVersionDetail;
+import com.epam.reportportal.base.model.marketplace.MarketplaceVersionSummary;
 import com.epam.reportportal.base.model.marketplace.catalogue.AvailablePluginResource;
+import com.epam.reportportal.base.model.marketplace.catalogue.InstalledCompatibilityResource;
 import com.epam.reportportal.base.model.marketplace.catalogue.InstalledPluginResource;
 import com.epam.reportportal.base.model.marketplace.catalogue.InstanceCapabilitiesResource;
 import com.epam.reportportal.base.model.marketplace.catalogue.MarketplaceCatalogueResource;
@@ -42,6 +46,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
@@ -59,6 +64,7 @@ import org.springframework.stereotype.Service;
 public class GetMarketplaceCatalogueHandlerImpl implements GetMarketplaceCatalogueHandler {
 
   private static final String VERSION_KEY = "version";
+  private static final String MARKETPLACE_VERSION_KEY = "marketplaceVersion";
   /** Written by the install path in a later stage; read here whenever it is already there. */
   private static final String MARKETPLACE_PLUGIN_ID_KEY = "marketplacePluginId";
   private static final String PREMIUM = "premium";
@@ -249,8 +255,12 @@ public class GetMarketplaceCatalogueHandlerImpl implements GetMarketplaceCatalog
       boolean registryOnline) {
     var version = detail(type, VERSION_KEY);
     var group = type.getIntegrationGroup() == null ? null : type.getIntegrationGroup().name();
+    // the row shows what the jar reports; the registry is asked about the version it published,
+    // which install persisted because it can carry build metadata the manifest drops
+    var registryVersion = Optional.ofNullable(detail(type, MARKETPLACE_VERSION_KEY))
+        .orElse(version);
     return new InstalledPluginResource(type.getId(), type.getName(), version, type.isEnabled(),
-        group, entryFor(type, match, version, registryOnline));
+        group, entryFor(type, match, registryVersion, registryOnline));
   }
 
   /**
@@ -280,7 +290,7 @@ public class GetMarketplaceCatalogueHandlerImpl implements GetMarketplaceCatalog
     // a latest version or a compatibility range from, and a removed plugin is not installable on
     // any release, so the verdict is not withheld here — there is simply nothing to decide
     return new MarketplaceEntryResource(persisted, null, null, null, null, null, null, null, null,
-        null, null, null, MarketplaceState.removed(plugin.tombstone()), false);
+        null, null, null, MarketplaceState.removed(plugin.tombstone()), false, null);
   }
 
   /**
@@ -302,7 +312,28 @@ public class GetMarketplaceCatalogueHandlerImpl implements GetMarketplaceCatalog
         plugin.latestVersion(), updateFor(plugin, installedVersion),
         productVersion.verdict(declaredRange(plugin)), declaredRange(plugin),
         MarketplaceState.advisory(installed), MarketplaceState.blocked(installed), null,
-        locked(plugin.access()));
+        locked(plugin.access()), installedCompatibility(installedVersion, installed));
+  }
+
+  /**
+   * Whether the installed version runs on this release, judged by the range the registry
+   * enforces: the author's range cut by any operator ceiling. Null when nothing was installed to
+   * ask about. A failed read still yields a block, with no verdict in it, so the page can tell
+   * "unknown" from "not asked".
+   */
+  private InstalledCompatibilityResource installedCompatibility(String installedVersion,
+      MarketplaceVersionDetail installed) {
+    if (StringUtils.isBlank(installedVersion)) {
+      return null;
+    }
+    if (installed == null) {
+      return new InstalledCompatibilityResource(null, null, null, null);
+    }
+    var range = EffectiveRange.of(installed.effectiveCompatibility(), installed.compatibility(),
+        installed.compatibilityCeiling());
+    return new InstalledCompatibilityResource(productVersion.verdict(range), range,
+        StringUtils.trimToNull(installed.compatibilityCeiling()),
+        StringUtils.trimToNull(installed.compatibilityCeilingReason()));
   }
 
   /**
@@ -320,9 +351,10 @@ public class GetMarketplaceCatalogueHandlerImpl implements GetMarketplaceCatalog
   }
 
   /**
-   * The range the plugin's latest version declares, normalised so that "declared nothing" is one
-   * value rather than two. The registry omits the field for a version published before it was
-   * recorded, and a blank string would otherwise reach the client as a requirement to display.
+   * The listing's range for the plugin's latest version: already the effective one, the author's
+   * range cut by any operator ceiling. Normalised so that "declared nothing" is one value rather
+   * than two. The registry omits the field for a version published before it was recorded, and a
+   * blank string would otherwise reach the client as a requirement to display.
    */
   private static String declaredRange(MarketplacePlugin plugin) {
     return StringUtils.trimToNull(plugin.compatibility());
@@ -333,17 +365,15 @@ public class GetMarketplaceCatalogueHandlerImpl implements GetMarketplaceCatalog
   }
 
   /**
-   * An update is offered only when the latest version is newer than what is installed, runs on
-   * this release, and is not blocked. Only the latest version is considered: the versions list
-   * carries no compatibility, so walking down it costs one request per version.
+   * The newest version above the installed one that runs on this release and is not blocked, or
+   * null. The latest version is tried first; only when it is known not to run here is the version
+   * list walked, which is one cached request per plugin, since each entry carries its own ranges.
+   * When the latest cannot be judged, nothing is offered rather than an older version that the
+   * next refresh would replace.
    *
-   * <p>The range is read from version detail, not from the listing the row's verdict uses. The two
-   * describe the same version and agree whenever both are present, but the listing omits the range
-   * for a plugin whose latest version was published before the registry recorded it, while detail
-   * still carries it — so reading the listing here would silently stop offering updates for older
-   * entries. They cannot contradict each other: a listing range exists only when it came from that
-   * version's manifest, which is the same manifest detail answers from, so a row saying "does not
-   * run here" and this method offering the update is not a reachable pair.
+   * <p>Invariant: an update below {@code latestVersion} is only offered when the row's
+   * {@code compatible} is not true, or when the latest is blocked — a window of up to a minute,
+   * since the registry's listing never names a blocked version as latest.
    */
   private UpdateAvailableResource updateFor(MarketplacePlugin plugin, String installedVersion) {
     var latest = plugin.latestVersion();
@@ -351,12 +381,93 @@ public class GetMarketplaceCatalogueHandlerImpl implements GetMarketplaceCatalog
         || PluginVersions.compare(latest, installedVersion) <= 0) {
       return null;
     }
-    var detail = registry.versionDetail(plugin.id(), latest);
-    if (detail == null || detail.blocked()) {
+    var runs = latestRunsHere(plugin, latest);
+    if (runs == null) {
       return null;
     }
-    var range = detail.compatibility() == null ? null : detail.compatibility().reportportal();
-    return productVersion.satisfies(range) ? new UpdateAvailableResource(latest) : null;
+    if (runs) {
+      return new UpdateAvailableResource(latest);
+    }
+    return productVersion.isKnown() ? olderUpdate(plugin.id(), latest, installedVersion) : null;
+  }
+
+  /**
+   * Whether the latest version can be offered: true, false, or null when it cannot be told. The
+   * listing range is checked first: it lives 60s against detail's 5m, so a ceiling set a minute
+   * ago already shows there. Detail is still read, because the listing omits the range for a
+   * version published before the registry recorded it, and only detail says whether the version
+   * is blocked. Null covers detail that could not be read, an unreadable listing range, an unknown
+   * product version, a detail with no readable effective range (including a listing with no range
+   * and a detail with none either), and a listing that says it runs against a detail that says it
+   * does not (a ceiling cleared inside detail's cache window): the row says compatible, so an
+   * older update would contradict it.
+   */
+  private Boolean latestRunsHere(MarketplacePlugin plugin, String latest) {
+    var listed = declaredRange(plugin);
+    if (listed != null) {
+      // an unreadable range is unknown, not a no: only a range that reads and fails is a no
+      var verdict = productVersion.verdict(listed);
+      if (verdict == null) {
+        return null;
+      }
+      if (!verdict) {
+        return false;
+      }
+    }
+    var detail = registry.versionDetail(plugin.id(), latest);
+    if (detail == null) {
+      return null;
+    }
+    if (detail.blocked()) {
+      return false;
+    }
+    var runs = productVersion.verdict(EffectiveRange.of(detail.effectiveCompatibility(),
+        detail.compatibility(), detail.compatibilityCeiling()));
+    if (runs == null) {
+      return null;
+    }
+    if (runs) {
+      return true;
+    }
+    return listed != null ? null : false;
+  }
+
+  /**
+   * The newest offerable version strictly between the installed one and the latest. The walk
+   * includes pre-releases, consistent with how the registry picks {@code latestVersion}.
+   */
+  private UpdateAvailableResource olderUpdate(String pluginId, String latest,
+      String installedVersion) {
+    var versions = registry.versions(pluginId);
+    if (versions == null) {
+      return null;
+    }
+    // the cached history must agree with the listing that sent us here: a row for the latest that
+    // runs here means the ceiling was cleared since, and an older update would contradict it.
+    // Exact match: compare ignores build metadata, and a +build sibling is a separate version
+    var disagrees = versions.stream()
+        .filter(Objects::nonNull)
+        .filter(summary -> StringUtils.equals(summary.version(), latest))
+        .anyMatch(summary -> !summary.blocked() && runsHere(summary));
+    if (disagrees) {
+      return null;
+    }
+    return versions.stream()
+        .filter(Objects::nonNull)
+        .filter(summary -> StringUtils.isNotBlank(summary.version()))
+        .filter(summary -> PluginVersions.compare(summary.version(), installedVersion) > 0)
+        .filter(summary -> PluginVersions.compare(summary.version(), latest) < 0)
+        .filter(summary -> !summary.blocked())
+        .filter(this::runsHere)
+        .map(MarketplaceVersionSummary::version)
+        .max(PluginVersions::compare)
+        .map(UpdateAvailableResource::new)
+        .orElse(null);
+  }
+
+  private boolean runsHere(MarketplaceVersionSummary summary) {
+    return productVersion.satisfies(EffectiveRange.of(summary.effectiveCompatibility(),
+        summary.compatibility(), summary.compatibilityCeiling()));
   }
 
   private static String detail(IntegrationType type, String attribute) {

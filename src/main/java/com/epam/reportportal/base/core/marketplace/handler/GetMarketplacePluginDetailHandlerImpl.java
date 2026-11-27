@@ -17,6 +17,7 @@
 package com.epam.reportportal.base.core.marketplace.handler;
 
 import com.epam.reportportal.base.core.marketplace.CompatibilityRange;
+import com.epam.reportportal.base.core.marketplace.EffectiveRange;
 import com.epam.reportportal.base.core.marketplace.MarketplaceLicence;
 import com.epam.reportportal.base.core.marketplace.MarketplaceRegistryCache;
 import com.epam.reportportal.base.core.marketplace.MarketplaceState;
@@ -149,7 +150,14 @@ public class GetMarketplacePluginDetailHandlerImpl implements GetMarketplacePlug
   private MarketplaceVersionResource toVersion(MarketplaceVersionSummary summary) {
     return new MarketplaceVersionResource(summary.version(), summary.publishedAt(),
         summary.blocked(), summary.blockedAt(), summary.blockReason(), compatible(summary),
-        declaredRange(summary), summary.advisory());
+        effectiveRange(summary), StringUtils.trimToNull(summary.compatibilityCeiling()),
+        StringUtils.trimToNull(summary.compatibilityCeilingReason()), summary.advisory());
+  }
+
+  /** The range the version is judged by: the author's cut by any operator ceiling. */
+  private static String effectiveRange(MarketplaceVersionSummary summary) {
+    return EffectiveRange.of(summary.effectiveCompatibility(), summary.compatibility(),
+        summary.compatibilityCeiling());
   }
 
   /**
@@ -161,12 +169,8 @@ public class GetMarketplacePluginDetailHandlerImpl implements GetMarketplacePlug
    * cannot say which release it runs. All three mean the question could not be decided, and the
    * install handler refuses them all rather than guessing.
    */
-  private static String declaredRange(MarketplaceVersionSummary summary) {
-    return summary.compatibility() == null ? null : summary.compatibility().reportportal();
-  }
-
   private Boolean compatible(MarketplaceVersionSummary summary) {
-    return productVersion.verdict(declaredRange(summary));
+    return productVersion.verdict(effectiveRange(summary));
   }
 
   private static List<String> screenshots(MarketplaceVersionDetail version) {

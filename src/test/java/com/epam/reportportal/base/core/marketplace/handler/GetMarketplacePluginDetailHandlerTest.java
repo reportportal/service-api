@@ -87,7 +87,7 @@ class GetMarketplacePluginDetailHandlerTest {
     return new MarketplaceVersionDetail(id, "Jira", version, "Tracks issues", null, null,
         "bug-tracking", new MarketplaceCompatibility(">=25.0"), null, "public", null, "official",
         blocked, blocked ? WHEN : null, blocked ? "Signed with a revoked key" : null,
-        advisory, "sha", changelogUrl, screenshotUrls);
+        advisory, "sha", changelogUrl, screenshotUrls, null, null, null);
   }
 
   @Test
@@ -95,8 +95,8 @@ class GetMarketplacePluginDetailHandlerTest {
     when(client.getPlugin("jira")).thenReturn(plugin("jira", "1.6.0", "public"));
     when(client.listVersions("jira")).thenReturn(List.of(
         new MarketplaceVersionSummary("1.5.2", WHEN, true, WHEN, "Signed with a revoked key",
-            null, null),
-        new MarketplaceVersionSummary("1.6.0", WHEN, false, null, null, null, null)));
+            null, null, null, null, null),
+        new MarketplaceVersionSummary("1.6.0", WHEN, false, null, null, null, null, null, null, null)));
     when(client.getVersion("jira", "1.6.0")).thenReturn(version("jira", "1.6.0", null, false, null,
         List.of("https://cdn.rp.io/jira/1.png")));
 
@@ -297,14 +297,14 @@ class GetMarketplacePluginDetailHandlerTest {
     when(client.getPlugin("jira")).thenReturn(plugin("jira", "1.6.0", "public"));
     when(client.listVersions("jira")).thenReturn(List.of(
         new MarketplaceVersionSummary("1.6.0", WHEN, false, null, null,
-            new MarketplaceCompatibility(">=26.0"), null),
+            new MarketplaceCompatibility(">=26.0"), null, null, null, null),
         new MarketplaceVersionSummary("1.5.2", WHEN, false, null, null,
-            new MarketplaceCompatibility(">=27.0"), null),
+            new MarketplaceCompatibility(">=27.0"), null, null, null, null),
         // published before the registry recorded a range
-        new MarketplaceVersionSummary("1.4.0", WHEN, false, null, null, null, null),
+        new MarketplaceVersionSummary("1.4.0", WHEN, false, null, null, null, null, null, null, null),
         // recorded, but not as anything a range parser can read
         new MarketplaceVersionSummary("1.3.0", WHEN, false, null, null,
-            new MarketplaceCompatibility("whenever"), null)));
+            new MarketplaceCompatibility("whenever"), null, null, null, null)));
 
     var verdicts = handler.getPluginDetail("jira").versions().stream()
         .collect(java.util.stream.Collectors.toMap(
@@ -327,14 +327,52 @@ class GetMarketplacePluginDetailHandlerTest {
     when(client.getPlugin("jira")).thenReturn(plugin("jira", "1.6.0", "public"));
     when(client.listVersions("jira")).thenReturn(List.of(
         new MarketplaceVersionSummary("1.6.0", WHEN, false, null, null,
-            new MarketplaceCompatibility(">=27.0"), null),
-        new MarketplaceVersionSummary("1.5.2", WHEN, false, null, null, null, null)));
+            new MarketplaceCompatibility(">=27.0"), null, null, null, null),
+        new MarketplaceVersionSummary("1.5.2", WHEN, false, null, null, null, null, null, null, null)));
 
     var versions = handler.getPluginDetail("jira").versions();
 
     assertEquals(">=27.0", versions.get(0).requires());
     assertFalse(versions.get(0).compatible());
     assertNull(versions.get(1).requires(), "a version declaring no range states none");
+  }
+
+  /** A ceiling narrows the range the row is judged by, and the row says why. */
+  @Test
+  void aCeilingDecidesTheVerdictAndTravelsWithItsReason() {
+    when(client.getPlugin("jira")).thenReturn(plugin("jira", "1.6.0", "public"));
+    when(client.listVersions("jira")).thenReturn(List.of(
+        new MarketplaceVersionSummary("1.6.0", WHEN, false, null, null,
+            new MarketplaceCompatibility(">=25.1"), null, new MarketplaceCompatibility(">=25.1, <26.0"),
+            "<26.0", "Breaks the launch view on 26.0"),
+        new MarketplaceVersionSummary("1.5.2", WHEN, false, null, null,
+            new MarketplaceCompatibility(">=25.1"), null, null, null, null)));
+
+    var versions = handler.getPluginDetail("jira").versions();
+
+    assertFalse(versions.get(0).compatible());
+    assertEquals(">=25.1, <26.0", versions.get(0).requires());
+    assertEquals("<26.0", versions.get(0).ceiling());
+    assertEquals("Breaks the launch view on 26.0", versions.get(0).ceilingReason());
+    // an older registry sends no effective range: the author's range decides, and no ceiling shows
+    assertTrue(versions.get(1).compatible());
+    assertEquals(">=25.1", versions.get(1).requires());
+    assertNull(versions.get(1).ceiling());
+    assertNull(versions.get(1).ceilingReason());
+  }
+
+  @Test
+  void aCeilingWithNoEffectiveRangeLeavesTheRowUndecided() {
+    when(client.getPlugin("jira")).thenReturn(plugin("jira", "1.6.0", "public"));
+    when(client.listVersions("jira")).thenReturn(List.of(
+        new MarketplaceVersionSummary("1.6.0", WHEN, false, null, null,
+            new MarketplaceCompatibility(">=25.1"), null, null, "<26.0", "r")));
+
+    var version = handler.getPluginDetail("jira").versions().get(0);
+
+    assertNull(version.compatible());
+    assertNull(version.requires());
+    assertEquals("<26.0", version.ceiling());
   }
 
   /** The instance not knowing its own release makes every row undecided, not every row bad. */
@@ -346,7 +384,7 @@ class GetMarketplacePluginDetailHandlerTest {
     when(client.getPlugin("jira")).thenReturn(plugin("jira", "1.6.0", "public"));
     when(client.listVersions("jira")).thenReturn(List.of(
         new MarketplaceVersionSummary("1.6.0", WHEN, false, null, null,
-            new MarketplaceCompatibility(">=26.0"), null)));
+            new MarketplaceCompatibility(">=26.0"), null, null, null, null)));
 
     assertNull(blind.getPluginDetail("jira").versions().get(0).compatible());
   }
@@ -361,7 +399,7 @@ class GetMarketplacePluginDetailHandlerTest {
     when(client.getPlugin("jira")).thenReturn(plugin("jira", "1.6.0", "public"));
     var versions = new java.util.ArrayList<MarketplaceVersionSummary>();
     versions.add(null);
-    versions.add(new MarketplaceVersionSummary("1.6.0", WHEN, false, null, null, null, null));
+    versions.add(new MarketplaceVersionSummary("1.6.0", WHEN, false, null, null, null, null, null, null, null));
     when(client.listVersions("jira")).thenReturn(versions);
 
     var rows = handler.getPluginDetail("jira").versions();
@@ -376,8 +414,8 @@ class GetMarketplacePluginDetailHandlerTest {
     var advisory = new MarketplaceAdvisory("high", "CVE-2026-1234", WHEN);
     when(client.getPlugin("jira")).thenReturn(plugin("jira", "1.6.0", "public"));
     when(client.listVersions("jira")).thenReturn(List.of(
-        new MarketplaceVersionSummary("1.6.0", WHEN, false, null, null, null, advisory),
-        new MarketplaceVersionSummary("1.5.2", WHEN, false, null, null, null, null)));
+        new MarketplaceVersionSummary("1.6.0", WHEN, false, null, null, null, advisory, null, null, null),
+        new MarketplaceVersionSummary("1.5.2", WHEN, false, null, null, null, null, null, null, null)));
 
     var versions = handler.getPluginDetail("jira").versions();
 

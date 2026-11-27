@@ -45,6 +45,8 @@ import com.epam.reportportal.base.model.marketplace.MarketplaceCompatibility;
 import com.epam.reportportal.base.model.marketplace.MarketplacePlugin;
 import com.epam.reportportal.base.model.marketplace.MarketplacePluginDetail;
 import com.epam.reportportal.base.model.marketplace.MarketplaceVersionDetail;
+import com.epam.reportportal.base.model.marketplace.MarketplaceVersionSummary;
+import com.epam.reportportal.base.model.marketplace.catalogue.InstalledCompatibilityResource;
 import com.epam.reportportal.base.model.marketplace.catalogue.InstalledPluginResource;
 import com.epam.reportportal.base.model.marketplace.catalogue.MarketplaceCatalogueResource;
 import com.epam.reportportal.base.model.marketplace.catalogue.RegistryStatus;
@@ -52,6 +54,7 @@ import com.google.common.base.Ticker;
 import java.net.SocketTimeoutException;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -143,7 +146,7 @@ class GetMarketplaceCatalogueHandlerTest {
       boolean blocked) {
     return new MarketplaceVersionDetail(id, id, version, null, null, null, "bug-tracking",
         new MarketplaceCompatibility(range), null, "public", null, "official", blocked, null,
-        null, null, "sha", null, null);
+        null, null, "sha", null, null, null, null, null);
   }
 
   private InstalledPluginResource installedNamed(MarketplaceCatalogueResource catalogue,
@@ -332,6 +335,8 @@ class GetMarketplaceCatalogueHandlerTest {
 
     assertNotNull(update);
     assertEquals("1.4.10", update.version());
+    // the latest runs here, so the version list is not asked for
+    verify(client, never()).listVersions(anyString());
   }
 
   @Test
@@ -833,7 +838,7 @@ class GetMarketplaceCatalogueHandlerTest {
       MarketplaceAdvisory advisory, boolean blocked, Instant blockedAt, String blockReason) {
     return new MarketplaceVersionDetail(id, id, version, null, null, null, "bug-tracking",
         new MarketplaceCompatibility(">=25.0"), null, "public", null, "official", blocked,
-        blockedAt, blockReason, advisory, "sha", null, null);
+        blockedAt, blockReason, advisory, "sha", null, null, null, null, null);
   }
 
   @Test
@@ -948,6 +953,241 @@ class GetMarketplaceCatalogueHandlerTest {
     verify(client, never()).getPlugin(anyString());
   }
 
+  private static MarketplaceVersionDetail ceilinged(String id, String version, String declared,
+      String effective, String ceiling, String reason) {
+    return new MarketplaceVersionDetail(id, id, version, null, null, null, "bug-tracking",
+        declared == null ? null : new MarketplaceCompatibility(declared), null, "public", null,
+        "official", false, null, null, null, "sha", null, null,
+        effective == null ? null : new MarketplaceCompatibility(effective), ceiling, reason);
+  }
+
+  /** Jira 1.4.2 installed on a 26.1 instance, whose registry detail for 1.4.2 is {@code detail}. */
+  private InstalledCompatibilityResource installedCompatibilityOf(MarketplaceVersionDetail detail) {
+    handler = newHandler(new ProductVersion("26.1"));
+    when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(
+        List.of(installed(7L, "jira", IntegrationGroupEnum.BTS, "1.4.2", null)));
+    when(client.getCatalogue(null, null)).thenReturn(List.of(
+        registryPlugin("jira", "Jira", "1.4.2", "bug-tracking", "public")));
+    when(client.getVersion("jira", "1.4.2")).thenReturn(detail);
+    return installedNamed(handler.getCatalogue(null, null), "jira").marketplace()
+        .installedCompatibility();
+  }
+
+  @Test
+  void theRegistryIsAskedAboutTheVersionInstallPersistedNotTheManifestOne() {
+    handler = newHandler(new ProductVersion("26.1"));
+    var type = installed(7L, "jira", IntegrationGroupEnum.BTS, "1.6.0", null);
+    type.getDetails().getDetails().put("marketplaceVersion", "1.6.0+build.5");
+    when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(List.of(type));
+    when(client.getCatalogue(null, null)).thenReturn(List.of(
+        registryPlugin("jira", "Jira", "1.6.0+build.5", "bug-tracking", "public")));
+    when(client.getVersion("jira", "1.6.0+build.5")).thenReturn(
+        ceilinged("jira", "1.6.0+build.5", ">=25.1", ">=25.1, <26.0", "<26.0", "r"));
+
+    var row = installedNamed(handler.getCatalogue(null, null), "jira");
+
+    assertEquals("1.6.0", row.version());
+    assertFalse(row.marketplace().installedCompatibility().compatible());
+    assertEquals("<26.0", row.marketplace().installedCompatibility().ceiling());
+    verify(client, never()).getVersion("jira", "1.6.0");
+  }
+
+  @Test
+  void aBlankMarketplaceVersionFallsBackToTheManifestVersion() {
+    handler = newHandler(new ProductVersion("26.1"));
+    var type = installed(7L, "jira", IntegrationGroupEnum.BTS, "1.4.2", null);
+    type.getDetails().getDetails().put("marketplaceVersion", "  ");
+    when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(List.of(type));
+    when(client.getCatalogue(null, null)).thenReturn(List.of(
+        registryPlugin("jira", "Jira", "1.4.2", "bug-tracking", "public")));
+    when(client.getVersion("jira", "1.4.2"))
+        .thenReturn(ceilinged("jira", "1.4.2", ">=25.1", ">=25.1", null, null));
+
+    assertTrue(installedNamed(handler.getCatalogue(null, null), "jira").marketplace()
+        .installedCompatibility().compatible());
+  }
+
+  @Test
+  void anInstalledVersionWithNoCeilingRunsHereAndSaysNothingAboutOne() {
+    var block = installedCompatibilityOf(
+        ceilinged("jira", "1.4.2", ">=25.1", ">=25.1", null, null));
+
+    assertTrue(block.compatible());
+    assertEquals(">=25.1", block.requires());
+    assertNull(block.ceiling());
+    assertNull(block.ceilingReason());
+  }
+
+  @Test
+  void aCeilingBelowThisReleaseMakesTheInstalledVersionIncompatibleAndSaysWhy() {
+    var block = installedCompatibilityOf(ceilinged("jira", "1.4.2", ">=25.1", ">=25.1, <26.0",
+        "<26.0", "Breaks the launch view on 26.0"));
+
+    assertFalse(block.compatible());
+    assertEquals(">=25.1, <26.0", block.requires());
+    assertEquals("<26.0", block.ceiling());
+    assertEquals("Breaks the launch view on 26.0", block.ceilingReason());
+  }
+
+  @Test
+  void aCeilingThatLeavesThisReleaseInsideStillCarriesItsReason() {
+    var block = installedCompatibilityOf(ceilinged("jira", "1.4.2", ">=25.1", ">=25.1, <27.0",
+        "<27.0", "Untested on 27"));
+
+    assertTrue(block.compatible());
+    assertEquals("Untested on 27", block.ceilingReason());
+  }
+
+  @Test
+  void aRegistryThatSendsNoEffectiveRangeIsJudgedByTheDeclaredOne() {
+    var block = installedCompatibilityOf(ceilinged("jira", "1.4.2", "<26.0", null, null, null));
+
+    assertFalse(block.compatible());
+    assertEquals("<26.0", block.requires());
+  }
+
+  @Test
+  void noRangeAtAllIsUnknownRatherThanIncompatible() {
+    var block = installedCompatibilityOf(ceilinged("jira", "1.4.2", null, null, null, null));
+
+    assertNull(block.compatible());
+    assertNull(block.requires());
+  }
+
+  @Test
+  void aRangeThatCannotBeReadIsUnknownRatherThanIncompatible() {
+    var block = installedCompatibilityOf(
+        ceilinged("jira", "1.4.2", ">=25.1", "garbage", null, null));
+
+    assertNull(block.compatible());
+    assertEquals("garbage", block.requires());
+  }
+
+  @Test
+  void aCeilingWithNoEffectiveRangeIsUnknownRatherThanTheDeclaredRange() {
+    var block = installedCompatibilityOf(
+        ceilinged("jira", "1.4.2", ">=25.1", null, "<26.0", "r"));
+
+    assertNull(block.compatible());
+    assertNull(block.requires());
+    assertEquals("<26.0", block.ceiling());
+  }
+
+  @Test
+  void anInstanceThatCannotNameItsReleaseDecidesNothingAboutTheInstalledVersion() {
+    when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(
+        List.of(installed(7L, "jira", IntegrationGroupEnum.BTS, "1.4.2", null)));
+    when(client.getCatalogue(null, null)).thenReturn(List.of(
+        registryPlugin("jira", "Jira", "1.4.2", "bug-tracking", "public")));
+    when(client.getVersion("jira", "1.4.2")).thenReturn(
+        ceilinged("jira", "1.4.2", ">=25.1", ">=25.1, <26.0", "<26.0", "r"));
+    handler = newHandler(new ProductVersion(" "));
+
+    assertNull(installedNamed(handler.getCatalogue(null, null), "jira").marketplace()
+        .installedCompatibility().compatible());
+  }
+
+  @Test
+  void anOfflineRegistryCarriesNoInstalledVerdict() {
+    when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(
+        List.of(installed(7L, "jira", IntegrationGroupEnum.BTS, "1.4.2", null)));
+    when(client.getCatalogue(null, null)).thenThrow(new RegistryUnreachableException(
+        "marketplace.reportportal.io", new SocketTimeoutException("Read timed out")));
+
+    assertNull(installedNamed(handler.getCatalogue(null, null), "jira").marketplace());
+  }
+
+  @Test
+  void aFailedVersionReadLeavesTheVerdictUnknownAndIsNotRetriedWithinTheOfflineWindow() {
+    when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(
+        List.of(installed(7L, "jira", IntegrationGroupEnum.BTS, "1.4.2", null)));
+    when(client.getCatalogue(null, null)).thenReturn(List.of(
+        registryPlugin("jira", "Jira", "1.4.2", "bug-tracking", "public")));
+    when(client.getVersion("jira", "1.4.2"))
+        .thenThrow(new RegistryResponseException(500, "INTERNAL_ERROR", "boom"));
+
+    var block = installedNamed(handler.getCatalogue(null, null), "jira").marketplace()
+        .installedCompatibility();
+    ticker.advance(Duration.ofSeconds(10));
+    handler.getCatalogue(null, null);
+
+    assertNotNull(block);
+    assertNull(block.compatible());
+    assertNull(block.requires());
+    verify(client, times(1)).getVersion("jira", "1.4.2");
+  }
+
+  @Test
+  void aCeilingTheOperatorClearedStopsWarningOnceTheVersionCacheExpires() {
+    when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(
+        List.of(installed(7L, "jira", IntegrationGroupEnum.BTS, "1.4.2", null)));
+    when(client.getCatalogue(null, null)).thenReturn(List.of(
+        registryPlugin("jira", "Jira", "1.4.2", "bug-tracking", "public")));
+    when(client.getVersion("jira", "1.4.2"))
+        .thenReturn(ceilinged("jira", "1.4.2", ">=25.1", ">=25.1, <26.0", "<26.0", "r"))
+        .thenReturn(ceilinged("jira", "1.4.2", ">=25.1", ">=25.1", null, null));
+    handler = newHandler(new ProductVersion("26.1"));
+
+    var before = installedNamed(handler.getCatalogue(null, null), "jira").marketplace()
+        .installedCompatibility();
+    ticker.advance(Duration.ofMinutes(6));
+    var after = installedNamed(handler.getCatalogue(null, null), "jira").marketplace()
+        .installedCompatibility();
+
+    assertFalse(before.compatible());
+    assertTrue(after.compatible());
+    assertNull(after.ceiling());
+  }
+
+  @Test
+  void aRowNotFromTheMarketplaceHasNoInstalledVerdict() {
+    when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(
+        List.of(installed(7L, "custom", IntegrationGroupEnum.OTHER, "1.0.0", null)));
+    when(client.getCatalogue(null, null)).thenReturn(List.of(
+        registryPlugin("jira", "Jira", "1.4.2", "bug-tracking", "public")));
+
+    assertNull(installedNamed(handler.getCatalogue(null, null), "custom").marketplace());
+  }
+
+  @Test
+  void aRemovedPluginHasNoInstalledVerdict() {
+    when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(
+        List.of(installed(9L, "jira", IntegrationGroupEnum.BTS, "1.4.1", "plugin-bts-jira")));
+    when(client.getCatalogue(null, null)).thenReturn(List.of(
+        registryPlugin("slack", "Slack", "2.0.0", "notifications", "public")));
+    when(client.getPlugin("plugin-bts-jira")).thenThrow(new PluginRemovedException(
+        "plugin-bts-jira", "Vendor withdrew it", Instant.parse("2026-01-05T12:00:00Z"), "op"));
+
+    assertNull(installedNamed(handler.getCatalogue(null, null), "jira").marketplace()
+        .installedCompatibility());
+  }
+
+  @Test
+  void aRowWithNoRecordedVersionHasNoInstalledVerdictAndCostsNoVersionCall() {
+    when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(
+        List.of(installed(7L, "jira", IntegrationGroupEnum.BTS, null, null)));
+    when(client.getCatalogue(null, null)).thenReturn(List.of(
+        registryPlugin("jira", "Jira", "1.4.2", "bug-tracking", "public")));
+
+    assertNull(installedNamed(handler.getCatalogue(null, null), "jira").marketplace()
+        .installedCompatibility());
+    verify(client, never()).getVersion(anyString(), anyString());
+  }
+
+  @Test
+  void noUpdateWhenTheOperatorCeilingExcludesThisReleaseFromTheNewerVersion() {
+    handler = newHandler(new ProductVersion("26.1"));
+    when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(
+        List.of(installed(7L, "jira", IntegrationGroupEnum.BTS, "1.4.2", null)));
+    when(client.getCatalogue(null, null)).thenReturn(List.of(
+        registryPlugin("jira", "Jira", "1.5.0", "bug-tracking", "public")));
+    when(client.getVersion("jira", "1.5.0")).thenReturn(
+        ceilinged("jira", "1.5.0", ">=25.1", "<26.0", "<26.0", "r"));
+
+    assertNull(installedNamed(handler.getCatalogue(null, null), "jira").marketplace()
+        .updateAvailable());
+  }
+
   @Test
   void anInstalledVersionIsAskedForOnceAcrossPageViews() {
     when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(
@@ -961,5 +1201,233 @@ class GetMarketplaceCatalogueHandlerTest {
     handler.getCatalogue(null, null);
 
     verify(client, times(1)).getVersion("jira", "1.4.1");
+  }
+
+  @Test
+  void aCeilingTheListingAlreadyShowsWithholdsTheUpdateAStaleDetailWouldOffer() {
+    // the listing lives 60s and detail 5m: right after a ceiling is set only the listing knows
+    handler = newHandler(new ProductVersion("26.1"));
+    when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(
+        List.of(installed(7L, "jira", IntegrationGroupEnum.BTS, "1.4.2", null)));
+    when(client.getCatalogue(null, null)).thenReturn(List.of(
+        registryPluginRequiring("jira", "Jira", "1.5.0", ">=25.1, <26.0")));
+    when(client.getVersion("jira", "1.5.0")).thenReturn(
+        ceilinged("jira", "1.5.0", ">=25.1", ">=25.1", null, null));
+
+    var entry = installedNamed(handler.getCatalogue(null, null), "jira").marketplace();
+
+    assertFalse(entry.compatible());
+    assertNull(entry.updateAvailable());
+  }
+
+  private static MarketplaceVersionSummary summary(String version, String declared,
+      String effective, String ceiling, boolean blocked) {
+    return new MarketplaceVersionSummary(version, Instant.EPOCH, blocked, null, null,
+        declared == null ? null : new MarketplaceCompatibility(declared), null,
+        effective == null ? null : new MarketplaceCompatibility(effective), ceiling, null);
+  }
+
+  /** Jira 1.4.2 on a 26.1 instance, whose latest 1.6.0 is capped below 26.0. */
+  private MarketplaceCatalogueResource cappedLatestWithHistory(
+      MarketplaceVersionSummary... older) {
+    handler = newHandler(new ProductVersion("26.1"));
+    when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(
+        List.of(installed(7L, "jira", IntegrationGroupEnum.BTS, "1.4.2", null)));
+    when(client.getCatalogue(null, null)).thenReturn(List.of(
+        registryPluginRequiring("jira", "Jira", "1.6.0", ">=25.1, <26.0")));
+    var history = new ArrayList<MarketplaceVersionSummary>();
+    history.add(summary("1.6.0", ">=25.1", ">=25.1, <26.0", "<26.0", false));
+    history.addAll(List.of(older));
+    history.add(summary("1.4.2", ">=25.1", ">=25.1", null, false));
+    history.add(summary("1.3.0", ">=25.1", ">=25.1", null, false));
+    when(client.listVersions("jira")).thenReturn(history);
+    return handler.getCatalogue(null, null);
+  }
+
+  @Test
+  void anOlderUpdateIsOfferedWhenTheLatestIsCappedBelowThisRelease() {
+    var catalogue = cappedLatestWithHistory(
+        summary("1.5.0", ">=25.1", ">=25.1", null, false),
+        summary("1.4.5", ">=25.1", ">=25.1", null, false));
+    handler.getCatalogue(null, null); // a second read, to assert the versions list is cached
+
+    var entry = installedNamed(catalogue, "jira").marketplace();
+    assertEquals("1.5.0", entry.updateAvailable().version());
+    assertFalse(entry.compatible());
+    // one cached list read; per-version detail is still only the installed version's
+    verify(client, times(1)).listVersions("jira");
+    verify(client, times(1)).getVersion("jira", "1.4.2");
+    verify(client, never()).getVersion("jira", "1.5.0");
+  }
+
+  @Test
+  void noUpdateWhenNothingNewerThanTheInstalledVersionRunsHere() {
+    var catalogue = cappedLatestWithHistory(
+        summary("1.5.0", ">=27.0", ">=27.0", null, false),
+        summary("1.4.5", ">=25.1", ">=25.1, <26.0", "<26.0", false));
+
+    assertNull(installedNamed(catalogue, "jira").marketplace().updateAvailable());
+  }
+
+  @Test
+  void aBlockedOlderVersionIsSkippedForTheNextOneDown() {
+    var catalogue = cappedLatestWithHistory(
+        summary("1.5.1", ">=25.1", ">=25.1", null, true),
+        summary("1.5.0", ">=25.1", ">=25.1", null, false));
+
+    assertEquals("1.5.0",
+        installedNamed(catalogue, "jira").marketplace().updateAvailable().version());
+  }
+
+  @Test
+  void anOlderVersionWithACeilingButNoEffectiveRangeIsNotOffered() {
+    var catalogue = cappedLatestWithHistory(
+        summary("1.5.0", ">=25.1", null, "<27.0", false),
+        summary("1.4.5", ">=25.1", ">=25.1", null, false));
+
+    assertEquals("1.4.5",
+        installedNamed(catalogue, "jira").marketplace().updateAvailable().version());
+  }
+
+  @Test
+  void aClearedCeilingNeverLeavesACompatibleRowOfferingAnOlderUpdate() {
+    // listing refreshes in 60s, detail and versions in 5m: a stale detail still shows the cap
+    handler = newHandler(new ProductVersion("26.1"));
+    when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(
+        List.of(installed(7L, "jira", IntegrationGroupEnum.BTS, "1.4.2", null)));
+    when(client.getCatalogue(null, null))
+        .thenReturn(List.of(registryPluginRequiring("jira", "Jira", "1.6.0", ">=25.1, <26.0")))
+        .thenReturn(List.of(registryPluginRequiring("jira", "Jira", "1.6.0", ">=25.1")));
+    when(client.getVersion("jira", "1.6.0")).thenReturn(
+        ceilinged("jira", "1.6.0", ">=25.1", ">=25.1, <26.0", "<26.0", "r"));
+    when(client.listVersions("jira")).thenReturn(List.of(
+        summary("1.6.0", ">=25.1", ">=25.1, <26.0", "<26.0", false),
+        summary("1.5.0", ">=25.1", ">=25.1", null, false),
+        summary("1.4.2", ">=25.1", ">=25.1", null, false)));
+
+    var capped = installedNamed(handler.getCatalogue(null, null), "jira").marketplace();
+    assertFalse(capped.compatible());
+    assertEquals("1.5.0", capped.updateAvailable().version());
+
+    ticker.advance(Duration.ofSeconds(61));
+    var cleared = installedNamed(handler.getCatalogue(null, null), "jira").marketplace();
+
+    assertTrue(cleared.compatible());
+    assertNull(cleared.updateAvailable());
+    verify(client, times(1)).getVersion("jira", "1.6.0");
+  }
+
+  @Test
+  void anUnreadableLatestOffersNothingRatherThanAnOlderVersionThatFlipsToTheLatest() {
+    handler = newHandler(new ProductVersion("26.1"));
+    when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(
+        List.of(installed(7L, "jira", IntegrationGroupEnum.BTS, "1.4.2", null)));
+    when(client.getCatalogue(null, null))
+        .thenReturn(List.of(registryPluginRequiring("jira", "Jira", "1.6.0", ">=25.1")));
+    when(client.getVersion("jira", "1.6.0"))
+        .thenThrow(new RegistryResponseException(500, "INTERNAL", "boom"))
+        .thenReturn(ceilinged("jira", "1.6.0", ">=25.1", ">=25.1", null, null));
+    when(client.listVersions("jira")).thenReturn(List.of(
+        summary("1.6.0", ">=25.1", ">=25.1", null, false),
+        summary("1.5.0", ">=25.1", ">=25.1", null, false)));
+
+    var failed = installedNamed(handler.getCatalogue(null, null), "jira").marketplace();
+    assertNull(failed.updateAvailable());
+
+    ticker.advance(Duration.ofSeconds(31));
+    var recovered = installedNamed(handler.getCatalogue(null, null), "jira").marketplace();
+
+    assertEquals("1.6.0", recovered.updateAvailable().version());
+    verify(client, never()).listVersions("jira");
+  }
+
+  @Test
+  void aPreReleaseBelowTheCappedLatestIsOfferedLikeTheRegistryPicksLatest() {
+    // intended: the walk includes pre-releases, as the registry's latestVersion does
+    var catalogue = cappedLatestWithHistory(
+        summary("1.6.0-rc.1", ">=25.1", ">=25.1", null, false),
+        summary("1.5.0", ">=25.1", ">=25.1", null, false));
+
+    assertEquals("1.6.0-rc.1",
+        installedNamed(catalogue, "jira").marketplace().updateAvailable().version());
+  }
+
+  private MarketplaceCatalogueResource latestUndecidableWithCompatibleHistory(String listedRange,
+      MarketplaceVersionDetail latestDetail) {
+    handler = newHandler(new ProductVersion("26.1"));
+    when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(
+        List.of(installed(7L, "jira", IntegrationGroupEnum.BTS, "1.4.2", null)));
+    when(client.getCatalogue(null, null)).thenReturn(
+        List.of(registryPluginRequiring("jira", "Jira", "1.6.0", listedRange)));
+    when(client.getVersion("jira", "1.6.0")).thenReturn(latestDetail);
+    when(client.listVersions("jira")).thenReturn(List.of(
+        summary("1.6.0", ">=25.1", null, "<26.0", false),
+        summary("1.5.0", ">=25.1", ">=25.1", null, false),
+        summary("1.4.2", ">=25.1", ">=25.1", null, false)));
+    return handler.getCatalogue(null, null);
+  }
+
+  @Test
+  void anUnreadableListingRangeOffersNothingRatherThanWalkingDown() {
+    var catalogue = latestUndecidableWithCompatibleHistory(">=next",
+        ceilinged("jira", "1.6.0", ">=25.1", ">=25.1", null, null));
+
+    assertNull(installedNamed(catalogue, "jira").marketplace().updateAvailable());
+    verify(client, never()).listVersions("jira");
+  }
+
+  @Test
+  void aCeilingWithNoEffectiveRangeAndNoListingRangeOffersNothingRatherThanWalkingDown() {
+    var catalogue = latestUndecidableWithCompatibleHistory(null,
+        ceilinged("jira", "1.6.0", ">=25.1", null, "<26.0", "r"));
+
+    assertNull(installedNamed(catalogue, "jira").marketplace().updateAvailable());
+    verify(client, never()).listVersions("jira");
+  }
+
+  @Test
+  void aHistoryThatClearsTheListedCeilingOffersNothingRatherThanAnOlderVersion() {
+    handler = newHandler(new ProductVersion("26.1"));
+    when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(
+        List.of(installed(7L, "jira", IntegrationGroupEnum.BTS, "1.4.2", null)));
+    when(client.getCatalogue(null, null)).thenReturn(List.of(
+        registryPluginRequiring("jira", "Jira", "1.6.0", ">=25.1, <26.0")));
+    when(client.listVersions("jira")).thenReturn(List.of(
+        summary("1.6.0", ">=25.1", ">=25.1", null, false),
+        summary("1.5.0", ">=25.1", ">=25.1", null, false),
+        summary("1.4.2", ">=25.1", ">=25.1", null, false)));
+
+    var entry = installedNamed(handler.getCatalogue(null, null), "jira").marketplace();
+
+    assertNull(entry.updateAvailable());
+  }
+
+  @Test
+  void aCompatibleBuildSiblingOfTheCappedLatestStillLetsAnOlderUpdateBeOffered() {
+    // semver ignores build metadata, so only the latest's own row may contradict the listing
+    handler = newHandler(new ProductVersion("26.1"));
+    when(integrationTypeRepository.findAllByOrderByCreationDate()).thenReturn(
+        List.of(installed(7L, "jira", IntegrationGroupEnum.BTS, "1.4.2", null)));
+    when(client.getCatalogue(null, null)).thenReturn(List.of(
+        registryPluginRequiring("jira", "Jira", "1.6.0+build.2", ">=25.1, <26.0")));
+    when(client.listVersions("jira")).thenReturn(List.of(
+        summary("1.6.0+build.2", ">=25.1", ">=25.1, <26.0", "<26.0", false),
+        summary("1.6.0+build.1", ">=25.1", ">=25.1", null, false),
+        summary("1.5.0", ">=25.1", ">=25.1", null, false),
+        summary("1.4.2", ">=25.1", ">=25.1", null, false)));
+
+    var entry = installedNamed(handler.getCatalogue(null, null), "jira").marketplace();
+
+    assertEquals("1.5.0", entry.updateAvailable().version());
+  }
+
+  @Test
+  void aVersionWithBuildMetadataIsOfferedBecauseInstallAcceptsIt() {
+    var catalogue = cappedLatestWithHistory(
+        summary("1.5.0+build.5", ">=25.1", ">=25.1", null, false),
+        summary("1.4.5", ">=25.1", ">=25.1", null, false));
+
+    assertEquals("1.5.0+build.5",
+        installedNamed(catalogue, "jira").marketplace().updateAvailable().version());
   }
 }

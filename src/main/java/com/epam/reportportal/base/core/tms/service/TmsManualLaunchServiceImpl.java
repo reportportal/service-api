@@ -125,14 +125,7 @@ public class TmsManualLaunchServiceImpl implements TmsManualLaunchService {
 
     // Add test cases to launch if present
     var addTestCasesResult = tmsTestCaseExecutionService
-        .addTestCasesToLaunch(
-            projectId,
-            launch,
-            CollectionUtils.isEmpty(request.getTestCaseIds()) ?
-                tmsTestPlanService.getTestCaseIdsAddedToPlan(projectId,
-                    request.getTestPlan() != null ? request.getTestPlan().getId() : null) :
-                request.getTestCaseIds()
-        );
+        .addTestCasesToLaunch(projectId, launch, resolveTestCaseIdsToAdd(projectId, request));
 
     log.debug("Created manual launch with ID: {} for project: {}", launch.getId(), projectId);
 
@@ -155,7 +148,9 @@ public class TmsManualLaunchServiceImpl implements TmsManualLaunchService {
 
     // Get user and test plan maps
     var user = getUserHandler.getUserById(launch.getUserId());
-    var testPlan = tmsTestPlanService.getEntityById(projectId, launch.getTestPlanId());
+    var testPlan = launch.getTestPlanId() != null
+        ? tmsTestPlanService.getEntityById(projectId, launch.getTestPlanId())
+        : null;
 
     return tmsManualLaunchMapper.convert(launch, testCaseExecutionStatistic, user, testPlan);
   }
@@ -625,6 +620,22 @@ public class TmsManualLaunchServiceImpl implements TmsManualLaunchService {
                 Launch::getId, Function.identity()
             )
         );
+  }
+
+  /**
+   * Resolves test case IDs to add to a new manual launch: explicit IDs from the request, otherwise
+   * all test cases of the given test plan, otherwise none (a launch may be created without a test
+   * plan).
+   */
+  private List<Long> resolveTestCaseIdsToAdd(Long projectId, CreateTmsManualLaunchRQ request) {
+    if (CollectionUtils.isNotEmpty(request.getTestCaseIds())) {
+      return request.getTestCaseIds();
+    }
+    var testPlanId = request.getTestPlan() != null ? request.getTestPlan().getId() : null;
+    if (testPlanId == null) {
+      return Collections.emptyList();
+    }
+    return tmsTestPlanService.getTestCaseIdsAddedToPlan(projectId, testPlanId);
   }
 
   private static boolean hasRetentionPolicy(Collection<ItemAttributesRQ> attributes) {

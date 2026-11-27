@@ -40,12 +40,16 @@ public class JsonSchemaValidatorConfig {
   private String schemaLocation;
 
   /**
-   * Creates a {@link SchemaRegistry} instance with the specified schema version and schema mappers.
+   * Creates a {@link SchemaRegistry} instance with the specified schema version and schema mappers. Only schemas
+   * under the configured source (mapped to the configured location) can be loaded, remote resources are never fetched.
    *
    * @return a {@link SchemaRegistry} instance
    */
   public SchemaRegistry createSchemaRegistry() {
     return SchemaRegistry.withDefaultDialect(SpecificationVersion.valueOf(schemaVersion),
-        builder -> builder.schemaIdResolvers(resolvers -> resolvers.mapPrefix(schemaSource, schemaLocation)));
+        builder -> builder.schemaLoader(loader -> loader
+            .schemaIdResolvers(resolvers -> resolvers.mapPrefix(schemaSource, schemaLocation))
+            .fetchRemoteResources(false)
+            .allow(iri -> iri.toString().startsWith(schemaSource) || iri.toString().startsWith(schemaLocation))));
   }
 }

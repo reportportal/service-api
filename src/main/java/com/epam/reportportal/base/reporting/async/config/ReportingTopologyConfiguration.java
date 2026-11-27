@@ -69,6 +69,12 @@ public class ReportingTopologyConfiguration {
   public static final String TTL_QUEUE_S = "q.retry.reporting.ttl.s";
   public static final String TTL_QUEUE_M = "q.retry.reporting.ttl.m";
   public static final String REPORTING_PARKING_LOT = "q.parkingLot.reporting";
+  /**
+   * Holds a finish message of a launch for its per-message expiration, then returns it to the reporting exchange,
+   * which routes it to the queue of the launch again. Must not start with {@link #REPORTING_QUEUE_PREFIX}: the queues
+   * with that prefix are owned by the instances and removed by the cleanup job.
+   */
+  public static final String LAUNCH_FINISH_DELAY_QUEUE = "q.delay.reporting.launch-finish";
 
   private final AmqpAdmin amqpAdmin;
 
@@ -164,6 +170,13 @@ public class ReportingTopologyConfiguration {
   @Bean
   Binding ttlQueueMBinding() {
     return BindingBuilder.bind(ttlQueueM()).to(retryExchange()).with(TTL_QUEUE_M);
+  }
+
+  @Bean
+  Queue launchFinishDelayQueue() {
+    return QueueBuilder.durable(LAUNCH_FINISH_DELAY_QUEUE).deadLetterExchange(REPORTING_EXCHANGE)
+        .deadLetterRoutingKey(DEFAULT_CONSISTENT_HASH_ROUTING_KEY)
+        .build();
   }
 
   @Bean

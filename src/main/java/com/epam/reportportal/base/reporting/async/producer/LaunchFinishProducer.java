@@ -21,6 +21,7 @@ import static com.epam.reportportal.base.reporting.async.config.ReportingTopolog
 import static com.epam.reportportal.base.reporting.async.config.ReportingTopologyConfiguration.REPORTING_EXCHANGE;
 
 import com.epam.reportportal.base.core.launch.FinishLaunchHandler;
+import com.epam.reportportal.base.core.launch.LaunchFinishGracePeriod;
 import com.epam.reportportal.base.core.launch.util.LinkGenerator;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.MembershipDetails;
@@ -28,6 +29,7 @@ import com.epam.reportportal.base.model.launch.FinishLaunchRS;
 import com.epam.reportportal.base.reporting.FinishExecutionRQ;
 import com.epam.reportportal.base.reporting.async.config.MessageHeaders;
 import com.epam.reportportal.base.reporting.async.config.RequestType;
+import java.time.Instant;
 import java.util.Map;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -53,6 +55,8 @@ public class LaunchFinishProducer implements FinishLaunchHandler {
   @Override
   public FinishLaunchRS finishLaunch(String launchId, FinishExecutionRQ request,
       MembershipDetails membershipDetails, ReportPortalUser user, String baseUrl) {
+    Instant receivedAt = Instant.now();
+    LaunchFinishGracePeriod.applyReceivedTime(request, receivedAt);
 
     rabbitTemplate.invoke(operations -> {
       rabbitTemplate.convertAndSend(REPORTING_EXCHANGE, DEFAULT_CONSISTENT_HASH_ROUTING_KEY,
@@ -65,6 +69,7 @@ public class LaunchFinishProducer implements FinishLaunchHandler {
             headers.put(MessageHeaders.PROJECT_KEY, membershipDetails.getProjectKey());
             headers.put(MessageHeaders.LAUNCH_ID, launchId);
             headers.put(MessageHeaders.BASE_URL, baseUrl);
+            headers.put(MessageHeaders.RECEIVED_AT, receivedAt.toEpochMilli());
             return message;
           });
       operations.waitForConfirms(REPLY_TIMEOUT_MS);

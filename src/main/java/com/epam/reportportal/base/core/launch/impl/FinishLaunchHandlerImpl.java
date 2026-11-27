@@ -25,6 +25,7 @@ import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorTyp
 import com.epam.reportportal.base.core.events.domain.LaunchFinishedEvent;
 import com.epam.reportportal.base.core.hierarchy.FinishHierarchyHandler;
 import com.epam.reportportal.base.core.launch.FinishLaunchHandler;
+import com.epam.reportportal.base.core.launch.LaunchFinishGracePeriod;
 import com.epam.reportportal.base.core.launch.attribute.LaunchAttributeHandlerService;
 import com.epam.reportportal.base.core.launch.changes.LaunchChangesHandler;
 import com.epam.reportportal.base.core.launch.util.LinkGenerator;
@@ -37,6 +38,7 @@ import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalExc
 import com.epam.reportportal.base.model.launch.FinishLaunchRS;
 import com.epam.reportportal.base.reporting.FinishExecutionRQ;
 import com.epam.reportportal.base.ws.converter.builders.LaunchBuilder;
+import java.time.Instant;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -80,6 +82,9 @@ public class FinishLaunchHandlerImpl implements FinishLaunchHandler {
   @Override
   public FinishLaunchRS finishLaunch(String launchId, FinishExecutionRQ finishLaunchRQ,
       MembershipDetails membershipDetails, ReportPortalUser user, String baseUrl) {
+    // the HTTP and async entry points have already set it to the moment the request was received
+    LaunchFinishGracePeriod.applyReceivedTime(finishLaunchRQ, Instant.now());
+
     Launch launch = launchRepository.findByUuid(launchId)
         .orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId));
 

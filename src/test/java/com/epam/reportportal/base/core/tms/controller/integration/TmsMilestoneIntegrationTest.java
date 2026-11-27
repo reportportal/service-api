@@ -3,6 +3,8 @@ package com.epam.reportportal.base.core.tms.controller.integration;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -282,6 +284,68 @@ public class TmsMilestoneIntegrationTest extends BaseMvcTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.id").value(MILESTONE_FOR_UPDATE_ID))
         .andExpect(jsonPath("$.name").value("Only Name Updated"));
+  }
+
+  private void patchRaw(Long milestoneId, String json) throws Exception {
+    mockMvc.perform(patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/milestone/"
+            + milestoneId)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(json)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk());
+  }
+
+  @Test
+  void patchMilestone_explicitNullStartDate_shouldClearStartDateOnly() throws Exception {
+    mockMvc.perform(patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/milestone/"
+            + MILESTONE_FOR_PATCH_ID)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("{\"status\":\"TESTING\",\"startDate\":null}")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.status").value("TESTING"))
+        .andExpect(jsonPath("$.startDate").doesNotExist())
+        .andExpect(jsonPath("$.endDate").exists());
+
+    var saved = tmsMilestoneRepository.findById(MILESTONE_FOR_PATCH_ID).orElseThrow();
+    assertNull(saved.getStartDate());
+    assertNotNull(saved.getEndDate());
+  }
+
+  @Test
+  void patchMilestone_explicitNullEndDate_shouldClearEndDateOnly() throws Exception {
+    patchRaw(MILESTONE_FOR_PATCH_ID, "{\"endDate\":null}");
+
+    var saved = tmsMilestoneRepository.findById(MILESTONE_FOR_PATCH_ID).orElseThrow();
+    assertNotNull(saved.getStartDate());
+    assertNull(saved.getEndDate());
+  }
+
+  @Test
+  void patchMilestone_bothDatesNull_shouldClearBoth() throws Exception {
+    patchRaw(MILESTONE_FOR_PATCH_ID, "{\"startDate\":null,\"endDate\":null}");
+
+    var saved = tmsMilestoneRepository.findById(MILESTONE_FOR_PATCH_ID).orElseThrow();
+    assertNull(saved.getStartDate());
+    assertNull(saved.getEndDate());
+  }
+
+  @Test
+  void patchMilestone_absentDates_shouldKeepDates() throws Exception {
+    patchRaw(MILESTONE_FOR_PATCH_ID, "{\"status\":\"COMPLETED\"}");
+
+    var saved = tmsMilestoneRepository.findById(MILESTONE_FOR_PATCH_ID).orElseThrow();
+    assertNotNull(saved.getStartDate());
+    assertNotNull(saved.getEndDate());
+  }
+
+  @Test
+  void patchMilestone_dateValue_shouldSetDate() throws Exception {
+    patchRaw(MILESTONE_FOR_PATCH_ID, "{\"startDate\":\"2026-01-01T00:00:00Z\"}");
+
+    var saved = tmsMilestoneRepository.findById(MILESTONE_FOR_PATCH_ID).orElseThrow();
+    assertEquals(LocalDateTime.of(2026, 1, 1, 0, 0), saved.getStartDate());
+    assertNotNull(saved.getEndDate());
   }
 
   @Test

@@ -121,7 +121,8 @@ public class TmsMilestoneController {
   }
 
   /**
-   * Applies partial updates to an existing milestone.
+   * Applies partial updates to an existing milestone. Absent properties are kept; an explicit
+   * {@code null} {@code startDate} or {@code endDate} clears that date.
    *
    * @param projectKey  the key of the project
    * @param milestoneId the ID of the milestone to patch
@@ -133,7 +134,8 @@ public class TmsMilestoneController {
   @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
   @Operation(
       summary = "Patch milestone",
-      description = "Applies partial updates to an existing milestone."
+      description = "Applies partial updates to an existing milestone. Absent properties are kept; "
+          + "an explicit null startDate or endDate clears that date."
   )
   @ApiResponse(responseCode = "200", description = "Milestone updated successfully")
   public TmsMilestoneRS patchMilestone(@PathVariable String projectKey,

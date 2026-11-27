@@ -18,6 +18,7 @@ package com.epam.reportportal.base.infrastructure.persistence.dao;
 
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.LaunchAttribute;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.Modifying;
@@ -35,6 +36,16 @@ public interface LaunchAttributeRepository extends ReportPortalRepository<Launch
   void deleteAllByLaunchIdAndKeyAndSystem(Long launchId, String key, boolean isSystem);
 
   void deleteAllByKeyAndSystem(String key, boolean isSystem);
+
+  /**
+   * Finds every attribute row of the provided launches. Unlike {@link Launch#getAttributes()},
+   * the result is not a {@link java.util.Set}, so rows that are equal by key, value and system
+   * flag are all returned.
+   *
+   * @param launchIds ids of the launches
+   * @return all attributes of the launches
+   */
+  List<LaunchAttribute> findAllByLaunchIdIn(Collection<Long> launchIds);
 
   @Modifying
   @Query("DELETE FROM LaunchAttribute la WHERE la.launch.id = :launchId AND la.system = :isSystem")

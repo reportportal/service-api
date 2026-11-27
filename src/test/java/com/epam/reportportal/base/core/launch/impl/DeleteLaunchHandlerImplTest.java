@@ -25,6 +25,7 @@ import static org.mockito.Mockito.when;
 
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.dao.AttachmentRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchAttributeRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.LaunchModeEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.StatusEnum;
@@ -46,6 +47,9 @@ class DeleteLaunchHandlerImplTest {
 
   @Mock
   private LaunchRepository launchRepository;
+
+  @Mock
+  private LaunchAttributeRepository launchAttributeRepository;
 
   @Mock
   private AttachmentRepository attachmentRepository;

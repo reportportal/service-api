@@ -54,6 +54,8 @@ import com.epam.reportportal.base.reporting.UpdateItemAttributeRQ;
 import com.epam.reportportal.base.ws.BaseMvcTest;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collections;
@@ -64,6 +66,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.jdbc.Sql;
@@ -83,6 +87,9 @@ class LaunchControllerTest extends BaseMvcTest {
 
   @Autowired
   private JdbcTemplate jdbcTemplate;
+
+  @PersistenceContext
+  private EntityManager entityManager;
 
   @Test
   void happyCreateLaunch() throws Exception {
@@ -273,6 +280,115 @@ class LaunchControllerTest extends BaseMvcTest {
         "auto:" + DigestUtils.md5Hex("2;Renamed merged;Test suite;Test item 1;Step item 1;key=value"),
         uniqueIds.get(3L)
     );
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"BASIC", "DEEP"})
+  void deleteMergedLaunchWithEqualAttributes(String mergeType) throws Exception {
+    // launches 1 and 2 have equal attributes: system 'skippedIssue:true' and 'testKey:testValue'
+    MergeLaunchesRQ rq = new MergeLaunchesRQ();
+    rq.setLaunches(new HashSet<>(List.of(1L, 2L)));
+    rq.setName("Merged to delete");
+    rq.setMergeStrategyType(mergeType);
+
+    String response = mockMvc.perform(
+            post(DEFAULT_PROJECT_BASE_URL + "/launch/merge").contentType(APPLICATION_JSON)
+                .with(token(oAuthHelper.getDefaultToken()))
+                .content(objectMapper.writeValueAsBytes(rq)))
+        .andExpect(status().is(200))
+        .andReturn().getResponse().getContentAsString();
+    Long newLaunchId = objectMapper.readTree(response).get("id").asLong();
+    flushAndClear();
+
+    assertEquals(0, jdbcTemplate.queryForObject(
+        "SELECT count(*) FROM launch_attribute WHERE launch_id IN (1, 2)", Integer.class));
+    assertEquals(7, jdbcTemplate.queryForObject(
+        "SELECT count(*) FROM launch_attribute WHERE launch_id = ?", Integer.class, newLaunchId));
+    assertEquals(0, countDuplicatedAttributes(newLaunchId));
+
+    mockMvc.perform(delete(DEFAULT_PROJECT_BASE_URL + "/launch/" + newLaunchId)
+            .with(token(oAuthHelper.getDefaultToken())))
+        .andExpect(status().is(200));
+    flushAndClear();
+
+    assertFalse(launchRepository.existsById(newLaunchId));
+  }
+
+  @Test
+  void mergeLaunchWithDuplicatedAttributes() throws Exception {
+    duplicateAttributes(1L);
+
+    MergeLaunchesRQ rq = new MergeLaunchesRQ();
+    rq.setLaunches(new HashSet<>(List.of(1L, 2L)));
+    rq.setName("Merged");
+    rq.setMergeStrategyType("BASIC");
+
+    String response = mockMvc.perform(
+            post(DEFAULT_PROJECT_BASE_URL + "/launch/merge").contentType(APPLICATION_JSON)
+                .with(token(oAuthHelper.getDefaultToken()))
+                .content(objectMapper.writeValueAsBytes(rq)))
+        .andExpect(status().is(200))
+        .andReturn().getResponse().getContentAsString();
+    Long newLaunchId = objectMapper.readTree(response).get("id").asLong();
+    flushAndClear();
+
+    assertTrue(launchRepository.findAllById(List.of(1L, 2L)).isEmpty());
+    assertEquals(0, countDuplicatedAttributes(newLaunchId));
+  }
+
+  @Test
+  void deleteLaunchWithDuplicatedAttributes() throws Exception {
+    duplicateAttributes(1L);
+
+    mockMvc.perform(
+            delete(DEFAULT_PROJECT_BASE_URL + "/launch/1").with(token(oAuthHelper.getDefaultToken())))
+        .andExpect(status().is(200));
+    flushAndClear();
+
+    assertFalse(launchRepository.existsById(1L));
+  }
+
+  @Test
+  void bulkDeleteLaunchesWithDuplicatedAttributes() throws Exception {
+    duplicateAttributes(1L);
+
+    mockMvc.perform(delete(DEFAULT_PROJECT_BASE_URL + "/launch").contentType(APPLICATION_JSON)
+            .with(token(oAuthHelper.getDefaultToken()))
+            .param("ids", "1", "2"))
+        .andExpect(status().is(200));
+    flushAndClear();
+
+    assertTrue(launchRepository.findAllById(List.of(1L, 2L)).isEmpty());
+  }
+
+  /**
+   * Reproduces the rows left by a launch merge that moved equal attributes of several launches to
+   * the resulted one.
+   */
+  private void duplicateAttributes(Long launchId) {
+    jdbcTemplate.update(
+        "INSERT INTO launch_attribute (key, value, launch_id, system) "
+            + "SELECT key, value, launch_id, system FROM launch_attribute WHERE launch_id = ?",
+        launchId
+    );
+    assertTrue(countDuplicatedAttributes(launchId) > 0);
+  }
+
+  private int countDuplicatedAttributes(Long launchId) {
+    return jdbcTemplate.queryForObject(
+        "SELECT count(*) FROM (SELECT 1 FROM launch_attribute WHERE launch_id = ? "
+            + "GROUP BY key, value, system HAVING count(*) > 1) duplicates",
+        Integer.class, launchId
+    );
+  }
+
+  /**
+   * Requests of a test share one transaction: flush to surface errors of the commit and clear to
+   * make the next request load the state from the database.
+   */
+  private void flushAndClear() {
+    entityManager.flush();
+    entityManager.clear();
   }
 
   @Test

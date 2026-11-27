@@ -21,6 +21,8 @@ import static com.epam.reportportal.base.reporting.async.config.ReportingTopolog
 import static com.epam.reportportal.base.reporting.async.config.ReportingTopologyConfiguration.REPORTING_QUEUE_PREFIX;
 
 import com.rabbitmq.http.client.Client;
+import com.rabbitmq.http.client.HttpClientException;
+import com.rabbitmq.http.client.domain.DeleteQueueParameters;
 import com.rabbitmq.http.client.domain.QueueInfo;
 import java.time.Duration;
 import java.time.Instant;
@@ -44,6 +46,10 @@ import org.springframework.stereotype.Component;
  * period. The grace period is what keeps the job from deleting the queues of an instance that has
  * just declared them but has not attached its consumers yet, or of an instance that is reconnecting
  * after a network glitch.
+ *
+ * <p>A queue that still holds ready messages stays unbound while they are republished; an owner that
+ * reconnects in that window gets new messages again once the next run fails to delete the queue and
+ * binds it back.
  *
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
@@ -107,20 +113,56 @@ public class OutdatedQueuesManagementJob {
     return Duration.between(since, now).compareTo(gracePeriod) >= 0;
   }
 
-  private void release(QueueInfo queue) {
-    String queueName = queue.getName();
+  private void release(QueueInfo listed) {
+    String queueName = listed.getName();
     try {
+      // the list may be up to a minute old: the owner could have reconnected since
+      QueueInfo queue = managementClient.getQueue(vhost, queueName);
+      if (queue == null) {
+        withoutConsumersSince.remove(queueName);
+        return;
+      }
+      if (queue.getConsumerCount() > 0) {
+        log.info("Reporting queue '{}' got consumers again, leaving it in place", queueName);
+        withoutConsumersSince.remove(queueName);
+        return;
+      }
       managementClient.unbindQueue(vhost, queueName, REPORTING_EXCHANGE, DEFAULT_QUEUE_ROUTING_KEY);
       if (queue.getMessagesReady() > 0) {
         shovelService.republishToReportingExchange(queueName);
       } else {
         shovelService.removeShovel(queueName);
-        managementClient.deleteQueue(vhost, queueName);
+        deleteOrRebind(queueName);
         withoutConsumersSince.remove(queueName);
         log.info("Removed outdated reporting queue '{}'", queueName);
       }
+    } catch (HttpClientException e) {
+      if (e.status() == 400 || e.status() == 412) {
+        log.info("Outdated reporting queue '{}' is not empty or in use any more, retrying next run",
+            queueName);
+      } else {
+        log.warn("Unable to clean up outdated reporting queue '{}'", queueName, e);
+      }
     } catch (Exception e) {
       log.warn("Unable to clean up outdated reporting queue '{}'", queueName, e);
+    }
+  }
+
+  /**
+   * Deletes the queue only if it is empty and unused. When the delete fails, the owner may have reconnected after the
+   * consumer check and its binding was removed by the unbind: the binding is restored so the queue keeps receiving
+   * messages. A queue that is still abandoned is unbound again on the next run.
+   */
+  private void deleteOrRebind(String queueName) {
+    try {
+      managementClient.deleteQueue(vhost, queueName, new DeleteQueueParameters(true, true));
+    } catch (RuntimeException deleteFailure) {
+      try {
+        managementClient.bindQueue(vhost, queueName, REPORTING_EXCHANGE, DEFAULT_QUEUE_ROUTING_KEY);
+      } catch (RuntimeException bindFailure) {
+        deleteFailure.addSuppressed(bindFailure);
+      }
+      throw deleteFailure;
     }
   }
 }

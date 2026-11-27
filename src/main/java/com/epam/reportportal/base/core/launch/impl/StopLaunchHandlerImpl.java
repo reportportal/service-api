@@ -68,6 +68,8 @@ public class StopLaunchHandlerImpl implements StopLaunchHandler {
       MembershipDetails membershipDetails, ReportPortalUser user, String baseUrl) {
     Launch launch = launchRepository.findById(launchId)
         .orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launchId));
+    // advisory lock goes before any launch row update, same order as the finish paths
+    testItemStatisticsService.acquireAdvisoryLock(launch.getId());
 
     validateRoles(launch, user, membershipDetails);
     validate(launch, finishLaunchRQ);
@@ -84,7 +86,6 @@ public class StopLaunchHandlerImpl implements StopLaunchHandler {
 
     launchRepository.save(launch);
     launchChangesHandler.handleIfChanged(launch, beforeSnapshot);
-    testItemStatisticsService.acquireAdvisoryLock(launch.getId());
     testItemRepository.interruptInProgressItems(launch.getId());
     testItemStatisticsService.addInterruptionStatistics(launch.getId());
 

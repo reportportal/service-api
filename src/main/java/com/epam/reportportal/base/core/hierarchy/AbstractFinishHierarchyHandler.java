@@ -39,21 +39,20 @@ import com.epam.reportportal.base.infrastructure.persistence.dao.TestItemReposit
 import com.epam.reportportal.base.infrastructure.persistence.entity.ItemAttribute;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.StatusEnum;
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItem;
+import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItemResults;
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.issue.IssueEntity;
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.issue.IssueType;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.MembershipDetails;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.enums.JStatusEnum;
-import com.epam.reportportal.base.job.PageUtil;
+import com.google.common.collect.Lists;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Consumer;
-import java.util.function.Function;
+import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.BooleanUtils;
-import org.springframework.data.domain.Pageable;
 
 /**
  * Abstract base handler for finishing a hierarchy of test items or launches.
@@ -115,15 +114,22 @@ public abstract class AbstractFinishHierarchyHandler<T> implements FinishHierarc
   protected abstract boolean isIssueRequired(StatusEnum status, T entity);
 
   /**
-   * Paged id loader for all descendants to finish under the parent.
+   * Loads the ids of all {@link StatusEnum#IN_PROGRESS} descendants of the parent in one query. Items without children
+   * are ordered by id, items with children deepest first.
    *
-   * @param hasChildren whether the parent has children
+   * @param hasChildren whether to load the descendants that have children
    * @param entity      parent (launch or item) context
-   * @param status      target child status
-   * @return function mapping page to ids to update
+   * @return ids of the descendants to finish
    */
-  protected abstract Function<Pageable, List<Long>> getItemIdsFunction(boolean hasChildren,
-      T entity, StatusEnum status);
+  protected abstract List<Long> getItemIds(boolean hasChildren, T entity);
+
+  /**
+   * Returns the id of the launch the descendants belong to.
+   *
+   * @param entity parent (launch or item) context
+   * @return launch id, may be {@code null}
+   */
+  protected abstract Long getLaunchId(T entity);
 
   /**
    * Whether a skipped run should be treated as interrupted for the given launch (from attributes).
@@ -167,6 +173,9 @@ public abstract class AbstractFinishHierarchyHandler<T> implements FinishHierarc
     expect(status, s -> s != IN_PROGRESS).verify(INCORRECT_REQUEST,
         "Unable to update current status to - " + IN_PROGRESS);
 
+    // Lock before reading the ids so that no finish of the same launch commits between the snapshot and the updates
+    ofNullable(getLaunchId(parentEntity)).ifPresent(statisticsService::acquireAdvisoryLock);
+
     final int withoutChildren = updateDescendantsWithoutChildren(parentEntity,
         membershipDetails, status, endDate, user);
     final int withChildren = updateDescendantsWithChildren(parentEntity, endDate);
@@ -180,44 +189,42 @@ public abstract class AbstractFinishHierarchyHandler<T> implements FinishHierarc
     getIssueType(isIssueRequired(status, entity),
         projectId,
         TO_INVESTIGATE.getLocator()
-    ).ifPresentOrElse(issueType -> PageUtil.iterateOverContent(ITEM_PAGE_SIZE,
-            getItemIdsFunction(false, entity, IN_PROGRESS),
+    ).ifPresentOrElse(issueType -> processInChunks(getItemIds(false, entity),
             itemIdsWithoutChildrenHandler(issueType, status, endTime, membershipDetails, user, updatedCount)
         ),
-        () -> PageUtil.iterateOverContent(ITEM_PAGE_SIZE,
-            getItemIdsFunction(false, entity, IN_PROGRESS),
+        () -> processInChunks(getItemIds(false, entity),
             itemIdsWithoutChildrenHandler(status, endTime, membershipDetails, user, updatedCount)
         )
     );
     return updatedCount.get();
   }
 
-  private Consumer<List<Long>> itemIdsWithoutChildrenHandler(IssueType issueType, StatusEnum status,
-      Instant endTime,
+  private BiConsumer<List<Long>, Map<Long, TestItem>> itemIdsWithoutChildrenHandler(IssueType issueType,
+      StatusEnum status, Instant endTime,
       MembershipDetails membershipDetails, ReportPortalUser user, AtomicInteger updatedCount) {
-    return itemIds -> {
-      Map<Long, TestItem> itemMapping = getItemMapping(itemIds);
-      itemIds.forEach(itemId -> ofNullable(itemMapping.get(itemId)).ifPresent(testItem -> {
-        finishItem(testItem, status, endTime);
-        attachIssue(testItem, issueType);
-        statisticsService.addStatistics(testItem);
-        changeStatusHandler.changeParentStatus(testItem, membershipDetails, user);
-      }));
-      updatedCount.addAndGet(itemIds.size());
+    return (itemIds, itemMapping) -> {
+      itemIds.forEach(itemId -> ofNullable(itemMapping.get(itemId)).filter(this::isInProgress)
+          .ifPresent(testItem -> {
+            finishItem(testItem, status, endTime);
+            attachIssue(testItem, issueType);
+            statisticsService.addStatistics(testItem);
+            changeStatusHandler.changeParentStatus(testItem, membershipDetails, user);
+            updatedCount.incrementAndGet();
+          }));
     };
   }
 
-  private Consumer<List<Long>> itemIdsWithoutChildrenHandler(StatusEnum status,
+  private BiConsumer<List<Long>, Map<Long, TestItem>> itemIdsWithoutChildrenHandler(StatusEnum status,
       Instant endTime, MembershipDetails membershipDetails,
       ReportPortalUser user, AtomicInteger updatedCount) {
-    return itemIds -> {
-      Map<Long, TestItem> itemMapping = getItemMapping(itemIds);
-      itemIds.forEach(itemId -> ofNullable(itemMapping.get(itemId)).ifPresent(testItem -> {
-        finishItem(testItem, status, endTime);
-        statisticsService.addStatistics(testItem);
-        changeStatusHandler.changeParentStatus(testItem, membershipDetails, user);
-      }));
-      updatedCount.addAndGet(itemIds.size());
+    return (itemIds, itemMapping) -> {
+      itemIds.forEach(itemId -> ofNullable(itemMapping.get(itemId)).filter(this::isInProgress)
+          .ifPresent(testItem -> {
+            finishItem(testItem, status, endTime);
+            statisticsService.addStatistics(testItem);
+            changeStatusHandler.changeParentStatus(testItem, membershipDetails, user);
+            updatedCount.incrementAndGet();
+          }));
     };
   }
 
@@ -242,26 +249,45 @@ public abstract class AbstractFinishHierarchyHandler<T> implements FinishHierarc
 
   private int updateDescendantsWithChildren(T entity, Instant endTime) {
     AtomicInteger updatedCount = new AtomicInteger(0);
-    PageUtil.iterateOverContent(ITEM_PAGE_SIZE,
-        getItemIdsFunction(true, entity, IN_PROGRESS),
-        itemIdsWithChildrenHandler(endTime, updatedCount)
-    );
+    processInChunks(getItemIds(true, entity), itemIdsWithChildrenHandler(endTime, updatedCount));
     return updatedCount.get();
   }
 
-  private Consumer<List<Long>> itemIdsWithChildrenHandler(Instant endTime,
+  /**
+   * Processes the ids collected once in chunks of {@link #ITEM_PAGE_SIZE}. The ids must not be re-queried page by page
+   * with an offset: every processed item leaves the queried status, so an offset would skip unprocessed items.
+   * <p>
+   * Each chunk is flushed (later chunks and the parent pass read the finished statuses from the database) and its items
+   * are then detached, so the persistence context does not grow with the number of descendants. Only the chunk's items
+   * are detached: the caller keeps working with the managed launch and parent.
+   */
+  private void processInChunks(List<Long> itemIds, BiConsumer<List<Long>, Map<Long, TestItem>> handler) {
+    Lists.partition(itemIds, ITEM_PAGE_SIZE).forEach(chunk -> {
+      Map<Long, TestItem> itemMapping = getItemMapping(chunk);
+      handler.accept(chunk, itemMapping);
+      testItemRepository.flush();
+      itemMapping.values().forEach(this::detach);
+    });
+  }
+
+  private void detach(TestItem testItem) {
+    ofNullable(testItem.getItemResults()).map(TestItemResults::getIssue).ifPresent(issueEntityRepository::detach);
+    testItemRepository.detach(testItem);
+  }
+
+  private BiConsumer<List<Long>, Map<Long, TestItem>> itemIdsWithChildrenHandler(Instant endTime,
       AtomicInteger updatedCount) {
-    return itemIds -> {
-      Map<Long, TestItem> itemMapping = getItemMapping(itemIds);
-      itemIds.forEach(itemId -> ofNullable(itemMapping.get(itemId)).ifPresent(testItem -> {
-        boolean isFailed = testItemRepository.hasDescendantsNotInStatus(testItem.getItemId(),
-            StatusEnum.PASSED.name(),
-            StatusEnum.INFO.name(),
-            StatusEnum.WARN.name()
-        );
-        finishItem(testItem, isFailed ? FAILED : PASSED, endTime);
-      }));
-      updatedCount.addAndGet(itemIds.size());
+    return (itemIds, itemMapping) -> {
+      itemIds.forEach(itemId -> ofNullable(itemMapping.get(itemId)).filter(this::isInProgress)
+          .ifPresent(testItem -> {
+            boolean isFailed = testItemRepository.hasDescendantsNotInStatus(testItem.getItemId(),
+                StatusEnum.PASSED.name(),
+                StatusEnum.INFO.name(),
+                StatusEnum.WARN.name()
+            );
+            finishItem(testItem, isFailed ? FAILED : PASSED, endTime);
+            updatedCount.incrementAndGet();
+          }));
     };
   }
 
@@ -270,8 +296,11 @@ public abstract class AbstractFinishHierarchyHandler<T> implements FinishHierarc
         .collect(Collectors.toMap(TestItem::getItemId, i -> i));
   }
 
+  private boolean isInProgress(TestItem testItem) {
+    return IN_PROGRESS == testItem.getItemResults().getStatus();
+  }
+
   private void finishItem(TestItem testItem, StatusEnum status, Instant endTime) {
-    statisticsService.acquireAdvisoryLock(testItem.getLaunchId());
     testItem.getItemResults().setStatus(status);
     testItem.getItemResults().setEndTime(endTime);
     ItemAttribute interruptedAttribute = new ItemAttribute(ATTRIBUTE_KEY_STATUS,

@@ -41,7 +41,7 @@ public class PluginBroadcastPublisher {
 
   private final MessageBus messageBus;
 
-  @Async(value = "eventListenerExecutor")
+  @Async(value = "domainEventExecutor")
   @TransactionalEventListener(fallbackExecution = true)
   public void onPluginStateChanged(PluginStateChangedMessage message) {
     log.debug("Broadcasting plugin state change for plugin id = '{}'", message.getPluginId());

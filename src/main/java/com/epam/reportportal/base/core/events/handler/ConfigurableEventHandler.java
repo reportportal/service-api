@@ -27,5 +27,19 @@ import com.epam.reportportal.base.core.events.domain.AbstractEvent;
  */
 public interface ConfigurableEventHandler<T extends AbstractEvent<?>, C> {
 
+  /**
+   * Tells whether this handler has anything to do for the event. The delegating subscriber calls it before it loads
+   * the handler config and calls {@link #handle} only when it returns {@code true}.
+   *
+   * <p>Must be cheap and in-memory only: no database queries, no HTTP calls and no project config, because it runs
+   * for every published event, before the project config is loaded.
+   *
+   * @param event published event
+   * @return {@code true} if {@link #handle} should be called for the event
+   */
+  default boolean isApplicable(T event) {
+    return true;
+  }
+
   void handle(T event, C config);
 }

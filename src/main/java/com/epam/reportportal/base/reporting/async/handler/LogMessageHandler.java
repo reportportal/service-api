@@ -36,6 +36,7 @@ import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.reporting.SaveLogRQ;
 import com.epam.reportportal.base.reporting.async.config.MessageHeaders;
+import com.epam.reportportal.base.reporting.async.exception.LogAlreadySavedException;
 import com.epam.reportportal.base.ws.converter.builders.LogFullBuilder;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
@@ -126,21 +127,24 @@ public class LogMessageHandler implements ReportingMessageHandler {
         .addLevel(logTypeResolver.resolveLogLevelFromName(projectId, request.getLevel()))
         .get();
     Log log = LOG_FULL_TO_LOG.apply(logFull);
+    // resolved before the save, so that its failures are still retried
+    Launch effectiveLaunch = testItemService.getEffectiveLaunch(item);
     logRepository.save(log);
     logFull.setId(log.getId());
-    Launch effectiveLaunch = testItemService.getEffectiveLaunch(item);
-    logService.saveLogMessage(logFull, effectiveLaunch.getId());
+    afterLogSaved(logFull, () -> {
+      logService.saveLogMessage(logFull, effectiveLaunch.getId());
 
-    if (request.getFile() != null) {
-      saveAttachment(request.getFile().getName(), metaInfo,
-          logFull.getId(),
-          projectId,
-          effectiveLaunch.getId(),
-          item.getItemId(),
-          effectiveLaunch.getUuid(),
-          logFull.getUuid()
-      );
-    }
+      if (request.getFile() != null) {
+        saveAttachment(request.getFile().getName(), metaInfo,
+            logFull.getId(),
+            projectId,
+            effectiveLaunch.getId(),
+            item.getItemId(),
+            effectiveLaunch.getUuid(),
+            logFull.getUuid()
+        );
+      }
+    });
   }
 
   private void createLaunchLog(SaveLogRQ request, Launch launch, BinaryDataMetaInfo metaInfo,
@@ -154,13 +158,27 @@ public class LogMessageHandler implements ReportingMessageHandler {
     Log log = LOG_FULL_TO_LOG.apply(logFull);
     logRepository.save(log);
     logFull.setId(log.getId());
-    logService.saveLogMessage(logFull, launch.getId());
+    afterLogSaved(logFull, () -> {
+      logService.saveLogMessage(logFull, launch.getId());
 
-    if (request.getFile() != null) {
-      saveAttachment(request.getFile().getName(), metaInfo, logFull.getId(), projectId,
-          launch.getId(),
-          null, launch.getUuid(),
-          logFull.getUuid());
+      if (request.getFile() != null) {
+        saveAttachment(request.getFile().getName(), metaInfo, logFull.getId(), projectId,
+            launch.getId(),
+            null, launch.getUuid(),
+            logFull.getUuid());
+      }
+    });
+  }
+
+  /**
+   * Runs the steps that follow the commit of the log row. The row is saved in its own transaction, so a failure of
+   * these steps is reported as {@link LogAlreadySavedException}: handling the message again would insert the log twice.
+   */
+  private static void afterLogSaved(LogFull logFull, Runnable steps) {
+    try {
+      steps.run();
+    } catch (RuntimeException e) {
+      throw new LogAlreadySavedException(logFull.getUuid(), e);
     }
   }
 

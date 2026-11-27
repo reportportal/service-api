@@ -25,10 +25,10 @@ import com.epam.reportportal.base.core.launch.GetLaunchHandler;
 import com.epam.reportportal.base.infrastructure.model.project.AnalyzerConfig;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.TestItemIssueGroup;
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItem;
+import com.epam.reportportal.base.infrastructure.persistence.entity.item.issue.IssueEntity;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import org.springframework.stereotype.Component;
 
 /**
@@ -55,10 +55,29 @@ public class TestItemAutoAnalysisRunner implements
     this.getLaunchHandler = getLaunchHandler;
   }
 
+  /**
+   * Applies to an item that has the system attribute {@code immediateAutoAnalysis=true} and a {@code To Investigate}
+   * issue that is not excluded from analysis. Reads only the item already in the event.
+   */
+  @Override
+  public boolean isApplicable(TestItemFinishedEvent event) {
+    final TestItem testItem = event.getTestItem();
+    final boolean requested = testItem.getAttributes().stream()
+        .anyMatch(at -> IMMEDIATE_AUTO_ANALYSIS.equals(at.getKey())
+            && Boolean.parseBoolean(at.getValue()) && at.isSystem());
+    if (!requested || testItem.getItemResults() == null) {
+      return false;
+    }
+    final IssueEntity issue = testItem.getItemResults().getIssue();
+    return issue != null && !Boolean.TRUE.equals(issue.getIgnoreAnalyzer())
+        && TestItemIssueGroup.TO_INVESTIGATE.equals(
+        issue.getIssueType().getIssueGroup().getTestItemIssueGroup());
+  }
+
   @Override
   public void handle(TestItemFinishedEvent testItemFinishedEvent,
       Map<String, String> projectConfig) {
-    if (analyzerService.hasAnalyzers() && isNeedToRunAA(testItemFinishedEvent.getTestItem())) {
+    if (analyzerService.hasAnalyzers()) {
       final AnalyzerConfig analyzerConfig = AnalyzerUtils.getAnalyzerConfig(projectConfig);
       TestItem testItem = testItemFinishedEvent.getTestItem();
       logIndex(testItem, testItemFinishedEvent.getProjectId(), analyzerConfig);
@@ -71,17 +90,5 @@ public class TestItemAutoAnalysisRunner implements
   private void logIndex(TestItem testItem, Long projectId, AnalyzerConfig config) {
     logIndexer.indexItemsLogs(projectId, testItem.getLaunchId(), List.of(testItem.getItemId()),
         config);
-  }
-
-  private boolean isNeedToRunAA(TestItem testItem) {
-    if (Objects.nonNull(testItem.getItemResults().getIssue()) && testItem.getItemResults()
-        .getIssue().getIssueType().getIssueGroup().getTestItemIssueGroup()
-        .equals(TestItemIssueGroup.TO_INVESTIGATE)) {
-      return testItem.getAttributes().stream()
-          .filter(at -> !at.getTestItem().getItemResults().getIssue().getIgnoreAnalyzer())
-          .anyMatch(at -> IMMEDIATE_AUTO_ANALYSIS.equals(at.getKey()) && Boolean.parseBoolean(
-              at.getValue()) && at.isSystem());
-    }
-    return false;
   }
 }

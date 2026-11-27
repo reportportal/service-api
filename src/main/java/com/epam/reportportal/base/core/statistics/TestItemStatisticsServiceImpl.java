@@ -20,16 +20,25 @@ import com.epam.reportportal.base.core.item.repository.TestItemPathContext;
 import com.epam.reportportal.base.core.statistics.repository.StatisticsRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.StatisticsFieldRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.enums.StatusEnum;
+import com.epam.reportportal.base.infrastructure.persistence.entity.enums.TestItemIssueGroup;
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItem;
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.issue.IssueEntity;
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.issue.IssueType;
 import com.epam.reportportal.base.infrastructure.persistence.entity.statistics.StatisticsField;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 /**
  * JPA-based implementation of {@link TestItemStatisticsService}.
@@ -50,8 +59,29 @@ TestItemStatisticsServiceImpl implements TestItemStatisticsService {
   private static final String EXECUTIONS_PREFIX = "statistics$executions$";
   private static final String DEFECTS_PREFIX = "statistics$defects$";
 
+  /**
+   * The predefined fields created by the schema migration, which are never deleted: total/passed/failed/skipped
+   * executions and, per defect group, the total and the default sub-type. Other fields are not cached: custom sub-type
+   * fields are deleted with the sub-type, and the demo data flush deletes every non-predefined field.
+   */
+  private static final Set<String> PREDEFINED_FIELDS = Stream.concat(
+      Stream.of(EXECUTIONS_TOTAL, EXECUTIONS_PREFIX + "passed", EXECUTIONS_PREFIX + "failed",
+          EXECUTIONS_PREFIX + "skipped"),
+      Arrays.stream(TestItemIssueGroup.values())
+          .filter(group -> group != TestItemIssueGroup.NOT_ISSUE_FLAG)
+          .flatMap(group -> Stream.of(
+              DEFECTS_PREFIX + group.getValue().toLowerCase() + "$total",
+              DEFECTS_PREFIX + group.getValue().toLowerCase() + "$" + group.getLocator())))
+      .collect(Collectors.toUnmodifiableSet());
+
   private final StatisticsRepository statisticsRepository;
   private final StatisticsFieldRepository statisticsFieldRepository;
+
+  /**
+   * Ids of predefined statistics fields by name. Filled only after the transaction that read or created the field has
+   * committed, so a rolled back insert is never cached.
+   */
+  private final Map<String, Long> predefinedFieldIds = new ConcurrentHashMap<>();
 
 
   @Override
@@ -197,19 +227,94 @@ TestItemStatisticsServiceImpl implements TestItemStatisticsService {
    * Ensures the statistics field exists and returns it.
    */
   private StatisticsField ensureStatisticsField(String name) {
-    Optional<StatisticsField> existing = statisticsFieldRepository.findByName(name);
-    if (existing.isPresent()) {
-      return existing.get();
+    StatisticsField cached = getCachedStatisticsField(name);
+    if (cached != null) {
+      return cached;
     }
-    StatisticsField field = new StatisticsField(name);
-    return statisticsFieldRepository.save(field);
+    StatisticsField field = statisticsFieldRepository.findByName(name)
+        .orElseGet(() -> statisticsFieldRepository.save(new StatisticsField(name)));
+    cacheStatisticsField(field);
+    return field;
   }
 
   /**
    * Resolves the statistics field by name. Returns null if not found.
    */
   private StatisticsField resolveStatisticsField(String name) {
-    return statisticsFieldRepository.findByName(name).orElse(null);
+    StatisticsField cached = getCachedStatisticsField(name);
+    if (cached != null) {
+      return cached;
+    }
+    Optional<StatisticsField> field = statisticsFieldRepository.findByName(name);
+    field.ifPresent(this::cacheStatisticsField);
+    return field.orElse(null);
+  }
+
+  private StatisticsField getCachedStatisticsField(String name) {
+    Long id = predefinedFieldIds.get(name);
+    if (id == null && PREDEFINED_FIELDS.contains(name)) {
+      id = Optional.ofNullable(pendingFieldIds(false)).map(pending -> pending.ids.get(name)).orElse(null);
+    }
+    if (id == null) {
+      return null;
+    }
+    StatisticsField field = new StatisticsField(name);
+    field.setId(id);
+    return field;
+  }
+
+  private void cacheStatisticsField(StatisticsField field) {
+    if (!PREDEFINED_FIELDS.contains(field.getName()) || field.getId() == null) {
+      return;
+    }
+    String name = field.getName();
+    Long id = field.getId();
+    PendingFieldIds pending = pendingFieldIds(true);
+    if (pending != null) {
+      pending.ids.put(name, id);
+    } else {
+      predefinedFieldIds.put(name, id);
+    }
+  }
+
+  /**
+   * Returns the ids resolved by the current transaction and not yet committed, registering one synchronization per
+   * transaction on demand. Returns null outside a transaction. Looked up among the current synchronizations, so a
+   * suspended outer transaction's pending ids are not visible to a nested one.
+   */
+  private PendingFieldIds pendingFieldIds(boolean create) {
+    if (!TransactionSynchronizationManager.isSynchronizationActive()) {
+      return null;
+    }
+    for (TransactionSynchronization synchronization : TransactionSynchronizationManager.getSynchronizations()) {
+      if (synchronization instanceof PendingFieldIds pending && pending.target == predefinedFieldIds) {
+        return pending;
+      }
+    }
+    if (!create) {
+      return null;
+    }
+    PendingFieldIds pending = new PendingFieldIds(predefinedFieldIds);
+    TransactionSynchronizationManager.registerSynchronization(pending);
+    return pending;
+  }
+
+  /**
+   * Field ids resolved by one transaction, published to the cache only after it commits.
+   */
+  private static final class PendingFieldIds implements TransactionSynchronization {
+
+    private final Map<String, Long> target;
+    private final Map<String, Long> ids = new HashMap<>();
+
+    private PendingFieldIds(Map<String, Long> target) {
+      this.target = target;
+    }
+
+    @Override
+    public void afterCommit() {
+      target.putAll(ids);
+    }
   }
 
   /**

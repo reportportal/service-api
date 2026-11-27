@@ -96,6 +96,8 @@ public enum ActivityAction {
   CREATE_TEST_CASE("Created Test Case"),
   DELETE_TEST_CASE("Deleted Test Case"),
   IMPORT_TEST_CASE("Imported Test Case"),
+  // --- Status (Draft / Ready) ---
+  UPDATE_TEST_CASE_STATUS("Updated status"),
   // --- Name ---
   UPDATE_TEST_CASE_NAME("Updated name"),
   // --- Description ---

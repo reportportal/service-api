@@ -13,6 +13,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.epam.reportportal.base.core.tms.controller.TestCaseController;
@@ -24,8 +25,12 @@ import com.epam.reportportal.base.core.tms.dto.TmsManualScenarioType;
 import com.epam.reportportal.base.core.tms.dto.TmsStepRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsStepsManualScenarioRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseAttributeRQ;
+import com.epam.reportportal.base.core.tms.dto.TmsTestCaseGenerationMetadataRQ;
+import com.epam.reportportal.base.core.tms.dto.TmsTestCaseGenerationRQ;
+import com.epam.reportportal.base.core.tms.dto.TmsTestCaseQualityScoreRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseRS;
+import com.epam.reportportal.base.core.tms.dto.TmsTestCaseStatus;
 import com.epam.reportportal.base.core.tms.dto.TmsTestFolderRS;
 import com.epam.reportportal.base.core.tms.dto.TmsTextManualScenarioRQ;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchDeleteTestCasesRQ;
@@ -33,6 +38,7 @@ import com.epam.reportportal.base.core.tms.dto.batch.BatchDuplicateTestCasesRQ;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchDuplicateTestCasesRS;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchPatchTestCaseAttributesRQ;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchPatchTestCasesRQ;
+import com.epam.reportportal.base.core.tms.pipeline.AutoReadyOnScoresRecorded;
 import com.epam.reportportal.base.core.tms.service.TmsTestCaseService;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
@@ -43,6 +49,7 @@ import com.epam.reportportal.base.util.ProjectExtractor;
 import com.epam.reportportal.base.ws.resolver.FilterCriteriaResolver;
 import com.epam.reportportal.base.ws.resolver.OffsetArgumentResolver;
 import jakarta.servlet.http.HttpServletResponse;
+import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -71,6 +78,9 @@ public class TmsTestCaseControllerTest {
 
   @Mock
   private TmsTestCaseService tmsTestCaseService;
+
+  @Mock
+  private AutoReadyOnScoresRecorded autoReadyOnScoresRecorded;
 
   @Mock
   private ProjectExtractor projectExtractor;
@@ -567,6 +577,75 @@ public class TmsTestCaseControllerTest {
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
     verify(tmsTestCaseService).patch(membershipDetails, testUser, testCaseId, testCaseRequest);
+  }
+
+  // -------------------------------------------------------------------------
+  // POST generation — projectId, dedicated AI-scoring endpoint
+  // -------------------------------------------------------------------------
+
+  @Test
+  void applyGenerationTest() throws Exception {
+    var testCaseId = 2L;
+    var generationRequest = TmsTestCaseGenerationRQ.builder()
+        .qualityScores(List.of(TmsTestCaseQualityScoreRQ.builder().criterionId(11L).score(20).build()))
+        .generation(TmsTestCaseGenerationMetadataRQ.builder()
+            .model("claude-opus-5")
+            .costUsd(new BigDecimal("0.98"))
+            .build())
+        .build();
+    var testCase = new TmsTestCaseRS();
+    given(tmsTestCaseService.applyGeneration(projectId, testCaseId, generationRequest))
+        .willReturn(testCase);
+
+    mockMvc.perform(
+            post("/v1/project/{projectKey}/tms/test-case/{testCaseId}/generation", projectKey, testCaseId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(generationRequest)))
+        .andExpect(status().isOk());
+
+    verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
+    verify(tmsTestCaseService).applyGeneration(projectId, testCaseId, generationRequest);
+  }
+
+  @Test
+  void applyGenerationPromotedByAutoReadyAnswersWithTheNewStatusTest() throws Exception {
+    var testCaseId = 2L;
+    var generationRequest = TmsTestCaseGenerationRQ.builder()
+        .qualityScores(List.of(TmsTestCaseQualityScoreRQ.builder().criterionKey("overall").score(96).build()))
+        .build();
+    var beforePromotion = new TmsTestCaseRS();
+    beforePromotion.setStatus(TmsTestCaseStatus.DRAFT);
+    var afterPromotion = new TmsTestCaseRS();
+    afterPromotion.setStatus(TmsTestCaseStatus.READY);
+    given(tmsTestCaseService.applyGeneration(projectId, testCaseId, generationRequest)).willReturn(beforePromotion);
+    given(autoReadyOnScoresRecorded.evaluate(projectId, testCaseId)).willReturn(true);
+    given(tmsTestCaseService.getById(projectId, testCaseId)).willReturn(afterPromotion);
+
+    mockMvc.perform(
+            post("/v1/project/{projectKey}/tms/test-case/{testCaseId}/generation", projectKey, testCaseId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(generationRequest)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.status").value("READY"));
+
+    verify(autoReadyOnScoresRecorded).evaluate(projectId, testCaseId);
+  }
+
+  @Test
+  void applyGenerationWithEmptyBodyTest() throws Exception {
+    var testCaseId = 2L;
+    var generationRequest = TmsTestCaseGenerationRQ.builder().build();
+    var testCase = new TmsTestCaseRS();
+    given(tmsTestCaseService.applyGeneration(projectId, testCaseId, generationRequest))
+        .willReturn(testCase);
+
+    mockMvc.perform(
+            post("/v1/project/{projectKey}/tms/test-case/{testCaseId}/generation", projectKey, testCaseId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(generationRequest)))
+        .andExpect(status().isOk());
+
+    verify(tmsTestCaseService).applyGeneration(projectId, testCaseId, generationRequest);
   }
 
   // -------------------------------------------------------------------------

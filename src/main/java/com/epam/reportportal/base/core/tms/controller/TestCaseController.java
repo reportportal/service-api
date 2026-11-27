@@ -4,6 +4,7 @@ import static com.epam.reportportal.base.auth.permissions.Permissions.ALLOWED_TO
 import static com.epam.reportportal.base.auth.permissions.Permissions.ALLOWED_TO_VIEW_PROJECT;
 
 import com.epam.reportportal.base.core.tms.dto.DeleteTagsRQ;
+import com.epam.reportportal.base.core.tms.dto.TmsTestCaseGenerationRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseRS;
 import com.epam.reportportal.base.core.tms.dto.TmsTestFolderRS;
@@ -13,6 +14,7 @@ import com.epam.reportportal.base.core.tms.dto.batch.BatchDuplicateTestCasesRS;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchPatchTestCaseAttributesRQ;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchPatchTestCasesRQ;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchPatchTestCasesRS;
+import com.epam.reportportal.base.core.tms.pipeline.AutoReadyOnScoresRecorded;
 import com.epam.reportportal.base.core.tms.service.TmsTestCaseService;
 import com.epam.reportportal.base.core.tms.validation.ValidTestFolderIdForPatchTestCase;
 import com.epam.reportportal.base.core.tms.validation.ValidTestFolderIdForUpsertTestCase;
@@ -64,6 +66,8 @@ import org.springframework.web.multipart.MultipartFile;
 public class TestCaseController {
 
   private final TmsTestCaseService tmsTestCaseService;
+
+  private final AutoReadyOnScoresRecorded autoReadyOnScoresRecorded;
 
   private final ProjectExtractor projectExtractor;
 
@@ -209,6 +213,44 @@ public class TestCaseController {
         testCaseId,
         inputDto
     );
+  }
+
+  /**
+   * Records AI quality scores and/or generation cost for a test case's current default
+   * version. Dedicated endpoint for the AI agent, separate from create/patch — submitting
+   * this is what flips {@code origin} to {@code AI} and defaults {@code status} to
+   * {@code DRAFT} the first time it happens. When the pipeline that produced the case has
+   * Auto-Ready on and the recorded score reaches its threshold, the case is made {@code READY}
+   * right away (the answer carries the new status).
+   *
+   * @param projectKey The key of the project to which the test case belongs.
+   * @param testCaseId The ID of the test case to record scores/generation for.
+   * @param inputDto   A request payload ({@link TmsTestCaseGenerationRQ}) with quality scores
+   *                   and/or generation metadata.
+   * @return A data transfer object ({@link TmsTestCaseRS}) with the updated test case.
+   */
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
+  @PostMapping("/{testCaseId}/generation")
+  @Operation(
+      summary = "Record AI quality scores and generation metadata for a test case",
+      description = "Records AI quality scores and/or generation cost for a test case's "
+          + "current default version, separate from editing its content."
+  )
+  @ApiResponse(responseCode = "200", description = "Generation data recorded successfully")
+  public TmsTestCaseRS applyGeneration(@PathVariable("projectKey") String projectKey,
+      @PathVariable("testCaseId") final long testCaseId,
+      @RequestBody @Valid final TmsTestCaseGenerationRQ inputDto,
+      @AuthenticationPrincipal ReportPortalUser user) {
+    var projectId = projectExtractor
+        .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey))
+        .getProjectId();
+    var response = tmsTestCaseService.applyGeneration(projectId, testCaseId, inputDto);
+    // The scores are committed by now. A case of a pipeline with Auto-Ready on is promoted here, whether the
+    // producer recorded the scores before or after its Upload stage passed; the answer then shows the new status.
+    if (autoReadyOnScoresRecorded.evaluate(projectId, testCaseId)) {
+      return tmsTestCaseService.getById(projectId, testCaseId);
+    }
+    return response;
   }
 
   /**

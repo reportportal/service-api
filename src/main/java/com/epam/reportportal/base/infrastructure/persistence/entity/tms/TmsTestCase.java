@@ -1,9 +1,13 @@
 package com.epam.reportportal.base.infrastructure.persistence.entity.tms;
 
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.Project;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.enums.TmsTestCaseOrigin;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.enums.TmsTestCaseStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -58,6 +62,34 @@ public class TmsTestCase implements Serializable {
 
   @Column(name = "display_id")
   private String displayId;
+
+  @Enumerated(EnumType.STRING)
+  @Column(name = "origin", nullable = false)
+  private TmsTestCaseOrigin origin = TmsTestCaseOrigin.MANUAL;
+
+  @Enumerated(EnumType.STRING)
+  @Column(name = "status", nullable = false)
+  private TmsTestCaseStatus status = TmsTestCaseStatus.READY;
+
+  /**
+   * Who made the case Ready (a user or Auto-Ready), set on the Draft to Ready change and cleared when the case goes
+   * back to Draft. Null for a case that was created Ready or made Ready before this was recorded.
+   */
+  @Enumerated(EnumType.STRING)
+  @Column(name = "ready_by_type")
+  private com.epam.reportportal.base.infrastructure.persistence.entity.tms.enums.TmsLifecycleActorType readyByType;
+
+  @Column(name = "ready_by_user_id")
+  private Long readyByUserId;
+
+  @Column(name = "ready_at")
+  private Instant readyAt;
+
+  /**
+   * Set once a fix round of the agent has changed the case ("Modified by agent").
+   */
+  @Column(name = "modified_by_agent", nullable = false)
+  private boolean modifiedByAgent;
 
   @ManyToOne
   @JoinColumn(name = "project_id", nullable = false)

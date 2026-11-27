@@ -24,11 +24,17 @@ public final class TmsTestCaseCriteriaConstant {
   public static final String CRITERIA_TMS_TEST_CASE_PRIORITY = "priority";
   public static final String CRITERIA_TMS_TEST_CASE_EXTERNAL_ID = "externalId";
   public static final String CRITERIA_TMS_TEST_CASE_DISPLAY_ID = "displayId";
+  public static final String CRITERIA_TMS_TEST_CASE_STATUS = "status";
+  public static final String CRITERIA_TMS_TEST_CASE_ORIGIN = "origin";
   public static final String CRITERIA_TMS_TEST_CASE_CREATED_AT = "createdAt";
   public static final String CRITERIA_TMS_TEST_CASE_UPDATED_AT = "updatedAt";
   public static final String CRITERIA_TMS_TEST_CASE_PROJECT_ID = "projectId";
   public static final String CRITERIA_TMS_TEST_CASE_FOLDER_ID = "testFolderId";
   public static final String CRITERIA_TMS_TEST_CASE_PLAN_ID = "testPlanId";
+  /**
+   * The pipeline iteration the case is linked to, e.g. {@code filter.eq.iterationId=52}.
+   */
+  public static final String CRITERIA_TMS_TEST_CASE_ITERATION_ID = "iterationId";
   public static final String CRITERIA_TMS_TEST_CASE_SEARCH = "search";
   public static final String CRITERIA_TMS_TEST_CASE_ATTRIBUTES = "attributes";
   public static final String CRITERIA_TMS_TEST_CASE_ATTRIBUTE_KEY = "attributeKey";

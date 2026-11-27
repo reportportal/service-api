@@ -69,6 +69,10 @@ public class StatusCodeMapping {
       put(ErrorType.PROJECT_ALREADY_EXISTS, HttpStatus.CONFLICT);
       put(ErrorType.USER_ALREADY_EXISTS, HttpStatus.CONFLICT);
       put(ErrorType.USER_ALREADY_ASSIGNED, HttpStatus.CONFLICT);
+      put(ErrorType.PIPELINE_STAGE_RETRY_CONFLICT, HttpStatus.CONFLICT);
+      put(ErrorType.IDEMPOTENCY_KEY_CONFLICT, HttpStatus.CONFLICT);
+      put(ErrorType.TEST_CASE_REVIEW_CONFLICT, HttpStatus.CONFLICT);
+      put(ErrorType.CI_NOT_CONNECTED, HttpStatus.CONFLICT);
       put(ErrorType.USER_FILTER_ALREADY_EXISTS, HttpStatus.CONFLICT);
       put(ErrorType.ROLE_ALREADY_EXISTS_ERROR, HttpStatus.CONFLICT);
 
@@ -144,6 +148,7 @@ public class StatusCodeMapping {
 
       put(ErrorType.INCORRECT_REQUEST, HttpStatus.BAD_REQUEST);
       put(ErrorType.BAD_REQUEST_ERROR, HttpStatus.BAD_REQUEST);
+      put(ErrorType.AUTOMATION_ENVIRONMENTS_NOT_CONFIGURED, HttpStatus.BAD_REQUEST);
       put(ErrorType.AMBIGUOUS_TEST_ITEM_STATUS, HttpStatus.BAD_REQUEST);
       put(ErrorType.UNCLASSIFIED_ERROR, HttpStatus.INTERNAL_SERVER_ERROR);
       put(ErrorType.UNCLASSIFIED_REPORT_PORTAL_ERROR, HttpStatus.INTERNAL_SERVER_ERROR);

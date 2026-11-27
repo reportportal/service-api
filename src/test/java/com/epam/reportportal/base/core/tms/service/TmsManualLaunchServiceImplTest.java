@@ -12,6 +12,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import com.epam.reportportal.base.core.item.TestItemService;
@@ -240,7 +241,8 @@ class TmsManualLaunchServiceImplTest {
     verify(tmsTestCaseExecutionService).deleteByLaunchId(launchId);
     verify(testFolderItemService).deleteByLaunchId(launchId);
     verify(testItemService).deleteByLaunchId(projectId, launchId);
-    verify(tmsManualLaunchAttributeService).deleteAllByLaunchId(launchId);
+    // attributes are removed by DeleteLaunchHandler via orphanRemoval, not by a bulk delete
+    verifyNoInteractions(tmsManualLaunchAttributeService);
     verify(deleteLaunchHandler).deleteLaunch(launchId, membershipDetails, user);
   }
 
@@ -273,7 +275,8 @@ class TmsManualLaunchServiceImplTest {
     verify(tmsTestCaseExecutionService).deleteByLaunchId(launchId);
     verify(testFolderItemService).deleteByLaunchId(launchId);
     verify(testItemService).deleteByLaunchId(projectId, launchId);
-    verify(tmsManualLaunchAttributeService).deleteAllByLaunchId(launchId);
+    // attributes are removed by DeleteLaunchHandler via orphanRemoval, not by a bulk delete
+    verifyNoInteractions(tmsManualLaunchAttributeService);
     verify(deleteLaunchHandler).deleteLaunch(launchId, membershipDetails, user);
   }
 

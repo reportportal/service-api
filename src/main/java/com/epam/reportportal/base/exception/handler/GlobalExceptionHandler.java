@@ -23,6 +23,7 @@ import com.epam.reportportal.base.exception.rest.DefaultErrorResolver;
 import com.epam.reportportal.base.exception.rest.ReportPortalExceptionResolver;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorRS;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
+import io.swagger.v3.oas.annotations.Hidden;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
@@ -105,6 +106,9 @@ public class GlobalExceptionHandler {
     return defaultErrorResolver.resolveError(exception).errorRs();
   }
 
+  // Hidden from the OpenAPI document: the forwarded response has the status and the body of the downstream
+  // service, 401 is used only when it cannot be forwarded. Otherwise every operation gets a 401 "string" response.
+  @Hidden
   @ExceptionHandler(ResponseForwardingException.class)
   @ResponseStatus(HttpStatus.UNAUTHORIZED)
   public ResponseEntity<String> handle(ResponseForwardingException exception) {

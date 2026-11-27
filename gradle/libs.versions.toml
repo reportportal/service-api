@@ -4,6 +4,8 @@
 # Platform versions
 spring-boot = "4.2.0"
 zonky-postgres-bom = "18.7.0"
+# Jackson 2 (com.fasterxml.jackson) is still pulled in transitively; Jackson 3 (tools.jackson) comes from Spring Boot
+jackson2 = "2.23.0"
 
 # Plugin versions
 owasp-dependencycheck = "13.0.0"
@@ -34,6 +36,7 @@ opendal = "0.50.8"
 openpdf = "2.4.0"
 pf4j = "3.16.1"
 rabbitmq-http = "5.7.0"
+rabbitmq-amqp-client = "5.38.0"
 slugify = "4.0.1"
 spring-modulith = "2.2.0"
 springdoc-openapi = "3.2.0"
@@ -50,6 +53,7 @@ caffeine = "3.3.1"
 
 # Platforms
 spring-boot-bom = { group = "org.springframework.boot", name = "spring-boot-dependencies", version.ref = "spring-boot" }
+jackson2-bom = { group = "com.fasterxml.jackson", name = "jackson-bom", version.ref = "jackson2" }
 zonky-postgres-bom = { group = "io.zonky.test.postgres", name = "embedded-postgres-binaries-bom", version.ref = "zonky-postgres-bom" }
 spring-modulith-bom = { group = "org.springframework.modulith", name = "spring-modulith-bom", version.ref = "spring-modulith" }
 
@@ -89,6 +93,7 @@ jooq = { group = "org.jooq", name = "jooq", version.ref = "jooq" }
 jooq-jpa-extensions = { group = "org.jooq", name = "jooq-jpa-extensions", version.ref = "jooq" }
 slugify = { group = "com.github.slugify", name = "slugify", version.ref = "slugify" }
 rabbitmq-http-client = { group = "com.rabbitmq", name = "http-client", version.ref = "rabbitmq-http" }
+rabbitmq-amqp-client = { group = "com.rabbitmq", name = "amqp-client", version.ref = "rabbitmq-amqp-client" }
 httpclient5 = { group = "org.apache.httpcomponents.client5", name = "httpclient5" }
 jasperreports = { group = "net.sf.jasperreports", name = "jasperreports", version.ref = "jasperreports" }
 jasperreports-pdf = { group = "net.sf.jasperreports", name = "jasperreports-pdf", version.ref = "jasperreports" }

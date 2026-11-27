@@ -54,9 +54,27 @@ java {
 
 println("Release mode: $releaseMode")
 
+// Libraries that still depend on Jackson 2 (com.fasterxml.jackson) are forced onto one version so no older
+// transitive release wins. Jackson 3 (tools.jackson) is a separate group and is left to the Spring Boot BOM.
+// jackson-annotations is excluded on purpose: Jackson 3 reuses the 2.x annotations artifact (versioned without a
+// patch number, e.g. "2.23"), so it gets a minimum-version constraint in `dependencies` instead of a hard force.
+// TODO(jackson3): remove once Jackson 2 is gone from the dependency graph.
+def jackson2Version = libs.versions.jackson2.get()
+configurations.configureEach {
+    resolutionStrategy.eachDependency { details ->
+        def group = details.requested.group
+        def isJackson2 = group == 'com.fasterxml.jackson' || group.startsWith('com.fasterxml.jackson.')
+        if (isJackson2 && details.requested.name != 'jackson-annotations') {
+            details.useVersion(jackson2Version)
+            details.because('Force a single Jackson 2 version for libraries not yet migrated to Jackson 3')
+        }
+    }
+}
+
+
 dependencies {
-    // TODO remove once Jackson 2 is gone or the transitive consumers resolve >= 2.22.3
-    implementation(platform('com.fasterxml.jackson:jackson-bom:2.22.3'))
+    // TODO remove once Jackson 2 is gone or the transitive consumers resolve >= 2.23.0
+    implementation(platform(libs.jackson2.bom))
 
     implementation(platform(libs.zonky.postgres.bom))
     api(libs.embedded.postgres)

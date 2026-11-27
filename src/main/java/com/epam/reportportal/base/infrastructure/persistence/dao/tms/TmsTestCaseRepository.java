@@ -33,6 +33,11 @@ public interface TmsTestCaseRepository extends ReportPortalRepository<TmsTestCas
   Optional<TmsTestCase> findByProjectIdAndId(@Param("projectId") Long projectId,
       @Param("id") Long id);
 
+  @Query("SELECT DISTINCT tc.testFolder.id FROM TmsTestCase tc "
+      + "WHERE tc.project.id = :projectId AND tc.id IN (:ids)")
+  List<Long> findTestFolderIdsByProjectIdAndIds(@Param("projectId") Long projectId,
+      @Param("ids") Collection<Long> ids);
+
   Optional<TmsTestCase>  findByProjectIdAndExternalId(Long projectId, String externalId);
 
   List<TmsTestCase> findByProjectIdAndExternalIdIn(Long projectId, Collection<String> externalIds);

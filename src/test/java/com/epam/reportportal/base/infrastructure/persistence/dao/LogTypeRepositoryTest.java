@@ -57,14 +57,16 @@ class LogTypeRepositoryTest extends BaseMvcTest {
         new ProjectLogType(null, projectId, "debug", 10000, "#C1C7D0", "#FFFFFF", "#464547",
             "normal", true, true, null, null),
         new ProjectLogType(null, projectId, "trace", 5000, "#E3E7EC", "#FFFFFF", "#464547",
-            "normal", true, true, null, null)
+            "normal", true, true, null, null),
+        new ProjectLogType(null, projectId, "mobitru", 90000, "#23A6DE", "#FFFFFF", "#464547",
+            "normal", false, true, null, null)
     );
 
     // when
     List<ProjectLogType> actualLogTypes = logTypeRepository.findByProjectId(projectId);
 
     // then
-    assertEquals(7, actualLogTypes.size());
+    assertEquals(8, actualLogTypes.size());
     for (int i = 0; i < actualLogTypes.size(); i++) {
       ProjectLogType expected = expectedDefaultLogTypes.get(i);
       ProjectLogType actual = actualLogTypes.get(i);
@@ -109,7 +111,7 @@ class LogTypeRepositoryTest extends BaseMvcTest {
 
     List<ProjectLogType> cachedList = (List<ProjectLogType>) cachedValue.get();
     assertNotNull(cachedList);
-    assertEquals(7, cachedList.size());
+    assertEquals(8, cachedList.size());
 
     // then
     assertEquals(result.size(), cachedList.size());

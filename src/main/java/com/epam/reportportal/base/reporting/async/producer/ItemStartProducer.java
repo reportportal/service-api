@@ -74,6 +74,7 @@ public class ItemStartProducer implements StartTestItemHandler {
             headers.put(MessageHeaders.REQUEST_TYPE, RequestType.START_TEST);
             headers.put(MessageHeaders.USERNAME, user.getUsername());
             headers.put(MessageHeaders.PROJECT_KEY, membershipDetails.getProjectKey());
+            headers.put(MessageHeaders.ITEM_ID, request.getUuid());
             headers.put(MessageHeaders.PARENT_ITEM_ID, "");
             return message;
           }
@@ -106,6 +107,7 @@ public class ItemStartProducer implements StartTestItemHandler {
             headers.put(MessageHeaders.REQUEST_TYPE, RequestType.START_TEST);
             headers.put(MessageHeaders.USERNAME, user.getUsername());
             headers.put(MessageHeaders.PROJECT_KEY, membershipDetails.getProjectKey());
+            headers.put(MessageHeaders.ITEM_ID, request.getUuid());
             headers.put(MessageHeaders.PARENT_ITEM_ID, parentId);
             return message;
           }

@@ -22,10 +22,14 @@ import static com.epam.reportportal.base.reporting.async.config.ReportingTopolog
 import static com.epam.reportportal.base.reporting.async.config.ReportingTopologyConfiguration.TTL_QUEUE_MS;
 import static com.epam.reportportal.base.reporting.async.config.ReportingTopologyConfiguration.TTL_QUEUE_S;
 
+import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.reporting.async.config.MessageHeaders;
 import com.epam.reportportal.base.reporting.async.config.RequestType;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Metrics;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
@@ -58,6 +62,8 @@ public class ReportingErrorHandler implements ErrorHandler {
   static final long CONFIRM_TIMEOUT_MS = 5_000;
 
   private static final long REQUEUE_DELAY_MS = 1_000;
+  private static final Duration DEFAULT_PARKED_PARENTS_TTL = Duration.ofMinutes(20);
+  private static final long DEFAULT_PARKED_PARENTS_MAX_SIZE = 10_000;
 
   private final RabbitTemplate rabbitTemplate;
 
@@ -78,15 +84,35 @@ public class ReportingErrorHandler implements ErrorHandler {
   @Value("${reporting.retry.not-found-max-count:13}")
   private Integer notFoundMaxRetryCount;
 
+  /**
+   * UUIDs of launches and items whose start message was parked. A NOT_FOUND failure of a message that refers to one of
+   * them is parked at once instead of waiting through the NOT_FOUND budget, and a parked child item is added in turn,
+   * so the whole subtree follows its parent. The queue of a launch has one consumer, so a parent and its children are
+   * handled by the same instance; when they are not (the hash ring changed), the children fall back to the budget.
+   */
+  private final Cache<String, Boolean> parkedParents;
+
   @Autowired
   public ReportingErrorHandler(RabbitTemplate rabbitTemplate,
-      ObjectProvider<MeterRegistry> meterRegistry) {
-    this(rabbitTemplate, meterRegistry.getIfAvailable(() -> Metrics.globalRegistry));
+      ObjectProvider<MeterRegistry> meterRegistry,
+      @Value("${reporting.retry.parked-parents.ttl:PT20M}") Duration parkedParentsTtl,
+      @Value("${reporting.retry.parked-parents.max-size:10000}") long parkedParentsMaxSize) {
+    this(rabbitTemplate, meterRegistry.getIfAvailable(() -> Metrics.globalRegistry), parkedParentsTtl,
+        parkedParentsMaxSize);
   }
 
   ReportingErrorHandler(RabbitTemplate rabbitTemplate, MeterRegistry meterRegistry) {
+    this(rabbitTemplate, meterRegistry, DEFAULT_PARKED_PARENTS_TTL, DEFAULT_PARKED_PARENTS_MAX_SIZE);
+  }
+
+  ReportingErrorHandler(RabbitTemplate rabbitTemplate, MeterRegistry meterRegistry,
+      Duration parkedParentsTtl, long parkedParentsMaxSize) {
     this.rabbitTemplate = rabbitTemplate;
     this.meterRegistry = meterRegistry;
+    this.parkedParents = Caffeine.newBuilder()
+        .expireAfterAccess(parkedParentsTtl)
+        .maximumSize(parkedParentsMaxSize)
+        .build();
   }
 
   @Override
@@ -116,8 +142,18 @@ public class ReportingErrorHandler implements ErrorHandler {
     }
 
     RequestType type = toRequestType(requestType);
-    if (retryCount >= notFoundMaxRetryCount
-        && ReportingFailureClassifier.isRetryableOnlyAsNotFound(cause, type)) {
+    boolean notFoundOnly = ReportingFailureClassifier.isRetryableOnlyAsNotFound(cause, type);
+    if (notFoundOnly) {
+      Optional<String> parkedParent = findParkedParent(properties, type, cause);
+      if (parkedParent.isPresent()) {
+        log.warn("Launch or parent item '{}' of the message was parked. Rejecting message to parking lot queue. "
+            + "Request Type: {}, Launch UUID: {}, Cause: {}", parkedParent.get(), requestType, launchUuid, reason);
+        park(failedMessage, requestType, "parent_parked");
+        return;
+      }
+    }
+
+    if (retryCount >= notFoundMaxRetryCount && notFoundOnly) {
       log.warn("Launch or parent item of the message was not found after {} retries. Rejecting message to parking lot queue. "
           + "Request Type: {}, Launch UUID: {}, Cause: {}", retryCount, requestType, launchUuid, reason);
       park(failedMessage, requestType, "not_found_retries_exceeded");
@@ -143,6 +179,43 @@ public class ReportingErrorHandler implements ErrorHandler {
     publishWithConfirm("", REPORTING_PARKING_LOT, failedMessage);
     meterRegistry.counter(PARKED_METRIC, "requestType", String.valueOf(requestType), "reason", reason)
         .increment();
+    MessageProperties properties = failedMessage.getMessageProperties();
+    switch (toRequestType(requestType)) {
+      case START_LAUNCH -> headerValue(properties, MessageHeaders.HASH_ON)
+          .ifPresent(uuid -> parkedParents.put(uuid, Boolean.TRUE));
+      case START_TEST -> headerValue(properties, MessageHeaders.ITEM_ID)
+          .ifPresent(uuid -> parkedParents.put(uuid, Boolean.TRUE));
+      case null, default -> {
+      }
+    }
+  }
+
+  /**
+   * Only the entity that was not found is matched: the launch of the message on LAUNCH_NOT_FOUND, and the parent item
+   * of a START_TEST or the item of a FINISH_TEST or LOG on an item NOT_FOUND. A launch recorded by mistake (a duplicate
+   * start that was parked although the launch exists) then never parks the item failures of that launch.
+   *
+   * @return the parked launch or parent item that the failure of the message was about
+   */
+  private Optional<String> findParkedParent(MessageProperties properties, RequestType type, Throwable cause) {
+    if (type == null || type == RequestType.START_LAUNCH) {
+      return Optional.empty();
+    }
+    Optional<String> missing = ReportingFailureClassifier.notFoundErrorType(cause)
+        .flatMap(errorType -> errorType == ErrorType.LAUNCH_NOT_FOUND
+            ? headerValue(properties, MessageHeaders.HASH_ON)
+            : switch (type) {
+              case START_TEST -> headerValue(properties, MessageHeaders.PARENT_ITEM_ID);
+              case FINISH_TEST, LOG -> headerValue(properties, MessageHeaders.ITEM_ID);
+              default -> Optional.empty();
+            });
+    return missing.filter(uuid -> parkedParents.getIfPresent(uuid) != null);
+  }
+
+  private static Optional<String> headerValue(MessageProperties properties, String header) {
+    return Optional.ofNullable(properties.getHeader(header))
+        .map(String::valueOf)
+        .filter(value -> !value.isEmpty());
   }
 
   private void publishWithConfirm(String exchange, String routingKey, Message message) {

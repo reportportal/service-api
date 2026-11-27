@@ -22,6 +22,7 @@ import com.epam.reportportal.base.reporting.async.config.RequestType;
 import java.sql.SQLException;
 import java.sql.SQLRecoverableException;
 import java.sql.SQLTransientException;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
 import org.springframework.amqp.AmqpConnectException;
@@ -88,6 +89,25 @@ public final class ReportingFailureClassifier {
    */
   public static boolean isRetryableOnlyAsNotFound(Throwable failure, RequestType requestType) {
     return isRetryable(failure, requestType) && !isRetryableAsTransient(failure, requestType);
+  }
+
+  /**
+   * Finds the NOT_FOUND error type of a reporting failure.
+   *
+   * @param failure the failure thrown by the message handler
+   * @return the NOT_FOUND error type (launch, suite or item) of the first such {@link ReportPortalException} in the
+   *     cause chain, which tells whether the launch or the item of the message was missing
+   */
+  public static Optional<ErrorType> notFoundErrorType(Throwable failure) {
+    Throwable current = failure;
+    for (int depth = 0; current != null && depth < MAX_CAUSE_DEPTH; depth++) {
+      if (isRetryableNotFound(current)) {
+        return Optional.of(((ReportPortalException) current).getErrorType());
+      }
+      Throwable cause = current.getCause();
+      current = cause == current ? null : cause;
+    }
+    return Optional.empty();
   }
 
   /**

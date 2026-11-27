@@ -37,9 +37,12 @@ import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.reporting.async.config.MessageHeaders;
 import com.epam.reportportal.base.reporting.async.config.RequestType;
+import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import jakarta.persistence.RollbackException;
 import java.sql.SQLException;
+import java.time.Duration;
+import java.util.Optional;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -322,6 +325,204 @@ class ReportingErrorHandlerTest {
     verify(rabbitTemplate, never()).send(anyString(), anyString(), any(Message.class));
   }
 
+  static Stream<Arguments> childrenOfParkedParent() {
+    return Stream.of(
+        Arguments.of("child start of a parked item", RequestType.START_TEST, "launch-uuid", "parent",
+            message(RequestType.START_TEST, null, "launch-uuid", "child", "parent"),
+            new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, "parent")),
+        Arguments.of("finish of a parked item", RequestType.START_TEST, "launch-uuid", "parent",
+            message(RequestType.FINISH_TEST, 2, "launch-uuid", "parent", null),
+            new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, "parent")),
+        Arguments.of("log of a parked item", RequestType.START_TEST, "launch-uuid", "parent",
+            message(RequestType.LOG, null, "launch-uuid", "parent", null),
+            new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, "parent")),
+        Arguments.of("root start of a parked launch", RequestType.START_LAUNCH, "parked-launch", null,
+            message(RequestType.START_TEST, null, "parked-launch", "root", ""),
+            new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, "parked-launch")),
+        Arguments.of("launch log of a parked launch", RequestType.START_LAUNCH, "parked-launch", null,
+            message(RequestType.LOG, null, "parked-launch", null, null),
+            new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, "parked-launch")),
+        Arguments.of("finish of a parked launch", RequestType.START_LAUNCH, "parked-launch", null,
+            message(RequestType.FINISH_LAUNCH, null, "parked-launch", null, null),
+            new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, "parked-launch"))
+    );
+  }
+
+  @ParameterizedTest(name = "{0}")
+  @MethodSource("childrenOfParkedParent")
+  void notFoundChildOfParkedParentIsParkedAtOnce(String name, RequestType parentType, String launchUuid,
+      String parentUuid, Message child, Throwable cause) {
+    parkParent(parentType, launchUuid, parentUuid);
+
+    errorHandler.handleError(failure(child, cause));
+
+    verify(rabbitTemplate).send("", REPORTING_PARKING_LOT, child);
+    verify(rabbitTemplate, never()).send(eq(RETRY_EXCHANGE), anyString(), any(Message.class));
+    assertEquals(1.0, meterRegistry.get(ReportingErrorHandler.PARKED_METRIC).tag("reason", "parent_parked")
+        .counter().count());
+  }
+
+  @Test
+  void unrelatedNotFoundIsRetriedAfterParentWasParked() {
+    parkParent(RequestType.START_TEST, "launch-uuid", "parent");
+    Message other = message(RequestType.FINISH_TEST, null, "other-launch", "other-item", null);
+
+    errorHandler.handleError(failure(other,
+        new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, "other-item")));
+
+    verify(rabbitTemplate).send(RETRY_EXCHANGE, TTL_QUEUE_MS, other);
+    verify(rabbitTemplate, never()).send("", REPORTING_PARKING_LOT, other);
+  }
+
+  @Test
+  void parkedChildCascadesToGrandchildren() {
+    parkParent(RequestType.START_TEST, "launch-uuid", "parent");
+    Message child = message(RequestType.START_TEST, null, "launch-uuid", "child", "parent");
+    errorHandler.handleError(failure(child,
+        new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, "parent")));
+    Message grandchild = message(RequestType.START_TEST, null, "launch-uuid", "grandchild", "child");
+    errorHandler.handleError(failure(grandchild,
+        new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, "child")));
+    Message grandchildLog = message(RequestType.LOG, null, "launch-uuid", "grandchild", null);
+
+    errorHandler.handleError(failure(grandchildLog,
+        new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, "grandchild")));
+
+    verify(rabbitTemplate).send("", REPORTING_PARKING_LOT, child);
+    verify(rabbitTemplate).send("", REPORTING_PARKING_LOT, grandchild);
+    verify(rabbitTemplate).send("", REPORTING_PARKING_LOT, grandchildLog);
+    verify(rabbitTemplate, never()).send(eq(RETRY_EXCHANGE), anyString(), any(Message.class));
+    assertEquals(3.0, meterRegistry.get(ReportingErrorHandler.PARKED_METRIC).tag("reason", "parent_parked")
+        .counters().stream().mapToDouble(Counter::count).sum());
+  }
+
+  @Test
+  void itemParkedByTheNotFoundBudgetIsRecordedAsParkedParent() {
+    Message parent = message(RequestType.START_TEST, NOT_FOUND_MAX_RETRY_COUNT, "launch-uuid", "parent", "missing");
+    errorHandler.handleError(failure(parent,
+        new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, "missing")));
+    Message child = message(RequestType.FINISH_TEST, null, "launch-uuid", "parent", null);
+
+    errorHandler.handleError(failure(child,
+        new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, "parent")));
+
+    verify(rabbitTemplate).send("", REPORTING_PARKING_LOT, child);
+    assertEquals(1.0, meterRegistry.get(ReportingErrorHandler.PARKED_METRIC).tag("reason", "parent_parked")
+        .counter().count());
+  }
+
+  static Stream<Arguments> transientFailuresOfChild() {
+    return Stream.of(
+        Arguments.of("lock conflict", new CannotAcquireLockException("lock")),
+        Arguments.of("not found with a transient cause", new CannotAcquireLockException("lock",
+            new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, "parent"))),
+        Arguments.of("broker timeout", new AmqpTimeoutException("timeout"))
+    );
+  }
+
+  @ParameterizedTest(name = "{0}")
+  @MethodSource("transientFailuresOfChild")
+  void transientFailureOfChildOfParkedParentKeepsTheFullBudget(String name, Throwable cause) {
+    parkParent(RequestType.START_TEST, "launch-uuid", "parent");
+    Message child = message(RequestType.FINISH_TEST, NOT_FOUND_MAX_RETRY_COUNT, "launch-uuid", "parent", null);
+
+    errorHandler.handleError(failure(child, cause));
+
+    verify(rabbitTemplate).send(RETRY_EXCHANGE, TTL_QUEUE_M, child);
+    verify(rabbitTemplate, never()).send("", REPORTING_PARKING_LOT, child);
+  }
+
+  @Test
+  void startTestIsNotParkedForItsOwnParkedUuid() {
+    parkParent(RequestType.START_TEST, "launch-uuid", "parent");
+    Message replayed = message(RequestType.START_TEST, null, "launch-uuid", "parent", "other-parent");
+
+    errorHandler.handleError(failure(replayed,
+        new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, "other-parent")));
+
+    verify(rabbitTemplate).send(RETRY_EXCHANGE, TTL_QUEUE_MS, replayed);
+  }
+
+  @Test
+  void parentIsNotRecordedWhenItsParkingFails() {
+    Message parent = message(RequestType.START_TEST, null, "launch-uuid", "parent", "");
+    doThrow(new AmqpConnectException(new RuntimeException("refused"))).doNothing().when(rabbitTemplate)
+        .send(anyString(), anyString(), any(Message.class));
+    assertThrows(ImmediateRequeueAmqpException.class,
+        () -> errorHandler.handleError(failure(parent, new NullPointerException())));
+    Message child = message(RequestType.FINISH_TEST, null, "launch-uuid", "parent", null);
+
+    errorHandler.handleError(failure(child,
+        new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, "parent")));
+
+    verify(rabbitTemplate).send(RETRY_EXCHANGE, TTL_QUEUE_MS, child);
+  }
+
+  @Test
+  void parkedParentIsForgottenAfterItsTtl() throws InterruptedException {
+    ReportingErrorHandler shortLivedHandler = new ReportingErrorHandler(rabbitTemplate, meterRegistry,
+        Duration.ofMillis(50), 100);
+    ReflectionTestUtils.setField(shortLivedHandler, "maxRetryCount", MAX_RETRY_COUNT);
+    ReflectionTestUtils.setField(shortLivedHandler, "notFoundMaxRetryCount", NOT_FOUND_MAX_RETRY_COUNT);
+    shortLivedHandler.handleError(failure(message(RequestType.START_TEST, null, "launch-uuid", "parent", ""),
+        new NullPointerException()));
+    Thread.sleep(200);
+    Message child = message(RequestType.FINISH_TEST, null, "launch-uuid", "parent", null);
+
+    shortLivedHandler.handleError(failure(child,
+        new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, "parent")));
+
+    verify(rabbitTemplate).send(RETRY_EXCHANGE, TTL_QUEUE_MS, child);
+  }
+
+  @Test
+  void itemNotFoundInLaunchRecordedByDuplicateStartIsRetried() {
+    Message duplicateStart = message(RequestType.START_LAUNCH, null, "live-launch", null, null);
+    errorHandler.handleError(failure(duplicateStart,
+        new DataIntegrityViolationException("duplicate", sqlException("23505"))));
+    verify(rabbitTemplate).send("", REPORTING_PARKING_LOT, duplicateStart);
+    Message childStart = message(RequestType.START_TEST, null, "live-launch", "child", "pending-parent");
+    Message log = message(RequestType.LOG, null, "live-launch", "pending-item", null);
+
+    errorHandler.handleError(failure(childStart,
+        new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, "pending-parent")));
+    errorHandler.handleError(failure(log,
+        new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, "pending-item")));
+
+    verify(rabbitTemplate).send(RETRY_EXCHANGE, TTL_QUEUE_MS, childStart);
+    verify(rabbitTemplate).send(RETRY_EXCHANGE, TTL_QUEUE_MS, log);
+    verify(rabbitTemplate, never()).send("", REPORTING_PARKING_LOT, childStart);
+    verify(rabbitTemplate, never()).send("", REPORTING_PARKING_LOT, log);
+  }
+
+  @Test
+  void launchNotFoundIsNotMatchedAgainstParkedItem() {
+    parkParent(RequestType.START_TEST, "launch-uuid", "parent");
+    Message child = message(RequestType.FINISH_TEST, null, "pending-launch", "parent", null);
+
+    errorHandler.handleError(failure(child,
+        new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, "pending-launch")));
+
+    verify(rabbitTemplate).send(RETRY_EXCHANGE, TTL_QUEUE_MS, child);
+  }
+
+  @Test
+  void notFoundErrorTypeIsTakenFromTheCauseChain() {
+    assertEquals(Optional.of(ErrorType.LAUNCH_NOT_FOUND), ReportingFailureClassifier.notFoundErrorType(
+        new IllegalStateException(new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, "uuid"))));
+    assertEquals(Optional.of(ErrorType.TEST_ITEM_NOT_FOUND), ReportingFailureClassifier.notFoundErrorType(
+        new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, "uuid")));
+    assertEquals(Optional.empty(), ReportingFailureClassifier.notFoundErrorType(
+        new ReportPortalException(ErrorType.FINISH_ITEM_NOT_ALLOWED, "uuid")));
+    assertEquals(Optional.empty(), ReportingFailureClassifier.notFoundErrorType(new NullPointerException()));
+  }
+
+  private void parkParent(RequestType type, String launchUuid, String itemUuid) {
+    Message parent = message(type, null, launchUuid, itemUuid, "");
+    errorHandler.handleError(failure(parent, new NullPointerException()));
+    verify(rabbitTemplate).send("", REPORTING_PARKING_LOT, parent);
+  }
+
   private static SQLException sqlException(String sqlState) {
     return new SQLException("sql failure " + sqlState, sqlState);
   }
@@ -331,9 +532,20 @@ class ReportingErrorHandlerTest {
   }
 
   private static Message message(RequestType requestType, Integer retryCount) {
+    return message(requestType, retryCount, "launch-uuid", null, null);
+  }
+
+  private static Message message(RequestType requestType, Integer retryCount, String launchUuid,
+      String itemUuid, String parentItemUuid) {
     MessageProperties properties = new MessageProperties();
     properties.setHeader(MessageHeaders.REQUEST_TYPE, requestType.name());
-    properties.setHeader(MessageHeaders.HASH_ON, "launch-uuid");
+    properties.setHeader(MessageHeaders.HASH_ON, launchUuid);
+    if (itemUuid != null) {
+      properties.setHeader(MessageHeaders.ITEM_ID, itemUuid);
+    }
+    if (parentItemUuid != null) {
+      properties.setHeader(MessageHeaders.PARENT_ITEM_ID, parentItemUuid);
+    }
     if (retryCount != null) {
       properties.setHeader("x-retry-count", retryCount);
     }

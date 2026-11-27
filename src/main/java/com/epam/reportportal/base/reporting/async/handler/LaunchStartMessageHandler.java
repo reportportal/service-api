@@ -19,12 +19,14 @@ package com.epam.reportportal.base.reporting.async.handler;
 import com.epam.reportportal.base.auth.userdetails.DefaultUserDetailsService;
 import com.epam.reportportal.base.core.launch.StartLaunchHandler;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
+import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchRepository;
 import com.epam.reportportal.base.reporting.StartLaunchRQ;
 import com.epam.reportportal.base.reporting.async.config.MessageHeaders;
 import com.epam.reportportal.base.reporting.async.message.MessageRetriever;
 import com.epam.reportportal.base.util.ProjectExtractor;
 import java.util.Map;
 import java.util.Optional;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.Message;
 import org.springframework.stereotype.Service;
 
@@ -33,6 +35,7 @@ import org.springframework.stereotype.Service;
  *
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
+@Slf4j
 @Service
 public class LaunchStartMessageHandler implements
     ReportingMessageHandler {
@@ -41,14 +44,17 @@ public class LaunchStartMessageHandler implements
   private final StartLaunchHandler startLaunchHandler;
   private final ProjectExtractor projectExtractor;
   private final DefaultUserDetailsService userDetailsService;
+  private final LaunchRepository launchRepository;
 
   public LaunchStartMessageHandler(MessageRetriever retriever,
       StartLaunchHandler startLaunchHandler,
-      ProjectExtractor projectExtractor, DefaultUserDetailsService userDetailsService) {
+      ProjectExtractor projectExtractor, DefaultUserDetailsService userDetailsService,
+      LaunchRepository launchRepository) {
     this.retriever = retriever;
     this.startLaunchHandler = startLaunchHandler;
     this.projectExtractor = projectExtractor;
     this.userDetailsService = userDetailsService;
+    this.launchRepository = launchRepository;
   }
 
   @Override
@@ -57,6 +63,11 @@ public class LaunchStartMessageHandler implements
     Map<String, Object> headers = message.getMessageProperties().getHeaders();
 
     startLaunchRQ.ifPresent(rq -> {
+      // a rerun reuses the uuid of an existing launch on purpose
+      if (!rq.isRerun() && rq.getUuid() != null && launchRepository.findByUuid(rq.getUuid()).isPresent()) {
+        log.info("Launch with uuid '{}' already exists, duplicate START_LAUNCH message is skipped", rq.getUuid());
+        return;
+      }
       String projectName = (String) headers
           .get(MessageHeaders.PROJECT_KEY);
       String username = (String) headers

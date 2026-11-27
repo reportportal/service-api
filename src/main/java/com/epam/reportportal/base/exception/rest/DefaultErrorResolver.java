@@ -26,8 +26,10 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.context.MessageSourceResolvable;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
 
 
 /**
@@ -67,13 +69,15 @@ public class DefaultErrorResolver implements ErrorResolver {
     RestError.Builder errorBuilder = new RestError.Builder();
     String message;
     if (ex instanceof MethodArgumentNotValidException notValidException) {
-      StringBuilder sb = new StringBuilder();
-      sb.append("Incorrect Request. ");
+      StringBuilder sb = new StringBuilder("Incorrect Request. ");
       for (ObjectError error : notValidException.getBindingResult().getAllErrors()) {
-        sb.append("[")
-            .append(MESSAGE_SOURCE.getMessage(error, LocaleContextHolder.getLocale()))
-            .append("] ");
+        appendValidationMessage(sb, error);
       }
+      message = formattedSupplier(sb.toString()).get();
+    } else if (ex instanceof HandlerMethodValidationException methodValidationException) {
+      StringBuilder sb = new StringBuilder("Incorrect Request. ");
+      methodValidationException.getParameterValidationResults()
+          .forEach(result -> result.getResolvableErrors().forEach(error -> appendValidationMessage(sb, error)));
       message = formattedSupplier(sb.toString()).get();
     } else if (formattedMessage(errorDefinition.getError().getDescription())) {
       message = formattedSupplier(errorDefinition.getError().getDescription(),
@@ -91,6 +95,12 @@ public class DefaultErrorResolver implements ErrorResolver {
 
     return errorBuilder.build();
 
+  }
+
+  private static void appendValidationMessage(StringBuilder sb, MessageSourceResolvable error) {
+    sb.append("[")
+        .append(MESSAGE_SOURCE.getMessage(error, LocaleContextHolder.getLocale()))
+        .append("] ");
   }
 
   /**

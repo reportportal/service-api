@@ -25,7 +25,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.saml2.provider.service.authentication.AbstractSaml2AuthenticationRequest;
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistrationRepository;
 import org.springframework.security.saml2.provider.service.web.Saml2AuthenticationRequestRepository;
@@ -41,6 +41,8 @@ import org.springframework.security.web.SecurityFilterChain;
 public class Saml2AuthenticationConfiguration {
 
   private static final String SAML_PROCESSING_URL = "/login/saml2/sso/{registrationId}";
+
+  private static final String LEGACY_SAML_ACS_URL = "/saml/sp/SSO/**";
 
   private final SamlAuthSuccessHandler successHandler;
 
@@ -83,16 +85,17 @@ public class Saml2AuthenticationConfiguration {
     LegacySamlAcsForwardFilter legacyAcsForwardFilter = new LegacySamlAcsForwardFilter();
 
     http
-        .securityMatcher("/saml2/**", "/login/**", "/saml/sp/SSO/**")
+        .securityMatcher("/saml2/**", "/login/**", LEGACY_SAML_ACS_URL)
         .authorizeHttpRequests(auth -> auth
-            .requestMatchers("/saml2/**", "/saml/sp/SSO/**").permitAll()
+            .requestMatchers("/saml2/**", LEGACY_SAML_ACS_URL).permitAll()
             .anyRequest().authenticated()
         )
         .saml2Login(Customizer.withDefaults())
         .addFilterBefore(legacyAcsForwardFilter, Saml2WebSsoAuthenticationRequestFilter.class)
         .addFilterBefore(validationFilter, Saml2WebSsoAuthenticationRequestFilter.class)
         .addFilterBefore(saml2Filter, Saml2WebSsoAuthenticationFilter.class)
-        .csrf(AbstractHttpConfigurer::disable);
+        .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+        .csrf(csrf -> csrf.ignoringRequestMatchers(SAML_PROCESSING_URL, LEGACY_SAML_ACS_URL));
 
     return http.build();
   }

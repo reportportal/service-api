@@ -1,2 +1,2 @@
 git:
-  updateSubmodules: false
+  updateSubmodules: true

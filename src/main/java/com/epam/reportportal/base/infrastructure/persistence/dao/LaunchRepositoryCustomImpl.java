@@ -196,7 +196,7 @@ public class LaunchRepositoryCustomImpl implements LaunchRepositoryCustom {
 
     List<Field<?>> groupFields = new ArrayList<>(simpleSelectedFields);
     for (SortField<?> sortField : sortFieldList) {
-      groupFields.add(DSL.field(sortField.getName()));
+      groupFields.add(sortField.$field());
     }
 
     return PageableExecutionUtils.getPage(LAUNCH_FETCHER.apply(dsl.with(FILTERED_QUERY)

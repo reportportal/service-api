@@ -56,21 +56,30 @@ public class FilterDataProviderImpl implements DataProviderHandler {
   @Autowired
   private TestItemRepository testItemRepository;
 
+  /**
+   * Accumulates statistics over the same items {@link #getTestItems} lists for these parameters:
+   * the saved launch filter is resolved within the caller's project and items are restricted to
+   * the launches it selects, so request criteria (e.g. a launch id) cannot reach other projects.
+   */
   @Override
   public Set<Statistics> accumulateStatistics(Queryable filter, MembershipDetails membershipDetails,
       ReportPortalUser user,
       Map<String, String> params) {
-    Optional.ofNullable(params.get(FILTER_ID_PARAM))
-        .map(ControllerUtils::safeParseLong)
-        .orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
-            "Filter id must be provided for filter based items provider"
-        ));
-    return testItemRepository.accumulateStatisticsByFilter(filter);
+    LaunchSelection launches = resolveLaunchSelection(membershipDetails, params);
+    return testItemRepository.accumulateStatisticsByFilter(launches.isLatest(),
+        launches.launchFilter(), filter, launches.launchPageable());
   }
 
   @Override
   public Page<TestItem> getTestItems(Queryable filter, Pageable pageable, MembershipDetails membershipDetails,
       ReportPortalUser user, Map<String, String> params) {
+    LaunchSelection launches = resolveLaunchSelection(membershipDetails, params);
+    return testItemRepository.findByFilter(launches.isLatest(), launches.launchFilter(), filter,
+        launches.launchPageable(), pageable);
+  }
+
+  private LaunchSelection resolveLaunchSelection(MembershipDetails membershipDetails,
+      Map<String, String> params) {
     Long launchFilterId = Optional.ofNullable(params.get(FILTER_ID_PARAM))
         .map(ControllerUtils::safeParseLong)
         .orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
@@ -83,7 +92,7 @@ public class FilterDataProviderImpl implements DataProviderHandler {
             "Launches limit must be provided for filter based items provider"
         ));
 
-    Boolean isLatest = Optional.ofNullable(params.get(IS_LATEST_LAUNCHES_REQUEST_PARAM)).map(Boolean::parseBoolean)
+    boolean isLatest = Optional.ofNullable(params.get(IS_LATEST_LAUNCHES_REQUEST_PARAM)).map(Boolean::parseBoolean)
         .orElse(false);
 
     UserFilter userFilter = filterRepository.findByIdAndProjectId(launchFilterId, membershipDetails.getProjectId())
@@ -97,9 +106,11 @@ public class FilterDataProviderImpl implements DataProviderHandler {
         userFilter,
         launchesLimit
     );
+    return new LaunchSelection(isLatest, queryablePair.getKey(), queryablePair.getValue());
+  }
 
-    return testItemRepository.findByFilter(isLatest, queryablePair.getKey(), filter, queryablePair.getValue(),
-        pageable);
+  private record LaunchSelection(boolean isLatest, Queryable launchFilter, Pageable launchPageable) {
+
   }
 
 }

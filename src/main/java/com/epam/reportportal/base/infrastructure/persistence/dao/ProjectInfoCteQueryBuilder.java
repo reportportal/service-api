@@ -42,11 +42,14 @@ import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Fi
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Queryable;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectInfo;
 import com.epam.reportportal.base.infrastructure.persistence.jooq.enums.JStatusEnum;
+import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
+import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import jakarta.annotation.Nullable;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.CommonTableExpression;
 import org.jooq.Condition;
@@ -76,6 +79,15 @@ public class ProjectInfoCteQueryBuilder {
   private static final String CTE_FILTERED = "filtered";
   private static final String ALIAS_FILTERED = "f";
   private static final String FIELD_TOTAL_COUNT = "total_count";
+
+  private static final Set<String> SORTABLE_COLUMNS = Set.of(
+      PROJECT.ID.getName(),
+      PROJECT.NAME.getName(),
+      PROJECT.KEY.getName(),
+      PROJECT.SLUG.getName(),
+      PROJECT.ORGANIZATION.getName(),
+      PROJECT.ORGANIZATION_ID.getName()
+  );
 
   private final DSLContext dsl;
 
@@ -263,6 +275,17 @@ public class ProjectInfoCteQueryBuilder {
     Field<Object> field = aggregateContext ? resolveAggregateField(mappedFieldName) : field(name(mappedFieldName));
     String value = fc.getValue();
 
+    if (fc.getCondition() == com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Condition.BETWEEN) {
+      // same validation as the regular filter path: malformed value is a 400, not a silently dropped filter
+      if (value.contains(",") && value.contains(";")) {
+        throw new ReportPortalException(ErrorType.INCORRECT_FILTER_PARAMETERS,
+            "Incorrect between filter format. Use either 'value1,value2' or 'minutes1;minutes2;timezone'. "
+                + "Provided filter is '" + value + "'");
+      }
+      com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Condition.BETWEEN.validate(
+          criteriaHolder, value, fc.isNegative(), ErrorType.INCORRECT_FILTER_PARAMETERS);
+    }
+
     try {
       Condition condition = switch (fc.getCondition()) {
         case EQUALS -> field.eq(criteriaHolder.castValue(value));
@@ -303,6 +326,9 @@ public class ProjectInfoCteQueryBuilder {
       };
 
       return condition != null && fc.isNegative() ? condition.not() : condition;
+    } catch (ReportPortalException e) {
+      // value that cannot be cast is a 400, same as the regular filter path
+      throw e;
     } catch (Exception e) {
       log.warn("Invalid conditions", e);
       return null;
@@ -353,7 +379,12 @@ public class ProjectInfoCteQueryBuilder {
       case USERS_QUANTITY -> USERS_QUANTITY;
       case LAUNCHES_QUANTITY -> LAUNCHES_QUANTITY;
       case LAST_RUN -> LAST_RUN;
-      default -> apiFieldName;
+      default -> {
+        if (!SORTABLE_COLUMNS.contains(apiFieldName)) {
+          throw new ReportPortalException(ErrorType.INCORRECT_SORTING_PARAMETERS, apiFieldName);
+        }
+        yield apiFieldName;
+      }
     };
   }
 

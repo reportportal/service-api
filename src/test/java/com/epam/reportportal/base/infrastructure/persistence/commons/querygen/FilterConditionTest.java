@@ -6,6 +6,7 @@ import static com.epam.reportportal.base.infrastructure.persistence.commons.quer
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.LAUNCH;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.TMS_TEST_CASE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.epam.reportportal.base.infrastructure.persistence.jooq.enums.JRetentionPolicyEnum;
@@ -103,6 +104,21 @@ class FilterConditionTest {
             + "cast('IMPORTANT' as \"public\".\"retention_policy_enum\"), "
             + "cast('REGULAR' as \"public\".\"retention_policy_enum\"))",
         inSql);
+  }
+
+  @Test
+  void containsBindsEscapedPatternAsParameter() {
+    org.jooq.Condition condition = FilterCondition.builder()
+        .withCondition(Condition.CONTAINS)
+        .withSearchCriteria("name")
+        .withValue("100%_a'b\\c")
+        .build()
+        .toCondition(FilterTarget.LAUNCH_TARGET)
+        .get(ConditionType.WHERE);
+
+    org.jooq.Query query = DSL.using(SQLDialect.POSTGRES).selectOne().where(condition);
+    assertEquals(java.util.List.of("%100\\%\\_a'b\\\\c%"), query.getBindValues());
+    assertFalse(query.getSQL().contains("100"));
   }
 
   private static String render(FilterCondition filterCondition) {

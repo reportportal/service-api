@@ -62,7 +62,7 @@ public class TmsMilestone {
   private TmsMilestoneStatus status;
 
   @ManyToOne
-  @JoinColumn(name = "product_version_id", nullable = false)
+  @JoinColumn(name = "product_version_id")
   private TmsProductVersion productVersion;
 
   @OneToMany(mappedBy = "milestone")

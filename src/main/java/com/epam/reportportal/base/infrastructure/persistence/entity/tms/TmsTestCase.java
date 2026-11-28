@@ -92,6 +92,13 @@ public class TmsTestCase implements Serializable {
   @JoinColumn(name = "dataset_id")
   private TmsDataset dataset;
 
+  /**
+   * Custom order inside the folder. {@code null} means "not ordered yet": such test cases come
+   * after the ordered ones, in creation order.
+   */
+  @Column(name = "position")
+  private Long position;
+
   @ManyToMany(mappedBy = "testCases")
   @Fetch(FetchMode.SUBSELECT)
   @ToString.Exclude

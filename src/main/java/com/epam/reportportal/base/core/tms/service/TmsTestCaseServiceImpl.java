@@ -22,6 +22,7 @@ import com.epam.reportportal.base.core.tms.dto.batch.BatchDuplicateTestCasesRS;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchPatchTestCaseAttributesRQ;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchPatchTestCasesRQ;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchPatchTestCasesRS;
+import com.epam.reportportal.base.core.tms.dto.batch.BatchReorderTestCasesRQ;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchTestCaseOperationError;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchTestCaseOperationResultRS;
 import com.epam.reportportal.base.core.tms.mapper.TmsTestCaseActivityResourceMapper;
@@ -197,10 +198,12 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
           var before = tmsTestCaseActivityResourceMapper.buildActivityResource(existingTestCase,
               beforeVersion);
 
+          var folderIdBefore = existingTestCase.getTestFolder().getId();
           tmsTestCaseMapper.update(existingTestCase,
               tmsTestCaseMapper.convertFromRQ(projectId, tmsTestCaseRQ,
                   getTestFolderId(projectId, tmsTestCaseRQ.getTestFolderId(),
                       tmsTestCaseRQ.getTestFolder())));
+          resetPositionIfFolderChanged(existingTestCase, folderIdBefore);
 
           tmsTestCaseAttributeService.updateTestCaseAttributes(projectId, existingTestCase,
               tmsTestCaseRQ.getAttributes());
@@ -244,10 +247,12 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
           var before = tmsTestCaseActivityResourceMapper.buildActivityResource(existingTestCase,
               beforeVersion);
 
+          var folderIdBefore = existingTestCase.getTestFolder().getId();
           tmsTestCaseMapper.patch(existingTestCase,
               tmsTestCaseMapper.convertFromPatchRQ(projectId, tmsTestCaseRQ,
                   getTestFolderId(projectId, tmsTestCaseRQ.getTestFolderId(),
                       tmsTestCaseRQ.getTestFolder())));
+          resetPositionIfFolderChanged(existingTestCase, folderIdBefore);
 
           tmsTestCaseAttributeService.patchTestCaseAttributes(projectId, existingTestCase,
               tmsTestCaseRQ.getAttributes());
@@ -362,6 +367,74 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
     return tmsTestCaseMapper.toBatchPatchTestCasesRS(
         testFolderId, patchRequest
     );
+  }
+
+  @Override
+  @Transactional
+  public void reorder(long projectId, long testFolderId,
+      @Valid BatchReorderTestCasesRQ reorderRequest) {
+    if (!Boolean.TRUE.equals(tmsTestFolderService.existsById(projectId, testFolderId))) {
+      throw new ReportPortalException(
+          NOT_FOUND, TEST_FOLDER_NOT_FOUND_BY_ID.formatted(testFolderId, projectId));
+    }
+    var beforeId = reorderRequest.getBeforeTestCaseId();
+    var afterId = reorderRequest.getAfterTestCaseId();
+    if (nonNull(beforeId) == nonNull(afterId)) {
+      throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
+          "Exactly one of beforeTestCaseId and afterTestCaseId must be provided");
+    }
+    var anchorId = nonNull(beforeId) ? beforeId : afterId;
+    var movedIds = new HashSet<>(reorderRequest.getTestCaseIds());
+    if (movedIds.size() != reorderRequest.getTestCaseIds().size()) {
+      throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
+          "testCaseIds must not contain duplicates");
+    }
+    if (movedIds.contains(anchorId)) {
+      throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
+          "Test case %s cannot be moved relative to itself".formatted(anchorId));
+    }
+
+    var currentOrder = tmsTestCaseRepository.findIdsInCustomOrderForUpdate(projectId,
+        testFolderId);
+    var folderIds = new HashSet<>(currentOrder);
+    var notInFolder = reorderRequest.getTestCaseIds().stream()
+        .filter(id -> !folderIds.contains(id))
+        .collect(Collectors.toList());
+    if (!folderIds.contains(anchorId)) {
+      notInFolder.add(anchorId);
+    }
+    if (!notInFolder.isEmpty()) {
+      throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
+          "Test cases %s are not in test folder %d".formatted(notInFolder, testFolderId));
+    }
+
+    // The moved test cases keep their current relative order
+    var movedBlock = currentOrder.stream().filter(movedIds::contains).toList();
+    var newOrder = new ArrayList<Long>(currentOrder.size());
+    for (var id : currentOrder) {
+      if (movedIds.contains(id)) {
+        continue;
+      }
+      if (id.equals(beforeId)) {
+        newOrder.addAll(movedBlock);
+      }
+      newOrder.add(id);
+      if (id.equals(afterId)) {
+        newOrder.addAll(movedBlock);
+      }
+    }
+    tmsTestCaseRepository.updatePositions(projectId, testFolderId, newOrder);
+  }
+
+  /**
+   * A test case that moves to another folder has no place in that folder's custom order yet: it
+   * comes after the ordered test cases, among the not ordered ones by creation.
+   */
+  private static void resetPositionIfFolderChanged(TmsTestCase testCase, Long folderIdBefore) {
+    if (nonNull(testCase.getTestFolder())
+        && !Objects.equals(folderIdBefore, testCase.getTestFolder().getId())) {
+      testCase.setPosition(null);
+    }
   }
 
   @Override

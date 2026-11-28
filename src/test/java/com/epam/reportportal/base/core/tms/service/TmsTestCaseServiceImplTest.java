@@ -40,6 +40,7 @@ import com.epam.reportportal.base.core.tms.dto.batch.BatchDeleteTestCasesRQ;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchDuplicateTestCasesRQ;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchPatchTestCaseAttributesRQ;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchPatchTestCasesRQ;
+import com.epam.reportportal.base.core.tms.dto.batch.BatchReorderTestCasesRQ;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchTestCaseOperationError;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchTestCaseOperationResultRS;
 import com.epam.reportportal.base.core.tms.mapper.TmsTestCaseActivityResourceMapper;
@@ -3382,5 +3383,53 @@ class TmsTestCaseServiceImplTest {
         () -> sut.getTestCaseInTestPlan(projectId, testPlanId, testCaseId1));
     verify(tmsTestPlanTestCaseRepository).findTestCaseIdsByTestPlanId(testPlanId);
     verifyNoInteractions(tmsTestCaseExecutionService);
+  }
+
+  @Test
+  void reorder_ShouldMoveBlockBeforeAnchorKeepingCurrentOrder() {
+    when(tmsTestFolderService.existsById(1L, 60L)).thenReturn(true);
+    when(tmsTestCaseRepository.findIdsInCustomOrderForUpdate(1L, 60L))
+        .thenReturn(List.of(10L, 11L, 12L, 13L, 14L));
+
+    sut.reorder(1L, 60L, BatchReorderTestCasesRQ.builder()
+        .testCaseIds(List.of(14L, 12L)).beforeTestCaseId(11L).build());
+
+    verify(tmsTestCaseRepository).updatePositions(1L, 60L, List.of(10L, 12L, 14L, 11L, 13L));
+  }
+
+  @Test
+  void reorder_ShouldMoveBlockAfterAnchor() {
+    when(tmsTestFolderService.existsById(1L, 60L)).thenReturn(true);
+    when(tmsTestCaseRepository.findIdsInCustomOrderForUpdate(1L, 60L))
+        .thenReturn(List.of(10L, 11L, 12L));
+
+    sut.reorder(1L, 60L, BatchReorderTestCasesRQ.builder()
+        .testCaseIds(List.of(10L)).afterTestCaseId(12L).build());
+
+    verify(tmsTestCaseRepository).updatePositions(1L, 60L, List.of(11L, 12L, 10L));
+  }
+
+  @Test
+  void reorder_ShouldRejectTestCaseFromAnotherFolder() {
+    when(tmsTestFolderService.existsById(1L, 60L)).thenReturn(true);
+    when(tmsTestCaseRepository.findIdsInCustomOrderForUpdate(1L, 60L))
+        .thenReturn(List.of(10L, 11L));
+    var request = BatchReorderTestCasesRQ.builder()
+        .testCaseIds(List.of(99L)).beforeTestCaseId(10L).build();
+
+    var exception = assertThrows(ReportPortalException.class,
+        () -> sut.reorder(1L, 60L, request));
+
+    assertTrue(exception.getMessage().contains("[99]"));
+    verify(tmsTestCaseRepository, never()).updatePositions(anyLong(), anyLong(), anyList());
+  }
+
+  @Test
+  void reorder_ShouldRejectRequestWithoutAnchor() {
+    when(tmsTestFolderService.existsById(1L, 60L)).thenReturn(true);
+    var request = BatchReorderTestCasesRQ.builder().testCaseIds(List.of(10L)).build();
+
+    assertThrows(ReportPortalException.class, () -> sut.reorder(1L, 60L, request));
+    verify(tmsTestCaseRepository, never()).findIdsInCustomOrderForUpdate(anyLong(), anyLong());
   }
 }

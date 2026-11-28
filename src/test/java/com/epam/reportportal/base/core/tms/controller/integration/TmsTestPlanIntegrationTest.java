@@ -1,5 +1,6 @@
 package com.epam.reportportal.base.core.tms.controller.integration;
 
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -63,7 +64,9 @@ public class TmsTestPlanIntegrationTest extends BaseMvcTest {
   private static final Long TEST_CASE_NOT_IN_PLAN_ID = 204L;
   private static final Long NON_EXISTENT_TEST_PLAN_ID = 99999L;
   private static final Long TEST_PLAN_IN_MILESTONE_ID = 400L;
+  private static final Long TEST_PLAN_WITHOUT_MILESTONE_ID = 401L;
   private static final int MILESTONE_FOR_TEST_PLANS_ID = 400;
+  private static final String MILESTONE_FOR_TEST_PLANS_NAME = "Release 24.2 Beta";
   private static final Long NON_EXISTENT_TEST_CASE_ID = 99999L;
   private final JsonMapper objectMapper = JsonMapper.builder().build();
   @PersistenceContext
@@ -196,6 +199,87 @@ public class TmsTestPlanIntegrationTest extends BaseMvcTest {
             .with(token(oAuthHelper.getSuperadminToken())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.milestoneId").value(MILESTONE_FOR_TEST_PLANS_ID));
+  }
+
+  @Test
+  void getTestPlansByCriteria_shouldReturnMilestoneIdAndName() throws Exception {
+    mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-plan")
+            .param("filter.eq.id", String.valueOf(TEST_PLAN_IN_MILESTONE_ID))
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content.length()").value(1))
+        .andExpect(jsonPath("$.content[0].milestoneId").value(MILESTONE_FOR_TEST_PLANS_ID))
+        .andExpect(jsonPath("$.content[0].milestone.id").value(MILESTONE_FOR_TEST_PLANS_ID))
+        .andExpect(jsonPath("$.content[0].milestone.name").value(MILESTONE_FOR_TEST_PLANS_NAME))
+        .andExpect(jsonPath("$.content[0].milestone.type").doesNotExist())
+        .andExpect(jsonPath("$.content[0].milestone.productVersion").doesNotExist());
+  }
+
+  @Test
+  void getTestPlansByCriteria_withoutMilestone_shouldOmitMilestone() throws Exception {
+    mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-plan")
+            .param("filter.eq.id", String.valueOf(TEST_PLAN_WITHOUT_MILESTONE_ID))
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content.length()").value(1))
+        .andExpect(jsonPath("$.content[0].milestoneId").doesNotExist())
+        .andExpect(jsonPath("$.content[0].milestone").doesNotExist());
+  }
+
+  @Test
+  void getTestPlanById_shouldReturnMilestoneIdAndName() throws Exception {
+    mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-plan/"
+            + TEST_PLAN_IN_MILESTONE_ID)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.milestoneId").value(MILESTONE_FOR_TEST_PLANS_ID))
+        .andExpect(jsonPath("$.milestone.id").value(MILESTONE_FOR_TEST_PLANS_ID))
+        .andExpect(jsonPath("$.milestone.name").value(MILESTONE_FOR_TEST_PLANS_NAME));
+  }
+
+  @Test
+  void getTestPlansByCriteria_byNameOrMilestoneName_shouldMatchMilestoneName() throws Exception {
+    mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-plan")
+            .param("filter.cnt.nameOrMilestoneName", "24.2 beta")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content.length()").value(1))
+        .andExpect(jsonPath("$.content[0].id").value(TEST_PLAN_IN_MILESTONE_ID))
+        .andExpect(jsonPath("$.page.totalElements").value(1));
+  }
+
+  @Test
+  void getTestPlansByCriteria_byNameOrMilestoneName_shouldMatchPlanNameWithAndWithoutMilestone()
+      throws Exception {
+    mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-plan")
+            .param("filter.cnt.nameOrMilestoneName", "smoke regression")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content.length()").value(2))
+        .andExpect(jsonPath("$.content[*].id", containsInAnyOrder(
+            TEST_PLAN_IN_MILESTONE_ID.intValue(), TEST_PLAN_WITHOUT_MILESTONE_ID.intValue())))
+        .andExpect(jsonPath("$.page.totalElements").value(2));
+  }
+
+  @Test
+  void getTestPlansByCriteria_byNameOrMilestoneName_shouldMatchOptionLabel() throws Exception {
+    // The launch modals show a selected plan as "Plan name, Milestone name"
+    mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-plan")
+            .param("filter.cnt.nameOrMilestoneName", "regression, release")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content.length()").value(1))
+        .andExpect(jsonPath("$.content[0].id").value(TEST_PLAN_IN_MILESTONE_ID));
+  }
+
+  @Test
+  void getTestPlansByCriteria_byName_shouldNotMatchMilestoneName() throws Exception {
+    // Existing name criterion keeps its meaning
+    mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-plan")
+            .param("filter.cnt.name", "24.2 beta")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content.length()").value(0));
   }
 
   @Test

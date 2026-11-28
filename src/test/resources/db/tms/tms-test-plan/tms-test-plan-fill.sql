@@ -40,8 +40,8 @@ VALUES (10, 'status', 'active',      1),
 
 -- ============================================================================
 -- TEST PLANS
--- All belong to project 1; sorted by id: 1,2,3,4,5,6,100,101,102,200,201,300,301,302,303,400
--- → TP-1..TP-16
+-- All belong to project 1; sorted by id: 1,2,3,4,5,6,100,101,102,200,201,300,301,302,303,400,401
+-- → TP-1..TP-17
 -- ============================================================================
 
 INSERT INTO tms_test_plan (id, "name", description, project_id, display_id, environment_id, product_version_id)
@@ -336,6 +336,11 @@ VALUES (400, 'Release 24.2 Beta', 'SCHEDULED',
 INSERT INTO tms_test_plan (id, "name", description, project_id, display_id, milestone_id)
 VALUES (400, 'Smoke regression', 'Plan in a milestone', 1, 'TP-16', 400);
 
+-- Milestone name in the test plan response and in the nameOrMilestoneName filter:
+-- the same plan name without a milestone → TP-17
+INSERT INTO tms_test_plan (id, "name", description, project_id, display_id, milestone_id)
+VALUES (401, 'Smoke regression', 'Plan without a milestone', 1, 'TP-17', NULL);
+
 INSERT INTO tms_test_folder (id, "name", description, project_id)
 VALUES (300, 'Folder 300 for Plan 300', 'First folder with test cases in plan 300',   1),
        (301, 'Folder 301 for Plan 300', 'Second folder with test cases in plan 300',  1),
@@ -479,7 +484,7 @@ VALUES (300, 'Execute test case 300', 'System should respond correctly for TC300
 
 INSERT INTO tms_project_sequence (project_id, entity_type, current_value)
 VALUES (1, 'TEST_CASE', 51),
-       (1, 'TEST_PLAN', 16),
+       (1, 'TEST_PLAN', 17),
        (1, 'LAUNCH',    5);
 
 -- Update sequences

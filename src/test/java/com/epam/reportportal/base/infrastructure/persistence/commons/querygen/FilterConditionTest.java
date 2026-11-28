@@ -5,6 +5,8 @@ import static com.epam.reportportal.base.infrastructure.persistence.commons.quer
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseCriteriaConstant.CRITERIA_TMS_TEST_CASE_DISPLAY_ID;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.LAUNCH;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.TMS_TEST_CASE;
+import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestPlanCriteriaConstant.CRITERIA_TMS_TEST_PLAN_NAME_OR_MILESTONE_NAME;
+import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.TMS_MILESTONE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -109,6 +111,19 @@ class FilterConditionTest {
     return DSL.using(SQLDialect.POSTGRES)
         .renderInlined(filterCondition.toCondition(FilterTarget.LAUNCH_TARGET)
             .get(ConditionType.WHERE));
+  }
+
+  @Test
+  void tmsTestPlanNameOrMilestoneNameIsSupported() {
+    CriteriaHolder criteriaHolder = FilterTarget.TMS_TEST_PLAN_TARGET
+        .getCriteriaByFilter(CRITERIA_TMS_TEST_PLAN_NAME_OR_MILESTONE_NAME)
+        .orElseThrow();
+
+    assertEquals(CRITERIA_TMS_TEST_PLAN_NAME_OR_MILESTONE_NAME, criteriaHolder.getFilterCriteria());
+    assertEquals(String.class, criteriaHolder.getDataType());
+    assertEquals(criteriaHolder.getQueryCriteria(), criteriaHolder.getAggregateCriteria());
+    assertEquals(1, criteriaHolder.getJoinChain().size());
+    assertEquals(TMS_MILESTONE, criteriaHolder.getJoinChain().get(0).getTable());
   }
 
   @Test

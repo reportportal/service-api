@@ -12,6 +12,7 @@ public final class TmsTestFolderCriteriaConstant {
   public static final String CRITERIA_TMS_TEST_FOLDER_TEST_CASE_PRIORITY = "testCasePriority";
   public static final String CRITERIA_TMS_TEST_FOLDER_TEST_CASE_ATTRIBUTES = "testCaseAttributes";
   public static final String CRITERIA_TMS_TEST_FOLDER_TEST_CASE_ATTRIBUTE_KEY = "testCaseAttributeKey";
+  public static final String CRITERIA_TMS_TEST_FOLDER_TEST_CASE_REQUIREMENT = "testCaseRequirement";
 
   private TmsTestFolderCriteriaConstant() {
     //static only

@@ -156,6 +156,7 @@ import static com.epam.reportportal.base.infrastructure.persistence.commons.quer
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseCriteriaConstant.CRITERIA_TMS_TEST_CASE_NAME;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseCriteriaConstant.CRITERIA_TMS_TEST_CASE_PLAN_ID;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseCriteriaConstant.CRITERIA_TMS_TEST_CASE_PRIORITY;
+import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseCriteriaConstant.CRITERIA_TMS_TEST_CASE_REQUIREMENT;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseCriteriaConstant.CRITERIA_TMS_TEST_CASE_PROJECT_ID;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseCriteriaConstant.CRITERIA_TMS_TEST_CASE_SEARCH;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseCriteriaConstant.CRITERIA_TMS_TEST_CASE_UPDATED_AT;
@@ -178,6 +179,8 @@ import static com.epam.reportportal.base.infrastructure.persistence.commons.quer
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestFolderCriteriaConstant.CRITERIA_TMS_TEST_FOLDER_TEST_CASE_ATTRIBUTE_KEY;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestFolderCriteriaConstant.CRITERIA_TMS_TEST_FOLDER_TEST_CASE_NAME;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestFolderCriteriaConstant.CRITERIA_TMS_TEST_FOLDER_TEST_CASE_PRIORITY;
+import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestFolderCriteriaConstant.CRITERIA_TMS_TEST_FOLDER_TEST_CASE_REQUIREMENT;
+import static com.epam.reportportal.base.infrastructure.persistence.dao.tms.util.TmsRequirementFilterSupport.DEFAULT_VERSION_REQUIREMENTS;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestFolderCriteriaConstant.CRITERIA_TMS_TEST_FOLDER_TEST_PLAN_ID;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestFolderTestItemCriteriaConstant.CHILD_ATTR;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestFolderTestItemCriteriaConstant.CHILD_EXECUTION;
@@ -1961,6 +1964,14 @@ public enum FilterTarget {
                   )
               )
               .withAggregateCriteria(DSL.arrayAggDistinct(TMS_ATTRIBUTE.VALUE).toString())
+              .get(),
+          // Requirements of the default version; "contains", case-insensitive
+          new CriteriaHolderBuilder().newBuilder(
+                  CRITERIA_TMS_TEST_CASE_REQUIREMENT,
+                  DEFAULT_VERSION_REQUIREMENTS,
+                  String.class
+              )
+              .withAllowedConditions(Condition.CONTAINS)
               .get()
       )
   ) {
@@ -2119,6 +2130,17 @@ public enum FilterTarget {
               .withAggregateCriteria(
                   DSL.arrayAggDistinct(TMS_ATTRIBUTE.KEY).toString()
               )
+              .get(),
+          // Requirements of the default version of a test case in the folder
+          new CriteriaHolderBuilder().newBuilder(
+                  CRITERIA_TMS_TEST_FOLDER_TEST_CASE_REQUIREMENT,
+                  DEFAULT_VERSION_REQUIREMENTS,
+                  String.class,
+                  Lists.newArrayList(
+                      JoinEntity.of(TMS_TEST_CASE, JoinType.LEFT_OUTER_JOIN,
+                          TMS_TEST_FOLDER.ID.eq(TMS_TEST_CASE.TEST_FOLDER_ID))
+                  ))
+              .withAllowedConditions(Condition.CONTAINS)
               .get()
       )
   ) {

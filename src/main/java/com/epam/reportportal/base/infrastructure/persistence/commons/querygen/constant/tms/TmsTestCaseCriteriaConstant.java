@@ -33,6 +33,7 @@ public final class TmsTestCaseCriteriaConstant {
   public static final String CRITERIA_TMS_TEST_CASE_ATTRIBUTES = "attributes";
   public static final String CRITERIA_TMS_TEST_CASE_ATTRIBUTE_KEY = "attributeKey";
   public static final String CRITERIA_TMS_TEST_CASE_ATTRIBUTE_VALUE = "attributeValue";
+  public static final String CRITERIA_TMS_TEST_CASE_REQUIREMENT = "requirement";
 
   private TmsTestCaseCriteriaConstant() {
     //static only

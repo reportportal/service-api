@@ -153,9 +153,11 @@ import static com.epam.reportportal.base.infrastructure.persistence.commons.quer
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseCriteriaConstant.CRITERIA_TMS_TEST_CASE_EXTERNAL_ID;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseCriteriaConstant.CRITERIA_TMS_TEST_CASE_FOLDER_ID;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseCriteriaConstant.CRITERIA_TMS_TEST_CASE_ID;
+import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseCriteriaConstant.CRITERIA_TMS_TEST_CASE_LAST_EXECUTION_AT;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseCriteriaConstant.CRITERIA_TMS_TEST_CASE_NAME;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseCriteriaConstant.CRITERIA_TMS_TEST_CASE_PLAN_ID;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseCriteriaConstant.CRITERIA_TMS_TEST_CASE_PRIORITY;
+import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseCriteriaConstant.CRITERIA_TMS_TEST_CASE_PRIORITY_RANK;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseCriteriaConstant.CRITERIA_TMS_TEST_CASE_PROJECT_ID;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseCriteriaConstant.CRITERIA_TMS_TEST_CASE_SEARCH;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseCriteriaConstant.CRITERIA_TMS_TEST_CASE_UPDATED_AT;
@@ -1910,6 +1912,36 @@ public enum FilterTarget {
               Instant.class).get(),
           new CriteriaHolderBuilder().newBuilder(CRITERIA_TMS_TEST_CASE_UPDATED_AT, TMS_TEST_CASE.UPDATED_AT,
               Instant.class).get(),
+          // Priority by importance for sorting; "priority" itself sorts alphabetically
+          new CriteriaHolderBuilder().newBuilder(
+              CRITERIA_TMS_TEST_CASE_PRIORITY_RANK,
+              choose(TMS_TEST_CASE.PRIORITY)
+                  .when("BLOCKER", 5)
+                  .when("CRITICAL", 4)
+                  .when("HIGH", 3)
+                  .when("MEDIUM", 2)
+                  .when("LOW", 1)
+                  .otherwise(0)
+                  .toString(),
+              Long.class
+          ).get(),
+          // Start time of the latest execution (as lastExecutionAt in TmsTestCaseRS);
+          // a test case without executions counts as the oldest
+          new CriteriaHolderBuilder().newBuilder(
+                  CRITERIA_TMS_TEST_CASE_LAST_EXECUTION_AT,
+                  TEST_ITEM.START_TIME,
+                  Instant.class,
+                  Lists.newArrayList(
+                      JoinEntity.of(TMS_TEST_CASE_EXECUTION, JoinType.LEFT_OUTER_JOIN,
+                          TMS_TEST_CASE.ID.eq(TMS_TEST_CASE_EXECUTION.TEST_CASE_ID)),
+                      JoinEntity.of(TEST_ITEM, JoinType.LEFT_OUTER_JOIN,
+                          TMS_TEST_CASE_EXECUTION.TEST_ITEM_ID.eq(TEST_ITEM.ITEM_ID))
+                  ))
+              .withAggregateCriteria(
+                  coalesce(DSL.max(TEST_ITEM.START_TIME),
+                      field("'-infinity'::timestamp", TEST_ITEM.START_TIME.getDataType()))
+                      .toString())
+              .get(),
           new CriteriaHolderBuilder().newBuilder(CRITERIA_TMS_TEST_CASE_FOLDER_ID, TMS_TEST_CASE.TEST_FOLDER_ID,
               Long.class).get(),
           new CriteriaHolderBuilder().newBuilder(CRITERIA_TMS_TEST_CASE_PROJECT_ID, TMS_TEST_FOLDER.PROJECT_ID,

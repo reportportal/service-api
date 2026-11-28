@@ -26,6 +26,14 @@ public final class TmsTestCaseCriteriaConstant {
   public static final String CRITERIA_TMS_TEST_CASE_DISPLAY_ID = "displayId";
   public static final String CRITERIA_TMS_TEST_CASE_CREATED_AT = "createdAt";
   public static final String CRITERIA_TMS_TEST_CASE_UPDATED_AT = "updatedAt";
+  /**
+   * Sort-only criterion: priority by importance (BLOCKER highest, UNSPECIFIED lowest).
+   */
+  public static final String CRITERIA_TMS_TEST_CASE_PRIORITY_RANK = "priorityRank";
+  /**
+   * Start time of the latest execution, the same value as {@code lastExecutionAt} in the response.
+   */
+  public static final String CRITERIA_TMS_TEST_CASE_LAST_EXECUTION_AT = "lastExecutionAt";
   public static final String CRITERIA_TMS_TEST_CASE_PROJECT_ID = "projectId";
   public static final String CRITERIA_TMS_TEST_CASE_FOLDER_ID = "testFolderId";
   public static final String CRITERIA_TMS_TEST_CASE_PLAN_ID = "testPlanId";

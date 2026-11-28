@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.io.Serializable;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -52,6 +53,8 @@ public class ErrorRS implements Serializable {
    */
   private static final long serialVersionUID = -3717290684860161862L;
 
+  // Serialized as a number by ErrorTypeSerializer, the schema generator sees only the declared enum type
+  @Schema(implementation = Integer.class, description = "ReportPortal error code", example = "4041")
   @JsonSerialize(using = ErrorTypeSerializer.class)
   @JsonDeserialize(using = ErrorTypeDeserializer.class)
   @JsonProperty("errorCode")

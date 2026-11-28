@@ -29,6 +29,7 @@ import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Qu
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItem;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRole;
+import com.epam.reportportal.base.infrastructure.rules.exception.ErrorRS;
 import com.epam.reportportal.base.util.SchemaFactory;
 import com.epam.reportportal.base.ws.resolver.FilterFor;
 import com.fasterxml.jackson.databind.JavaType;
@@ -45,11 +46,15 @@ import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.info.License;
+import io.swagger.v3.oas.models.media.Content;
 import io.swagger.v3.oas.models.media.ArraySchema;
 import io.swagger.v3.oas.models.media.IntegerSchema;
+import io.swagger.v3.oas.models.media.MediaType;
 import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.oas.models.media.StringSchema;
 import io.swagger.v3.oas.models.parameters.Parameter;
+import io.swagger.v3.oas.models.responses.ApiResponse;
+import io.swagger.v3.oas.models.responses.ApiResponses;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.servers.Server;
@@ -193,6 +198,50 @@ public class SpringDocConfiguration {
           .collect(Collectors.toList());
       openApi.setTags(sortedTags);
     };
+  }
+
+  /**
+   * Declares the {@link ErrorRS} body as the {@code default} response of the operations.
+   *
+   * <p>The statuses of a {@code ReportPortalException} (404, 406, 409 and others) are resolved at runtime from its
+   * error type, so the exception handler has no {@code @ResponseStatus} and its responses are not in the generated
+   * document. An operation is skipped if it already has a {@code default} response or none of its responses uses
+   * {@link ErrorRS}, i.e. the exception handler is not applied to its controller.
+   *
+   * @return {@link OpenApiCustomizer}
+   */
+  @Bean
+  public OpenApiCustomizer defaultErrorResponse() {
+    return openApi -> {
+      if (openApi.getPaths() == null || openApi.getComponents() == null
+          || openApi.getComponents().getSchemas() == null) {
+        return;
+      }
+      Set<String> schemaNames = openApi.getComponents().getSchemas().keySet();
+      String schemaName = schemaNames.contains(ErrorRS.class.getName()) ? ErrorRS.class.getName()
+          : ErrorRS.class.getSimpleName();
+      if (!schemaNames.contains(schemaName)) {
+        return;
+      }
+      String ref = Components.COMPONENTS_SCHEMAS_REF + schemaName;
+      openApi.getPaths().values().stream()
+          .flatMap(pathItem -> pathItem.readOperations().stream())
+          .map(Operation::getResponses)
+          .filter(responses -> responses != null && responses.getDefault() == null && usesSchema(responses, ref))
+          .forEach(responses -> responses.setDefault(new ApiResponse()
+              .description("Error response")
+              .content(new Content().addMediaType(org.springframework.http.MediaType.APPLICATION_JSON_VALUE,
+                  new MediaType().schema(new Schema<>().$ref(ref))))));
+    };
+  }
+
+  private boolean usesSchema(ApiResponses responses, String ref) {
+    return responses.values().stream()
+        .map(ApiResponse::getContent)
+        .filter(content -> content != null)
+        .flatMap(content -> content.values().stream())
+        .map(MediaType::getSchema)
+        .anyMatch(schema -> schema != null && ref.equals(schema.get$ref()));
   }
 
   @Bean

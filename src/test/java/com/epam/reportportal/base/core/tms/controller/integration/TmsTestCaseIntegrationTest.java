@@ -1,5 +1,6 @@
 package com.epam.reportportal.base.core.tms.controller.integration;
 
+import static org.hamcrest.Matchers.contains;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -3227,6 +3228,67 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
         .andExpect(jsonPath("$.content[?(@.id == 101)].lastExecutionAt").isNotEmpty())
         .andExpect(jsonPath("$.content[?(@.id == 102)].lastExecutionAt").doesNotExist())
         .andExpect(jsonPath("$.content[?(@.id == 103)].lastExecutionAt").isNotEmpty());
+  }
+
+  @Test
+  void getTestCasesSortedByPriorityRankDescIntegrationTest() throws Exception {
+    // Given - 100 HIGH, 101 MEDIUM, 102 LOW, 103 HIGH; equal ranks are ordered by id
+    mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case")
+            .param("filter.in.id", "100,101,102,103")
+            .param("sort", "priorityRank,DESC")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content[*].id", contains(100, 103, 101, 102)));
+  }
+
+  @Test
+  void getTestCasesSortedByPriorityRankAscIntegrationTest() throws Exception {
+    // Alphabetical order would be HIGH, HIGH, LOW, MEDIUM
+    mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case")
+            .param("filter.in.id", "100,101,102,103")
+            .param("sort", "priorityRank,ASC")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content[*].priority", contains("LOW", "MEDIUM", "HIGH", "HIGH")))
+        .andExpect(jsonPath("$.content[*].id", contains(102, 101, 100, 103)));
+  }
+
+  @Test
+  void getTestCasesSortedByPriorityRankWithPriorityFilterAndPagingIntegrationTest()
+      throws Exception {
+    mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case")
+            .param("filter.in.id", "100,101,102,103")
+            .param("filter.in.priority", "HIGH,LOW")
+            .param("sort", "priorityRank,DESC")
+            .param("offset", "1")
+            .param("limit", "2")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content[*].id", contains(103, 102)))
+        .andExpect(jsonPath("$.page.totalElements").value(3));
+  }
+
+  @Test
+  void getTestCasesSortedByLastExecutionDescIntegrationTest() throws Exception {
+    // Given - latest executions: 103 (2023-10-08), 101 (2023-10-07), 100 (2023-10-06), 102 none
+    mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case")
+            .param("filter.in.id", "100,101,102,103")
+            .param("sort", "lastExecutionAt,DESC")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content[*].id", contains(103, 101, 100, 102)));
+  }
+
+  @Test
+  void getTestCasesSortedByLastExecutionAscIntegrationTest() throws Exception {
+    // A test case without executions counts as the oldest
+    mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case")
+            .param("filter.in.id", "100,101,102,103")
+            .param("sort", "lastExecutionAt,ASC")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content[*].id", contains(102, 100, 101, 103)))
+        .andExpect(jsonPath("$.page.totalElements").value(4));
   }
 
   @Test

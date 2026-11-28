@@ -70,6 +70,18 @@ class TmsContentSearchFilterSupportTest {
   }
 
   @Test
+  void withAllValues_IgnoresRepeatedValuesOfCriteriaNotListed() {
+    // e.g. "requirement" (EPMRPP-123492) keeps its own OR handling
+    var filter = testCaseFilter(new FilterCondition(Condition.CONTAINS, false, "A", "requirement"));
+    Map<String, String[]> parameters = Map.of(
+        "filter.cnt.requirement", new String[]{"A", "B"},
+        "filter.cnt.name", new String[]{"login"});
+
+    assertSame(filter, TmsContentSearchFilterSupport.withAllValues(filter, parameters::get,
+        "name", "description", "precondition", "instructions", "expectedResult"));
+  }
+
+  @Test
   void folderTestCaseConditions_OnlyPositiveContainsOfContentCriteria() {
     var filter = new Filter(TmsTestFolder.class, new ArrayList<>(List.of(
         new FilterCondition(Condition.CONTAINS, false, "step", "testCaseInstructions"),

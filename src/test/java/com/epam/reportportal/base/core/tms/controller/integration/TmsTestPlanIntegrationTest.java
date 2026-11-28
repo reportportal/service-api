@@ -62,6 +62,8 @@ public class TmsTestPlanIntegrationTest extends BaseMvcTest {
   private static final Long TEST_CASE_WITHOUT_EXECUTIONS_ID = 203L;
   private static final Long TEST_CASE_NOT_IN_PLAN_ID = 204L;
   private static final Long NON_EXISTENT_TEST_PLAN_ID = 99999L;
+  private static final Long TEST_PLAN_IN_MILESTONE_ID = 400L;
+  private static final int MILESTONE_FOR_TEST_PLANS_ID = 400;
   private static final Long NON_EXISTENT_TEST_CASE_ID = 99999L;
   private final JsonMapper objectMapper = JsonMapper.builder().build();
   @PersistenceContext
@@ -174,6 +176,26 @@ public class TmsTestPlanIntegrationTest extends BaseMvcTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.content").isArray())
         .andExpect(jsonPath("$.content.length()").value(10));
+  }
+
+  @Test
+  void getTestPlansByCriteria_milestoneWithoutProductVersion_shouldReturnMilestoneId()
+      throws Exception {
+    mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-plan")
+            .param("filter.eq.id", String.valueOf(TEST_PLAN_IN_MILESTONE_ID))
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content.length()").value(1))
+        .andExpect(jsonPath("$.content[0].milestoneId").value(MILESTONE_FOR_TEST_PLANS_ID));
+  }
+
+  @Test
+  void getTestPlanById_milestoneWithoutProductVersion_shouldReturnMilestoneId() throws Exception {
+    mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-plan/"
+            + TEST_PLAN_IN_MILESTONE_ID)
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.milestoneId").value(MILESTONE_FOR_TEST_PLANS_ID));
   }
 
   @Test

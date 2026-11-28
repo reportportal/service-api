@@ -40,8 +40,8 @@ VALUES (10, 'status', 'active',      1),
 
 -- ============================================================================
 -- TEST PLANS
--- All belong to project 1; sorted by id: 1,2,3,4,5,6,100,101,102,200,201,300,301,302,303
--- → TP-1..TP-15
+-- All belong to project 1; sorted by id: 1,2,3,4,5,6,100,101,102,200,201,300,301,302,303,400
+-- → TP-1..TP-16
 -- ============================================================================
 
 INSERT INTO tms_test_plan (id, "name", description, project_id, display_id, environment_id, product_version_id)
@@ -328,6 +328,14 @@ VALUES (300, 'Test Plan 300 - Multiple Folders', 'Plan with test cases from mult
        (302, 'Test Plan 302 - Single Folder',     'Plan with test cases from single folder',              1, 'TP-14'),
        (303, 'Test Plan 303 - Many Folders',      'Plan with test cases from many folders for pagination',1, 'TP-15');
 
+-- A plan in a milestone without a product version (product_version_id is nullable) → TP-16
+INSERT INTO tms_milestone (id, "name", status, start_date, end_date, "type", project_id, display_id)
+VALUES (400, 'Release 24.2 Beta', 'SCHEDULED',
+        '2024-01-01 00:00:00.000', '2024-03-31 23:59:59.000', 'RELEASE', 1, 'M-400');
+
+INSERT INTO tms_test_plan (id, "name", description, project_id, display_id, milestone_id)
+VALUES (400, 'Smoke regression', 'Plan in a milestone', 1, 'TP-16', 400);
+
 INSERT INTO tms_test_folder (id, "name", description, project_id)
 VALUES (300, 'Folder 300 for Plan 300', 'First folder with test cases in plan 300',   1),
        (301, 'Folder 301 for Plan 300', 'Second folder with test cases in plan 300',  1),
@@ -471,11 +479,12 @@ VALUES (300, 'Execute test case 300', 'System should respond correctly for TC300
 
 INSERT INTO tms_project_sequence (project_id, entity_type, current_value)
 VALUES (1, 'TEST_CASE', 51),
-       (1, 'TEST_PLAN', 15),
+       (1, 'TEST_PLAN', 16),
        (1, 'LAUNCH',    5);
 
 -- Update sequences
 SELECT setval('tms_test_plan_id_seq',                     (SELECT COALESCE(MAX(id), 1) FROM tms_test_plan));
+SELECT setval('tms_milestone_id_seq',                     (SELECT COALESCE(MAX(id), 1) FROM tms_milestone));
 SELECT setval('tms_test_folder_id_seq',                   (SELECT COALESCE(MAX(id), 1) FROM tms_test_folder));
 SELECT setval('tms_test_case_id_seq',                     (SELECT COALESCE(MAX(id), 1) FROM tms_test_case));
 SELECT setval('tms_test_case_execution_id_seq',           (SELECT COALESCE(MAX(id), 1) FROM tms_test_case_execution));

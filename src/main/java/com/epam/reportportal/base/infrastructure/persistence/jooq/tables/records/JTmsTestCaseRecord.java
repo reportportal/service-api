@@ -202,6 +202,20 @@ public class JTmsTestCaseRecord extends UpdatableRecordImpl<JTmsTestCaseRecord> 
         return (Long) get(12);
     }
 
+    /**
+     * Setter for <code>public.tms_test_case.position</code>.
+     */
+    public void setPosition(Long value) {
+        set(13, value);
+    }
+
+    /**
+     * Getter for <code>public.tms_test_case.position</code>.
+     */
+    public Long getPosition() {
+        return (Long) get(13);
+    }
+
     // -------------------------------------------------------------------------
     // Primary key information
     // -------------------------------------------------------------------------
@@ -225,7 +239,7 @@ public class JTmsTestCaseRecord extends UpdatableRecordImpl<JTmsTestCaseRecord> 
     /**
      * Create a detached, initialised JTmsTestCaseRecord
      */
-    public JTmsTestCaseRecord(Long id, Instant createdAt, Instant updatedAt, Instant sourceUpdatedAt, String name, String description, String priority, Object searchVector, String externalId, String displayId, Long projectId, Long testFolderId, Long datasetId) {
+    public JTmsTestCaseRecord(Long id, Instant createdAt, Instant updatedAt, Instant sourceUpdatedAt, String name, String description, String priority, Object searchVector, String externalId, String displayId, Long projectId, Long testFolderId, Long datasetId, Long position) {
         super(JTmsTestCase.TMS_TEST_CASE);
 
         setId(id);
@@ -241,6 +255,7 @@ public class JTmsTestCaseRecord extends UpdatableRecordImpl<JTmsTestCaseRecord> 
         setProjectId(projectId);
         setTestFolderId(testFolderId);
         setDatasetId(datasetId);
+        setPosition(position);
         resetTouchedOnNotNull();
     }
 }

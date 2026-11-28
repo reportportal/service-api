@@ -5,6 +5,7 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestC
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Modifying;
@@ -157,10 +158,16 @@ public interface TmsTestCaseRepository extends ReportPortalRepository<TmsTestCas
    * @param testFolderId the new test folder ID to assign. If null, the current test folder
    *                     assignment will remain unchanged.
    * @param priority     the new priority to assign
+   * <p>A test case that moves to another folder loses its position: in the target folder it comes
+   * after the ordered test cases, among the not ordered ones by creation.</p>
    */
   @Modifying
   @Query(value = "UPDATE tms_test_case "
-      + "SET test_folder_id = CASE "
+      + "SET position = CASE "
+      + "    WHEN :testFolderId IS NOT NULL AND :testFolderId <> test_folder_id THEN NULL "
+      + "    ELSE position "
+      + "END, "
+      + "test_folder_id = CASE "
       + "    WHEN :testFolderId IS NOT NULL THEN :testFolderId "
       + "    ELSE test_folder_id "
       + "END, "
@@ -232,4 +239,48 @@ public interface TmsTestCaseRepository extends ReportPortalRepository<TmsTestCas
       nativeQuery = true)
   List<Long> findIdsByProjectIdAndTestFolderId(@Param("projectId") Long projectId,
       @Param("testFolderId") Long testFolderId);
+
+  /**
+   * Returns the IDs of the test cases placed directly in the folder, in custom order: by position,
+   * test cases without a position last, then by ID. Locks the rows, so concurrent reorders of the
+   * same folder run one after another.
+   *
+   * @param projectId    the project ID
+   * @param testFolderId the folder ID (subfolders are not included)
+   * @return ordered test case IDs
+   */
+  @Query(value = "SELECT tc.id FROM tms_test_case tc "
+      + "WHERE tc.project_id = :projectId AND tc.test_folder_id = :testFolderId "
+      + "ORDER BY tc.position ASC NULLS LAST, tc.id ASC "
+      + "FOR UPDATE",
+      nativeQuery = true)
+  List<Long> findIdsInCustomOrderForUpdate(@Param("projectId") Long projectId,
+      @Param("testFolderId") Long testFolderId);
+
+  /**
+   * Writes the custom order of a folder: the test case at index {@code i} of {@code orderedIds}
+   * gets position {@code i + 1}. Does not change {@code updated_at}.
+   *
+   * @param projectId    the project ID
+   * @param testFolderId the folder ID
+   * @param orderedIds   all test case IDs of the folder in the new order
+   */
+  default void updatePositions(Long projectId, Long testFolderId, List<Long> orderedIds) {
+    updatePositions(projectId, testFolderId,
+        orderedIds.stream().map(String::valueOf).collect(Collectors.joining(",")));
+  }
+
+  /**
+   * See {@link #updatePositions(Long, Long, List)}; {@code orderedIds} is a comma-separated list.
+   */
+  @Modifying(flushAutomatically = true, clearAutomatically = true)
+  @Query(value = "UPDATE tms_test_case tc "
+      + "SET position = o.ord "
+      + "FROM unnest(CAST(string_to_array(:orderedIds, ',') AS BIGINT[])) "
+      + "WITH ORDINALITY AS o(id, ord) "
+      + "WHERE tc.id = o.id AND tc.project_id = :projectId AND tc.test_folder_id = :testFolderId",
+      nativeQuery = true)
+  void updatePositions(@Param("projectId") Long projectId,
+      @Param("testFolderId") Long testFolderId,
+      @Param("orderedIds") String orderedIds);
 }

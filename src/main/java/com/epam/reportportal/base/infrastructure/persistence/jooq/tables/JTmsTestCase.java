@@ -135,6 +135,11 @@ public class JTmsTestCase extends TableImpl<JTmsTestCaseRecord> {
      */
     public final TableField<JTmsTestCaseRecord, Long> DATASET_ID = createField(DSL.name("dataset_id"), SQLDataType.BIGINT, this, "");
 
+    /**
+     * The column <code>public.tms_test_case.position</code>.
+     */
+    public final TableField<JTmsTestCaseRecord, Long> POSITION = createField(DSL.name("position"), SQLDataType.BIGINT, this, "");
+
     private JTmsTestCase(Name alias, Table<JTmsTestCaseRecord> aliased) {
         this(alias, aliased, (Field<?>[]) null, null);
     }
@@ -204,7 +209,7 @@ public class JTmsTestCase extends TableImpl<JTmsTestCaseRecord> {
 
     @Override
     public List<Index> getIndexes() {
-        return Arrays.asList(Indexes.IDX_TMS_TEST_CASE_DISPLAY_ID_TRGM, Indexes.IDX_TMS_TEST_CASE_PROJECT_ID, Indexes.IDX_TMS_TEST_CASE_SEARCH_VECTOR, Indexes.IDX_TMS_TEST_CASE_TEST_FOLDER_ID, Indexes.UNQ_TMS_TEST_CASE_PROJECT_DISPLAY_ID);
+        return Arrays.asList(Indexes.IDX_TMS_TEST_CASE_DISPLAY_ID_TRGM, Indexes.IDX_TMS_TEST_CASE_FOLDER_POSITION, Indexes.IDX_TMS_TEST_CASE_PROJECT_ID, Indexes.IDX_TMS_TEST_CASE_SEARCH_VECTOR, Indexes.IDX_TMS_TEST_CASE_TEST_FOLDER_ID, Indexes.UNQ_TMS_TEST_CASE_PROJECT_DISPLAY_ID);
     }
 
     @Override

@@ -10,6 +10,7 @@ import com.epam.reportportal.base.core.tms.dto.batch.BatchDuplicateTestCasesRS;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchPatchTestCaseAttributesRQ;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchPatchTestCasesRQ;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchPatchTestCasesRS;
+import com.epam.reportportal.base.core.tms.dto.batch.BatchReorderTestCasesRQ;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchTestCaseOperationResultRS;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
@@ -63,6 +64,15 @@ public interface TmsTestCaseService {
       ReportPortalUser user, @Valid BatchDeleteTestCasesRQ deleteRequest);
 
   BatchPatchTestCasesRS patch(long projectId, @Valid BatchPatchTestCasesRQ patchRequest);
+
+  /**
+   * Moves test cases inside the custom order of a folder.
+   *
+   * @param projectId      the project ID
+   * @param testFolderId   the folder the test cases are placed in directly
+   * @param reorderRequest the test cases to move and the anchor test case
+   */
+  void reorder(long projectId, long testFolderId, @Valid BatchReorderTestCasesRQ reorderRequest);
 
   List<TmsTestFolderRS> importFromFile(
       MembershipDetails membershipDetails,

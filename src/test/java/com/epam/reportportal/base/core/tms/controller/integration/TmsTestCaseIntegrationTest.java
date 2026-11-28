@@ -40,6 +40,7 @@ import com.epam.reportportal.base.core.tms.dto.batch.BatchDuplicateTestCasesRQ;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchDuplicateTestCasesRS;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchPatchTestCaseAttributesRQ;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchPatchTestCasesRQ;
+import com.epam.reportportal.base.core.tms.dto.batch.BatchReorderTestCasesRQ;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsAttachmentRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsManualScenarioAttributeRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsManualScenarioRepository;
@@ -65,6 +66,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.jdbc.Sql;
+import org.springframework.test.context.jdbc.SqlMergeMode;
+import org.springframework.test.context.jdbc.SqlMergeMode.MergeMode;
 import tools.jackson.databind.json.JsonMapper;
 
 /**
@@ -3323,5 +3326,213 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
             jsonPath("$.description").value("Patched description for test case with execution"))
         .andExpect(
             jsonPath("$.lastExecutionAt").isNotEmpty()); // Should have the latest execution
+  }
+
+  // ---- Custom order (sort=position) ----
+
+  private static final String ORDER_FILL = "/db/tms/tms-test-case/tms-test-case-order-fill.sql";
+
+  private void reorder(long folderId, BatchReorderTestCasesRQ rq, int expectedStatus)
+      throws Exception {
+    mockMvc.perform(patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/folder/" + folderId
+            + "/test-case/order")
+            .contentType(APPLICATION_JSON)
+            .content(mapper.writeValueAsString(rq))
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().is(expectedStatus));
+  }
+
+  private void expectCustomOrder(long folderId, Integer... ids) throws Exception {
+    mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case")
+            .param("filter.eq.testFolderId", String.valueOf(folderId))
+            .param("sort", "position,ASC")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content[*].id", contains(ids)));
+  }
+
+  private Long positionOf(long testCaseId) {
+    entityManager.flush();
+    entityManager.clear();
+    return testCaseRepository.findById(testCaseId).orElseThrow().getPosition();
+  }
+
+  @Test
+  @Sql(ORDER_FILL)
+  @SqlMergeMode(MergeMode.MERGE)
+  void customOrderWithoutPositionsFollowsCreationOrderIntegrationTest() throws Exception {
+    expectCustomOrder(60, 600, 601, 602, 603);
+  }
+
+  @Test
+  @Sql(ORDER_FILL)
+  @SqlMergeMode(MergeMode.MERGE)
+  void reorderMovesTestCaseBeforeAnchorIntegrationTest() throws Exception {
+    reorder(60, BatchReorderTestCasesRQ.builder()
+        .testCaseIds(List.of(603L)).beforeTestCaseId(600L).build(), 204);
+
+    expectCustomOrder(60, 603, 600, 601, 602);
+    assertEquals(1L, positionOf(603));
+    assertEquals(4L, positionOf(602));
+  }
+
+  @Test
+  @Sql(ORDER_FILL)
+  @SqlMergeMode(MergeMode.MERGE)
+  void reorderMovesSeveralTestCasesAsBlockAfterAnchorIntegrationTest() throws Exception {
+    // Request order 602, 600; the block keeps the current order 600, 602
+    reorder(60, BatchReorderTestCasesRQ.builder()
+        .testCaseIds(List.of(602L, 600L)).afterTestCaseId(603L).build(), 204);
+
+    expectCustomOrder(60, 601, 603, 600, 602);
+
+    reorder(60, BatchReorderTestCasesRQ.builder()
+        .testCaseIds(List.of(600L)).beforeTestCaseId(601L).build(), 204);
+
+    expectCustomOrder(60, 600, 601, 603, 602);
+  }
+
+  @Test
+  @Sql(ORDER_FILL)
+  @SqlMergeMode(MergeMode.MERGE)
+  void createdTestCaseGoesToEndOfCustomOrderIntegrationTest() throws Exception {
+    reorder(60, BatchReorderTestCasesRQ.builder()
+        .testCaseIds(List.of(603L)).beforeTestCaseId(600L).build(), 204);
+
+    var testCaseRQ = new TmsTestCaseRQ();
+    testCaseRQ.setName("Order Case New");
+    testCaseRQ.setTestFolderId(60L);
+    var response = mockMvc.perform(post("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case")
+            .contentType(APPLICATION_JSON)
+            .content(mapper.writeValueAsString(testCaseRQ))
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andReturn().getResponse().getContentAsString();
+    var newId = mapper.readValue(response, TmsTestCaseRS.class).getId();
+
+    expectCustomOrder(60, 603, 600, 601, 602, newId.intValue());
+    assertNull(positionOf(newId));
+  }
+
+  @Test
+  @Sql(ORDER_FILL)
+  @SqlMergeMode(MergeMode.MERGE)
+  void batchMoveToReorderedFolderGoesAfterOrderedTestCasesIntegrationTest() throws Exception {
+    reorder(60, BatchReorderTestCasesRQ.builder()
+        .testCaseIds(List.of(603L)).beforeTestCaseId(600L).build(), 204);
+
+    // 604 moves in from folder 61; 601 is already in folder 60 and keeps its place
+    mockMvc.perform(patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/batch")
+            .contentType(APPLICATION_JSON)
+            .content(mapper.writeValueAsString(BatchPatchTestCasesRQ.builder()
+                .testCaseIds(List.of(604L, 601L)).testFolderId(60L).build()))
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk());
+
+    expectCustomOrder(60, 603, 600, 601, 602, 604);
+    assertNull(positionOf(604));
+    assertEquals(3L, positionOf(601));
+  }
+
+  @Test
+  @Sql(ORDER_FILL)
+  @SqlMergeMode(MergeMode.MERGE)
+  void batchMoveToNotReorderedFolderKeepsCreationOrderIntegrationTest() throws Exception {
+    reorder(60, BatchReorderTestCasesRQ.builder()
+        .testCaseIds(List.of(603L)).beforeTestCaseId(600L).build(), 204);
+
+    // Folder 61 was never reordered: 603 (from folder 60) sorts by creation before 604
+    mockMvc.perform(patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/batch")
+            .contentType(APPLICATION_JSON)
+            .content(mapper.writeValueAsString(BatchPatchTestCasesRQ.builder()
+                .testCaseIds(List.of(603L)).testFolderId(61L).build()))
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk());
+
+    assertNull(positionOf(603));
+    expectCustomOrder(61, 603, 604);
+    expectCustomOrder(60, 600, 601, 602);
+  }
+
+  @Test
+  @Sql(ORDER_FILL)
+  @SqlMergeMode(MergeMode.MERGE)
+  void patchKeepsPositionUnlessFolderChangesIntegrationTest() throws Exception {
+    reorder(60, BatchReorderTestCasesRQ.builder()
+        .testCaseIds(List.of(603L)).beforeTestCaseId(600L).build(), 204);
+
+    var rename = new TmsTestCaseRQ();
+    rename.setName("Order Case D renamed");
+    mockMvc.perform(patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/603")
+            .contentType(APPLICATION_JSON)
+            .content(mapper.writeValueAsString(rename))
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk());
+    assertEquals(1L, positionOf(603));
+
+    var move = new TmsTestCaseRQ();
+    move.setTestFolderId(61L);
+    mockMvc.perform(patch("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/603")
+            .contentType(APPLICATION_JSON)
+            .content(mapper.writeValueAsString(move))
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk());
+    // Moved test cases have no position: they join the unordered tail of the target folder,
+    // which is in creation order (603 is older than 604)
+    assertNull(positionOf(603));
+    expectCustomOrder(61, 603, 604);
+  }
+
+  @Test
+  @Sql(ORDER_FILL)
+  @SqlMergeMode(MergeMode.MERGE)
+  void putInSameFolderKeepsPositionIntegrationTest() throws Exception {
+    reorder(60, BatchReorderTestCasesRQ.builder()
+        .testCaseIds(List.of(600L)).afterTestCaseId(603L).build(), 204);
+    assertEquals(4L, positionOf(600));
+
+    var update = new TmsTestCaseRQ();
+    update.setName("Order Case A updated");
+    update.setPriority("HIGH");
+    update.setTestFolderId(60L);
+    mockMvc.perform(put("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case/600")
+            .contentType(APPLICATION_JSON)
+            .content(mapper.writeValueAsString(update))
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk());
+
+    assertEquals(4L, positionOf(600));
+    expectCustomOrder(60, 601, 602, 603, 600);
+  }
+
+  @Test
+  @Sql(ORDER_FILL)
+  @SqlMergeMode(MergeMode.MERGE)
+  void reorderRejectsInvalidRequestsIntegrationTest() throws Exception {
+    // no anchor
+    reorder(60, BatchReorderTestCasesRQ.builder().testCaseIds(List.of(600L)).build(), 400);
+    // both anchors
+    reorder(60, BatchReorderTestCasesRQ.builder().testCaseIds(List.of(600L))
+        .beforeTestCaseId(601L).afterTestCaseId(602L).build(), 400);
+    // anchor is one of the moved test cases
+    reorder(60, BatchReorderTestCasesRQ.builder().testCaseIds(List.of(600L, 601L))
+        .beforeTestCaseId(601L).build(), 400);
+    // duplicates
+    reorder(60, BatchReorderTestCasesRQ.builder().testCaseIds(List.of(600L, 600L))
+        .beforeTestCaseId(601L).build(), 400);
+    // moved test case from another folder
+    reorder(60, BatchReorderTestCasesRQ.builder().testCaseIds(List.of(604L))
+        .beforeTestCaseId(601L).build(), 400);
+    // anchor from another folder
+    reorder(60, BatchReorderTestCasesRQ.builder().testCaseIds(List.of(600L))
+        .beforeTestCaseId(604L).build(), 400);
+    // empty list
+    reorder(60, BatchReorderTestCasesRQ.builder().testCaseIds(List.of())
+        .beforeTestCaseId(601L).build(), 400);
+    // unknown folder
+    reorder(99999, BatchReorderTestCasesRQ.builder().testCaseIds(List.of(600L))
+        .beforeTestCaseId(601L).build(), 404);
+
+    expectCustomOrder(60, 600, 601, 602, 603);
   }
 }

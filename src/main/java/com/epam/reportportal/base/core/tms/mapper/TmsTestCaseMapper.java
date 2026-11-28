@@ -122,6 +122,7 @@ public abstract class TmsTestCaseMapper implements DtoMapper<TmsTestCase, TmsTes
   @Mapping(target = "versions", ignore = true)
   @Mapping(target = "createdAt", ignore = true)
   @Mapping(target = "updatedAt", ignore = true)
+  @Mapping(target = "position", ignore = true)
   public abstract void update(@MappingTarget TmsTestCase targetTestCase, TmsTestCase tmsTestCase);
 
   @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
@@ -134,6 +135,7 @@ public abstract class TmsTestCaseMapper implements DtoMapper<TmsTestCase, TmsTes
   @Mapping(target = "versions", ignore = true)
   @Mapping(target = "createdAt", ignore = true)
   @Mapping(target = "updatedAt", ignore = true)
+  @Mapping(target = "position", ignore = true)
   public abstract void patch(@MappingTarget TmsTestCase existingTestCase,
       TmsTestCase tmsTestCase);
 
@@ -162,6 +164,7 @@ public abstract class TmsTestCaseMapper implements DtoMapper<TmsTestCase, TmsTes
   @Mapping(target = "displayId", expression = "java(tmsDisplayIdService.generateTestCaseDisplayId(originalTestCase.getProject().getId()))")
   @Mapping(target = "createdAt", ignore = true)
   @Mapping(target = "updatedAt", ignore = true)
+  @Mapping(target = "position", ignore = true) // a copy is not ordered yet
   @Mapping(target = "name", source = "originalTestCase.name")
   @Mapping(target = "priority", source = "originalTestCase.priority")
   @Mapping(target = "description", source = "originalTestCase.description")
@@ -316,6 +319,10 @@ public abstract class TmsTestCaseMapper implements DtoMapper<TmsTestCase, TmsTes
     testCase.setSourceUpdatedAt(remoteTestCase.getUpdatedAt());
 
     if (localFolderId != null) {
+      if (testCase.getTestFolder() != null
+          && !localFolderId.equals(testCase.getTestFolder().getId())) {
+        testCase.setPosition(null); // moved to another folder: not ordered there yet
+      }
       testCase.setTestFolder(convertToTmsTestFolder(localFolderId, projectId));
     }
 

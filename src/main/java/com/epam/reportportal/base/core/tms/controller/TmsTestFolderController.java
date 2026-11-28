@@ -7,6 +7,8 @@ import com.epam.reportportal.base.core.tms.dto.DuplicateTmsTestFolderRS;
 import com.epam.reportportal.base.core.tms.dto.TmsTestFolderExportFileType;
 import com.epam.reportportal.base.core.tms.dto.TmsTestFolderRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestFolderRS;
+import com.epam.reportportal.base.core.tms.dto.batch.BatchReorderTestCasesRQ;
+import com.epam.reportportal.base.core.tms.service.TmsTestCaseService;
 import com.epam.reportportal.base.core.tms.service.TmsTestFolderService;
 import com.epam.reportportal.base.infrastructure.persistence.commons.EntityUtils;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
@@ -25,7 +27,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -36,6 +40,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -49,6 +54,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class TmsTestFolderController {
 
   private final TmsTestFolderService tmsTestFolderService;
+  private final TmsTestCaseService tmsTestCaseService;
   private final ProjectExtractor projectExtractor;
 
   /**
@@ -351,6 +357,45 @@ public class TmsTestFolderController {
         user,
         folderId,
         inputDto
+    );
+  }
+
+  /**
+   * Moves test cases inside the custom order of a folder.
+   *
+   * @param projectKey     The key of the project to which the folder belongs.
+   * @param folderId       The ID of the folder the test cases are placed in directly.
+   * @param reorderRequest The test cases to move and the test case to put them before or after.
+   */
+  @PatchMapping("/{folderId}/test-case/order")
+  @PreAuthorize(ALLOWED_TO_EDIT_PROJECT)
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @Operation(
+      summary = "Reorder test cases in a folder",
+      description = "Moves test cases of a folder as one block before or after another test case "
+          + "of the same folder. The order is shared by the project and is used by "
+          + "sort=position,ASC. Test cases that are not ordered yet come last."
+  )
+  @ApiResponses(value = {
+      @ApiResponse(responseCode = "204", description = "Test cases reordered"),
+      @ApiResponse(responseCode = "400", description = "Invalid request body or a test case "
+          + "is not in the folder"),
+      @ApiResponse(responseCode = "404", description = "Test folder not found")
+  })
+  public void reorderTestCases(
+      @Parameter(description = "Project key", required = true)
+      @PathVariable("projectKey") String projectKey,
+      @Parameter(description = "Test folder ID", required = true)
+      @PathVariable("folderId") Long folderId,
+      @Parameter(description = "Test cases to move and the anchor test case", required = true)
+      @RequestBody @Valid final BatchReorderTestCasesRQ reorderRequest,
+      @AuthenticationPrincipal ReportPortalUser user) {
+    tmsTestCaseService.reorder(
+        projectExtractor
+            .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey))
+            .getProjectId(),
+        folderId,
+        reorderRequest
     );
   }
 }

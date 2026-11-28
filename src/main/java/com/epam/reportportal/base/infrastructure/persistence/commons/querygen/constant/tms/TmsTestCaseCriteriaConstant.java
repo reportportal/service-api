@@ -34,6 +34,10 @@ public final class TmsTestCaseCriteriaConstant {
    * Start time of the latest execution, the same value as {@code lastExecutionAt} in the response.
    */
   public static final String CRITERIA_TMS_TEST_CASE_LAST_EXECUTION_AT = "lastExecutionAt";
+  /**
+   * Custom order inside a folder. Sort with {@code ASC}: test cases without a position come last.
+   */
+  public static final String CRITERIA_TMS_TEST_CASE_POSITION = "position";
   public static final String CRITERIA_TMS_TEST_CASE_PROJECT_ID = "projectId";
   public static final String CRITERIA_TMS_TEST_CASE_FOLDER_ID = "testFolderId";
   public static final String CRITERIA_TMS_TEST_CASE_PLAN_ID = "testPlanId";

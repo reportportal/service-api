@@ -25,8 +25,10 @@ import com.epam.reportportal.base.core.tms.dto.TmsTestFolderRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestFolderRS;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchFolderOperationError;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchFolderOperationResultRS;
+import com.epam.reportportal.base.core.tms.dto.batch.BatchReorderTestCasesRQ;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchTestCaseOperationError;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchTestCaseOperationResultRS;
+import com.epam.reportportal.base.core.tms.service.TmsTestCaseService;
 import com.epam.reportportal.base.core.tms.service.TmsTestFolderService;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
@@ -39,6 +41,7 @@ import com.epam.reportportal.base.ws.resolver.OffsetArgumentResolver;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -67,6 +70,8 @@ public class TmsTestFolderControllerTest {
 
   @Mock
   private TmsTestFolderService tmsTestFolderService;
+  @Mock
+  private TmsTestCaseService tmsTestCaseService;
   @Mock
   private ProjectExtractor projectExtractor;
   @InjectMocks
@@ -1018,5 +1023,22 @@ public class TmsTestFolderControllerTest {
 
     verify(projectExtractor).extractMembershipDetails(eq(testUser), anyString());
     verify(tmsTestFolderService).duplicateFolder(membershipDetails, testUser, folderId, request);
+  }
+
+  @Test
+  public void testReorderTestCases() throws Exception {
+    var folderId = 60L;
+    var request = BatchReorderTestCasesRQ.builder()
+        .testCaseIds(List.of(3L, 4L))
+        .beforeTestCaseId(1L)
+        .build();
+
+    mockMvc.perform(patch("/v1/project/{projectKey}/tms/folder/{folderId}/test-case/order",
+            projectKey, folderId)
+            .contentType("application/json")
+            .content(objectMapper.writeValueAsString(request)))
+        .andExpect(status().isNoContent());
+
+    verify(tmsTestCaseService).reorder(projectId, folderId, request);
   }
 }

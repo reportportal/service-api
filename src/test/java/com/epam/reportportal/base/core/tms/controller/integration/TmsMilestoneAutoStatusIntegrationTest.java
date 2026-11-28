@@ -159,4 +159,16 @@ class TmsMilestoneAutoStatusIntegrationTest extends BaseMvcTest {
         .andExpect(jsonPath("$.status").value("SCHEDULED"))
         .andExpect(jsonPath("$.autoStartOnStartDate").value(true));
   }
+
+  @Test
+  void patchExecution_statusAndComment_shouldStartMilestoneAndSaveComment() throws Exception {
+    mockMvc.perform(patch("/v1/project/superadmin_personal/launch/manual/906/test-case/execution/90906")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("{\"status\": \"IN_PROGRESS\", \"executionComment\": {\"comment\": \"started\"}}")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.executionComment.comment").value("started"));
+
+    assertEquals(TmsMilestoneStatus.TESTING, statusOf(906));
+  }
 }

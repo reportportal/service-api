@@ -112,7 +112,8 @@ public interface TmsMilestoneRepository extends ReportPortalRepository<TmsMilest
    * @param launchId the launch ID of the executed test
    * @return number of updated milestones (0 or 1)
    */
-  @Modifying(clearAutomatically = true, flushAutomatically = true)
+  // No clearAutomatically: runs inside the execution PATCH, whose entities must stay managed.
+  @Modifying(flushAutomatically = true)
   @Query(value = "UPDATE tms_milestone m SET status = 'TESTING' "
       + "FROM tms_test_plan tp JOIN launch l ON l.test_plan_id = tp.id "
       + "WHERE l.id = :launchId AND tp.milestone_id = m.id "

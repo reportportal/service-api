@@ -29,5 +29,11 @@ public class TmsMilestoneRS {
 
   private Instant endDate;
 
+  private boolean autoStartOnStartDate;
+
+  private boolean autoStartOnFirstExecution;
+
+  private boolean autoCompleteAfterDeadline;
+
   private List<TmsTestPlanRS> testPlans;
 }

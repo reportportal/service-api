@@ -14,6 +14,7 @@ import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.base.model.Page;
 import com.epam.reportportal.base.ws.converter.PagedResourcesAssembler;
+import java.time.Instant;
 import java.util.Collections;
 import java.util.Objects;
 import java.util.function.Function;
@@ -35,6 +36,7 @@ public class TmsMilestoneServiceImpl implements TmsMilestoneService {
   private final TmsMilestoneRepository tmsMilestoneRepository;
   private final TmsMilestoneFilterableRepository tmsMilestoneFilterableRepository;
   private final TmsTestPlanService tmsTestPlanService;
+  private final TmsMilestoneAutoStatusService tmsMilestoneAutoStatusService;
 
   @Override
   @Transactional
@@ -42,6 +44,8 @@ public class TmsMilestoneServiceImpl implements TmsMilestoneService {
     var milestone = tmsMilestoneMapper.toEntity(projectId, milestoneRQ);
 
     // ProductVersion is nullable and not required for now
+
+    tmsMilestoneAutoStatusService.applyTo(milestone, Instant.now());
 
     var savedMilestone = tmsMilestoneRepository.save(milestone);
 
@@ -109,8 +113,14 @@ public class TmsMilestoneServiceImpl implements TmsMilestoneService {
   @Transactional
   public TmsMilestoneRS patch(Long projectId, Long milestoneId, TmsMilestoneRQ milestoneRQ) {
     var milestone = findMilestoneByIdAndProjectId(projectId, milestoneId);
+    var statusBeforePatch = milestone.getStatus();
 
     tmsMilestoneMapper.patchEntity(projectId, milestoneRQ, milestone);
+
+    // A manual status change wins: the automatic rules are not applied to the same request.
+    if (milestone.getStatus() == statusBeforePatch) {
+      tmsMilestoneAutoStatusService.applyTo(milestone, Instant.now());
+    }
 
     var updatedMilestone = tmsMilestoneRepository.save(milestone);
 
@@ -174,6 +184,7 @@ public class TmsMilestoneServiceImpl implements TmsMilestoneService {
 
     // Create a new milestone with data from request
     var newMilestone = tmsMilestoneMapper.toEntity(projectId, duplicateMilestoneRQ);
+    tmsMilestoneAutoStatusService.applyTo(newMilestone, Instant.now());
 
     var savedMilestone = tmsMilestoneRepository.save(newMilestone);
 

@@ -44,6 +44,9 @@ public abstract class TmsMilestoneMapper {
   @Mapping(target = "status", source = "milestoneRQ.status", qualifiedByName = "mapStatusWithDefault",
       nullValueCheckStrategy = NullValueCheckStrategy.ON_IMPLICIT_CONVERSION)
   @Mapping(target = "displayId", expression = "java(tmsDisplayIdService.generateMilestoneDisplayId(projectId))")
+  @Mapping(target = "autoStartOnStartDate", source = "milestoneRQ.autoStartOnStartDate", defaultValue = "false")
+  @Mapping(target = "autoStartOnFirstExecution", source = "milestoneRQ.autoStartOnFirstExecution", defaultValue = "false")
+  @Mapping(target = "autoCompleteAfterDeadline", source = "milestoneRQ.autoCompleteAfterDeadline", defaultValue = "false")
   public abstract TmsMilestone toEntity(Long projectId, TmsMilestoneRQ milestoneRQ);
 
   /**

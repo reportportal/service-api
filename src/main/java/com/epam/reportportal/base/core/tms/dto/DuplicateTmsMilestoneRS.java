@@ -27,6 +27,12 @@ public class DuplicateTmsMilestoneRS {
 
   private Instant endDate;
 
+  private boolean autoStartOnStartDate;
+
+  private boolean autoStartOnFirstExecution;
+
+  private boolean autoCompleteAfterDeadline;
+
   private String displayId;
 
   private List<DuplicateTmsTestPlanRS> testPlans;

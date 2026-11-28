@@ -87,6 +87,7 @@ public class TmsTestCaseExecutionServiceImpl implements TmsTestCaseExecutionServ
   private final NestedStepItemBuilder nestedStepItemBuilder;
   private final TestCaseItemBuilder testCaseItemBuilder;
   private final TmsManualScenarioMapper tmsManualScenarioMapper;
+  private final TmsMilestoneAutoStatusService tmsMilestoneAutoStatusService;
 
   private TmsTestCaseService tmsTestCaseService;
   private TmsManualLaunchService tmsManualLaunchService;
@@ -699,6 +700,9 @@ public class TmsTestCaseExecutionServiceImpl implements TmsTestCaseExecutionServ
               }
               // Add the test case to test plan for PASSED or FAILED status
               addTestCaseToTestPlan(execution, request.getStatus());
+              if (targetStatus != StatusEnum.TO_RUN) {
+                tmsMilestoneAutoStatusService.onTestExecuted(execution.getLaunchId());
+              }
               updated = true;
             }
           }

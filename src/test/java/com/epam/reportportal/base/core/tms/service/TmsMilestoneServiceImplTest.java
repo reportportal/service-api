@@ -9,7 +9,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -27,6 +30,7 @@ import com.epam.reportportal.base.infrastructure.persistence.dao.tms.TmsMileston
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.filterable.TmsMilestoneFilterableRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.MembershipDetails;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsMilestone;
+import com.epam.reportportal.base.infrastructure.persistence.entity.tms.enums.TmsMilestoneStatus;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import java.util.Collections;
@@ -58,6 +62,9 @@ class TmsMilestoneServiceImplTest {
 
   @Mock
   private TmsTestPlanService tmsTestPlanService;
+
+  @Mock
+  private TmsMilestoneAutoStatusService tmsMilestoneAutoStatusService;
 
   @Mock
   private MembershipDetails membershipDetails;
@@ -959,5 +966,60 @@ class TmsMilestoneServiceImplTest {
     verify(tmsMilestoneRepository).save(newMilestoneEntity);
     verify(tmsMilestoneMapper).convertToDuplicateTmsMilestoneRS(savedMilestoneEntity,
         duplicateTestPlansRS);
+  }
+
+  // Tests for the automatic status on save
+
+  @Test
+  void create_ShouldApplyAutomaticStatusBeforeSave() {
+    var milestoneRQ = new TmsMilestoneRQ();
+    var milestoneEntity = new TmsMilestone();
+
+    when(tmsMilestoneMapper.toEntity(projectId, milestoneRQ)).thenReturn(milestoneEntity);
+    when(tmsMilestoneRepository.save(milestoneEntity)).thenReturn(milestoneEntity);
+
+    sut.create(projectId, milestoneRQ);
+
+    var inOrder = inOrder(tmsMilestoneAutoStatusService, tmsMilestoneRepository);
+    inOrder.verify(tmsMilestoneAutoStatusService).applyTo(eq(milestoneEntity), any());
+    inOrder.verify(tmsMilestoneRepository).save(milestoneEntity);
+  }
+
+  @Test
+  void patch_WhenStatusUnchanged_ShouldApplyAutomaticStatus() {
+    var milestoneRQ = new TmsMilestoneRQ();
+    milestoneRQ.setStatus(com.epam.reportportal.base.core.tms.dto.TmsMilestoneStatus.SCHEDULED);
+    var milestoneEntity = new TmsMilestone();
+    milestoneEntity.setId(milestoneId);
+    milestoneEntity.setStatus(TmsMilestoneStatus.SCHEDULED);
+
+    when(tmsMilestoneRepository.findByIdAndProjectId(milestoneId, projectId))
+        .thenReturn(Optional.of(milestoneEntity));
+    when(tmsMilestoneRepository.save(milestoneEntity)).thenReturn(milestoneEntity);
+
+    sut.patch(projectId, milestoneId, milestoneRQ);
+
+    verify(tmsMilestoneAutoStatusService).applyTo(eq(milestoneEntity), any());
+  }
+
+  @Test
+  void patch_WhenStatusChangedManually_ShouldNotApplyAutomaticStatus() {
+    var milestoneRQ = new TmsMilestoneRQ();
+    var milestoneEntity = new TmsMilestone();
+    milestoneEntity.setId(milestoneId);
+    milestoneEntity.setStatus(TmsMilestoneStatus.TESTING);
+
+    when(tmsMilestoneRepository.findByIdAndProjectId(milestoneId, projectId))
+        .thenReturn(Optional.of(milestoneEntity));
+    doAnswer(invocation -> {
+      milestoneEntity.setStatus(
+          TmsMilestoneStatus.SCHEDULED);
+      return null;
+    }).when(tmsMilestoneMapper).patchEntity(projectId, milestoneRQ, milestoneEntity);
+    when(tmsMilestoneRepository.save(milestoneEntity)).thenReturn(milestoneEntity);
+
+    sut.patch(projectId, milestoneId, milestoneRQ);
+
+    verify(tmsMilestoneAutoStatusService, never()).applyTo(any(), any());
   }
 }

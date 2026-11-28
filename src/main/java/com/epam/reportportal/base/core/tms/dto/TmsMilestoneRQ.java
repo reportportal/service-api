@@ -27,6 +27,25 @@ public class TmsMilestoneRQ {
   private Instant endDate;
 
   /**
+   * Automatic status option: a Scheduled milestone moves to Testing on its start date. {@code null}
+   * keeps the saved value on PATCH and means {@code false} on create.
+   */
+  private Boolean autoStartOnStartDate;
+
+  /**
+   * Automatic status option: a Scheduled milestone moves to Testing when the first test execution
+   * of any of its test plans gets a status. {@code null} keeps the saved value on PATCH and means
+   * {@code false} on create.
+   */
+  private Boolean autoStartOnFirstExecution;
+
+  /**
+   * Automatic status option: a Testing milestone moves to Completed when its deadline day is over.
+   * {@code null} keeps the saved value on PATCH and means {@code false} on create.
+   */
+  private Boolean autoCompleteAfterDeadline;
+
+  /**
    * Whether the {@code startDate} property was present in the JSON payload, including an explicit
    * {@code null}. Allows PATCH to tell "clear the date" from "keep the date".
    */
@@ -44,12 +63,16 @@ public class TmsMilestoneRQ {
   @JsonCreator(mode = JsonCreator.Mode.DISABLED)
   @Builder
   public TmsMilestoneRQ(String name, TmsMilestoneType type, TmsMilestoneStatus status,
-      Instant startDate, Instant endDate) {
+      Instant startDate, Instant endDate, Boolean autoStartOnStartDate,
+      Boolean autoStartOnFirstExecution, Boolean autoCompleteAfterDeadline) {
     this.name = name;
     this.type = type;
     this.status = status;
     this.startDate = startDate;
     this.endDate = endDate;
+    this.autoStartOnStartDate = autoStartOnStartDate;
+    this.autoStartOnFirstExecution = autoStartOnFirstExecution;
+    this.autoCompleteAfterDeadline = autoCompleteAfterDeadline;
   }
 
   @JsonSetter("startDate")

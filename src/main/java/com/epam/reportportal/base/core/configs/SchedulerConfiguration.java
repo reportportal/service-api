@@ -17,6 +17,7 @@
 package com.epam.reportportal.base.core.configs;
 
 import com.epam.reportportal.base.core.tms.scheduled.TmsAttachmentCleanupJob;
+import com.epam.reportportal.base.core.tms.scheduled.TmsMilestoneAutoStatusJob;
 import com.epam.reportportal.base.core.tms.scheduled.TmsSyncOutboxPollerJob;
 import com.epam.reportportal.base.job.CleanExpiredCreationBidsJob;
 import com.epam.reportportal.base.job.FlushingDataJob;
@@ -219,6 +220,18 @@ public class SchedulerConfiguration {
   @Bean("tmsSyncOutboxPollerJobBean")
   public JobDetailFactoryBean tmsSyncOutboxPollerJob() {
     return createJobDetail(TmsSyncOutboxPollerJob.class);
+  }
+
+  @Bean
+  public SimpleTriggerFactoryBean tmsMilestoneAutoStatusTrigger(
+      @Named("tmsMilestoneAutoStatusJobBean") JobDetail jobDetail,
+      @Value("${rp.tms.milestone.auto-status.cron:PT5M}") String autoStatusCron) {
+    return createTrigger(jobDetail, Duration.parse(autoStatusCron).toMillis());
+  }
+
+  @Bean("tmsMilestoneAutoStatusJobBean")
+  public JobDetailFactoryBean tmsMilestoneAutoStatusJob() {
+    return createJobDetail(TmsMilestoneAutoStatusJob.class);
   }
 
   public SimpleTriggerFactoryBean createTriggerDelayed(JobDetail jobDetail, long pollFrequencyMs) {

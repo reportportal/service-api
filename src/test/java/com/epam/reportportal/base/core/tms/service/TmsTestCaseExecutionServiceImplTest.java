@@ -98,6 +98,9 @@ class TmsTestCaseExecutionServiceImplTest {
   @Mock
   private TmsManualScenarioMapper tmsManualScenarioMapper;
 
+  @Mock
+  private TmsMilestoneAutoStatusService tmsMilestoneAutoStatusService;
+
   @InjectMocks
   private TmsTestCaseExecutionServiceImpl sut;
 
@@ -188,6 +191,7 @@ class TmsTestCaseExecutionServiceImplTest {
     assertNotNull(result);
     assertEquals(StatusEnum.IN_PROGRESS, testItem1.getItemResults().getStatus());
     verify(testItemRepository).save(testItem1);
+    verify(tmsMilestoneAutoStatusService).onTestExecuted(execution1.getLaunchId());
     verifyNoInteractions(updateTestItemHandler);
     verifyNoInteractions(finishTestItemHandler);
     verifyNoInteractions(testCaseItemBuilder);
@@ -216,6 +220,7 @@ class TmsTestCaseExecutionServiceImplTest {
     verifyNoInteractions(finishTestItemHandler);
     verifyNoInteractions(testCaseItemBuilder);
     verify(testItemRepository, never()).save(any());
+    verifyNoInteractions(tmsMilestoneAutoStatusService);
   }
 
   // ==================== patch: Active -> Terminal ====================

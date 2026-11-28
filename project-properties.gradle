@@ -115,7 +115,8 @@ project.ext {
             (migrationsUrl + '/migrations/225_extract_launch_attribute.up.sql')                         : 'V225__extract_launch_attribute.up.sql',
             (migrationsUrl + '/migrations/226_extract_launch_statistics.up.sql')                        : 'V226__extract_launch_statistics.up.sql',
             (migrationsUrl + '/migrations/227_update_merge_launch_after_launch_tables_split.up.sql')    : 'V227__update_merge_launch_after_launch_tables_split.up.sql',
-            (migrationsUrl + '/migrations/228_manual_launch_perf_indexes.up.sql')                       : 'V228__manual_launch_perf_indexes.up.sql'
+            (migrationsUrl + '/migrations/228_manual_launch_perf_indexes.up.sql')                       : 'V228__manual_launch_perf_indexes.up.sql',
+            (migrationsUrl + '/migrations/234_tms_milestone_automatic_status.up.sql')                   : 'V234__tms_milestone_automatic_status.up.sql'
     ]
     excludeTests = ['**/entity/**',
                     '**/aop/**',

@@ -61,6 +61,15 @@ public class TmsMilestone {
   @JdbcTypeCode(SqlTypes.NAMED_ENUM)
   private TmsMilestoneStatus status;
 
+  @Column(name = "auto_start_on_start_date", nullable = false)
+  private boolean autoStartOnStartDate;
+
+  @Column(name = "auto_start_on_first_execution", nullable = false)
+  private boolean autoStartOnFirstExecution;
+
+  @Column(name = "auto_complete_after_deadline", nullable = false)
+  private boolean autoCompleteAfterDeadline;
+
   @ManyToOne
   @JoinColumn(name = "product_version_id", nullable = false)
   private TmsProductVersion productVersion;

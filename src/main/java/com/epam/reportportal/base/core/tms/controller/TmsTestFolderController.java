@@ -2,6 +2,7 @@ package com.epam.reportportal.base.core.tms.controller;
 
 import static com.epam.reportportal.base.auth.permissions.Permissions.ALLOWED_TO_EDIT_PROJECT;
 import static com.epam.reportportal.base.auth.permissions.Permissions.ALLOWED_TO_VIEW_PROJECT;
+import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestFolderCriteriaConstant.CRITERIA_TMS_TEST_FOLDER_TEST_CASE_REQUIREMENT;
 
 import com.epam.reportportal.base.core.tms.dto.DuplicateTmsTestFolderRS;
 import com.epam.reportportal.base.core.tms.dto.TmsTestFolderExportFileType;
@@ -10,7 +11,9 @@ import com.epam.reportportal.base.core.tms.dto.TmsTestFolderRS;
 import com.epam.reportportal.base.core.tms.service.TmsTestFolderService;
 import com.epam.reportportal.base.infrastructure.persistence.commons.EntityUtils;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
+import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Condition;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
+import com.epam.reportportal.base.infrastructure.persistence.dao.tms.util.TmsRequirementFilterSupport;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestFolder;
 import com.epam.reportportal.base.model.Page;
 import com.epam.reportportal.base.util.OffsetRequest;
@@ -24,6 +27,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -47,6 +51,9 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "Test Folder", description = "Tms Test Folder API collection")
 @RequiredArgsConstructor
 public class TmsTestFolderController {
+
+  private static final String TEST_CASE_REQUIREMENT_FILTER_PARAM =
+      "filter." + Condition.CNT + CRITERIA_TMS_TEST_FOLDER_TEST_CASE_REQUIREMENT;
 
   private final TmsTestFolderService tmsTestFolderService;
   private final ProjectExtractor projectExtractor;
@@ -230,6 +237,7 @@ public class TmsTestFolderController {
       @Parameter(description = "Project key", required = true)
       @PathVariable("projectKey") String projectKey,
       @FilterFor(TmsTestFolder.class) Filter filter,
+      @Parameter(hidden = true) HttpServletRequest request,
       @AuthenticationPrincipal ReportPortalUser user,
       @Parameter(description = "Pagination parameters")
       @PagingOffset(sortable = TmsTestFolder.class) OffsetRequest offsetRequest) {
@@ -237,7 +245,9 @@ public class TmsTestFolderController {
         projectExtractor
             .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey))
             .getProjectId(),
-        filter,
+        TmsRequirementFilterSupport.withAnyRequirement(filter,
+            CRITERIA_TMS_TEST_FOLDER_TEST_CASE_REQUIREMENT,
+            request.getParameterValues(TEST_CASE_REQUIREMENT_FILTER_PARAM)),
         offsetRequest
     );
   }

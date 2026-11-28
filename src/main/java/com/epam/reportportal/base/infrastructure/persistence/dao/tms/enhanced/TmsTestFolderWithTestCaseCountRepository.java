@@ -5,6 +5,7 @@ import static com.epam.reportportal.base.infrastructure.persistence.commons.quer
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestFolderCriteriaConstant.CRITERIA_TMS_TEST_FOLDER_TEST_CASE_ATTRIBUTE_KEY;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestFolderCriteriaConstant.CRITERIA_TMS_TEST_FOLDER_TEST_CASE_NAME;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestFolderCriteriaConstant.CRITERIA_TMS_TEST_FOLDER_TEST_CASE_PRIORITY;
+import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestFolderCriteriaConstant.CRITERIA_TMS_TEST_FOLDER_TEST_CASE_REQUIREMENT;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestFolderCriteriaConstant.CRITERIA_TMS_TEST_FOLDER_TEST_PLAN_ID;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.TMS_ATTRIBUTE;
 import static com.epam.reportportal.base.infrastructure.persistence.jooq.Tables.TMS_TEST_CASE;
@@ -15,6 +16,7 @@ import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Co
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.FilterCondition;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.filterable.TmsTestFolderFilterableRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.tms.util.TmsRequirementFilterSupport;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestFolder;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestFolderWithCountOfTestCases;
 import java.util.ArrayList;
@@ -103,6 +105,8 @@ public class TmsTestFolderWithTestCaseCountRepository {
     Condition attributesCondition = null;
     List<String> attributeKeys = null;
     Condition attributeKeysCondition = null;
+    var requirements = TmsRequirementFilterSupport.extractValues(filter,
+        CRITERIA_TMS_TEST_FOLDER_TEST_CASE_REQUIREMENT);
 
     for (var condition : filter.getFilterConditions()) {
       if (condition instanceof FilterCondition fc) {
@@ -134,12 +138,14 @@ public class TmsTestFolderWithTestCaseCountRepository {
     if ((name != null && nameCondition != null)
         || (priority != null && priorityCondition != null)
         || (attributes != null &&  attributesCondition != null)
-        || (attributeKeys != null && attributeKeysCondition != null)) {
+        || (attributeKeys != null && attributeKeysCondition != null)
+        || !requirements.isEmpty()) {
       return new TestCaseFilterParams(
           name, nameCondition,
           priority, priorityCondition,
           attributes, attributesCondition,
-          attributeKeys, attributeKeysCondition
+          attributeKeys, attributeKeysCondition,
+          requirements
       );
     } else {
       return null;
@@ -216,6 +222,11 @@ public class TmsTestFolderWithTestCaseCountRepository {
       }
     }
 
+    if (testCaseFilterParams != null && !testCaseFilterParams.requirements().isEmpty()) {
+      query = query.and(TmsRequirementFilterSupport.anyRequirementContains(TMS_TEST_CASE.ID,
+          testCaseFilterParams.requirements()));
+    }
+
     return query.fetchOne(0, Long.class);
   }
 
@@ -227,7 +238,8 @@ public class TmsTestFolderWithTestCaseCountRepository {
       List<Long> attributes,
       Condition attributesCondition,
       List<String> attributeKeys,
-      Condition attributeKeysCondition
+      Condition attributeKeysCondition,
+      List<String> requirements
   ) {
   }
 }

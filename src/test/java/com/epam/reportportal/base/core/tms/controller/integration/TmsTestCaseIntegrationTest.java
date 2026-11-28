@@ -1,7 +1,10 @@
 package com.epam.reportportal.base.core.tms.controller.integration;
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
+import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.empty;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -3261,5 +3264,105 @@ public class TmsTestCaseIntegrationTest extends BaseMvcTest {
             jsonPath("$.description").value("Patched description for test case with execution"))
         .andExpect(
             jsonPath("$.lastExecutionAt").isNotEmpty()); // Should have the latest execution
+  }
+
+  // --- Filter by requirement (EPMRPP-123492) ---
+
+  /**
+   * Adds requirements: TC4 (folder 4, HIGH) a link with the id, TC7 (folder 4, LOW) the id in
+   * lower case, TC5 (folder 5, MEDIUM) another id, and the non-default version of TC18 the id.
+   */
+  private void insertRequirementFilterData() {
+    insertRequirement("REQ-F-1", "https://www.jira.example.com/browse/EPMRPP-123492", 1);
+    insertRequirement("REQ-F-2", "epmrpp-123492 login flow", 4);
+    insertRequirement("REQ-F-3", "EPMRPP-999", 2);
+    insertRequirement("REQ-F-4", "EPMRPP-123492", 16);
+  }
+
+  private void insertRequirement(String id, String value, long manualScenarioId) {
+    entityManager.createNativeQuery(
+            "INSERT INTO tms_manual_scenario_requirement (id, value, manual_scenario_id, number)"
+                + " VALUES (:id, :value, :scenarioId, 100)")
+        .setParameter("id", id)
+        .setParameter("value", value)
+        .setParameter("scenarioId", manualScenarioId)
+        .executeUpdate();
+  }
+
+  @Test
+  void getTestCasesByRequirement_ContainsIgnoringCase_DefaultVersionOnly() throws Exception {
+    insertRequirementFilterData();
+
+    mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case")
+            .param("filter.cnt.requirement", "EPMRPP-123492")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content.length()").value(2))
+        .andExpect(jsonPath("$.content[*].id", containsInAnyOrder(4, 7)));
+  }
+
+  @Test
+  void getTestCasesByRequirement_SeveralValues_CombinedWithOr() throws Exception {
+    insertRequirementFilterData();
+
+    mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case")
+            .param("filter.cnt.requirement", "EPMRPP-123492", " epmrpp-999 ", "", "EPMRPP-999")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content.length()").value(3))
+        .andExpect(jsonPath("$.page.totalElements").value(3))
+        .andExpect(jsonPath("$.content[*].id", containsInAnyOrder(4, 5, 7)));
+  }
+
+  @Test
+  void getTestCasesByRequirement_CombinedWithPriorityAndFolder_WithAnd() throws Exception {
+    insertRequirementFilterData();
+
+    mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case")
+            .param("filter.cnt.requirement", "EPMRPP-123492", "EPMRPP-999")
+            .param("filter.in.priority", "HIGH,MEDIUM")
+            .param("filter.eq.testFolderId", "4")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content.length()").value(1))
+        .andExpect(jsonPath("$.content[0].id").value(4));
+  }
+
+  @Test
+  void getTestCasesByRequirement_WildcardIsLiteral() throws Exception {
+    insertRequirementFilterData();
+
+    mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case")
+            .param("filter.cnt.requirement", "%")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content.length()").value(0));
+  }
+
+  @Test
+  void getTestCasesByRequirement_OnlyContainsAllowed() throws Exception {
+    mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/test-case")
+            .param("filter.eq.requirement", "EPMRPP-123492")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  void getFoldersByTestCaseRequirement_CountsMatchingTestCases() throws Exception {
+    insertRequirementFilterData();
+
+    mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/folder")
+            .param("filter.cnt.testCaseRequirement", "EPMRPP-123492")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content[?(@.id == 4)].countOfTestCases", contains(2)))
+        .andExpect(jsonPath("$.content[?(@.id == 5)]", empty()));
+
+    mockMvc.perform(get("/v1/project/" + SUPERADMIN_PROJECT_KEY + "/tms/folder")
+            .param("filter.cnt.testCaseRequirement", "EPMRPP-123492", "EPMRPP-999")
+            .with(token(oAuthHelper.getSuperadminToken())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content[?(@.id == 4)].countOfTestCases", contains(2)))
+        .andExpect(jsonPath("$.content[?(@.id == 5)].countOfTestCases", contains(1)));
   }
 }

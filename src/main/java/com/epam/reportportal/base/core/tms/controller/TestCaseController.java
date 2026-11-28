@@ -2,6 +2,7 @@ package com.epam.reportportal.base.core.tms.controller;
 
 import static com.epam.reportportal.base.auth.permissions.Permissions.ALLOWED_TO_EDIT_PROJECT;
 import static com.epam.reportportal.base.auth.permissions.Permissions.ALLOWED_TO_VIEW_PROJECT;
+import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseCriteriaConstant.CRITERIA_TMS_TEST_CASE_REQUIREMENT;
 
 import com.epam.reportportal.base.core.tms.dto.DeleteTagsRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseRQ;
@@ -18,7 +19,9 @@ import com.epam.reportportal.base.core.tms.validation.ValidTestFolderIdForPatchT
 import com.epam.reportportal.base.core.tms.validation.ValidTestFolderIdForUpsertTestCase;
 import com.epam.reportportal.base.infrastructure.persistence.commons.EntityUtils;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
+import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Condition;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
+import com.epam.reportportal.base.infrastructure.persistence.dao.tms.util.TmsRequirementFilterSupport;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCase;
 import com.epam.reportportal.base.model.Page;
 import com.epam.reportportal.base.util.OffsetRequest;
@@ -29,6 +32,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import java.util.List;
@@ -62,6 +66,9 @@ import org.springframework.web.multipart.MultipartFile;
 @RequiredArgsConstructor
 @Valid
 public class TestCaseController {
+
+  private static final String REQUIREMENT_FILTER_PARAM =
+      "filter." + Condition.CNT + CRITERIA_TMS_TEST_CASE_REQUIREMENT;
 
   private final TmsTestCaseService tmsTestCaseService;
 
@@ -114,12 +121,14 @@ public class TestCaseController {
       @PathVariable("projectKey") String projectKey,
       @PagingOffset(sortable = TmsTestCase.class) OffsetRequest offsetRequest,
       @FilterFor(TmsTestCase.class) Filter filter,
+      HttpServletRequest request,
       @AuthenticationPrincipal ReportPortalUser user) {
     return tmsTestCaseService.getTestCasesByCriteria(
         projectExtractor
             .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey))
             .getProjectId(),
-        filter,
+        TmsRequirementFilterSupport.withAnyRequirement(filter, CRITERIA_TMS_TEST_CASE_REQUIREMENT,
+            request.getParameterValues(REQUIREMENT_FILTER_PARAM)),
         offsetRequest);
   }
 

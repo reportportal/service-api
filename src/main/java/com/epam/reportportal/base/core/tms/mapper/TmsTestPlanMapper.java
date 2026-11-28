@@ -2,6 +2,7 @@ package com.epam.reportportal.base.core.tms.mapper;
 
 import com.epam.reportportal.base.core.tms.dto.DuplicateTmsTestPlanRS;
 import com.epam.reportportal.base.core.tms.dto.TmsTestPlanExecutionStatisticRS;
+import com.epam.reportportal.base.core.tms.dto.TmsTestPlanMilestoneRS;
 import com.epam.reportportal.base.core.tms.dto.TmsTestPlanRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestPlanRS;
 import com.epam.reportportal.base.core.tms.dto.batch.BatchTestCaseOperationError;
@@ -40,6 +41,7 @@ public abstract class TmsTestPlanMapper {
 
   @Mapping(target = "attributes", source = "attributes")
   @Mapping(target = "milestoneId", source = "milestone.id")
+  @Mapping(target = "milestone", source = "milestone", qualifiedByName = "milestoneToTestPlanMilestoneRS")
   @Mapping(target = "displayId", source = "displayId")
   public abstract TmsTestPlanRS convertToRS(TmsTestPlan tmsTestPlan);
 
@@ -48,6 +50,8 @@ public abstract class TmsTestPlanMapper {
   @Mapping(target = "description", source = "tmsTestPlan.testPlan.description")
   @Mapping(target = "attributes", source = "tmsTestPlan.testPlan.attributes")
   @Mapping(target = "milestoneId", source = "tmsTestPlan.testPlan.milestone.id")
+  @Mapping(target = "milestone", source = "tmsTestPlan.testPlan.milestone",
+      qualifiedByName = "milestoneToTestPlanMilestoneRS")
   @Mapping(target = "executionStatistic", source = "tmsTestPlan.executionStatistic")
   @Mapping(target = "displayId", source = "tmsTestPlan.testPlan.displayId")
   public abstract TmsTestPlanRS convertTmsTestPlanWithStatisticToRS(
@@ -93,6 +97,23 @@ public abstract class TmsTestPlanMapper {
     var milestone = new TmsMilestone();
     milestone.setId(milestoneId);
     return milestone;
+  }
+
+  /**
+   * Maps the milestone of a test plan to its reference in the test plan response: id and name only.
+   *
+   * @param milestone the milestone of the test plan, may be {@code null}
+   * @return the milestone reference, or {@code null} when the test plan has no milestone
+   */
+  @Named("milestoneToTestPlanMilestoneRS")
+  protected TmsTestPlanMilestoneRS milestoneToTestPlanMilestoneRS(TmsMilestone milestone) {
+    if (milestone == null) {
+      return null;
+    }
+    var milestoneRS = new TmsTestPlanMilestoneRS();
+    milestoneRS.setId(milestone.getId());
+    milestoneRS.setName(milestone.getName());
+    return milestoneRS;
   }
 
   @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.SET_TO_NULL, nullValueCheckStrategy = NullValueCheckStrategy.ON_IMPLICIT_CONVERSION)

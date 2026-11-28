@@ -15,6 +15,7 @@ import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Co
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.FilterCondition;
 import com.epam.reportportal.base.infrastructure.persistence.dao.tms.filterable.TmsTestFolderFilterableRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.tms.util.TmsContentSearchFilterSupport;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestFolder;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestFolderWithCountOfTestCases;
 import java.util.ArrayList;
@@ -44,17 +45,19 @@ public class TmsTestFolderWithTestCaseCountRepository {
 
     var folders = filterableRepository.findByFilter(enhancedFilter, pageable);
     var testCaseFilterParams = extractTestCaseFilterParams(filter);
+    var contentSearchConditions = TmsContentSearchFilterSupport.folderTestCaseConditions(filter);
 
     var result = folders
         .getContent()
         .stream()
         .map(folder -> {
           var testCasesCount = getTestCasesCount(folder.getId(), extractTestPlanId(filter),
-              testCaseFilterParams);
+              testCaseFilterParams, contentSearchConditions);
           return new TmsTestFolderWithCountOfTestCases(folder, testCasesCount);
         })
         .filter(testFolder ->
-            testCaseFilterParams == null || testFolder.getCountOfTestCases() != 0L
+            (testCaseFilterParams == null && contentSearchConditions.isEmpty())
+                || testFolder.getCountOfTestCases() != 0L
         )
         .collect(Collectors.toList());
 
@@ -146,11 +149,14 @@ public class TmsTestFolderWithTestCaseCountRepository {
     }
   }
 
-  private long getTestCasesCount(Long folderId, Long testPlanId, TestCaseFilterParams testCaseFilterParams) {
+  private long getTestCasesCount(Long folderId, Long testPlanId,
+      TestCaseFilterParams testCaseFilterParams,
+      List<org.jooq.Condition> contentSearchConditions) {
     var query = dsl
         .selectCount()
         .from(TMS_TEST_CASE)
-        .where(TMS_TEST_CASE.TEST_FOLDER_ID.eq(folderId));
+        .where(TMS_TEST_CASE.TEST_FOLDER_ID.eq(folderId))
+        .and(DSL.and(contentSearchConditions));
 
     if (testPlanId != null) {
       query = query.and(DSL.exists(

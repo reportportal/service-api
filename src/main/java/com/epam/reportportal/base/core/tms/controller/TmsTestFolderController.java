@@ -2,6 +2,11 @@ package com.epam.reportportal.base.core.tms.controller;
 
 import static com.epam.reportportal.base.auth.permissions.Permissions.ALLOWED_TO_EDIT_PROJECT;
 import static com.epam.reportportal.base.auth.permissions.Permissions.ALLOWED_TO_VIEW_PROJECT;
+import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestFolderCriteriaConstant.CRITERIA_TMS_TEST_FOLDER_TEST_CASE_DESCRIPTION;
+import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestFolderCriteriaConstant.CRITERIA_TMS_TEST_FOLDER_TEST_CASE_EXPECTED_RESULT;
+import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestFolderCriteriaConstant.CRITERIA_TMS_TEST_FOLDER_TEST_CASE_INSTRUCTIONS;
+import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestFolderCriteriaConstant.CRITERIA_TMS_TEST_FOLDER_TEST_CASE_NAME;
+import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestFolderCriteriaConstant.CRITERIA_TMS_TEST_FOLDER_TEST_CASE_PRECONDITION;
 
 import com.epam.reportportal.base.core.tms.dto.DuplicateTmsTestFolderRS;
 import com.epam.reportportal.base.core.tms.dto.TmsTestFolderExportFileType;
@@ -11,6 +16,7 @@ import com.epam.reportportal.base.core.tms.service.TmsTestFolderService;
 import com.epam.reportportal.base.infrastructure.persistence.commons.EntityUtils;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
+import com.epam.reportportal.base.infrastructure.persistence.dao.tms.util.TmsContentSearchFilterSupport;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestFolder;
 import com.epam.reportportal.base.model.Page;
 import com.epam.reportportal.base.util.OffsetRequest;
@@ -24,6 +30,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -230,6 +237,7 @@ public class TmsTestFolderController {
       @Parameter(description = "Project key", required = true)
       @PathVariable("projectKey") String projectKey,
       @FilterFor(TmsTestFolder.class) Filter filter,
+      @Parameter(hidden = true) HttpServletRequest request,
       @AuthenticationPrincipal ReportPortalUser user,
       @Parameter(description = "Pagination parameters")
       @PagingOffset(sortable = TmsTestFolder.class) OffsetRequest offsetRequest) {
@@ -237,7 +245,12 @@ public class TmsTestFolderController {
         projectExtractor
             .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey))
             .getProjectId(),
-        filter,
+        TmsContentSearchFilterSupport.withAllValues(filter, request::getParameterValues,
+            CRITERIA_TMS_TEST_FOLDER_TEST_CASE_NAME,
+            CRITERIA_TMS_TEST_FOLDER_TEST_CASE_DESCRIPTION,
+            CRITERIA_TMS_TEST_FOLDER_TEST_CASE_PRECONDITION,
+            CRITERIA_TMS_TEST_FOLDER_TEST_CASE_INSTRUCTIONS,
+            CRITERIA_TMS_TEST_FOLDER_TEST_CASE_EXPECTED_RESULT),
         offsetRequest
     );
   }

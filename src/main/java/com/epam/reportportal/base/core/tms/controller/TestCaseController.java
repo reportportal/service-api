@@ -2,6 +2,11 @@ package com.epam.reportportal.base.core.tms.controller;
 
 import static com.epam.reportportal.base.auth.permissions.Permissions.ALLOWED_TO_EDIT_PROJECT;
 import static com.epam.reportportal.base.auth.permissions.Permissions.ALLOWED_TO_VIEW_PROJECT;
+import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseCriteriaConstant.CRITERIA_TMS_TEST_CASE_DESCRIPTION;
+import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseCriteriaConstant.CRITERIA_TMS_TEST_CASE_EXPECTED_RESULT;
+import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseCriteriaConstant.CRITERIA_TMS_TEST_CASE_INSTRUCTIONS;
+import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseCriteriaConstant.CRITERIA_TMS_TEST_CASE_NAME;
+import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseCriteriaConstant.CRITERIA_TMS_TEST_CASE_PRECONDITION;
 
 import com.epam.reportportal.base.core.tms.dto.DeleteTagsRQ;
 import com.epam.reportportal.base.core.tms.dto.TmsTestCaseRQ;
@@ -19,6 +24,7 @@ import com.epam.reportportal.base.core.tms.validation.ValidTestFolderIdForUpsert
 import com.epam.reportportal.base.infrastructure.persistence.commons.EntityUtils;
 import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
 import com.epam.reportportal.base.infrastructure.persistence.commons.querygen.Filter;
+import com.epam.reportportal.base.infrastructure.persistence.dao.tms.util.TmsContentSearchFilterSupport;
 import com.epam.reportportal.base.infrastructure.persistence.entity.tms.TmsTestCase;
 import com.epam.reportportal.base.model.Page;
 import com.epam.reportportal.base.util.OffsetRequest;
@@ -26,9 +32,11 @@ import com.epam.reportportal.base.util.ProjectExtractor;
 import com.epam.reportportal.base.ws.resolver.FilterFor;
 import com.epam.reportportal.base.ws.resolver.PagingOffset;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import java.util.List;
@@ -114,12 +122,16 @@ public class TestCaseController {
       @PathVariable("projectKey") String projectKey,
       @PagingOffset(sortable = TmsTestCase.class) OffsetRequest offsetRequest,
       @FilterFor(TmsTestCase.class) Filter filter,
+      @Parameter(hidden = true) HttpServletRequest request,
       @AuthenticationPrincipal ReportPortalUser user) {
     return tmsTestCaseService.getTestCasesByCriteria(
         projectExtractor
             .extractMembershipDetails(user, EntityUtils.normalizeId(projectKey))
             .getProjectId(),
-        filter,
+        TmsContentSearchFilterSupport.withAllValues(filter, request::getParameterValues,
+            CRITERIA_TMS_TEST_CASE_NAME, CRITERIA_TMS_TEST_CASE_DESCRIPTION,
+            CRITERIA_TMS_TEST_CASE_PRECONDITION, CRITERIA_TMS_TEST_CASE_INSTRUCTIONS,
+            CRITERIA_TMS_TEST_CASE_EXPECTED_RESULT),
         offsetRequest);
   }
 

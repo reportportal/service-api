@@ -154,6 +154,9 @@ import static com.epam.reportportal.base.infrastructure.persistence.commons.quer
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseCriteriaConstant.CRITERIA_TMS_TEST_CASE_FOLDER_ID;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseCriteriaConstant.CRITERIA_TMS_TEST_CASE_ID;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseCriteriaConstant.CRITERIA_TMS_TEST_CASE_NAME;
+import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseCriteriaConstant.CRITERIA_TMS_TEST_CASE_EXPECTED_RESULT;
+import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseCriteriaConstant.CRITERIA_TMS_TEST_CASE_INSTRUCTIONS;
+import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseCriteriaConstant.CRITERIA_TMS_TEST_CASE_PRECONDITION;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseCriteriaConstant.CRITERIA_TMS_TEST_CASE_PLAN_ID;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseCriteriaConstant.CRITERIA_TMS_TEST_CASE_PRIORITY;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestCaseCriteriaConstant.CRITERIA_TMS_TEST_CASE_PROJECT_ID;
@@ -177,6 +180,13 @@ import static com.epam.reportportal.base.infrastructure.persistence.commons.quer
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestFolderCriteriaConstant.CRITERIA_TMS_TEST_FOLDER_TEST_CASE_ATTRIBUTES;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestFolderCriteriaConstant.CRITERIA_TMS_TEST_FOLDER_TEST_CASE_ATTRIBUTE_KEY;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestFolderCriteriaConstant.CRITERIA_TMS_TEST_FOLDER_TEST_CASE_NAME;
+import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestFolderCriteriaConstant.CRITERIA_TMS_TEST_FOLDER_TEST_CASE_DESCRIPTION;
+import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestFolderCriteriaConstant.CRITERIA_TMS_TEST_FOLDER_TEST_CASE_EXPECTED_RESULT;
+import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestFolderCriteriaConstant.CRITERIA_TMS_TEST_FOLDER_TEST_CASE_INSTRUCTIONS;
+import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestFolderCriteriaConstant.CRITERIA_TMS_TEST_FOLDER_TEST_CASE_PRECONDITION;
+import static com.epam.reportportal.base.infrastructure.persistence.dao.tms.util.TmsContentSearchFilterSupport.DEFAULT_VERSION_EXPECTED_RESULT;
+import static com.epam.reportportal.base.infrastructure.persistence.dao.tms.util.TmsContentSearchFilterSupport.DEFAULT_VERSION_INSTRUCTIONS;
+import static com.epam.reportportal.base.infrastructure.persistence.dao.tms.util.TmsContentSearchFilterSupport.DEFAULT_VERSION_PRECONDITION;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestFolderCriteriaConstant.CRITERIA_TMS_TEST_FOLDER_TEST_CASE_PRIORITY;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestFolderCriteriaConstant.CRITERIA_TMS_TEST_FOLDER_TEST_PLAN_ID;
 import static com.epam.reportportal.base.infrastructure.persistence.commons.querygen.constant.tms.TmsTestFolderTestItemCriteriaConstant.CHILD_ATTR;
@@ -1961,6 +1971,28 @@ public enum FilterTarget {
                   )
               )
               .withAggregateCriteria(DSL.arrayAggDistinct(TMS_ATTRIBUTE.VALUE).toString())
+              .get(),
+          // Content of the default version; "contains", case-insensitive (EPMRPP-123497)
+          new CriteriaHolderBuilder().newBuilder(
+                  CRITERIA_TMS_TEST_CASE_PRECONDITION,
+                  DEFAULT_VERSION_PRECONDITION,
+                  String.class
+              )
+              .withAllowedConditions(Condition.CONTAINS)
+              .get(),
+          new CriteriaHolderBuilder().newBuilder(
+                  CRITERIA_TMS_TEST_CASE_INSTRUCTIONS,
+                  DEFAULT_VERSION_INSTRUCTIONS,
+                  String.class
+              )
+              .withAllowedConditions(Condition.CONTAINS)
+              .get(),
+          new CriteriaHolderBuilder().newBuilder(
+                  CRITERIA_TMS_TEST_CASE_EXPECTED_RESULT,
+                  DEFAULT_VERSION_EXPECTED_RESULT,
+                  String.class
+              )
+              .withAllowedConditions(Condition.CONTAINS)
               .get()
       )
   ) {
@@ -2119,6 +2151,47 @@ public enum FilterTarget {
               .withAggregateCriteria(
                   DSL.arrayAggDistinct(TMS_ATTRIBUTE.KEY).toString()
               )
+              .get(),
+          // Content of a test case in the folder; "contains", case-insensitive (EPMRPP-123497)
+          new CriteriaHolderBuilder().newBuilder(
+                  CRITERIA_TMS_TEST_FOLDER_TEST_CASE_DESCRIPTION,
+                  TMS_TEST_CASE.DESCRIPTION,
+                  String.class,
+                  Lists.newArrayList(
+                      JoinEntity.of(TMS_TEST_CASE, JoinType.LEFT_OUTER_JOIN,
+                          TMS_TEST_FOLDER.ID.eq(TMS_TEST_CASE.TEST_FOLDER_ID))
+                  ))
+              .withAllowedConditions(Condition.CONTAINS)
+              .get(),
+          new CriteriaHolderBuilder().newBuilder(
+                  CRITERIA_TMS_TEST_FOLDER_TEST_CASE_PRECONDITION,
+                  DEFAULT_VERSION_PRECONDITION,
+                  String.class,
+                  Lists.newArrayList(
+                      JoinEntity.of(TMS_TEST_CASE, JoinType.LEFT_OUTER_JOIN,
+                          TMS_TEST_FOLDER.ID.eq(TMS_TEST_CASE.TEST_FOLDER_ID))
+                  ))
+              .withAllowedConditions(Condition.CONTAINS)
+              .get(),
+          new CriteriaHolderBuilder().newBuilder(
+                  CRITERIA_TMS_TEST_FOLDER_TEST_CASE_INSTRUCTIONS,
+                  DEFAULT_VERSION_INSTRUCTIONS,
+                  String.class,
+                  Lists.newArrayList(
+                      JoinEntity.of(TMS_TEST_CASE, JoinType.LEFT_OUTER_JOIN,
+                          TMS_TEST_FOLDER.ID.eq(TMS_TEST_CASE.TEST_FOLDER_ID))
+                  ))
+              .withAllowedConditions(Condition.CONTAINS)
+              .get(),
+          new CriteriaHolderBuilder().newBuilder(
+                  CRITERIA_TMS_TEST_FOLDER_TEST_CASE_EXPECTED_RESULT,
+                  DEFAULT_VERSION_EXPECTED_RESULT,
+                  String.class,
+                  Lists.newArrayList(
+                      JoinEntity.of(TMS_TEST_CASE, JoinType.LEFT_OUTER_JOIN,
+                          TMS_TEST_FOLDER.ID.eq(TMS_TEST_CASE.TEST_FOLDER_ID))
+                  ))
+              .withAllowedConditions(Condition.CONTAINS)
               .get()
       )
   ) {

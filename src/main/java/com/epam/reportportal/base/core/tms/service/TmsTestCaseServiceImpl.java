@@ -373,7 +373,7 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
   @Transactional
   public void reorder(long projectId, long testFolderId,
       @Valid BatchReorderTestCasesRQ reorderRequest) {
-    if (!tmsTestFolderService.existsById(projectId, testFolderId)) {
+    if (!Boolean.TRUE.equals(tmsTestFolderService.existsById(projectId, testFolderId))) {
       throw new ReportPortalException(
           NOT_FOUND, TEST_FOLDER_NOT_FOUND_BY_ID.formatted(testFolderId, projectId));
     }
@@ -391,7 +391,7 @@ public class TmsTestCaseServiceImpl implements TmsTestCaseService {
     }
     if (movedIds.contains(anchorId)) {
       throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
-          "Test case %d cannot be moved relative to itself".formatted(anchorId));
+          "Test case %s cannot be moved relative to itself".formatted(anchorId));
     }
 
     var currentOrder = tmsTestCaseRepository.findIdsInCustomOrderForUpdate(projectId,
